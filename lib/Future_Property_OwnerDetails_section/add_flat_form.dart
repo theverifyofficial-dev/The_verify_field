@@ -120,7 +120,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   String _number = '';
   String _name = '';
   String _date = '';
-  String _Time = '';
   final _formKey = GlobalKey<FormState>();
   List<String> selectedFacilities=[];
 
@@ -217,7 +216,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   void _generateDateTime() {
     setState(() {
       _date = DateFormat('d-MMMM-yyyy').format(DateTime.now());
-      _Time = DateFormat('h:mm a').format(DateTime.now());
     });
   }
   String worker_address = '';

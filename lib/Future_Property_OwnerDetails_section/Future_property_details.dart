@@ -1557,6 +1557,17 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                               ),
 
 
+                                              SizedBox(height: 6,),
+                                              Text("Parking "+abc.data![len].parking/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                style: TextStyle(
+                                                    fontSize: 13,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w500,
+                                                    letterSpacing: 0.5
+                                                ),
+                                              ),
+
+
                                             ],
                                           ),
                                         ),

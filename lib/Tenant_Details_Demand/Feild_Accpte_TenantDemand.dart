@@ -947,40 +947,40 @@ class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_
                                                 ),
                                               ),
 
-                                              SizedBox(width: 10,),
-
-                                              Container(
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.brown),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.brown.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Column(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //w SizedBox(width: 10,),
-                                                    Text("Demand No = $displayIndex",/*+abc.data![len].Building_Name.toUpperCase()*/
-                                                      style: TextStyle(
-                                                          fontSize: 13,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-
-
                                             ],
+                                          ),
+
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Container(
+                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(5),
+                                              border: Border.all(width: 1, color: Colors.brown),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors.brown.withOpacity(0.5),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 0),
+                                                    blurStyle: BlurStyle.outer
+                                                ),
+                                              ],
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                //w SizedBox(width: 10,),
+                                                Text("Demand No = $displayIndex",/*+abc.data![len].Building_Name.toUpperCase()*/
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w500,
+                                                      letterSpacing: 0.5
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                           SizedBox(
                                             height: 10,

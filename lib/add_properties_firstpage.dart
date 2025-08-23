@@ -2209,6 +2209,57 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     );
   }
 
+  Widget _buildSectionCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity, // 🔥 Forces full width
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        // color: Colors.white,
+        margin: const EdgeInsets.only(bottom: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: _sectionTitleStyle()),
+              const SizedBox(height: 10),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  TextStyle _sectionTitleStyle() {
+    return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Poppins');
+  }
+
+  Widget _buildTextInput(String label, TextEditingController controller, {IconData? icon, TextInputType? keyboardType}) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType, // <--- Add this line
+        // style: const TextStyle(color: Colors.black),
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+          hintStyle: const TextStyle(color: Colors.grey),
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+          filled: true,
+          // fillColor: Colors.grey.shade100,
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
   Widget _buildReadOnlyField({
     required String label,
     required TextEditingController controller,
@@ -2225,7 +2276,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
         // Force revalidation after selecting
         Future.microtask(() => _formKey.currentState?.validate());
       },
-      autovalidateMode: AutovalidateMode.disabled, // ❌ don't show automatically
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -2243,6 +2293,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
               (v) => (v == null || v.trim().isEmpty) ? 'Please select $label' : null,
     );
   }
+
 
 
 

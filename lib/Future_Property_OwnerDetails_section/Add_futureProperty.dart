@@ -714,7 +714,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       child: Card(
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        // color: Colors.white,
         margin: const EdgeInsets.only(bottom: 20),
         child: Padding(
           padding: const EdgeInsets.all(16),

@@ -811,7 +811,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: _buyOrRent == 'Buy' ? "Selling Price (₹)" : "Rent Price (₹)",
-
                   suffix: _formattedPrice.isNotEmpty
                       ? Padding(
                     padding: EdgeInsets.only(right: 8),
@@ -861,7 +860,19 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       ? Colors.grey.shade900
                       : Colors.white,
                 ),
-                validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    return "Enter price";
+                  }
+                  final number = int.tryParse(val);
+                  if (number == null) {
+                    return "Enter a valid number";
+                  }
+                  if (number <= 0) {
+                    return "Price must be greater than 0";
+                  }
+                  return null; // ✅ valid
+                },
               ),
               const SizedBox(height: 16),
               // Asking Price
@@ -903,7 +914,14 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                     ),
                   ),
                 ),
+                validator: (val) {
+                  if (val == null || val.isEmpty) {
+                    return "Enter last price";
+                  }
+                  return null;
+                },
               ),
+
 
               const SizedBox(height: 16),
               //flatNumber
@@ -2091,6 +2109,13 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     );
   }
   void _checkFormAndSubmit() {
+    // 🔴 First validate all fields in the Form
+    if (!_formKey.currentState!.validate()) {
+      // validator inside each field will trigger + red border
+      return;
+    }
+
+    // ✅ If fields are valid, also do your extra check
     final Map<String, dynamic> fields = {
       'Location': _location,
       'Flat Number': _flatNumberController.text,
@@ -2125,8 +2150,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     };
 
     final emptyFields = fields.entries
-        .where((entry) =>
-    entry.value == null || entry.value.toString().trim().isEmpty)
+        .where((entry) => entry.value == null || entry.value.toString().trim().isEmpty)
         .map((e) => e.key)
         .toList();
 
@@ -2142,14 +2166,12 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       return;
     }
 
-    // If all required fields are filled, submit the form
+    // ✅ Submit form finally
     _submitForm();
   }
 
   InputDecoration _buildInputDecoration(BuildContext context, String label) {
-    final isDark = Theme
-        .of(context)
-        .brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InputDecoration(
       labelText: label,
       labelStyle: TextStyle(
@@ -2159,19 +2181,27 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(
-            color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
-            width: 2),
+          color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
+          width: 2,
+        ),
+      ),
+      errorBorder: OutlineInputBorder(   // 🔴 red border when error
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      focusedErrorBorder: OutlineInputBorder(  // 🔴 red border when focused & error
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,
@@ -2185,78 +2215,36 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     required VoidCallback onTap,
     String? Function(String?)? validator,
   }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AbsorbPointer(
-        child: TextFormField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-              color: Theme
-                  .of(context)
-                  .brightness == Brightness.dark
-                  ? Colors.grey.shade300
-                  : Colors.black54,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Theme
-                    .of(context)
-                    .brightness == Brightness.dark
-                    ? Colors.grey.shade700
-                    : Colors.grey.shade300,
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Theme
-                    .of(context)
-                    .brightness == Brightness.dark
-                    ? Colors.grey.shade700
-                    : Colors.grey.shade300,
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: BorderSide(
-                color: Theme
-                    .of(context)
-                    .brightness == Brightness.dark
-                    ? Colors.blue.shade200
-                    : Colors.blue.shade300,
-                width: 2,
-              ),
-            ),
-            contentPadding: const EdgeInsets.symmetric(
-                vertical: 14, horizontal: 14),
-            suffixIcon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
-            filled: true,
-            fillColor: Theme
-                .of(context)
-                .brightness == Brightness.dark
-                ? Colors.grey.shade900
-                : Colors.white,
-          ),
-          style: TextStyle(
-            fontSize: 16,
-            color: Theme
-                .of(context)
-                .brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
-          ),
-          validator: validator,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      onTap: () {
+        onTap();
+        // Force revalidation after selecting
+        Future.microtask(() => _formKey.currentState?.validate());
+      },
+      autovalidateMode: AutovalidateMode.disabled, // ❌ don't show automatically
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
+        ),
+        suffixIcon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
       ),
+      validator: validator ??
+              (v) => (v == null || v.trim().isEmpty) ? 'Please select $label' : null,
     );
   }
+
+
 
   void _showBottomSheet({
     required List<String> options,

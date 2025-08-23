@@ -20,7 +20,7 @@ void main() async {
   await FireBaseApi().initNotifications();
 
 //New Update by Gurdeeep
-  //New Update by Pawan
+  //New Update by Pawan Gupta
 
   // Set initial binding
   TenantBinding();

@@ -1619,15 +1619,10 @@ class _RegisterPropertyState extends State<RegisterProperty> {
               TextFormField(
                 controller: _ownerNameController,
                 decoration: _buildInputDecoration(context, "Owner Name"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter owner name"
-                    : null,
+
               ),
               const SizedBox(height: 16),
-
-
-// Owner Number
+              // Owner Number
               TextFormField(
                 controller: _ownerNumberController,
                 decoration:
@@ -1637,9 +1632,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                   FilteringTextInputFormatter.digitsOnly, // allow only digits
                   LengthLimitingTextInputFormatter(10), // max 10 digits
                 ],
-                validator: (val) => val == null || val.length < 10
-                    ? "Enter valid contact number"
-                    : null,
+
               ),
 
               const SizedBox(height: 16),

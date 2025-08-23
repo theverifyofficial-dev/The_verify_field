@@ -19,7 +19,7 @@ void main() async {
   await Firebase.initializeApp();
   await FireBaseApi().initNotifications();
 
-
+//New Update
   // Set initial binding
   TenantBinding();
 

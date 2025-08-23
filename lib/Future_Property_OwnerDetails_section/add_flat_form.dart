@@ -135,12 +135,11 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       return '${(value / 10000000).toStringAsFixed(2)}Cr';
     } else if (value >= 100000) {
       return '${(value / 100000).toStringAsFixed(2)}L';
-    } else if (value >= 1000) {
-      return '${(value / 1000).toStringAsFixed(2)}k';
     } else {
       return value.toString();
     }
   }
+
   @override
   void initState() {
     super.initState();

@@ -255,12 +255,11 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       return '${(value / 10000000).toStringAsFixed(2)}Cr';
     } else if (value >= 100000) {
       return '${(value / 100000).toStringAsFixed(2)}L';
-    } else if (value >= 1000) {
-      return '${(value / 1000).toStringAsFixed(2)}k';
     } else {
       return value.toString();
     }
   }
+
 
   List<String> allFacilities = ['CCTV Camera', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline "];
   List<String> selectedFacilities = [];

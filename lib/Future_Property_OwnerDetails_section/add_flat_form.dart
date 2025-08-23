@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -303,12 +304,12 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
     // 🔍 Adding fields
     List<MapEntry<String, String>> fields = [
-      MapEntry("owner_name", _Ownername.text.trim()),
+      MapEntry("owner_name", _Ownername.text.trim() ?? ''),
       MapEntry("Balcony", balcony.toString()),
       MapEntry("Flat_number", _FlatNumber.text),
-      MapEntry("owner_number", _Owner_number.text),
-      MapEntry("care_taker_name", _CareTaker_name.text.trim()),
-      MapEntry("care_taker_number", _CareTaker_number.text),
+      MapEntry("owner_number", _Owner_number.text ?? ''),
+      MapEntry("care_taker_name", _CareTaker_name.text.trim() ?? ''),
+      MapEntry("care_taker_number", _CareTaker_number.text ?? ''),
       MapEntry("locations", widget.place),
       MapEntry("Buy_Rent", _selectedItem1 ?? ''),
       MapEntry("Residence_Commercial", widget.Residence_commercial ?? ''),
@@ -1261,10 +1262,10 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                     ],
                   ),
 
-                  _buildTextInput('Caretaker Name', _CareTaker_name),
-                  _buildTextInput('Caretaker Mobile', _CareTaker_number,keyboardType: TextInputType.phone),
-                  _buildTextInput('Owner Name', _Ownername),
-                  _buildTextInput('Owner Mobile', _Owner_number,keyboardType: TextInputType.phone),
+                  buildTextInput('Caretaker Name', _CareTaker_name),
+                  buildTextInput('Caretaker Mobile', _CareTaker_number,keyboardType: TextInputType.phone),
+                  buildTextInput('Owner Name', _Ownername),
+                  buildTextInput('Owner Mobile', _Owner_number,keyboardType: TextInputType.phone),
 
                 ],
               ),
@@ -1367,7 +1368,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle()),
+          child: Text(item, style:  TextStyle(fontSize: 12)),
         ))
             .toList(),
       ),
@@ -1433,6 +1434,37 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
           }
           return null;
         },
+      ),
+    );
+  }
+
+
+  Widget buildTextInput(
+      String label,
+      TextEditingController controller, {
+        IconData? icon,
+        TextInputType? keyboardType,
+        bool validateLength = false, // keep if you still want digit-only & length limiter
+      }) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          filled: true,
+        ),
+        inputFormatters: validateLength
+            ? [
+          FilteringTextInputFormatter.digitsOnly, // only digits
+          LengthLimitingTextInputFormatter(10),   // max 10 digits
+        ]
+            : [],
       ),
     );
   }

@@ -185,10 +185,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     ));
     // Text Fields
     formData.fields.addAll([
-      MapEntry("ownername", _Ownername.text),
-      MapEntry("ownernumber", _Owner_number.text),
-      MapEntry("caretakername", _CareTaker_name.text),
-      MapEntry("caretakernumber", _CareTaker_number.text),
+      MapEntry("ownername", _Ownername.text ?? ''),
+      MapEntry("ownernumber", _Owner_number.text ?? ''),
+      MapEntry("caretakername", _CareTaker_name.text ?? ''),
+      MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
       MapEntry("typeofproperty", _typeofproperty ?? ''),
@@ -460,9 +460,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
               const SizedBox(height: 10),
 
-              _buildTextInput('Owner Name', _Ownername,),
+              buildTextInput('Owner Name', _Ownername,),
               buildTextInput('Owner No.', _Owner_number, keyboardType: TextInputType.phone, validateLength: true),
-              _buildTextInput('CareTaker Name', _CareTaker_name,),
+              buildTextInput('CareTaker Name', _CareTaker_name,),
               buildTextInput('CareTaker No.', _CareTaker_number,keyboardType: TextInputType.phone,validateLength: true),
 
 
@@ -755,29 +755,25 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-
   Widget buildTextInput(
       String label,
       TextEditingController controller, {
         IconData? icon,
         TextInputType? keyboardType,
-        bool validateLength = false, // new flag to enable length validation
+        bool validateLength = false, // keep if you still want digit-only & length limiter
       }) {
     return _buildSectionCard(
       title: label,
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        // style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           hintText: 'Enter $label',
-          // hintStyle: const TextStyle(color: Colors.grey),
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           filled: true,
-          // fillColor: Colors.grey.shade100,
         ),
         inputFormatters: validateLength
             ? [
@@ -785,30 +781,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           LengthLimitingTextInputFormatter(10),   // max 10 digits
         ]
             : [],
-        validator: (value) {
-          if (validateLength) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter $label';
-            }
-            if (value.length != 10) {
-              return 'Number must be exactly 10 digits';
-            }
-            return null;
-          } else {
-            if (value == null || value.trim().isEmpty) {
-              return 'Please enter $label';
-            }
-            return null;
-          }
-        },
       ),
     );
   }
-
-
-
-
-
 
   Widget _buildDropdownRow(
       String label,
@@ -834,7 +809,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle(fontSize: 12)),
+          child: Text(item, style:  TextStyle(fontSize: 10)),
         ))
             .toList(),
       ),

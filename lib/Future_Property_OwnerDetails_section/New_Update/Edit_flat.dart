@@ -127,15 +127,6 @@ class EditFlatState extends State<EditFlat> {
         _formattedAskingPrice = number != null ? formatPrice(number) : '';
       });
     });
-    // Initialize furnishing & furnitureController based on your saved/fetched data:
-    // if (_furnishing != null &&
-    //     (_furnishing == 'Fully Furnished' || _furnishing == 'Semi Furnished')) {
-    //   _selectedFurniture = parseFurnitureString(furnitureController.text);
-    // }
-    // else {
-    //   _selectedFurniture.clear();
-    //   furnitureController.clear();
-    // }
   }
 
   DateTime uploadDate = DateTime.now();
@@ -234,9 +225,9 @@ class EditFlatState extends State<EditFlat> {
       ),
       MapEntry("registry_and_gpa", _registry.toString()),
       MapEntry("loan", _loan.toString()),
-      MapEntry("show_Price", _formattedPrice),
-      MapEntry("Last_Price", _formattedLastPrice),
-      MapEntry("asking_price", _formattedAskingPrice),
+      MapEntry("show_Price", _showPrice.text.replaceAll(',', '').trim()),
+      MapEntry("Last_Price", _lastPrice.text.replaceAll(',', '').trim()),
+      MapEntry("asking_price", _askingPrice.text.replaceAll(',', '').trim()),
       MapEntry("meter", _meter.text),
       MapEntry("subid", widget.id),
     ];
@@ -1321,7 +1312,7 @@ class EditFlatState extends State<EditFlat> {
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle(/*color: Colors.grey.shade800*/)),
+          child: Text(item, style:  TextStyle(fontSize: 12)),
         ))
             .toList(),
       ),
@@ -1666,7 +1657,6 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-
       child: Container(
         color: Colors.white,
         child: Padding(

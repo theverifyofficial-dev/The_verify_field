@@ -171,7 +171,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       _fieldWorkerNumberController.text = savedNumber;
     });
   }
-  @override
+  bool _hasError = false; // ✅ add this
   @override
   void initState() {
     super.initState();
@@ -259,6 +259,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       return value.toString();
     }
   }
+  final Map<String, bool> _fieldErrors = {};
 
 
   List<String> allFacilities = ['CCTV Camera', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline "];
@@ -429,6 +430,8 @@ class _RegisterPropertyState extends State<RegisterProperty> {
         padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction, // 🔥 shows errors when user types
+
           child: ListView(
             shrinkWrap: true,
             scrollDirection: Axis.vertical,
@@ -811,6 +814,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: _buyOrRent == 'Buy' ? "Selling Price (₹)" : "Rent Price (₹)",
+
                   suffix: _formattedPrice.isNotEmpty
                       ? Padding(
                     padding: EdgeInsets.only(right: 8),
@@ -831,54 +835,69 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         ? Colors.grey.shade300
                         : Colors.black54,
                   ),
+
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
+                    ),
                   ),
+
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey.shade700
+                          : Colors.grey.shade300,
+                    ),
                   ),
+
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: BorderSide(
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.blue.shade200
-                            : Colors.blue.shade300,
-                        width: 2),
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.blue.shade200
+                          : Colors.blue.shade300,
+                      width: 2,
+                    ),
                   ),
-                  contentPadding:
-                  const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+
+                  // 🔴 Border when validation fails
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
+
+                  // 🔴 Border when validation fails & field is focused
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
+
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.dark
                       ? Colors.grey.shade900
                       : Colors.white,
                 ),
-                validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return "Enter price";
-                  }
-                  final number = int.tryParse(val);
-                  if (number == null) {
-                    return "Enter a valid number";
-                  }
-                  if (number <= 0) {
-                    return "Price must be greater than 0";
-                  }
-                  return null; // ✅ valid
-                },
+                validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
               ),
               const SizedBox(height: 16),
               // Asking Price
               TextFormField(
                 controller: _askingPriceController,
                 keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return "Please enter asking price";
+                  }
+                  if (double.tryParse(value) == null) {
+                    return "Enter a valid number";
+                  }
+                  return null;
+                },
                 decoration: _buildInputDecoration(
                   context,
                   "Asking Price (₹) by owner",
@@ -886,12 +905,28 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 8.0),
                     child: Text(
-                      _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
+                      _formattedAskingPrice ?? '',
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.grey.shade400), // normal border
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.red, width: 2), // 🔴 red border
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderSide: const BorderSide(color: Colors.red, width: 2), // 🔴 red when focused
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -913,15 +948,34 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       fontWeight: FontWeight.w600,
                     ),
                   ),
+                  errorStyle: const TextStyle(color: Colors.red), // Red error text
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.grey.shade400),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.blue),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: const BorderSide(color: Colors.red, width: 2),
+                  ),
                 ),
-                validator: (val) {
-                  if (val == null || val.isEmpty) {
-                    return "Enter last price";
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Last Price is required';
+                  }
+                  if (double.tryParse(value) == null) {
+                    return 'Enter a valid number';
                   }
                   return null;
                 },
               ),
-
 
               const SizedBox(height: 16),
               //flatNumber
@@ -1212,7 +1266,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                   /// Custom maintenance fee field
                   if (_maintenance == 'Custom')
 
-                  Expanded(
+                    Expanded(
                       child: Padding(
                         padding: const EdgeInsets.only(left: 16.0),
                         child: TextFormField(
@@ -1577,7 +1631,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
               TextFormField(
                 controller: _ownerNumberController,
                 decoration:
-                    _buildInputDecoration(context, "Owner Contact Number"),
+                _buildInputDecoration(context, "Owner Contact Number"),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly, // allow only digits
@@ -1645,7 +1699,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                     ),
                   ),
                 ),
-               const SizedBox(height: 16),
+              const SizedBox(height: 16),
               Wrap(
                 crossAxisAlignment: WrapCrossAlignment.center,
                 spacing: 10,
@@ -1722,39 +1776,39 @@ class _RegisterPropertyState extends State<RegisterProperty> {
               ),
               const SizedBox(height: 16),
               Row(
-                    children: [
-                      const Text(
-                        "Lift :",
-                        style: TextStyle(
-                            fontSize: 15, fontWeight: FontWeight.w600),
-                      ),
-                      const SizedBox(width: 20),
-                      ChoiceChip(
-                        label: const Text("Yes"),
-                        labelStyle: TextStyle(
-                          color: _lift == 'Yes' ? Colors.white : Colors
-                              .black87,
-                        ),
-                        selectedColor: Colors.blueAccent,
-                        backgroundColor: Colors.grey.shade200,
-                        selected: _lift == 'Yes',
-                        onSelected: (_) => setState(() => _lift = 'Yes'),
-                      ),
-                      const SizedBox(width: 10),
-                      ChoiceChip(
-                        label: const Text("No"),
-                        labelStyle: TextStyle(
-                          color: _lift == 'No' ? Colors.white : Colors
-                              .black87,
-                        ),
-                        selectedColor: Colors.blueAccent,
-                        backgroundColor: Colors.grey.shade200,
-                        selected: _lift == 'No',
-                        onSelected: (_) =>
-                            setState(() => _lift = 'No'),
-                      ),
-                    ],
+                children: [
+                  const Text(
+                    "Lift :",
+                    style: TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.w600),
                   ),
+                  const SizedBox(width: 20),
+                  ChoiceChip(
+                    label: const Text("Yes"),
+                    labelStyle: TextStyle(
+                      color: _lift == 'Yes' ? Colors.white : Colors
+                          .black87,
+                    ),
+                    selectedColor: Colors.blueAccent,
+                    backgroundColor: Colors.grey.shade200,
+                    selected: _lift == 'Yes',
+                    onSelected: (_) => setState(() => _lift = 'Yes'),
+                  ),
+                  const SizedBox(width: 10),
+                  ChoiceChip(
+                    label: const Text("No"),
+                    labelStyle: TextStyle(
+                      color: _lift == 'No' ? Colors.white : Colors
+                          .black87,
+                    ),
+                    selectedColor: Colors.blueAccent,
+                    backgroundColor: Colors.grey.shade200,
+                    selected: _lift == 'No',
+                    onSelected: (_) =>
+                        setState(() => _lift = 'No'),
+                  ),
+                ],
+              ),
               const SizedBox(height: 16),
 
 
@@ -1800,9 +1854,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                   FilteringTextInputFormatter.digitsOnly, // allow only digits
                   LengthLimitingTextInputFormatter(10), // max 10 digits
                 ],
-                validator: (val) => val == null || val.length < 10
-                    ? "Enter valid contact number"
-                    : null,
+
               ),
 
               const SizedBox(height: 16),
@@ -2088,15 +2140,25 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  backgroundColor: Colors.red,
+                  backgroundColor: Colors.red, // always red
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: Colors.grey.shade300,
                 ),
-                child: const Text(
+                child: _isSubmitting
+                    ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+                    : const Text(
                   "Submit",
                   style: TextStyle(
                     fontSize: 16,
                     fontFamily: "Poppins",
                     fontWeight: FontWeight.bold,
-                    color: Colors.white,
                   ),
                 ),
               ),
@@ -2109,13 +2171,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     );
   }
   void _checkFormAndSubmit() {
-    // 🔴 First validate all fields in the Form
-    if (!_formKey.currentState!.validate()) {
-      // validator inside each field will trigger + red border
-      return;
-    }
-
-    // ✅ If fields are valid, also do your extra check
     final Map<String, dynamic> fields = {
       'Location': _location,
       'Flat Number': _flatNumberController.text,
@@ -2149,12 +2204,26 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       'Main Image': _imageFile?.path,
     };
 
+    // 🔴 Reset old errors
+    setState(() {
+      _fieldErrors.clear();
+    });
+
+    // Find empty fields
     final emptyFields = fields.entries
         .where((entry) => entry.value == null || entry.value.toString().trim().isEmpty)
         .map((e) => e.key)
         .toList();
 
     if (emptyFields.isNotEmpty) {
+      // Mark errors
+      setState(() {
+        for (var field in emptyFields) {
+          _fieldErrors[field] = true;
+        }
+      });
+
+      // Show toast
       Fluttertoast.showToast(
         msg: "Please fill out: ${emptyFields.join(', ')}",
         toastLength: Toast.LENGTH_LONG,
@@ -2166,7 +2235,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       return;
     }
 
-    // ✅ Submit form finally
+    // ✅ No errors → submit
     _submitForm();
   }
 
@@ -2181,82 +2250,34 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(
+            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(
-          color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
-        ),
+            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(
-          color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
-          width: 2,
-        ),
+            color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
+            width: 2),
       ),
-      errorBorder: OutlineInputBorder(   // 🔴 red border when error
+
+      // 🔴 Add these two
+      errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
-      focusedErrorBorder: OutlineInputBorder(  // 🔴 red border when focused & error
+      focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
+
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,
       fillColor: isDark ? Colors.grey.shade900 : Colors.white,
-    );
-  }
-
-  Widget _buildSectionCard({required String title, required Widget child}) {
-    return Container(
-      width: double.infinity, // 🔥 Forces full width
-      child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        // color: Colors.white,
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: _sectionTitleStyle()),
-              const SizedBox(height: 10),
-              child,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-  TextStyle _sectionTitleStyle() {
-    return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Poppins');
-  }
-
-  Widget _buildTextInput(String label, TextEditingController controller, {IconData? icon, TextInputType? keyboardType}) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType, // <--- Add this line
-        // style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          hintText: 'Enter $label',
-          hintStyle: const TextStyle(color: Colors.grey),
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-          filled: true,
-          // fillColor: Colors.grey.shade100,
-        ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
-      ),
     );
   }
 
@@ -2268,33 +2289,67 @@ class _RegisterPropertyState extends State<RegisterProperty> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return TextFormField(
-      controller: controller,
-      readOnly: true,
-      onTap: () {
-        onTap();
-        // Force revalidation after selecting
-        Future.microtask(() => _formKey.currentState?.validate());
-      },
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
+    return GestureDetector(
+      onTap: onTap,
+      child: AbsorbPointer(
+        child: TextFormField(
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: label,
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 15,
+              color: isDark ? Colors.grey.shade300 : Colors.black54,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
+                width: 2,
+              ),
+            ),
+
+            // 🔴 Added for validation error
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
+            ),
+
+            contentPadding: const EdgeInsets.symmetric(
+              vertical: 14,
+              horizontal: 14,
+            ),
+            suffixIcon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            filled: true,
+            fillColor: isDark ? Colors.grey.shade900 : Colors.white,
+          ),
+          style: TextStyle(
+            fontSize: 16,
+            color: isDark ? Colors.white : Colors.black,
+          ),
+          validator: validator,
         ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
-        ),
-        suffixIcon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
       ),
-      validator: validator ??
-              (v) => (v == null || v.trim().isEmpty) ? 'Please select $label' : null,
     );
   }
-
-
 
 
   void _showBottomSheet({
@@ -2681,16 +2736,16 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     );
   }
 
-    Future<Map<String, String>> getSavedLatLong() async {
-      final prefs = await SharedPreferences.getInstance();
-      final lat = prefs.getDouble('latitude')?.toString() ?? '';
-      final long = prefs.getDouble('longitude')?.toString() ?? '';
-      return {
-        'Latitude': lat,
-        'Longitude': long,
-      };
-    }
+  Future<Map<String, String>> getSavedLatLong() async {
+    final prefs = await SharedPreferences.getInstance();
+    final lat = prefs.getDouble('latitude')?.toString() ?? '';
+    final long = prefs.getDouble('longitude')?.toString() ?? '';
+    return {
+      'Latitude': lat,
+      'Longitude': long,
+    };
   }
+}
 class _FacilityBottomSheet extends StatefulWidget {
   final List<String> options;
   final List<String> selected;

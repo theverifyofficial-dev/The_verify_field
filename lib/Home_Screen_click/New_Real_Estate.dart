@@ -423,36 +423,35 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
           ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: ['Rent', 'Buy', 'Commercial'].map((label) {
-                final bool isSelected = label == selectedLabel;
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: ['Rent', 'Buy', 'Commercial'].map((label) {
+                  final bool isSelected = label == selectedLabel;
 
-                return Expanded(
-                  child: Padding(
+                  return Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 4),
                     child: ElevatedButton(
                       onPressed: () => _setSearchText(label, label),
-                      child: Text(label,style: TextStyle(
-                          color: isSelected
-                              ? Colors.white  // Always white when selected
-                              : Colors.black,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
                           fontFamily: "Poppins",
                           fontSize: 12,
-                          fontWeight: FontWeight.w600
-                      ),),
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        // color:
-                        isSelected ? Colors.blue : Colors.grey.shade300,
-
-                        // Theme.of(context).brightness==Brightness.dark?Colors.white12:Colors.black26,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        backgroundColor: isSelected ? Colors.blue : Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
           ),
           if (propertyCount > 0 && _isSearchActive)
@@ -607,7 +606,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                         child: Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-
+// SizedBox(width: 10,),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                               decoration: BoxDecoration(
@@ -624,7 +623,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               ),
                                             ),
                                             SizedBox(
-                                              width: MediaQuery.of(context).size.width * 0.70, // 75% of screen width
+                                              width: MediaQuery.of(context).size.width * 0.60, // 75% of screen width
                                             ),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),

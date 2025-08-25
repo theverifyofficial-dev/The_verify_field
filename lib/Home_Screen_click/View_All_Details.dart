@@ -716,7 +716,7 @@ class _View_DetailsState extends State<View_Details> {
                           _DetailRow(
                             icon: Icons.chair,
                             title: "Furnishing",
-                            value: "${property.furnishing}",
+                            value: "${property.furnishing},${property.apartmentAddress}",
                             color: Colors.brown,
                             isDarkMode: isDarkMode,
                           ),
@@ -1357,7 +1357,7 @@ class _BottomActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.all(8.0),
+        padding: const EdgeInsets.only(bottom: 30.0,top: 5,left: 8,right: 8),
         child: Row(
           children: [
 
@@ -1417,6 +1417,7 @@ class _BottomActionBar extends StatelessWidget {
                 ),
               ),
             ),
+
           ],
         ),
       ),

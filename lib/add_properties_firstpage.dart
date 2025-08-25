@@ -12,15 +12,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/provider/Theme_provider.dart';
-import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
-import 'package:verify_feild_worker/provider/multile_image_upload_provider.dart';
-import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
-import 'Home_Screen_click/Add_multi_image_in_Realestate.dart';
 import 'constant.dart';
 
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+// final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class RegisterProperty extends StatefulWidget {
 
@@ -430,7 +425,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
         padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
         child: Form(
           key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction, // 🔥 shows errors when user types
+          autovalidateMode: AutovalidateMode.onUserInteraction,
 
           child: ListView(
             shrinkWrap: true,
@@ -1629,20 +1624,15 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                 _buildInputDecoration(context, "Owner Contact Number"),
                 keyboardType: TextInputType.phone,
                 inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly, // allow only digits
-                  LengthLimitingTextInputFormatter(10), // max 10 digits
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
                 ],
 
               ),
 
               const SizedBox(height: 16),
 
-
-
-
-
-
-              // // Tarrish Garden
+              // Tarrish Garden
               // TextFormField(
               //   controller: _terraceGardenController,
               //   decoration: _buildInputDecoration(
@@ -2457,16 +2447,36 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       request.fields['live_unlive'] = 'Flat';
       request.fields['lift'] = _lift ?? '';
       request.fields['Facility'] = _facilityController.text;
-      if (_furnishing == 'Semi Furnished' || _furnishing == 'Fully Furnished') {
-        final furnitureList = _selectedFurniture.entries
-            .map((e) => '${e.key}(${e.value})')
-            .join(', ');
-
-        request.fields['furnished_unfurnished'] =
-        furnitureList.isNotEmpty ? furnitureList : _furnishing!;
-      } else {
-        request.fields['furnished_unfurnished'] = _furnishing ?? '';
+// Map UI value -> backend value (change to 'Semi Furnished' / 'Fully Furnished' if your API wants full labels)
+      String _furnishingForBackend(String? val) {
+        switch (val) {
+          case 'Semi Furnished':  return 'Semi Furnished';
+          case 'Fully Furnished': return 'Fully Furnished';
+          default:                return 'Unfurnished';
+        }
       }
+
+      final bool isFurnished = _furnishing == 'Semi Furnished' || _furnishing == 'Fully Furnished';
+
+// Build "Fan (1), Light (2)" string (only items with qty > 0)
+      final String furnitureList = (_selectedFurniture.entries)
+          .where((e) => (e.value) > 0)
+          .map((e) => '${e.key} (${e.value})')
+          .join(', ')
+          .trim();
+
+// Always send clean furnished flag
+      request.fields['furnished_unfurnished'] = _furnishingForBackend(_furnishing);
+
+// Send furniture details (or "No Furniture" to avoid NULL)
+      request.fields['Apartment_name'] = isFurnished
+          ? (furnitureList.isNotEmpty ? furnitureList : 'No Furniture')
+          : 'No Furniture';
+
+// (Optional) debug logs to see exactly what's going out:
+      print('=> furnished_unfurnished: ${request.fields['furnished_unfurnished']}');
+      print('=> Apartment_name: ${request.fields['Apartment_name']}');
+
       request.fields['field_warkar_name'] = name!;
       request.fields['field_workar_number'] = number!;
       request.fields['care_taker_name'] = _careTakerNameController.text;

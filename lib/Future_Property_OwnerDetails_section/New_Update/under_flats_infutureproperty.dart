@@ -1688,7 +1688,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 ),
                                                 SizedBox(
                                                   width: 300,
-                                                  child: Text(""+abc.data![len].availableDate,
+                                                  child: Text(""+abc.data![len].currentDates,
                                                     overflow: TextOverflow.ellipsis,
                                                     maxLines: 2,
                                                     style: TextStyle(

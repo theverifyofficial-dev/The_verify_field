@@ -103,15 +103,14 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   String _formattedAskingPrice = '';
   String _formattedLastPrice = '';
 
-  final List<String> _items = ['SultanPur','Manglapuri'];
   final List<String> bhkOptions = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial'];
   final List<String> furnishingOptions = [
     'Fully Furnished',
     'Semi Furnished',
     'Unfurnished',
   ];
-  final List<String> _yesNo = ['Yes', 'No'];
-  String? _lift,_furnished, _registry, _loan;
+
+  String? _furnished, _registry, _loan;
   String? Place_,bhk,parking,balcony,kitchen,bathroom;
   DateTime? _availableDate;
   File? _imageFile;
@@ -120,16 +119,22 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   String lat = '';
   String _number = '';
   String _name = '';
-  String _date = '';
   final _formKey = GlobalKey<FormState>();
   List<String> selectedFacilities=[];
 
   Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
 
 
-  DateTime now = DateTime.now();
 
+
+
+
+
+  // this is for image compressor
+  DateTime now = DateTime.now();
   late String formattedDate;
+
+
   String formatPrice(int value) {
     if (value >= 10000000) {
       return '${(value / 10000000).toStringAsFixed(2)}Cr';
@@ -145,7 +150,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
     super.initState();
     _loaduserdata();
     _getCurrentLocation();
-    _generateDateTime();
     _showPrice.addListener(() {
       final input = _showPrice.text.replaceAll(',', '').trim();
       final number = int.tryParse(input);
@@ -214,15 +218,9 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
     }
   }
 
-  void _generateDateTime() {
-    setState(() {
-      _date = DateFormat('d-MMMM-yyyy').format(DateTime.now());
-    });
-  }
   String worker_address = '';
 
 
-  DateTime uploadDate = DateTime.now();
 
   get _RestorationId => null;
 
@@ -281,6 +279,19 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   final List<String> yesNoOptions = ['Yes', 'No'];
 
   Future<void> uploadImageWithTitle(File imageFile) async {
+
+    // this is for API current date & available date
+    final DateFormat dateOnlyFormatter = DateFormat('yyyy-MM-dd');
+    final DateFormat dateTimeFormatter = DateFormat('yyyy-MM-dd HH:mm:ss');
+
+    String availableDate = _availableDate != null
+        ? dateOnlyFormatter.format(_availableDate!)
+        : '';
+
+    // Current Date
+    String currentDateTime = dateTimeFormatter.format(DateTime.now());
+
+
     String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php';
     print('🚀 Starting upload to: $uploadUrl');
 
@@ -327,8 +338,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("age_of_property", widget.age_property),
       MapEntry("field_warkar_name", _name),
       MapEntry("field_workar_number", _number),
-      MapEntry("current_dates", uploadDate.toIso8601String()),
-      MapEntry("available_date", _availableDate.toString()),
+      MapEntry("current_dates", currentDateTime),
+      MapEntry("available_date", availableDate),
       MapEntry("Longitude", _Longitude.text),
       MapEntry("Latitude", _Latitude.text),
       MapEntry("kitchen", kitchen.toString()),
@@ -536,7 +547,9 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
     final List<String> furnitureItems = [
       'Fan',
       'Light',
-      'Almira',
+      'Refrigerator',
+      'Washing Machine',
+      'Wardrobe',
       'AC',
       'Modular Kitchen',
       'Chimney',
@@ -1255,9 +1268,9 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                       // Show custom input if 'Custom' is selected
                       if (_houseMeter == 'Custom')
                         _blueTextInput(
-                          'Enter Custom Meter Type',
+                          'Enter Meter amount per Unit',
                           _meter,
-                          keyboardType: TextInputType.text,
+                          keyboardType: TextInputType.number,
                         ),
                     ],
                   ),

@@ -889,6 +889,39 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                       children: [
                                                         // Icon(Iconsax.sort_copy,size: 15,),
                                                         //w SizedBox(width: 10,),
+                                                        Text(""+abc.data![len].residenceCommercial/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                          style: TextStyle(
+                                                              fontSize: 13,
+                                                              color: Colors.black,
+                                                              fontWeight: FontWeight.w500,
+                                                              letterSpacing: 0.5
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 10,),
+
+
+                                                  Container(
+                                                    padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                    decoration: BoxDecoration(
+                                                      borderRadius: BorderRadius.circular(5),
+                                                      border: Border.all(width: 1, color: Colors.green),
+                                                      boxShadow: [
+                                                        BoxShadow(
+                                                            color: Colors.green.withOpacity(0.5),
+                                                            blurRadius: 10,
+                                                            offset: Offset(0, 0),
+                                                            blurStyle: BlurStyle.outer
+                                                        ),
+                                                      ],
+                                                    ),
+
+                                                    child: Row(
+                                                      children: [
+                                                        // Icon(Iconsax.sort_copy,size: 15,),
+                                                        //w SizedBox(width: 10,),
                                                         Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                           style: TextStyle(
                                                               fontSize: 13,
@@ -901,7 +934,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                     ),
                                                   ),
                                                   SizedBox(
-                                                    width: 120,
+                                                    width: 40,
                                                   ),
                                                   Text("Id : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                     style: TextStyle(
@@ -922,7 +955,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                 children: [
                                                   Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
                                                   SizedBox(width: 2,),
-                                                  Text("Owner Name | Owner Number",
+                                                  Text("Owner Name | Owner Number | Owner Vehicle Number",
                                                     overflow: TextOverflow.ellipsis,
                                                     maxLines: 2,
                                                     style: TextStyle(
@@ -941,8 +974,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                   SizedBox(
                                                     width: 5,
                                                   ),
-                                                  Row(
-                                                    children: [
+
                                                       Container(
                                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                         decoration: BoxDecoration(
@@ -972,13 +1004,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ],
                                                         ),
                                                       ),
-                                                    ],
-                                                  ),
-
                                                   SizedBox(
-                                                    width: 10,
+                                                    width: 5,
                                                   ),
-
                                                   Row(
                                                     children: [
                                                       GestureDetector(
@@ -1119,6 +1147,37 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ),
                                                             ],
                                                           ),
+                                                        ),
+                                                      ),
+
+                                                      SizedBox(width: 5,),
+                                                      Container(
+                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                        decoration: BoxDecoration(
+                                                          borderRadius: BorderRadius.circular(5),
+                                                          border: Border.all(width: 1, color: Colors.green),
+                                                          boxShadow: [
+                                                            BoxShadow(
+                                                                color: Colors.green.withOpacity(0.5),
+                                                                blurRadius: 10,
+                                                                offset: Offset(0, 0),
+                                                                blurStyle: BlurStyle.outer
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        child: Row(
+                                                          children: [
+                                                            // Icon(Iconsax.sort_copy,size: 15,),
+                                                            //w SizedBox(width: 10,),
+                                                            Text(""+abc.data![len].ownerVehicleNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: TextStyle(
+                                                                  fontSize: 13,
+                                                                  color: Colors.black,
+                                                                  fontWeight: FontWeight.w500,
+                                                                  letterSpacing: 0.5
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ],
@@ -4682,6 +4741,46 @@ print(abc.data![len].subid);
 
                     onPressed: () {
                       final data = catidList[len];
+                      if (data.roadSize.isEmpty ||
+                          data.metroName.isEmpty ||
+                          data.metroDistance.isEmpty ||
+                          data.mainMarketDistance.isEmpty ||
+                          data.ageOfProperty.isEmpty ||
+                          data.lift.isEmpty ||
+                          data.parking.isEmpty) {
+                        // Show red snackbar warning
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "⚠ Please update property details before adding flats.",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            duration: Duration(seconds: 10), // longer visibility
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return; // stop navigation
+                      }
+
+                      // ScaffoldMessenger.of(context).showSnackBar(
+                      //   const SnackBar(
+                      //     content: Text(
+                      //       "✔ ALL Building details are updated",
+                      //       style: TextStyle(
+                      //         color: Colors.white,
+                      //         fontWeight: FontWeight.bold,
+                      //       ),
+                      //     ),
+                      //     duration: Duration(seconds: 3), // longer visibility
+                      //     backgroundColor: Colors.green,
+                      //     behavior: SnackBarBehavior.floating,
+                      //   ),
+                      // );
+
                       print('id: ${widget.idd}');
                       print('Owner_name: ${data.ownerName}');
                       print('Owner_num: ${data.ownerNumber}');
@@ -4730,7 +4829,7 @@ print(abc.data![len].subid);
                     },
                     child: const Text(
                       'Add Flats',
-                      style: TextStyle(fontSize: 15),
+                      style: TextStyle(fontSize: 15,color: Colors.white),
                     ),
                   );
                 },

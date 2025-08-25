@@ -307,13 +307,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(PhosphorIcons.image, color: Colors.white, size: 30),
-            onPressed: () {},
-          ),
-          const SizedBox(width: 10),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -460,10 +453,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
               const SizedBox(height: 10),
 
-              buildTextInput('Owner Name', _Ownername,),
-              buildTextInput('Owner No.', _Owner_number, keyboardType: TextInputType.phone, validateLength: true),
-              buildTextInput('CareTaker Name', _CareTaker_name,),
-              buildTextInput('CareTaker No.', _CareTaker_number,keyboardType: TextInputType.phone,validateLength: true),
+              buildTextInput('Owner Name (Optional)', _Ownername,),
+              buildTextInput('Owner No. (Optional)', _Owner_number, keyboardType: TextInputType.phone, validateLength: true),
+              buildTextInput('CareTaker Name (Optional)', _CareTaker_name,),
+              buildTextInput('CareTaker No. (Optional)', _CareTaker_number,keyboardType: TextInputType.phone,validateLength: true),
 
 
               _buildTextInput('Property Name & Address', _address),
@@ -478,7 +471,32 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     hintStyle: const TextStyle(color: Colors.grey),
                     border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                     filled: true,
-                    // fillColor: Colors.grey.shade100,
+
+                    // ✅ Error text style
+                    errorStyle: const TextStyle(
+                      color: Colors.redAccent, // deep red text
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+                    // ✅ Error border (deep red)
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2,
+                      ),
+                    ),
+
+                    // ✅ Focused border when error
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2,
+                      ),
+                    ),
+
                   ),
                    validator: (val) =>
                     val == null || val.isEmpty
@@ -584,7 +602,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               ),
 
               _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
-              UpperCase(  'Owner Vehicle Number', _vehicleno, keyboardType: TextInputType.text, toUpperCase: true,),
+              UpperCase(  'Owner Vehicle Number (Optional)', _vehicleno, keyboardType: TextInputType.text, toUpperCase: true,),
 
               _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
               const SizedBox(height: 8),
@@ -743,7 +761,31 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
           filled: true,
+          // ✅ Error text style (deep red)
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deeper red text
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent, // deep red border
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when still error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent, // deep red border when focused
+              width: 2,
+            ),
           // fillColor: Colors.grey.shade100,
+        ),
         ),
         validator: (value) {
           if (value == null || value.trim().isEmpty) {
@@ -801,8 +843,38 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         decoration: InputDecoration(
           filled: true,
           // fillColor: Colors.grey.shade200,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)
+
+          ),
+
+
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
         ),
+
+
         // style: const TextStyle(color: Colors.grey),
         icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
         onChanged: onChanged,

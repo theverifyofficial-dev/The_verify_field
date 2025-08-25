@@ -244,7 +244,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri',''];
 
   String? _selectedItem1;
-  final List<String> _items1 = ['Buy','Rent'];
+  final List<String> _items1 = ['Buy','Rent',''];
 
   List<String> name = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial SP',''];
 
@@ -275,6 +275,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     super.initState();
     autofillFormFields();
     _loadSavedLatLong();
+
 
     Future.microtask(() async {
       final provider = Provider.of<PropertyIdProvider>(context, listen: false);
@@ -311,7 +312,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _selectedItem1 = data.buyRent;
         apartment_name.text = data.apartmentName;
         _vehicleno.text = data.ownerVehicleNumber;
-        _address.text = data.yourAddress;
+        _address.text = data.propertyNameAddress;
         _totalFloor = data.totalFloor;
         _Address_apnehisaabka.text = data.propertyAddressForFieldworker;
         _Ownername.text = data.ownerName;
@@ -349,7 +350,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   ];
   final List<String> lift = ['Yes','No',''];
   List<String> parkingOptions = ['Yes','No',''];
-  final List<String> propertyTypes = ['Residential', 'Commercial',];
+  final List<String> propertyTypes = ['Residential', 'Commercial',''];
 
   final ImagePicker _picker = ImagePicker();
 
@@ -434,16 +435,16 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
     List<MapEntry<String, String>> fields = [
       MapEntry("id", widget.propertyId.toString()),
-      MapEntry("ownername", _Ownername.text),
-      MapEntry("ownernumber", _Owner_number.text),
-      MapEntry("caretakername", _CareTaker_name.text),
-      MapEntry("caretakernumber", _CareTaker_number.text),
+      MapEntry("ownername", _Ownername.text ?? ''),
+      MapEntry("ownernumber", _Owner_number.text ?? ''),
+      MapEntry("caretakername", _CareTaker_name.text ?? ''),
+      MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
       MapEntry("propertyname_address", _address.text),
       MapEntry("building_information_facilitys", _Building_information.text),
       MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
-      MapEntry("owner_vehical_number", _vehicleno.text),
+      MapEntry("owner_vehical_number", _vehicleno.text ?? ''),
       MapEntry("your_address", _Google_Location.text),
       MapEntry("road_size", selectedRoadSize ?? ''),
       MapEntry("metro_distance", selectedMetroDistance ?? ''),
@@ -622,11 +623,15 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       parkingOptions,
                       _selectedParking,
                           (val) => setState(() => _selectedParking = val),
+                      validator: (val) =>
+                      val == null || val.isEmpty ? 'Select Property Type' : null,
                     ),
                   ),
                   SizedBox(width: 6,),
                   Expanded(
                     child: _buildDropdownRow('Total floor', _items_floor2, _totalFloor, (val) => setState(() => _totalFloor = val),
+                      validator: (val) =>
+                      val == null || val.isEmpty ? 'Select Property Type' : null,
                     ),
                   ),
                 ],
@@ -634,24 +639,49 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
               const SizedBox(height: 10),
 
-              _buildTextInput('Owner Name', _Ownername,),
-              _buildTextInput('Owner No.', _Owner_number,keyboardType: TextInputType.phone ),
-              _buildTextInput('CareTaker Name', _CareTaker_name,),
-              _buildTextInput('CareTaker No.', _CareTaker_number,keyboardType: TextInputType.phone),
+              buildTextInput('Owner Name (Optional)', _Ownername,),
+              buildTextInput('Owner No. (Optional)', _Owner_number,keyboardType: TextInputType.phone,validateLength: true ),
+              buildTextInput('CareTaker Name (Optional)', _CareTaker_name,),
+              buildTextInput('CareTaker No. (Optional)', _CareTaker_number,keyboardType: TextInputType.phone,validateLength: true ),
 
               _buildTextInput('Property Name & Address', _address),
               _buildSectionCard(
                 child: TextFormField(
                   controller: _facilityController,
+                  autovalidateMode: AutovalidateMode.always, // ✅ show error on load
                   readOnly: true, // Prevents manual editing
                   onTap: _showFacilitySelectionDialog, // Opens the selection dialog
                   style:  TextStyle(color: Colors.black),
                   decoration: InputDecoration(
                     hintText: 'Select Facilities',
-                    hintStyle: const TextStyle(color: Colors.grey),
+                    hintStyle:  TextStyle(color: Colors.grey.shade800),
                     border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                     filled: true,
                     fillColor: Colors.grey.shade100,
+                    // ✅ Error text style
+                    errorStyle: const TextStyle(
+                      color: Colors.redAccent, // deep red text
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+                    // ✅ Error border (deep red)
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2,
+                      ),
+                    ),
+
+                    // ✅ Focused border when error
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2,
+                      ),
+                    ),
                   ),
                   validator: (val) =>
                   val == null || val.isEmpty
@@ -715,7 +745,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
               ),
 
               _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
-              _buildTextInput('Owner Vehicle Number', _vehicleno,),
+              buildTextInput('Owner Vehicle Number (Optional)', _vehicleno,),
 
               _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
               const SizedBox(height: 30),
@@ -775,6 +805,44 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     );
   }
 
+  Widget buildTextInput(
+      String label,
+      TextEditingController controller, {
+        IconData? icon,
+        TextInputType? keyboardType,
+        bool validateLength = false, // keep if you still want digit-only & length limiter
+      }) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        style: TextStyle(
+          color: Colors.grey.shade600, // 🔥 text color
+        ),
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+            hintStyle:  TextStyle(
+              color: Colors.grey.shade600,  // change this to your preferred color
+              fontWeight: FontWeight.w500, // optional boldness
+            ),
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          filled: true,
+          fillColor: Colors.grey.shade100
+        ),
+        inputFormatters: validateLength
+            ? [
+          FilteringTextInputFormatter.digitsOnly, // only digits
+          LengthLimitingTextInputFormatter(10),   // max 10 digits
+        ]
+            : [],
+      ),
+    );
+  }
+
   Widget _buildTextInput(
       String label,
       TextEditingController controller, {
@@ -797,6 +865,30 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
           ),
           filled: true,
           fillColor: Colors.grey.shade100,
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
         ),
         maxLines: 1,
         inputFormatters: validate10Digits
@@ -836,11 +928,37 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       child: DropdownButtonFormField<String>(
         value: selectedValue,
         validator: validator,
+        autovalidateMode: AutovalidateMode.always, // ✅ show error on load
         dropdownColor: Colors.grey.shade100,
         decoration: InputDecoration(
           filled: true,
           fillColor: Colors.grey.shade200,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
         ),
         style: const TextStyle(color: Colors.grey),
         icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
@@ -890,6 +1008,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,
       fillColor: isDark ? Colors.grey.shade900 : Colors.white,
+
     );
   }
 

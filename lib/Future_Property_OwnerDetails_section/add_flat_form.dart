@@ -879,7 +879,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
                   // const SizedBox(height: 10,),
 
-
                   _buildSectionCard(
                     child: DropdownButtonFormField<String>(
                       value: _furnished,
@@ -889,6 +888,30 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        // ✅ Error text style
+                        errorStyle: const TextStyle(
+                          color: Colors.redAccent, // deep red text
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+
+                        // ✅ Error border (deep red)
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 2,
+                          ),
+                        ),
+
+                        // ✅ Focused border when error
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent,
+                            width: 2,
+                          ),
+                        ),
                       ),
                       items: furnishingOptions.map((option) {
                         return DropdownMenuItem(
@@ -1374,6 +1397,30 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
           filled: true,
           // fillColor: Colors.grey.shade200,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
         ),
         style: const TextStyle(color: Colors.grey),
         icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
@@ -1400,6 +1447,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       child: DropdownButtonFormField<String>(
         value: selectedValue,
         validator: validator,
+
         // dropdownColor: Colors.grey.shade100,
         decoration: InputDecoration(
           filled: true,
@@ -1439,6 +1487,30 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           filled: true,
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
           // fillColor: Colors.grey.shade100,
         ),
         validator: (value) {
@@ -1471,6 +1543,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           filled: true,
+
         ),
         inputFormatters: validateLength
             ? [

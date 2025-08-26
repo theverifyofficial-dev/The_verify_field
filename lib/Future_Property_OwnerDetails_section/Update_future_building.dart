@@ -213,7 +213,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
 
   final List<String> marketDistanceOptions =  ['200 m', '300 m', '400 m', '500 m','600 m','700 m','1 km','1.5km','2.5km',''];
-  final List<String> Age_Options = ['0-2 years', '2-5 years', '5-10 years', '10+ years',''];
+  final List<String> Age_Options = ['1 years', '2 years', '3 years', '4 years','5 years','6 years','7 years','8 years','9 years','10 years','10+ years',''];
   List<String> allFacilities = ['CCTV Camera', 'Lift', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline",''];
 
   String long = '';
@@ -692,9 +692,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
               const SizedBox(height: 10,),
 
-
-
-
               _buildDropdownRow(
                 'Road width (in ft)',
                 roadSizeOptions,
@@ -708,7 +705,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 Age_Options,
                 _ageOfProperty,
                     (val) => setState(() => _ageOfProperty = val),
-                validator: (val) => val == null || val.isEmpty ? 'Please select market distance' : null,
+                validator: (val) => val == null || val.isEmpty ? 'Please select Age of property' : null,
               ),
 
               Row(

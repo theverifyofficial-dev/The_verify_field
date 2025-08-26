@@ -492,8 +492,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   // final List<String> highwayDistanceOptions = ['< 1km', '1km–3km', '3km–5km', '> 5km'];
 
   final List<String> marketDistanceOptions = ['200 m', '300 m', '400 m', '500 m', '600 m', '700 m', '1 km', '1.5 km', '2.5 km'];
-  final List<String> Age_Options = ['0-2 years', '2-5 years', '5-10 years', '10+ years'];
-  Widget _buildSectionCard({required String title, required Widget child}) {
+  final List<String> Age_Options = ['1 years', '2 years', '3 years', '4 years','5 years','6 years','7 years','8 years','9 years','10 years','10+ years'];  Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
       width: double.infinity,
       child: Card(

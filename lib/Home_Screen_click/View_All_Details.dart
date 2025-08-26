@@ -716,7 +716,7 @@ class _View_DetailsState extends State<View_Details> {
                           _DetailRow(
                             icon: Icons.chair,
                             title: "Furnishing",
-                            value: "${property.furnishing},${property.apartmentAddress}",
+                            value: "${property.furnishing},${property.apartmentName}",
                             color: Colors.brown,
                             isDarkMode: isDarkMode,
                           ),

@@ -245,6 +245,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final TextEditingController _fieldWorkerNumberController = TextEditingController();
   final TextEditingController _Google_Location = TextEditingController();
   final TextEditingController furnitureController = TextEditingController();
+  String? apiApartmentName;
 
   String? _parking, _houseMeter;
   String full_address = '';
@@ -406,6 +407,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _propertyAgeController.text = data.ageOfProperty;
         _balcony = data.balcony;
         _squareFeetController.text = data.squarefit;
+         apiApartmentName = data.apartmentName;
         DateTime parsedDate = DateTime.parse(data.availableDate);
         String formattedDate = DateFormat('dd-MM-yyyy').format(parsedDate);
         _flatAvailableController.text = formattedDate;
@@ -1708,12 +1710,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   controller: _propertyAgeController,
                   onTap: () =>
                       _showBottomSheet(
-                        options: [
-                          '0-1 year',
-                          '1-3 years',
-                          '3-5 years',
-                          '5+ years'
-                        ],
+                        options: ['1 years', '2 years', '3 years', '4 years','5 years','6 years','7 years','8 years','9 years','10 years','10+ years'],
                         onSelected: (val) {
                           setState(() {
                             _propertyAge = val;
@@ -2095,7 +2092,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   },
                 ),
                 const SizedBox(height: 16),
-
                 DropdownButtonFormField<String>(
                   value: _furnishing != null &&
                       furnishingOptions.contains(_furnishing)
@@ -2105,44 +2101,52 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   items: furnishingOptions.map((option) {
                     return DropdownMenuItem<String>(
                       value: option,
-                      child: Text(option),
+                      child: Text(option,style: TextStyle(color: Colors.blue.shade600,fontWeight: FontWeight.w600),),
                     );
                   }).toList(),
                   onChanged: (val) {
                     setState(() {
                       _furnishing = val;
 
-                      if (val == 'Unfurnished') {
+                      if (_furnishing == 'Unfurnished') {
                         _selectedFurniture.clear();
                         furnitureController.text = '';
-                      } else if (_selectedFurniture.isNotEmpty) {
-                        // Keep API data in text field
-                        furnitureController.text = _selectedFurniture.entries
-                            .map((e) => '${e.key} (${e.value})')
-                            .join(', ');
+                        apiApartmentName = '';
+                      } else if (_furnishing == 'Semi Furnished' ||
+                          _furnishing == 'Fully Furnished') {
+                        if (_selectedFurniture.isNotEmpty) {
+                          furnitureController.text = _selectedFurniture.entries
+                              .map((e) => '${e.key} (${e.value})')
+                              .join(', ');
+                          apiApartmentName = furnitureController.text;
+                        } else if (apiApartmentName != null && apiApartmentName!.isNotEmpty) {
+                          furnitureController.text = apiApartmentName!;
+                        }
                       }
                     });
                   },
                   validator: (val) =>
-                  val == null || val.isEmpty
-                      ? 'Please select furnishing'
-                      : null,
+                  val == null || val.isEmpty ? 'Please select furnishing' : null,
                 ),
 
-                if (_furnishing == 'Fully Furnished' ||
-                    _furnishing == 'Semi Furnished')
+// Show TextField only when Semi/Full Furnished
+                if (_furnishing == 'Fully Furnished' || _furnishing == 'Semi Furnished')
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
                     child: TextFormField(
                       controller: furnitureController,
                       readOnly: false,
-                      // allow editing
                       onTap: () => _showFurnitureBottomSheet(context),
-                      // optional bottom sheet
                       decoration: _buildInputDecoration(
-                          context, "Select Furniture Items"),
+                        context,
+                        "Select Furniture Items",
+                      ),
+                      onChanged: (val) {
+                        apiApartmentName = val; // keep updated
+                      },
                     ),
                   ),
+
 
 
                 const SizedBox(height: 16),

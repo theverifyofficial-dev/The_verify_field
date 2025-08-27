@@ -1286,7 +1286,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                               children: [
                                                 Icon(Iconsax.home_1_copy,size: 12,color: Colors.red,),
                                                 SizedBox(width: 2,),
-                                                Text("Furnished | Furnished Details",
+                                                Text("Furnished | Furnished Items",
                                                   overflow: TextOverflow.ellipsis,
                                                   maxLines: 2,
                                                   style: TextStyle(
@@ -1306,7 +1306,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 ),
                                                 SizedBox(
                                                   width: 300,
-                                                  child: Text(""+abc.data![len].furnishedUnfurnished+"  |  "+abc.data![len].facility,
+                                                  child: Text(""+abc.data![len].furnishedUnfurnished+"  |  "+abc.data![len].apartmentName,
                                                     overflow: TextOverflow.ellipsis,
                                                     maxLines: 4,
                                                     style: TextStyle(

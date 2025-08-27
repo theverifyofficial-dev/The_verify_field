@@ -91,7 +91,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   final TextEditingController _meter = TextEditingController();
   final TextEditingController full_address = TextEditingController();
   final TextEditingController _Apartment_Address = TextEditingController();
-  late TextEditingController _maintenanceController;
+  final TextEditingController _maintenanceController = TextEditingController();
+  final TextEditingController _customMaintenanceController = TextEditingController();
   String? _maintenance;
   String? _customMaintenance;
   String? _houseMeter; // selected dropdown value
@@ -171,7 +172,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         _formattedAskingPrice = number != null ? formatPrice(number) : '';
       });
     });
-    _maintenanceController = TextEditingController();
 
     // Manually trigger listeners so _formatted... variables get updated
     _showPrice.notifyListeners();
@@ -330,7 +330,9 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("Total_floor", widget.totalFloor),
       MapEntry("squarefit", _sqft.text),
       MapEntry("maintance", (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance) ?? ''),
-      MapEntry("Apartment_name", widget.apartment_name),
+      MapEntry("Apartment_name", (_furnished == 'Semi Furnished' || _furnished == 'Fully Furnished')
+          ? (_selectedFurniture.entries.map((e) => '${e.key}(${e.value})').join(', '))
+          : (_furnished ?? ''),),
       MapEntry("Apartment_Address", widget.apartment_address),
       MapEntry("fieldworkar_address", widget.field_address),
       MapEntry("field_worker_current_location", worker_address.toString()),
@@ -347,12 +349,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("live_unlive", "Flat"), // <-- Static value sent to API
       MapEntry("lift", widget.lift),
       MapEntry("Facility", widget.facility),
-      MapEntry(
-        "furnished_unfurnished",
-        (_furnished == 'Semi Furnished' || _furnished == 'Fully Furnished')
-            ? (_selectedFurniture.entries.map((e) => '${e.key}(${e.value})').join(', '))
-            : (_furnished ?? ''),
-      ),
+      MapEntry("furnished_unfurnished", _furnished.toString()),
       MapEntry("registry_and_gpa", _registry.toString()),
       MapEntry("loan", _loan.toString()),
       MapEntry("show_Price", _formattedPrice),
@@ -1074,6 +1071,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                     controller: _showPrice,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
+
+
                       labelText:"Show Price (₹)",
 
                       suffix: _formattedPrice.isNotEmpty
@@ -1118,6 +1117,29 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                                 : Colors.blue.shade300,
                             width: 2),
                       ),
+                      errorStyle: const TextStyle(
+                        color: Colors.redAccent, // deeper red text
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+
+                      // ✅ Error border (deep red)
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Colors.redAccent, // deep red border
+                          width: 2,
+                        ),
+                      ),
+
+                      // ✅ Focused border when still error
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(
+                          color: Colors.redAccent, // deep red border when focused
+                          width: 2,
+                        ),
+    ),
                       contentPadding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
                       filled: true,
@@ -1125,7 +1147,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                           ? Colors.grey.shade900
                           : Colors.white,
                     ),
-                    validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
+                    validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
                   ),
                   const SizedBox(height: 10,),
                   TextFormField(
@@ -1143,6 +1165,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                         ),
                       ),
                     ),
+                    validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
+
                   ),
                   const SizedBox(height: 10,),
                   TextFormField(
@@ -1163,6 +1187,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                         ),
                       ),
                     ),
+                    validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
                   ),
                   const SizedBox(height: 10,),
 
@@ -1283,6 +1308,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                         validator: (val) => (val == null || val.isEmpty)
                             ? "Select house meter type"
                             : null,
+
                       ),
 
                       const SizedBox(height: 20),
@@ -1297,10 +1323,10 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                     ],
                   ),
 
-                  buildTextInput('Caretaker Name', _CareTaker_name),
-                  buildTextInput('Caretaker Mobile', _CareTaker_number,keyboardType: TextInputType.phone),
-                  buildTextInput('Owner Name', _Ownername),
-                  buildTextInput('Owner Mobile', _Owner_number,keyboardType: TextInputType.phone),
+                  buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
+                  buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
+                  buildTextInput('Owner Name (Optional)', _Ownername),
+                  buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
 
                 ],
               ),
@@ -1362,17 +1388,29 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         borderSide: BorderSide(
             color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
-            width: 2),
-      ),
+        errorStyle: const TextStyle(
+          color: Colors.redAccent, // deeper red text
+          fontSize: 14,
+          fontWeight: FontWeight.bold,
+        ),
+
+        // ✅ Error border (deep red)
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Colors.redAccent, // deep red border
+            width: 2,
+          ),
+        ),
+
+        // ✅ Focused border when still error
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Colors.redAccent, // deep red border when focused
+            width: 2,
+          ),
+        ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,
       fillColor: isDark ? Colors.grey.shade900 : Colors.white,
@@ -1651,6 +1689,31 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                 width: 1,
               ),
             ),
+
+            // ✅ Error text style
+            errorStyle: const TextStyle(
+              color: Colors.redAccent, // deep red text
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+            ),
+
+            // ✅ Error border (deep red)
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: Colors.redAccent,
+                width: 2,
+              ),
+            ),
+
+            // ✅ Focused border when error
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: Colors.redAccent,
+                width: 2,
+              ),
+            ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
@@ -1672,6 +1735,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                     : Colors.blue.shade300,
                 width: 2,
               ),
+
             ),
             contentPadding: const EdgeInsets.symmetric(
                 vertical: 14, horizontal: 14),

@@ -480,7 +480,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       print('🔁 Response: ${response.data}');
 
       if (response.statusCode == 200) {
-        showSnack("Property Added Successfully");
+        showSnack("Property Updated Successfully");
         Navigator.pop(context);
       } else {
         showSnack("Something went wrong");

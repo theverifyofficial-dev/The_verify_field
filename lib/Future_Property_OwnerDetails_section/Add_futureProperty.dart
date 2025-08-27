@@ -847,7 +847,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
           ),
 
-
           // ✅ Error text style
           errorStyle: const TextStyle(
             color: Colors.redAccent, // deep red text

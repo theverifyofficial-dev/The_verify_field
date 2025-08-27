@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -59,10 +60,7 @@ class EditFlatState extends State<EditFlat> {
   String? _selectedItem;
   String? _networkImageUrl;
 
-  final List<String> _items = ['SultanPur','Manglapuri'];
-  final List<String> bhkOptions = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial'];
-  final List<String> _resCommOptions = ['Residential', 'Commercial'];
-  final List<String> _yesNo = ['Yes', 'No'];
+  final List<String> bhkOptions = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial',''];
   String? _lift, _registry, _loan;
   String? resident_commercial,bhk,parking,balcony,kitchen,bathroom;
   DateTime? _availableDate;
@@ -104,7 +102,7 @@ class EditFlatState extends State<EditFlat> {
     _loaduserdata();
     autofillFormFields();
     _maintenanceController = TextEditingController();
-
+    getFurnishingStringForApi();
     // Add listener for _priceController
     _showPrice.addListener(() {
       final input = _showPrice.text.replaceAll(',', '').trim();
@@ -186,12 +184,12 @@ class EditFlatState extends State<EditFlat> {
 
     List<MapEntry<String, String>> fields = [
       MapEntry("P_id", widget.id),
-      MapEntry("owner_name", _Ownername.text.trim()),
+      MapEntry("owner_name", _Ownername.text.trim() ?? ''),
       MapEntry("Balcony", balcony.toString()),
       MapEntry("Flat_number", _FlatNumber.text),
-      MapEntry("owner_number", _Owner_number.text),
-      MapEntry("care_taker_name", _CareTaker_name.text.trim()),
-      MapEntry("care_taker_number", _CareTaker_number.text),
+      MapEntry("owner_number", _Owner_number.text ?? ''),
+      MapEntry("care_taker_name", _CareTaker_name.text.trim() ?? ''),
+      MapEntry("care_taker_number", _CareTaker_number.text ?? ''),
       MapEntry("locations", _selectedItem.toString()),
       MapEntry("Buy_Rent", _selectedItem1 ?? ''),
       MapEntry("Residence_Commercial", _residenceCommercial ?? ''),
@@ -229,7 +227,7 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("Last_Price", _lastPrice.text.replaceAll(',', '').trim()),
       MapEntry("asking_price", _askingPrice.text.replaceAll(',', '').trim()),
       MapEntry("meter", _meter.text),
-      MapEntry("subid", widget.id),
+      // MapEntry("subid", widget.id),
     ];
 
     formData.fields.addAll(fields);
@@ -264,20 +262,24 @@ class EditFlatState extends State<EditFlat> {
     }
   }
 
-  Map<String, int> parseFurnitureString(String input) {
+  Map<String, int> parseFurnitureString(String furnitureString) {
+    if (furnitureString.isEmpty) return {};
+
     final Map<String, int> furnitureMap = {};
-    final regex = RegExp(r'([^,]+)\((\d+)\)');
-    // Matches: "Modular Kitchen(2)", "AC(2)" etc.
 
-    for (final match in regex.allMatches(input)) {
-      final name = match.group(1)?.trim() ?? '';
-      final count = int.tryParse(match.group(2) ?? '0') ?? 0;
-      if (name.isNotEmpty && count > 0) {
-        furnitureMap[name] = count;
+    furnitureString.split(',').forEach((item) {
+      item = item.trim(); // remove extra spaces
+      final match = RegExp(r'(.+)\((\d+)\)').firstMatch(item);
+      if (match != null) {
+        final name = match.group(1)?.trim() ?? '';
+        final count = int.tryParse(match.group(2) ?? '0') ?? 0;
+        if (name.isNotEmpty) {
+          furnitureMap[name] = count;
+        }
       }
-    }
+    });
 
-    return furnitureMap;
+  return furnitureMap;
   }
 
 
@@ -326,12 +328,13 @@ class EditFlatState extends State<EditFlat> {
   ];
   void _showFurnitureBottomSheet(BuildContext context) {
     final List<String> furnitureItems = [
-      'Fan', 'Light','Refrigerator','Washing Machine',
+      'Fan', 'Light', 'Refrigerator', 'Washing Machine',
       'Wardrobe', 'AC', 'Modular Kitchen', 'Chimney',
-      'Single Bed', 'Double Bed', 'Geyser', 'Led Tv', 'Sofa Set',
-      'Dining Table', 'Induction', 'Gas Stove',
+      'Single Bed', 'Double Bed', 'Geyser', 'Led Tv',
+      'Sofa Set', 'Dining Table', 'Induction', 'Gas Stove','',
     ];
 
+    // 👇 clone current selection so it shows already selected items ticked
     Map<String, int> tempSelection = Map.from(_selectedFurniture);
 
     showModalBottomSheet(
@@ -342,9 +345,7 @@ class EditFlatState extends State<EditFlat> {
       ),
       builder: (ctx) {
         return Padding(
-          padding: MediaQuery
-              .of(ctx)
-              .viewInsets,
+          padding: MediaQuery.of(ctx).viewInsets,
           child: StatefulBuilder(
             builder: (context, setModalState) {
               return Padding(
@@ -354,86 +355,67 @@ class EditFlatState extends State<EditFlat> {
                   children: [
                     const Text(
                       'Select Furniture',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.5,
+                      height: MediaQuery.of(context).size.height * 0.5,
                       child: SingleChildScrollView(
                         child: Column(
                           children: furnitureItems.map((item) {
+                            // 👇 auto-tick if exists in tempSelection
                             final isSelected = tempSelection.containsKey(item);
 
-                            return InkWell(
-                              onTap: () {
-                                setModalState(() {
-                                  if (isSelected) {
-                                    tempSelection.remove(item);
-                                  } else {
-                                    tempSelection[item] = 1;
-                                  }
-                                });
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
-                                  children: [
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        activeColor: Colors.blue,
+                                        value: isSelected,
+                                        onChanged: (checked) {
+                                          setModalState(() {
+                                            if (checked == true) {
+                                              tempSelection[item] = 1;
+                                            } else {
+                                              tempSelection.remove(item);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      Text(item, style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  if (isSelected)
                                     Row(
                                       children: [
-                                        Checkbox(
-                                          activeColor: Colors.blue,
-                                          value: isSelected,
-                                          onChanged: (checked) {
+                                        IconButton(
+                                          icon: const Icon(Icons.remove_circle_outline),
+                                          onPressed: () {
                                             setModalState(() {
-                                              if (checked == true) {
-                                                tempSelection[item] = 1;
-                                              } else {
-                                                tempSelection.remove(item);
+                                              if (tempSelection[item]! > 1) {
+                                                tempSelection[item] =
+                                                    tempSelection[item]! - 1;
                                               }
                                             });
                                           },
                                         ),
-                                        Text(item, style: const TextStyle(
-                                            fontSize: 16)),
+                                        Text('${tempSelection[item]}'),
+                                        IconButton(
+                                          icon: const Icon(Icons.add_circle_outline),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              tempSelection[item] =
+                                                  tempSelection[item]! + 1;
+                                            });
+                                          },
+                                        ),
                                       ],
                                     ),
-                                    if (isSelected)
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                                Icons.remove_circle_outline),
-                                            onPressed: () {
-                                              setModalState(() {
-                                                if (tempSelection[item]! > 1) {
-                                                  tempSelection[item] =
-                                                      tempSelection[item]! - 1;
-                                                }
-                                              });
-                                            },
-                                          ),
-                                          Text('${tempSelection[item]}'),
-                                          IconButton(
-                                            icon: const Icon(
-                                                Icons.add_circle_outline),
-                                            onPressed: () {
-                                              setModalState(() {
-                                                tempSelection[item] =
-                                                    tempSelection[item]! + 1;
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
+                                ],
                               ),
                             );
                           }).toList(),
@@ -444,9 +426,12 @@ class EditFlatState extends State<EditFlat> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
+                          // 👇 update global selected furniture
                           _selectedFurniture = Map.fromEntries(
                             tempSelection.entries.where((e) => e.value > 0),
                           );
+
+                          // 👇 update textfield with items + counts
                           furnitureController.text = _selectedFurniture.entries
                               .map((e) => '${e.key} (${e.value})')
                               .join(', ');
@@ -522,7 +507,42 @@ class EditFlatState extends State<EditFlat> {
         _CareTaker_number.text = data.careTakerNumber;
         _Owner_number.text = data.ownerNumber;
         _Ownername.text = data.ownerName;
-        _maintenance = data.maintenance;
+
+        // Handle Maintenance value from API
+        final apiMaintenance = data.maintenance?.toString() ?? '';
+        print("DEBUG: Maintenance from API = $apiMaintenance");
+
+        if (apiMaintenance.toLowerCase() == "included") {
+          _maintenance = "Included";
+          _maintenanceController.text = "Included";
+          _customMaintenance = null;
+          _customMaintenanceController.clear();
+        } else if (apiMaintenance.isNotEmpty) {
+          _maintenance = "Custom";
+          _maintenanceController.text = "Custom";
+          _customMaintenance = apiMaintenance;
+          _customMaintenanceController.text = apiMaintenance;
+        } else {
+          // default case if API sends null/empty
+          _maintenance = null;
+          _maintenanceController.clear();
+          _customMaintenance = null;
+          _customMaintenanceController.clear();
+        }
+        print("DEBUG: _maintenance=$_maintenance, _maintenanceController.text=${_maintenanceController.text}, _customMaintenance=$_customMaintenance");
+
+
+        // Autofill for meter
+        if (data.meter == 'Commercial' || data.meter == 'Govt') {
+          _houseMeter = data.meter;
+          _meter.text = data.meter; // predefined
+          print("DEBUG: Predefined meter = ${data.meter}");
+        } else {
+          _houseMeter = 'Custom';
+          _meter.text = data.meter; // custom value like "500"
+          print("DEBUG: Custom meter = ${data.meter}");
+        }
+
         balcony = data.balcony;
         _sqft.text = data.squareFit;
         parking = data.parking;
@@ -532,10 +552,15 @@ class EditFlatState extends State<EditFlat> {
         _lift = data.lift;
         field_address.text = data.fieldWorkerAddress;
         _Google_Location.text = data.fieldWorkerCurrentLocation;
-        _meter.text = data.meter;
         parseFurnishingFromApi(data.furnishedUnfurnished ?? '');
-        _customMaintenanceController.text = data.maintenance;
-        _customMaintenance = data.maintenance;
+        // _customMaintenanceController.text = data.maintenance;
+        // _customMaintenance = data.maintenance;
+        _furnished = data.furnishedUnfurnished;
+        print(_furnished);
+        String furnitureString = data.apartmentName; // "Bed(1), Sofa(2), Chair(4)"
+        print(furnitureString);
+        _selectedFurniture = parseFurnitureString(furnitureString);
+        print(_selectedFurniture);
         setState(() {
           _isLoading = false;
         });
@@ -577,25 +602,25 @@ class EditFlatState extends State<EditFlat> {
     await updateImageWithTitle(_imageFile);
   }
 
-  final List<String> _typeofproperty = ['Flat','Office','Shop','Farms','Godown','Plots'];
+  final List<String> _typeofproperty = ['Flat','Office','Shop','Farms','Godown','Plots',''];
 
-  List<String> name = ['Lift','Security CareTaker','GOVT Meter','CCTV','Gas Meter'];
+  List<String> name = ['Lift','Security CareTaker','GOVT Meter','CCTV','Gas Meter',''];
 
   String? _selectedItem1;
-  final List<String> buy_rent = ['Buy', 'Rent'];
-  final List<String> yesNoOptions = ['Yes', 'No'];
+  final List<String> buy_rent = ['Buy', 'Rent',''];
+  final List<String> yesNoOptions = ['Yes', 'No',''];
   String? _floor1;
-  final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor'];
-  final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor'];
+  final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
+  final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
 
-  final List<String> _balcony_items = ['Front', 'Back', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',];
+  final List<String> _balcony_items = ['Front', 'Back', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony','',];
 
-  final List<String> _Parking_items = ['Car','Bike','Both'];
+  final List<String> _Parking_items = ['Car','Bike','Both',''];
 
-  final List<String> _kitchen_items = ['Western Style','Indian Style','No'];
+  final List<String> _kitchen_items = ['Western Style','Indian Style','No',''];
 
-  final List<String> _bathroom_items = ['Western Style','Indian Style','No'];
-  List<String> allFacilities = ['CCTV Camera', 'Lift', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline"];
+  final List<String> _bathroom_items = ['Western Style','Indian Style','No',''];
+  List<String> allFacilities = ['CCTV Camera', 'Lift', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline",''];
 
 
   final TextEditingController _Ownername = TextEditingController();
@@ -629,6 +654,8 @@ class EditFlatState extends State<EditFlat> {
       ),
     );
   }
+
+
   String? _furnished;
 
   TextStyle _sectionTitleStyle() {
@@ -1104,6 +1131,7 @@ class EditFlatState extends State<EditFlat> {
                               child: Padding(
                                 padding: const EdgeInsets.only(left: 16.0),
                                 child: TextFormField(
+                                  controller: _customMaintenanceController, // ✅ attach controller
                                   decoration: InputDecoration(
                                     labelText: "Enter Maintenance Fee",
                                     labelStyle: TextStyle(
@@ -1120,6 +1148,30 @@ class EditFlatState extends State<EditFlat> {
                                             ? Colors.grey.shade700
                                             : Colors.grey.shade300,
                                       ),
+                                    ),
+                                    // ✅ Error text style
+                                    errorStyle: const TextStyle(
+                                    color: Colors.redAccent, // deep red text
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    ),
+
+                                    // ✅ Error border (deep red)
+                                    errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                    color: Colors.redAccent,
+                                    width: 2,
+                                    ),
+                                    ),
+
+                                    // ✅ Focused border when error
+                                    focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(
+                                    color: Colors.red,
+                                    width: 2,
+                                    ),
                                     ),
                                     enabledBorder: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
@@ -1138,6 +1190,7 @@ class EditFlatState extends State<EditFlat> {
                                         width: 2,
                                       ),
                                     ),
+
                                     contentPadding:
                                     const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
                                     filled: true,
@@ -1166,7 +1219,6 @@ class EditFlatState extends State<EditFlat> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Dropdown for House Meter Type
                           DropdownButtonFormField<String>(
                             value: (_houseMeter != null && _houseMeter != 'Custom')
                                 ? _houseMeter
@@ -1182,9 +1234,11 @@ class EditFlatState extends State<EditFlat> {
                               setState(() {
                                 _houseMeter = val;
                                 if (val != 'Custom') {
-                                  _meter.text = val!; // assign predefined value
+                                  _meter.text = val!;
+                                  print("DEBUG: Selected predefined meter = $val");
                                 } else {
-                                  _meter.clear(); // clear for custom input
+                                  _meter.clear();
+                                  print("DEBUG: Cleared for custom input");
                                 }
                               });
                             },
@@ -1195,7 +1249,6 @@ class EditFlatState extends State<EditFlat> {
 
                           const SizedBox(height: 20),
 
-                          // Show custom input if 'Custom' is selected
                           if (_houseMeter == 'Custom')
                             _blueTextInput(
                               'Enter Custom Meter Type',
@@ -1205,10 +1258,11 @@ class EditFlatState extends State<EditFlat> {
                         ],
                       ),
 
-                      _buildTextInput('Caretaker Name', _CareTaker_name),
-                      _buildTextInput('Caretaker Mobile', _CareTaker_number,keyboardType: TextInputType.phone),
-                      _buildTextInput('Owner Name', _Ownername),
-                      _buildTextInput('Owner Mobile', _Owner_number,keyboardType: TextInputType.phone),
+
+                      buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
+                      buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
+                      buildTextInput('Owner Name (Optional)', _Ownername),
+                      buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
 
                     ],
                   ),
@@ -1262,7 +1316,7 @@ class EditFlatState extends State<EditFlat> {
       Function(String?) onChanged, {
         String? Function(String?)? validator,
       }) {
-    return _buildSectionCard(
+    return _blueSectionCard(
       title: label,
 
       child: DropdownButtonFormField<String>(
@@ -1271,10 +1325,34 @@ class EditFlatState extends State<EditFlat> {
         // dropdownColor: Colors.blue,
         decoration: InputDecoration(
           filled: true,
-          fillColor: Colors.blue,
+          //fillColor: Colors.blue,
 
           border: OutlineInputBorder
             (borderRadius: BorderRadius.circular(10)),
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
         ),
         style: const TextStyle(),
         icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
@@ -1306,6 +1384,31 @@ class EditFlatState extends State<EditFlat> {
           filled: true,
           // fillColor: Colors.grey.shade200,
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
         ),
         style: const TextStyle(),
         icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
@@ -1419,6 +1522,30 @@ class EditFlatState extends State<EditFlat> {
         // borderSide: BorderSide(
         //     color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
       ),
+      // ✅ Error text style
+      errorStyle: const TextStyle(
+        color: Colors.redAccent, // deep red text
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      ),
+
+      // ✅ Error border (deep red)
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+          width: 2,
+        ),
+      ),
+
+      // ✅ Focused border when error
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+          width: 2,
+        ),
+      ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(
@@ -1436,6 +1563,36 @@ class EditFlatState extends State<EditFlat> {
     );
   }
 
+
+  Widget buildTextInput(
+      String label,
+      TextEditingController controller, {
+        IconData? icon,
+        TextInputType? keyboardType,
+        bool validateLength = false, // keep if you still want digit-only & length limiter
+      }) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          filled: true,
+        ),
+        inputFormatters: validateLength
+            ? [
+          FilteringTextInputFormatter.digitsOnly, // only digits
+          LengthLimitingTextInputFormatter(10),   // max 10 digits
+        ]
+            : [],
+      ),
+    );
+  }
 
   Widget _buildTextInput(
       String label,
@@ -1455,6 +1612,30 @@ class EditFlatState extends State<EditFlat> {
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
           ),
           filled: true,
           // fillColor: Colors.grey.shade100,
@@ -1630,6 +1811,7 @@ class EditFlatState extends State<EditFlat> {
     );
   }
 }
+
 
 
 class _FacilityBottomSheet extends StatefulWidget {

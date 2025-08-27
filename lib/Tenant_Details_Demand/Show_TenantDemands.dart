@@ -68,27 +68,27 @@ class _Tenant_demandsState extends State<Tenant_demands> {
   final TenantController tenantController = Get.put(TenantController());
 
 
-  Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num');
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
+  // Future<List<Catid>> fetchData(id) async {
+  //   var url = Uri.parse('https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num');
+  //   final responce = await http.get(url);
+  //   if (responce.statusCode == 200) {
+  //     List listresponce = json.decode(responce.body);
+  //     listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
+  //     return listresponce.map((data) => Catid.FromJson(data)).toList();
+  //   }
+  //   else {
+  //     throw Exception('Unexpected error occured!');
+  //   }
+  // }
 
-  String _num = '';
-  String _na = '';
+  // String _num = '';
+  // String _na = '';
 
-  @override
-  void initState() {
-    super.initState();
-    _loaduserdata();
-  }
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   _loaduserdata();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -158,909 +158,821 @@ class _Tenant_demandsState extends State<Tenant_demands> {
               ),
 
         Expanded(
-        child: ListView.builder(
-                                  itemCount: reversedList.length,
-                                  shrinkWrap: true,
-                                  //physics: NeverScrollableScrollPhysics(),
-                                  itemBuilder: (BuildContext context,index) {
-                                    final item = reversedList[index];
-                                    int DisplayIndex = reversedList.length;
-                                    return GestureDetector(
-                                      onTap: () async {
-                                        //  int itemId = abc.data![len].id;
-                                        //int iiid = abc.data![len].PropertyAddress
-                                        /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                        /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setInt('id_Building', abc.data![len].id);
-                                      prefs.setString('id_Longitude', abc.data![len].Longitude.toString());
-                                      prefs.setString('id_Latitude', abc.data![len].Latitude.toString());
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute
-                                            (builder: (context) => Tenant_Demands_details())
-                                      );*/
+        child: RefreshIndicator(
+          onRefresh: () => tenantController.fetchTenants(
+            tenantController.number, // call API again
+          ),
+          child: ListView.builder(
+                                    itemCount: reversedList.length,
+                                    shrinkWrap: true,
+                                    //physics: NeverScrollableScrollPhysics(),
+                                    itemBuilder: (BuildContext context,index) {
+                                      final item = reversedList[index];
+                                      int DisplayIndex = reversedList.length;
+                                      return GestureDetector(
+                                        onTap: () async {
+                                          //  int itemId = abc.data![len].id;
+                                          //int iiid = abc.data![len].PropertyAddress
+                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setInt('id_Building', abc.data![len].id);
+                                        prefs.setString('id_Longitude', abc.data![len].Longitude.toString());
+                                        prefs.setString('id_Latitude', abc.data![len].Latitude.toString());
                                         Navigator.push(
                                             context,
                                             MaterialPageRoute
-                                              (builder: (context) =>
-                                                Tenant_Demands_details(
-                                                  idd: '${item.id}',
-                                                  pending_id: '0',))
-                                        );
-                                      },
-                                      child: Column(
-                                        children: [
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 20,
-                                                left: 10,
-                                                right: 10,
-                                                bottom: 10),
-                                            child: Container(
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius: BorderRadius.circular(
-                                                    10),
-                                              ),
-                                              child: Row(
-                                                crossAxisAlignment: CrossAxisAlignment
-                                                    .center,
-                                                mainAxisAlignment: MainAxisAlignment
-                                                    .start,
-                                                children: [
-                                                  SizedBox(width: 5,),
-                                                  Column(
-                                                    crossAxisAlignment: CrossAxisAlignment
-                                                        .start,
-                                                    mainAxisAlignment: MainAxisAlignment
-                                                        .center,
-                                                    children: [
-
-                                                      SizedBox(
-                                                        height: 10,
-                                                      ),
-                                                      Row(
-                                                        children: [
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .greenAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
+                                              (builder: (context) => Tenant_Demands_details())
+                                        );*/
+                                          Navigator.push(
+                                              context,
+                                              MaterialPageRoute
+                                                (builder: (context) =>
+                                                  Tenant_Demands_details(
+                                                    idd: '${item.id}',
+                                                    pending_id: '0',))
+                                          );
+                                        },
+                                        child: Column(
+                                          children: [
+                                            Padding(
+                                              padding: const EdgeInsets.only(top: 20,
+                                                  left: 10,
+                                                  right: 10,
+                                                  bottom: 10),
+                                              child: Container(
+                                                padding: const EdgeInsets.all(10),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(
+                                                      10),
+                                                ),
+                                                child: Row(
+                                                  crossAxisAlignment: CrossAxisAlignment
+                                                      .center,
+                                                  mainAxisAlignment: MainAxisAlignment
+                                                      .start,
+                                                  children: [
+                                                    SizedBox(width: 5,),
+                                                    Column(
+                                                      crossAxisAlignment: CrossAxisAlignment
+                                                          .start,
+                                                      mainAxisAlignment: MainAxisAlignment
+                                                          .center,
+                                                      children: [
+          
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        Row(
+                                                          children: [
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
                                                                     color: Colors
-                                                                        .greenAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //SizedBox(width: 10,),
-                                                                Icon(PhosphorIcons
-                                                                    .house,
-                                                                  size: 12,
-                                                                  color: Colors
-                                                                      .red,),
-                                                                SizedBox(width: 2,),
-                                                                Text(
-                                                                  item.bhk /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 15,
+                                                                        .greenAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
                                                                       color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                          .greenAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
                                                                   ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .greenAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //SizedBox(width: 10,),
+                                                                  Icon(PhosphorIcons
+                                                                      .house,
+                                                                    size: 12,
                                                                     color: Colors
-                                                                        .greenAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.buyrent /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 15,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .greenAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .greenAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Text("" +
-                                                                    item.place /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 15,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 10,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          Icon(
-                                                            Iconsax.location_copy,
-                                                            size: 12,
-                                                            color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(" Name | Number",
-                                                            overflow: TextOverflow
-                                                                .ellipsis,
-                                                            maxLines: 2,
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight
-                                                                    .w600),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          SizedBox(width: 10,),
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .red),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .red
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.V_name /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Icon(
-                                                            Iconsax.location_copy,
-                                                            size: 12,
-                                                            color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(
-                                                            "Type Of Requirement / Floor Options",
-                                                            overflow: TextOverflow
-                                                                .ellipsis,
-                                                            maxLines: 2,
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight
-                                                                    .w600),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        crossAxisAlignment: CrossAxisAlignment
-                                                            .start,
-                                                        children: [
-                                                          SizedBox(
-                                                            width: 20,
-                                                          ),
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .purple),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .purple
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text("" +
+                                                                        .red,),
+                                                                  SizedBox(width: 2,),
+                                                                  Text(
                                                                     item.bhk /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                    style: TextStyle(
+                                                                        fontSize: 15,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              ],
+                                                                ],
+                                                              ),
                                                             ),
-                                                          ),
-
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .purple),
-                                                              boxShadow: [
-                                                                BoxShadow(
+          
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
                                                                     color: Colors
-                                                                        .purple
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Text("" +
-                                                                    item.floor_option /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
+                                                                        .greenAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
                                                                       color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                          .greenAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
                                                                   ),
-                                                                ),
-                                                              ],
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.buyrent /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 15,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
                                                             ),
-                                                          ),
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Icon(PhosphorIcons.car,
-                                                            size: 12,
-                                                            color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(
-                                                            "Need Parking / Vehicle Number",
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight
-                                                                    .w600),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        crossAxisAlignment: CrossAxisAlignment
-                                                            .start,
-                                                        children: [
-                                                          SizedBox(
-                                                            width: 20,
-                                                          ),
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .cyanAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
+          
+          
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
                                                                     color: Colors
-                                                                        .cyanAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.Parking /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
+                                                                        .greenAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
                                                                       color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                          .greenAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
                                                                   ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .cyanAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .cyanAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.Gadi_Number
-                                                                        .toUpperCase(),
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  Text("" +
+                                                                      item.place /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 15,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              ],
+                                                                ],
+                                                              ),
                                                             ),
-                                                          ),
-
-
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 10,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Icon(PhosphorIcons
-                                                              .users_four, size: 12,
-                                                            color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          SizedBox(
-                                                            width: 100,
-                                                            child: Text(
-                                                              "Family Members = ",
+          
+          
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+          
+                                                        Row(
+                                                          children: [
+                                                            Icon(
+                                                              Iconsax.location_copy,
+                                                              size: 12,
+                                                              color: Colors.red,),
+                                                            SizedBox(width: 2,),
+                                                            Text(" Name | Number",
                                                               overflow: TextOverflow
                                                                   .ellipsis,
                                                               maxLines: 2,
                                                               style: TextStyle(
                                                                   fontSize: 11,
-                                                                  color: Colors
-                                                                      .black,
+                                                                  color: Colors.black,
                                                                   fontWeight: FontWeight
-                                                                      .w600
+                                                                      .w600),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            SizedBox(width: 10,),
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .red),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .red
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //w SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.V_name /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
                                                               ),
                                                             ),
-                                                          ),
-                                                          SizedBox(width: 10,),
-                                                          SizedBox(
-                                                            width: 100,
-                                                            child: Text("" +
-                                                                item.Family_Members +
-                                                                " Members",
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Icon(
+                                                              Iconsax.location_copy,
+                                                              size: 12,
+                                                              color: Colors.red,),
+                                                            SizedBox(width: 2,),
+                                                            Text(
+                                                              "Type Of Requirement / Floor Options",
                                                               overflow: TextOverflow
                                                                   .ellipsis,
                                                               maxLines: 2,
                                                               style: TextStyle(
-                                                                  fontSize: 12,
-                                                                  color: Colors
-                                                                      .black,
+                                                                  fontSize: 11,
+                                                                  color: Colors.black,
                                                                   fontWeight: FontWeight
-                                                                      .w400
+                                                                      .w600),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          crossAxisAlignment: CrossAxisAlignment
+                                                              .start,
+                                                          children: [
+                                                            SizedBox(
+                                                              width: 20,
+                                                            ),
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .purple),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .purple
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
                                                               ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Icon(PhosphorIcons
-                                                              .address_book,
-                                                            size: 12,
-                                                            color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(
-                                                            "Additional Information",
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight
-                                                                    .w600),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-                                                          Column(
-                                                            crossAxisAlignment: CrossAxisAlignment
-                                                                .start,
-                                                            children: [
-
-                                                              SizedBox(
-                                                                width: 300,
-                                                                child: Text("" +
-                                                                    item.Additional_Info,
-                                                                  overflow: TextOverflow
-                                                                      .ellipsis,
-                                                                  maxLines: 2,
-                                                                  style: TextStyle(
-                                                                      fontSize: 12,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w400
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-
-
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        height: 10,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          Icon(PhosphorIcons
-                                                              .address_book,
-                                                            size: 12,
-                                                            color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(
-                                                            "Budget / Shifting Date",
-                                                            style: TextStyle(
-                                                                fontSize: 11,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight
-                                                                    .w600),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .blue),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .blue
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //SizedBox(width: 10,),
-                                                                Icon(PhosphorIcons
-                                                                    .currency_inr,
-                                                                  size: 12,
-                                                                  color: Colors
-                                                                      .red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("" +
-                                                                    item.budget /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 15,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .blue),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .blue
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.Shifting_date /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(height: 10,),
-
-                                                      Center(
-                                                        child: Text("Field Worker",
-                                                          style: TextStyle(
-                                                              fontSize: 16,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight
-                                                                  .w600),),
-                                                      ),
-
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .purple),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .purple
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              mainAxisAlignment: MainAxisAlignment
-                                                                  .center,
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.FeildWorker_Name /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 14,
-                                                                      color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          GestureDetector(
-                                                            onTap: () {
-                                                              showDialog<bool>(
-                                                                context: context,
-                                                                builder: (
-                                                                    context) =>
-                                                                    AlertDialog(
-                                                                      title: Text(
-                                                                          'Call Feild Worker'),
-                                                                      content: Text(
-                                                                          'Do you really want to Call Feild Worker?'),
-                                                                      shape: RoundedRectangleBorder(
-                                                                          borderRadius: BorderRadius
-                                                                              .circular(
-                                                                              20)),
-                                                                      actions: <
-                                                                          Widget>[
-                                                                        ElevatedButton(
-                                                                          onPressed: () =>
-                                                                              Navigator
-                                                                                  .of(
-                                                                                  context)
-                                                                                  .pop(
-                                                                                  false),
-                                                                          child: Text(
-                                                                              'No'),
-                                                                        ),
-                                                                        ElevatedButton(
-                                                                          onPressed: () async {
-                                                                            FlutterPhoneDirectCaller
-                                                                                .callNumber(
-                                                                                '${item.FeildWorker_Number}');
-                                                                          },
-                                                                          child: Text(
-                                                                              'Yes'),
-                                                                        ),
-                                                                      ],
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //w SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.bhk /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
                                                                     ),
-                                                              ) ?? false;
-                                                            },
-                                                            child: Container(
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+          
+          
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .purple),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .purple
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  Text("" +
+                                                                      item.floor_option /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Icon(PhosphorIcons.car,
+                                                              size: 12,
+                                                              color: Colors.red,),
+                                                            SizedBox(width: 2,),
+                                                            Text(
+                                                              "Need Parking / Vehicle Number",
+                                                              style: TextStyle(
+                                                                  fontSize: 11,
+                                                                  color: Colors.black,
+                                                                  fontWeight: FontWeight
+                                                                      .w600),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          crossAxisAlignment: CrossAxisAlignment
+                                                              .start,
+                                                          children: [
+                                                            SizedBox(
+                                                              width: 20,
+                                                            ),
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .cyanAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .cyanAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //w SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.Parking /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+          
+          
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .cyanAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .cyanAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //w SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.Gadi_Number
+                                                                          .toUpperCase(),
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+          
+          
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Icon(PhosphorIcons
+                                                                .users_four, size: 12,
+                                                              color: Colors.red,),
+                                                            SizedBox(width: 2,),
+                                                            SizedBox(
+                                                              width: 100,
+                                                              child: Text(
+                                                                "Family Members = ",
+                                                                overflow: TextOverflow
+                                                                    .ellipsis,
+                                                                maxLines: 2,
+                                                                style: TextStyle(
+                                                                    fontSize: 11,
+                                                                    color: Colors
+                                                                        .black,
+                                                                    fontWeight: FontWeight
+                                                                        .w600
+                                                                ),
+                                                              ),
+                                                            ),
+                                                            SizedBox(width: 10,),
+                                                            SizedBox(
+                                                              width: 100,
+                                                              child: Text("" +
+                                                                  item.Family_Members +
+                                                                  " Members",
+                                                                overflow: TextOverflow
+                                                                    .ellipsis,
+                                                                maxLines: 2,
+                                                                style: TextStyle(
+                                                                    fontSize: 12,
+                                                                    color: Colors
+                                                                        .black,
+                                                                    fontWeight: FontWeight
+                                                                        .w400
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+          
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            Icon(PhosphorIcons
+                                                                .address_book,
+                                                              size: 12,
+                                                              color: Colors.red,),
+                                                            SizedBox(width: 2,),
+                                                            Text(
+                                                              "Additional Information",
+                                                              style: TextStyle(
+                                                                  fontSize: 11,
+                                                                  color: Colors.black,
+                                                                  fontWeight: FontWeight
+                                                                      .w600),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Row(
+                                                          children: [
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+                                                            Column(
+                                                              crossAxisAlignment: CrossAxisAlignment
+                                                                  .start,
+                                                              children: [
+          
+                                                                SizedBox(
+                                                                  width: 300,
+                                                                  child: Text("" +
+                                                                      item.Additional_Info,
+                                                                    overflow: TextOverflow
+                                                                        .ellipsis,
+                                                                    maxLines: 2,
+                                                                    style: TextStyle(
+                                                                        fontSize: 12,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w400
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+          
+          
+                                                          ],
+                                                        ),
+          
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+          
+                                                        Row(
+                                                          children: [
+                                                            Icon(PhosphorIcons
+                                                                .address_book,
+                                                              size: 12,
+                                                              color: Colors.red,),
+                                                            SizedBox(width: 2,),
+                                                            Text(
+                                                              "Budget / Shifting Date",
+                                                              style: TextStyle(
+                                                                  fontSize: 11,
+                                                                  color: Colors.black,
+                                                                  fontWeight: FontWeight
+                                                                      .w600),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+          
+                                                        Row(
+                                                          children: [
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .blue),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .blue
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //SizedBox(width: 10,),
+                                                                  Icon(PhosphorIcons
+                                                                      .currency_inr,
+                                                                    size: 12,
+                                                                    color: Colors
+                                                                        .red,),
+                                                                  SizedBox(width: 2,),
+                                                                  Text("" +
+                                                                      item.budget /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 15,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+          
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .blue),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .blue
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //w SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.Shifting_date /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+          
+          
+                                                          ],
+                                                        ),
+          
+                                                        SizedBox(height: 10,),
+          
+                                                        Center(
+                                                          child: Text("Field Worker",
+                                                            style: TextStyle(
+                                                                fontSize: 16,
+                                                                color: Colors.black,
+                                                                fontWeight: FontWeight
+                                                                    .w600),),
+                                                        ),
+          
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+          
+                                                        Row(
+                                                          children: [
+                                                            Container(
                                                               padding: EdgeInsets
                                                                   .only(left: 10,
                                                                   right: 10,
@@ -1091,8 +1003,10 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                                                                 mainAxisAlignment: MainAxisAlignment
                                                                     .center,
                                                                 children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //SizedBox(width: 10,),
                                                                   Text("" +
-                                                                      item.FeildWorker_Number /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                      item.FeildWorker_Name /*+abc.data![len].Building_Name.toUpperCase()*/,
                                                                     style: TextStyle(
                                                                         fontSize: 14,
                                                                         color: Colors
@@ -1105,179 +1019,270 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                                                                 ],
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        height: 5,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .lightGreenAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors
-                                                                        .lightGreenAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
+          
+                                                            SizedBox(
+                                                              width: 10,
                                                             ),
-                                                            child: Row(
-                                                              children: [
-                                                                Text(
-                                                                  "Tenant id =  " +
-                                                                      item.id.toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
+          
+                                                            GestureDetector(
+                                                              onTap: () {
+                                                                showDialog<bool>(
+                                                                  context: context,
+                                                                  builder: (
+                                                                      context) =>
+                                                                      AlertDialog(
+                                                                        title: Text(
+                                                                            'Call Feild Worker'),
+                                                                        content: Text(
+                                                                            'Do you really want to Call Feild Worker?'),
+                                                                        shape: RoundedRectangleBorder(
+                                                                            borderRadius: BorderRadius
+                                                                                .circular(
+                                                                                20)),
+                                                                        actions: <
+                                                                            Widget>[
+                                                                          ElevatedButton(
+                                                                            onPressed: () =>
+                                                                                Navigator
+                                                                                    .of(
+                                                                                    context)
+                                                                                    .pop(
+                                                                                    false),
+                                                                            child: Text(
+                                                                                'No'),
+                                                                          ),
+                                                                          ElevatedButton(
+                                                                            onPressed: () async {
+                                                                              FlutterPhoneDirectCaller
+                                                                                  .callNumber(
+                                                                                  '${item.FeildWorker_Number}');
+                                                                            },
+                                                                            child: Text(
+                                                                                'Yes'),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                ) ?? false;
+                                                              },
+                                                              child: Container(
+                                                                padding: EdgeInsets
+                                                                    .only(left: 10,
+                                                                    right: 10,
+                                                                    top: 0,
+                                                                    bottom: 0),
+                                                                decoration: BoxDecoration(
+                                                                  borderRadius: BorderRadius
+                                                                      .circular(5),
+                                                                  border: Border.all(
+                                                                      width: 1,
                                                                       color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
+                                                                          .purple),
+                                                                  boxShadow: [
+                                                                    BoxShadow(
+                                                                        color: Colors
+                                                                            .purple
+                                                                            .withOpacity(
+                                                                            0.5),
+                                                                        blurRadius: 10,
+                                                                        offset: Offset(
+                                                                            0, 0),
+                                                                        blurStyle: BlurStyle
+                                                                            .outer
+                                                                    ),
+                                                                  ],
                                                                 ),
-                                                              ],
+                                                                child: Row(
+                                                                  mainAxisAlignment: MainAxisAlignment
+                                                                      .center,
+                                                                  children: [
+                                                                    Text("" +
+                                                                        item.FeildWorker_Number /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                      style: TextStyle(
+                                                                          fontSize: 14,
+                                                                          color: Colors
+                                                                              .black,
+                                                                          fontWeight: FontWeight
+                                                                              .w500,
+                                                                          letterSpacing: 0.5
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
                                                             ),
-                                                          ),
-
-                                                          SizedBox(
-                                                            width: 10,
-                                                          ),
-
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .lightGreenAccent),
-                                                              boxShadow: [
-                                                                BoxShadow(
+                                                          ],
+                                                        ),
+          
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+          
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
                                                                     color: Colors
-                                                                        .lightGreenAccent
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text("" +
-                                                                    item.Current_date.toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
+                                                                        .lightGreenAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
                                                                       color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                          .lightGreenAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
                                                                   ),
-                                                                ),
-                                                              ],
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  Text(
+                                                                    "Tenant id =  " +
+                                                                        item.id.toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
                                                             ),
-                                                          ),
-
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        height: 10,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding: EdgeInsets
-                                                                .only(left: 10,
-                                                                right: 10,
-                                                                top: 0,
-                                                                bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius
-                                                                  .circular(5),
-                                                              border: Border.all(
-                                                                  width: 1,
-                                                                  color: Colors
-                                                                      .brown),
-                                                              boxShadow: [
-                                                                BoxShadow(
+          
+                                                            SizedBox(
+                                                              width: 10,
+                                                            ),
+          
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
                                                                     color: Colors
-                                                                        .brown
-                                                                        .withOpacity(
-                                                                        0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(
-                                                                        0, 0),
-                                                                    blurStyle: BlurStyle
-                                                                        .outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Text(
-                                                                  "Demand No = $DisplayIndex" /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
+                                                                        .lightGreenAccent),
+                                                                boxShadow: [
+                                                                  BoxShadow(
                                                                       color: Colors
-                                                                          .black,
-                                                                      fontWeight: FontWeight
-                                                                          .w500,
-                                                                      letterSpacing: 0.5
+                                                                          .lightGreenAccent
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
                                                                   ),
-                                                                ),
-                                                              ],
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  // Icon(Iconsax.sort_copy,size: 15,),
+                                                                  //w SizedBox(width: 10,),
+                                                                  Text("" +
+                                                                      item.Current_date.toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
                                                             ),
-                                                          ),
-
-                                                        ],
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-
-                                                ],
+          
+                                                          ],
+                                                        ),
+          
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+          
+                                                        Row(
+                                                          children: [
+                                                            Container(
+                                                              padding: EdgeInsets
+                                                                  .only(left: 10,
+                                                                  right: 10,
+                                                                  top: 0,
+                                                                  bottom: 0),
+                                                              decoration: BoxDecoration(
+                                                                borderRadius: BorderRadius
+                                                                    .circular(5),
+                                                                border: Border.all(
+                                                                    width: 1,
+                                                                    color: Colors
+                                                                        .brown),
+                                                                boxShadow: [
+                                                                  BoxShadow(
+                                                                      color: Colors
+                                                                          .brown
+                                                                          .withOpacity(
+                                                                          0.5),
+                                                                      blurRadius: 10,
+                                                                      offset: Offset(
+                                                                          0, 0),
+                                                                      blurStyle: BlurStyle
+                                                                          .outer
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  Text(
+                                                                    "Demand No = $DisplayIndex" /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                    style: TextStyle(
+                                                                        fontSize: 13,
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight: FontWeight
+                                                                            .w500,
+                                                                        letterSpacing: 0.5
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+          
+                                                          ],
+                                                        ),
+          
+                                                      ],
+                                                    ),
+          
+          
+                                                  ],
+                                                ),
                                               ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  }),
+                                            )
+                                          ],
+                                        ),
+                                      );
+                                    }),
+        ),
       ),
         ]
     );
@@ -1316,12 +1321,13 @@ class _Tenant_demandsState extends State<Tenant_demands> {
         )
         );
   }
-  void _loaduserdata() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _na = prefs.getString('name') ?? '';
-      _num = prefs.getString('number') ?? '';
-    });
-  }
+  // void _loaduserdata() async {
+  //   SharedPreferences prefs = await SharedPreferences.getInstance();
+  //   setState(() {
+  //     _na = prefs.getString('name') ?? '';
+  //     _num = prefs.getString('number') ?? '';
+  //     print(_num);
+  //   });
+  // }
 }
 

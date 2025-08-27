@@ -101,37 +101,21 @@ class _MainPage_TenandDemandState extends State<MainPage_TenandDemand> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-        onWillPop: () async{
-          if (currentIndex != currentIndex) {
-            // If not on the home screen, go back to home screen
-            setState(() {
-              currentIndex == 0;
-            });
-            return false; // Do not exit the app
-          }else {
-            // If on the home screen, prompt to exit the app
-            return await showDialog<bool>(
-              context: context,
-              builder: (context) => AlertDialog(
-                title: Text('Exit App'),
-                content: Text('Do you want to exit the app?'),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                actions: <Widget>[
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: Text('No'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: Text('Yes'),
-                  ),
-                ],
-              ),
-            ) ?? false;
-          }
-        },
-        child: Scaffold(
+    return
+      WillPopScope(
+        // Just allow default back navigation
+          onWillPop: () async {
+            if (currentIndex.value != 0) {
+              // If not on home tab, go back to home
+              setState(() {
+                currentIndex.value = 0;
+              });
+              return false; // Prevent exiting, just switch tab
+            }
+            return true; // Exit app if already on home
+          },
+
+          child: Scaffold(
           body: ValueListenableBuilder(
               valueListenable: currentIndex,
               builder: (context, int index, _) {

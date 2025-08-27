@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,7 +68,15 @@ class _ProfilePageState extends State<ProfilePage> {
   void _logout(BuildContext context) async {
     // Clear any saved login/session data
     final prefs = await SharedPreferences.getInstance();
+    print("🚪 Logging out...");
+    print("Before clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
+
     await prefs.clear();
+
+    print("After clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
+
+    // 🔥 Reset all GetX controllers (important!)
+    Get.reset();
 
     // Navigate to the login page and remove all previous routes
     Navigator.pushAndRemoveUntil(

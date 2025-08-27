@@ -292,7 +292,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('${userName}',style: TextStyle(color: Colors.white,fontSize: 11,fontWeight: FontWeight.bold),),
+                  Text('${userName}',style: TextStyle(color: Colors.white,fontSize: 9,fontWeight: FontWeight.bold),),
                 ],
               ),
 

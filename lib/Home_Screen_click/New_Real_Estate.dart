@@ -424,9 +424,10 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: SingleChildScrollView(
+
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: ['Rent', 'Buy', 'Commercial'].map((label) {
+             children: ['Rent', 'Buy', 'Commercial'].map((label) {
                   final bool isSelected = label == selectedLabel;
 
                   return Padding(
@@ -706,7 +707,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       ),
 
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(6),

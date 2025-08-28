@@ -100,21 +100,21 @@ class _RegisterPropertyState extends State<RegisterProperty> {
   String? _parking, _houseMeter;
   String full_address = '';
 
-  final cities = ['SultanPur', 'Chhattarpur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd'];
-  final propertyTypes = ["Flat","Shop","Office","Godown","Farm House"];
-  final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', 'Custom'];
+  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri'];
+  final propertyTypes = ["Flat","Shop","Office","Godown","Farms","Plots"];
+  final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '1 RK', 'Commercial'];
   final floors = [
-    'Ground Floor',
-    '1st Floor',
-    '2nd Floor',
-    '3rd Floor',
-    '4th Floor',
-    '5th Floor',
-    '6th Floor',
-    '7th Floor',
-    '8th Floor',
-    '9th Floor',
-    '10th Floor',
+    'G Floor',
+    '1 Floor',
+    '2 Floor',
+    '3 Floor',
+    '4 Floor',
+    '5 Floor',
+    '6 Floor',
+    '7 Floor',
+    '8 Floor',
+    '9 Floor',
+    '10 Floor',
   ];
   bool get _isFormValid {
     return (_location?.isNotEmpty ?? false) &&
@@ -385,9 +385,9 @@ class _RegisterPropertyState extends State<RegisterProperty> {
     });
   }
   final List<String> _metroOptions = [
-    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','Chhatarpur','Sultanpur', 'Ghitorni','Arhan Garh','Guru Dronacharya','Sikanderpur'
+    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur'
   ];
-  Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
+  Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [
     'Fully Furnished',
     'Semi Furnished',
@@ -984,14 +984,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       ),
                     ),
                     errorStyle: const TextStyle(color: Colors.red), // Red error text
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Colors.blue),
-                    ),
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Colors.red, width: 2),
@@ -1000,6 +992,15 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       borderRadius: BorderRadius.circular(8),
                       borderSide: const BorderSide(color: Colors.red, width: 2),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                      borderSide: const BorderSide(color: Colors.blue),
+                    ),
+
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -1085,18 +1086,27 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       child: _buildReadOnlyField(
                         label: "Total Floor",
                         controller: _totalFloorController,
-                        onTap: () =>
-                            _showBottomSheet(
-                              options: List.generate(
-                                  10, (index) => (index + 1).toString()),
-                              // ['1', '2', ..., '10']
-                              onSelected: (val) {
-                                setState(() {
-                                  _totalFloor = val;
-                                  _totalFloorController.text = val;
-                                });
-                              },
-                            ),
+                        onTap: () => _showBottomSheet(
+                          options: [
+                            'G Floor',
+                            '1 Floor',
+                            '2 Floor',
+                            '3 Floor',
+                            '4 Floor',
+                            '5 Floor',
+                            '6 Floor',
+                            '7 Floor',
+                            '8 Floor',
+                            '9 Floor',
+                            '10 Floor',
+                          ],
+                          onSelected: (val) {
+                            setState(() {
+                              _totalFloor = val;
+                              _totalFloorController.text = val;
+                            });
+                          },
+                        ),
                         validator: (val) =>
                         _totalFloor == null || _totalFloor!.isEmpty
                             ? "Select total floor"
@@ -1127,6 +1137,15 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                                 .brightness == Brightness.dark
                                 ? Colors.grey.shade300
                                 : Colors.black54,
+                          ),
+                          errorStyle: const TextStyle(color: Colors.redAccent), // Red error text
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.red, width: 2),
+                          ),
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: const BorderSide(color: Colors.red, width: 2),
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
@@ -1405,21 +1424,100 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                 const SizedBox(height: 16),
 
                 // Parking Dropdown
+                // Row(
+                //   children: [
+                //     // Dropdown for Car, Bike, Custom
+                //     _buildReadOnlyField(
+                //       label: "Parking",
+                //       controller: TextEditingController(
+                //         text: _parking == 'Custom' ? 'Parking' : (_parking ?? ''),
+                //       ),
+                //       onTap: () => _showBottomSheet(
+                //         options: ['Car', 'Bike', 'Both'],
+                //         onSelected: (val) {
+                //           setState(() {
+                //             _parking = val;
+                //             if (val != 'Custom') _customParking = null;  // clear custom when not selected
+                //           });
+                //         },
+                //       ),
+                //       validator: (val) =>
+                //       val == null || val.isEmpty ? "Select parking type" : null,
+                //     ),
+                //
+                //     // Show this TextFormField only if Custom is selected
+                //     // if (_parking == 'Custom')
+                //     //   Expanded(
+                //     //     child: Padding(
+                //     //       padding: const EdgeInsets.only(left: 16.0),
+                //     //       child: TextFormField(
+                //     //         decoration: InputDecoration(
+                //     //           labelText: "Enter Custom Parking",
+                //     //           labelStyle: TextStyle(
+                //     //             fontWeight: FontWeight.w600,
+                //     //             fontSize: 13,
+                //     //             color: Theme.of(context).brightness == Brightness.dark
+                //     //                 ? Colors.grey.shade300
+                //     //                 : Colors.black54,
+                //     //           ),
+                //     //           border: OutlineInputBorder(
+                //     //             borderRadius: BorderRadius.circular(10),
+                //     //             borderSide: BorderSide(
+                //     //               color: Theme.of(context).brightness == Brightness.dark
+                //     //                   ? Colors.grey.shade700
+                //     //                   : Colors.grey.shade300,
+                //     //             ),
+                //     //           ),
+                //     //           enabledBorder: OutlineInputBorder(
+                //     //             borderRadius: BorderRadius.circular(10),
+                //     //             borderSide: BorderSide(
+                //     //               color: Theme.of(context).brightness == Brightness.dark
+                //     //                   ? Colors.grey.shade700
+                //     //                   : Colors.grey.shade300,
+                //     //             ),
+                //     //           ),
+                //     //           focusedBorder: OutlineInputBorder(
+                //     //             borderRadius: BorderRadius.circular(10),
+                //     //             borderSide: BorderSide(
+                //     //               color: Theme.of(context).brightness == Brightness.dark
+                //     //                   ? Colors.blue.shade200
+                //     //                   : Colors.blue.shade300,
+                //     //               width: 2,
+                //     //             ),
+                //     //           ),
+                //     //           contentPadding:
+                //     //           const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                //     //           filled: true,
+                //     //           fillColor: Theme.of(context).brightness == Brightness.dark
+                //     //               ? Colors.grey.shade900
+                //     //               : Colors.white,
+                //     //         ),
+                //     //
+                //     //         onChanged: (val) => _customParking = val,
+                //     //         validator: (val) =>
+                //     //         _parking == 'Custom' && (val == null || val.isEmpty)
+                //     //             ? "Enter custom parking type"
+                //     //             : null,
+                //     //       ),
+                //     //     ),
+                //     //   ),
+                //   ],
+                // ),
+
                 Row(
                   children: [
-                    // Dropdown for Car, Bike, Custom
+                    // Dropdown for Car, Bike, Both
                     Expanded(
                       child: _buildReadOnlyField(
                         label: "Parking",
                         controller: TextEditingController(
-                          text: _parking == 'Custom' ? 'Parking' : (_parking ?? ''),
+                          text: _parking ?? '',
                         ),
                         onTap: () => _showBottomSheet(
-                          options: ['Car', 'Bike', 'Custom'],
+                          options: ['Car', 'Bike', 'Both'],
                           onSelected: (val) {
                             setState(() {
                               _parking = val;
-                              if (val != 'Custom') _customParking = null;  // clear custom when not selected
                             });
                           },
                         ),
@@ -1427,66 +1525,8 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         val == null || val.isEmpty ? "Select parking type" : null,
                       ),
                     ),
-
-                    // Show this TextFormField only if Custom is selected
-                    if (_parking == 'Custom')
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              labelText: "Enter Custom Parking",
-                              labelStyle: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade300
-                                    : Colors.black54,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.blue.shade200
-                                      : Colors.blue.shade300,
-                                  width: 2,
-                                ),
-                              ),
-                              contentPadding:
-                              const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                              filled: true,
-                              fillColor: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey.shade900
-                                  : Colors.white,
-                            ),
-
-                            onChanged: (val) => _customParking = val,
-                            validator: (val) =>
-                            _parking == 'Custom' && (val == null || val.isEmpty)
-                                ? "Enter custom parking type"
-                                : null,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
-
 
 
 
@@ -1524,7 +1564,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         label: "Metro Distance",
                         controller: _highwayController,
                         onTap: () => _showBottomSheet(
-                          options: ['100 m','200 m','300 m','400 m','500 m','600 m','700 m','800 m','900 m','1 km','2 km'],
+                          options: ['200 m','300 m','400 m','500 m','600 m','700 m','1 km','1.5 km','2.5 km','2.5+ km'],
                           onSelected: (val) {
                             setState(() {
                               _highwayController.text = val;
@@ -1550,7 +1590,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         label: "Main Market Distance",
                         controller: _mainMarketController,
                         onTap: () => _showBottomSheet(
-                          options: ['100 m', '200 m', '300 m', '400 m', '500 m'],
+                          options: ['200 m','300 m','400 m','500 m','600 m','700 m','1 km','1.5 km','2.5 km','2.5+ km'],
                           onSelected: (val) {
                             setState(() {
                               _mainMarketController.text = val;
@@ -1723,6 +1763,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                     ),
                   ),
                 const SizedBox(height: 16),
+
                 FormField<String>(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (_) {
@@ -1735,52 +1776,78 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Text(
+                          "Kitchen Type:",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           spacing: 10,
                           runSpacing: 10,
                           children: [
-                            const Text(
-                              "Kitchen Type:",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
+
+
+                            // ✅ Western Style
                             ChoiceChip(
                               label: Text(
-                                "Modern",
+                                "Western Style",
                                 style: TextStyle(
-                                  color: _kitchenType == 'Modern'
+                                  color: _kitchenType == 'Western Style'
                                       ? Colors.white
                                       : Colors.black87,
                                 ),
                               ),
                               selectedColor: Colors.blueAccent,
                               backgroundColor: Colors.grey.shade200,
-                              selected: _kitchenType == 'Modern',
+                              selected: _kitchenType == 'Western Style',
                               onSelected: (_) {
                                 setState(() {
-                                  _kitchenType = 'Modern';
+                                  _kitchenType = 'Western Style';
                                   state.didChange(_kitchenType);
                                 });
                               },
                             ),
+
+                            // ✅ Indian Style
                             ChoiceChip(
                               label: Text(
-                                "Western",
+                                "Indian Style",
                                 style: TextStyle(
-                                  color: _kitchenType == 'Western'
+                                  color: _kitchenType == 'Indian Style'
                                       ? Colors.white
                                       : Colors.black87,
                                 ),
                               ),
                               selectedColor: Colors.blueAccent,
                               backgroundColor: Colors.grey.shade200,
-                              selected: _kitchenType == 'Western',
+                              selected: _kitchenType == 'Indian Style',
                               onSelected: (_) {
                                 setState(() {
-                                  _kitchenType = 'Western';
+                                  _kitchenType = 'Indian Style';
+                                  state.didChange(_kitchenType);
+                                });
+                              },
+                            ),
+
+                            // ✅ No
+                            ChoiceChip(
+                              label: Text(
+                                "No",
+                                style: TextStyle(
+                                  color: _kitchenType == 'No'
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              selectedColor: Colors.blueAccent,
+                              backgroundColor: Colors.grey.shade200,
+                              selected: _kitchenType == 'No',
+                              onSelected: (_) {
+                                setState(() {
+                                  _kitchenType = 'No';
                                   state.didChange(_kitchenType);
                                 });
                               },
@@ -1799,7 +1866,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                     );
                   },
                 ),
-
                 const SizedBox(height: 16),
                 //bathroom
                 FormField<String>(
@@ -1814,51 +1880,69 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Text(
+                          "Bathroom :",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           spacing: 10,
                           runSpacing: 10,
                           children: [
-                            const Text(
-                              "Bathroom :",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
 
                             ChoiceChip(
-                              label: const Text("Western"),
+                              label: const Text("Western Style"),
                               labelStyle: TextStyle(
-                                color: _bathroom == 'Western'
+                                color: _bathroom == 'Western Style'
                                     ? Colors.white
                                     : Colors.black87,
                               ),
                               selectedColor: Colors.blueAccent,
                               backgroundColor: Colors.grey.shade200,
-                              selected: _bathroom == 'Western',
+                              selected: _bathroom == 'Western Style',
                               onSelected: (_) {
                                 setState(() {
-                                  _bathroom = 'Western';
+                                  _bathroom = 'Western Style';
                                   state.didChange(_bathroom); // ✅ tell FormField value changed
                                 });
                               },
                             ),
 
                             ChoiceChip(
-                              label: const Text("Indian"),
+                              label: const Text("Indian Style"),
                               labelStyle: TextStyle(
-                                color: _bathroom == 'Indian'
+                                color: _bathroom == 'Indian Style'
                                     ? Colors.white
                                     : Colors.black87,
                               ),
                               selectedColor: Colors.blueAccent,
                               backgroundColor: Colors.grey.shade200,
-                              selected: _bathroom == 'Indian',
+                              selected: _bathroom == 'Indian Style',
                               onSelected: (_) {
                                 setState(() {
-                                  _bathroom = 'Indian';
+                                  _bathroom = 'Indian Style';
                                   state.didChange(_bathroom); // ✅ tell FormField value changed
+                                });
+                              },
+                            ),
+                            ChoiceChip(
+                              label: const Text("No"),
+                              labelStyle: TextStyle(
+                                color: _bathroom == 'No'
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                              selectedColor: Colors.blueAccent,
+                              backgroundColor: Colors.grey.shade200,
+                              selected: _bathroom == 'No',
+                              onSelected: (_) {
+                                setState(() {
+                                  _bathroom = 'No';
+                                  state.didChange(_bathroom);
                                 });
                               },
                             ),
@@ -2830,7 +2914,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       'Wardrobe',
       'AC',
       'Washing Machine',
-      'Fridge',
+      'Refrigerator',
       'Modular Kitchen',
       'Chimney',
       'Single Bed',
@@ -2957,7 +3041,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       child: const Text("Save Selection"),
                     ),
                     SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.04, // 2% of screen height
+                      height: 50 // 2% of screen height
                     ),
 
                   ],
@@ -3038,7 +3122,7 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
               onPressed: () => Navigator.pop(context, _tempSelected),
               child: const Text("Done"),
             ),
-            SizedBox(height: 10,)
+            SizedBox(height: 40,)
           ],
         ),
       ),

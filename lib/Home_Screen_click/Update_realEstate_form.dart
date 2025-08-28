@@ -253,27 +253,23 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String? _networkImageUrl;
   String? apiImageUrl; // This should be assigned from your API data
   File? _imageFile2;
-  final cities = [
-    'SultanPur',
-    'Chhattarpur',
-    'Aya Nagar',
-    'Ghitorni',
-    'Rajpur Khurd'
-  ];
-  final propertyTypes = ['Home', 'Flat', 'Villa', 'Apartment'];
-  final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', 'Custom'];
+  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri',''];
+
+  final propertyTypes = ["Flat","Shop","Office","Godown","Farms","Plots",''];
+  final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '1 RK', 'Commercial',''];
   final floors = [
-    'Ground Floor',
-    '1st Floor',
-    '2nd Floor',
-    '3rd Floor',
-    '4th Floor',
-    '5th Floor',
-    '6th Floor',
-    '7th Floor',
-    '8th Floor',
-    '9th Floor',
-    '10th Floor',
+    'G Floor',
+    '1 Floor',
+    '2 Floor',
+    '3 Floor',
+    '4 Floor',
+    '5 Floor',
+    '6 Floor',
+    '7 Floor',
+    '8 Floor',
+    '9 Floor',
+    '10 Floor',
+    ''
   ];
 
   void _loadSavedFieldWorkerData() async {
@@ -353,7 +349,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     _facilityController = TextEditingController();
     _careTakerNameController = TextEditingController();
     _careTakerNumberController = TextEditingController();
-
+    furnitureController.text = apiApartmentName ?? '';
     _flatAvailableController.text = _flatAvailableDate != null
         ? DateFormat('yyyy-MM-dd').format(_flatAvailableDate!)
         : '';
@@ -510,7 +506,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   List<String> allFacilities = [
     'CCTV Camera',
-    'Lift',
     'Parking',
     'Security',
     'Terrace Garden',
@@ -631,19 +626,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       print('Error loading API images: $e');
     }
   }
-
-
   final List<String> _metroOptions = [
-    'Hauz khas',
-    'Malviya Nagar',
-    'Saket',
-    'Qutub Minar',
-    'Chhatarpur',
-    'Sultanpur',
-    'Ghitorni',
-    'Arhan Garh',
-    'Guru Dronacharya',
-    'Sikanderpur'
+    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur',''
   ];
   Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [
@@ -1399,11 +1383,21 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       child: _buildReadOnlyField(
                         label: "Total Floor",
                         controller: _totalFloorController,
-                        onTap: () =>
-                            _showBottomSheet(
-                              options: List.generate(
-                                  10, (index) => (index + 1).toString()),
-                              // ['1', '2', ..., '10']
+                        onTap: () => _showBottomSheet(
+                          options: [
+                            'G Floor',
+                            '1 Floor',
+                            '2 Floor',
+                            '3 Floor',
+                            '4 Floor',
+                            '5 Floor',
+                            '6 Floor',
+                            '7 Floor',
+                            '8 Floor',
+                            '9 Floor',
+                            '10 Floor',
+                            ''
+                          ],
                               onSelected: (val) {
                                 setState(() {
                                   _totalFloor = val;
@@ -1514,6 +1508,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                                 'Road Facing',
                                 'Corner',
                                 'No Balcony',
+                                ''
                               ],
                               onSelected: (val) {
                                 setState(() {
@@ -1607,7 +1602,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         controller: _maintenanceController,
                         onTap: () =>
                             _showBottomSheet(
-                              options: ['Included', 'Custom'],
+                              options: ['Included', 'Custom',''],
                               onSelected: (val) {
                                 setState(() {
                                   _maintenance = val;
@@ -1705,122 +1700,127 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 ),
 
                 const SizedBox(height: 16),
-                _buildReadOnlyField(
-                  label: "Age of Property",
-                  controller: _propertyAgeController,
-                  onTap: () =>
-                      _showBottomSheet(
-                        options: ['1 years', '2 years', '3 years', '4 years','5 years','6 years','7 years','8 years','9 years','10 years','10+ years'],
-                        onSelected: (val) {
-                          setState(() {
-                            _propertyAge = val;
-                            _propertyAgeController.text = val;
-                          });
-                        },
-                      ),
-                  validator: (val) =>
-                  val == null || val.isEmpty
-                      ? "Select property age"
-                      : null,
-                ),
-                const SizedBox(height: 16),
+
 
                 // Parking Dropdown
+                // Row(
+                //   children: [
+                //     // Dropdown for Car, Bike, Custom
+                //     Expanded(
+                //       child: _buildReadOnlyField(
+                //         label: "Parking",
+                //         controller: TextEditingController(
+                //           text: _parking == 'Custom' ? 'Parking' : (_parking ??
+                //               ''),
+                //         ),
+                //         onTap: () =>
+                //             _showBottomSheet(
+                //               options: ['Car', 'Bike', 'Custom'],
+                //               onSelected: (val) {
+                //                 setState(() {
+                //                   _parking = val;
+                //                   if (val != 'Custom') _customParking =
+                //                   null; // clear custom when not selected
+                //                 });
+                //               },
+                //             ),
+                //         validator: (val) =>
+                //         val == null || val.isEmpty
+                //             ? "Select parking type"
+                //             : null,
+                //       ),
+                //     ),
+                //
+                //     // Show this TextFormField only if Custom is selected
+                //     if (_parking == 'Custom')
+                //       Expanded(
+                //         child: Padding(
+                //           padding: const EdgeInsets.only(left: 16.0),
+                //           child: TextFormField(
+                //             decoration: InputDecoration(
+                //               labelText: "Enter Custom Parking",
+                //               labelStyle: TextStyle(
+                //                 fontWeight: FontWeight.w600,
+                //                 fontSize: 13,
+                //                 color: Theme
+                //                     .of(context)
+                //                     .brightness == Brightness.dark
+                //                     ? Colors.grey.shade300
+                //                     : Colors.black54,
+                //               ),
+                //               border: OutlineInputBorder(
+                //                 borderRadius: BorderRadius.circular(10),
+                //                 borderSide: BorderSide(
+                //                   color: Theme
+                //                       .of(context)
+                //                       .brightness == Brightness.dark
+                //                       ? Colors.grey.shade700
+                //                       : Colors.grey.shade300,
+                //                 ),
+                //               ),
+                //               enabledBorder: OutlineInputBorder(
+                //                 borderRadius: BorderRadius.circular(10),
+                //                 borderSide: BorderSide(
+                //                   color: Theme
+                //                       .of(context)
+                //                       .brightness == Brightness.dark
+                //                       ? Colors.grey.shade700
+                //                       : Colors.grey.shade300,
+                //                 ),
+                //               ),
+                //               focusedBorder: OutlineInputBorder(
+                //                 borderRadius: BorderRadius.circular(10),
+                //                 borderSide: BorderSide(
+                //                   color: Theme
+                //                       .of(context)
+                //                       .brightness == Brightness.dark
+                //                       ? Colors.blue.shade200
+                //                       : Colors.blue.shade300,
+                //                   width: 2,
+                //                 ),
+                //               ),
+                //               contentPadding:
+                //               const EdgeInsets.symmetric(
+                //                   vertical: 14, horizontal: 14),
+                //               filled: true,
+                //               fillColor: Theme
+                //                   .of(context)
+                //                   .brightness == Brightness.dark
+                //                   ? Colors.grey.shade900
+                //                   : Colors.white,
+                //             ),
+                //
+                //             onChanged: (val) => _customParking = val,
+                //             validator: (val) =>
+                //             _parking == 'Custom' && (val == null || val.isEmpty)
+                //                 ? "Enter custom parking type"
+                //                 : null,
+                //           ),
+                //         ),
+                //       ),
+                //   ],
+                // ),
                 Row(
                   children: [
-                    // Dropdown for Car, Bike, Custom
+                    // Dropdown for Car, Bike, Both
                     Expanded(
                       child: _buildReadOnlyField(
                         label: "Parking",
                         controller: TextEditingController(
-                          text: _parking == 'Custom' ? 'Parking' : (_parking ??
-                              ''),
+                          text: _parking ?? '',
                         ),
-                        onTap: () =>
-                            _showBottomSheet(
-                              options: ['Car', 'Bike', 'Custom'],
-                              onSelected: (val) {
-                                setState(() {
-                                  _parking = val;
-                                  if (val != 'Custom') _customParking =
-                                  null; // clear custom when not selected
-                                });
-                              },
-                            ),
+                        onTap: () => _showBottomSheet(
+                          options: ['Car', 'Bike', 'Both',''],
+                          onSelected: (val) {
+                            setState(() {
+                              _parking = val;
+                            });
+                          },
+                        ),
                         validator: (val) =>
-                        val == null || val.isEmpty
-                            ? "Select parking type"
-                            : null,
+                        val == null || val.isEmpty ? "Select parking type" : null,
                       ),
                     ),
-
-                    // Show this TextFormField only if Custom is selected
-                    if (_parking == 'Custom')
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.only(left: 16.0),
-                          child: TextFormField(
-                            decoration: InputDecoration(
-                              labelText: "Enter Custom Parking",
-                              labelStyle: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                                color: Theme
-                                    .of(context)
-                                    .brightness == Brightness.dark
-                                    ? Colors.grey.shade300
-                                    : Colors.black54,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Theme
-                                      .of(context)
-                                      .brightness == Brightness.dark
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Theme
-                                      .of(context)
-                                      .brightness == Brightness.dark
-                                      ? Colors.grey.shade700
-                                      : Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                borderSide: BorderSide(
-                                  color: Theme
-                                      .of(context)
-                                      .brightness == Brightness.dark
-                                      ? Colors.blue.shade200
-                                      : Colors.blue.shade300,
-                                  width: 2,
-                                ),
-                              ),
-                              contentPadding:
-                              const EdgeInsets.symmetric(
-                                  vertical: 14, horizontal: 14),
-                              filled: true,
-                              fillColor: Theme
-                                  .of(context)
-                                  .brightness == Brightness.dark
-                                  ? Colors.grey.shade900
-                                  : Colors.white,
-                            ),
-
-                            onChanged: (val) => _customParking = val,
-                            validator: (val) =>
-                            _parking == 'Custom' && (val == null || val.isEmpty)
-                                ? "Enter custom parking type"
-                                : null,
-                          ),
-                        ),
-                      ),
                   ],
                 ),
 
@@ -1830,17 +1830,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildReadOnlyField(
+                      child:   _buildReadOnlyField(
                         label: "Age of Property",
                         controller: _propertyAgeController,
                         onTap: () =>
                             _showBottomSheet(
-                              options: [
-                                '0-1 year',
-                                '1-3 years',
-                                '3-5 years',
-                                '5+ years'
-                              ],
+                              options: ['1 years', '2 years', '3 years', '4 years','5 years','6 years','7 years','8 years','9 years','10 years','10+ years',''],
                               onSelected: (val) {
                                 setState(() {
                                   _propertyAge = val;
@@ -1867,7 +1862,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                                 '25 Feet',
                                 '30 Feet',
                                 '35 Feet',
-                                '40 Above'
+                                '40 Above',
+                                ''
                               ],
                               onSelected: (val) {
                                 setState(() {
@@ -1912,19 +1908,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         controller: _highwayController,
                         onTap: () =>
                             _showBottomSheet(
-                              options: [
-                                '100 m',
-                                '200 m',
-                                '300 m',
-                                '400 m',
-                                '500 m',
-                                '600 m',
-                                '700 m',
-                                '800 m',
-                                '900 m',
-                                '1 km',
-                                '2 km'
-                              ],
+                              options: ['200 m','300 m','400 m','500 m','600 m','700 m','1 km','1.5 km','2.5 km','2.5+ km',''],
+
                               onSelected: (val) {
                                 setState(() {
                                   _highwayController.text = val;
@@ -1951,13 +1936,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         controller: _mainMarketController,
                         onTap: () =>
                             _showBottomSheet(
-                              options: [
-                                '100 m',
-                                '200 m',
-                                '300 m',
-                                '400 m',
-                                '500 m'
-                              ],
+                              options: ['200 m','300 m','400 m','500 m','600 m','700 m','1 km','1.5 km','2.5 km','2.5+ km',''],
+
                               onSelected: (val) {
                                 setState(() {
                                   _mainMarketController.text = val;
@@ -2018,7 +1998,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                                 : _houseMeter),
                         onTap: () =>
                             _showBottomSheet(
-                              options: ['Commercial', 'Govt', 'Custom'],
+                              options: ['Commercial','Govt', 'Custom',''],
                               onSelected: (val) {
                                 setState(() {
                                   _houseMeter = val;
@@ -2093,15 +2073,20 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _furnishing != null &&
-                      furnishingOptions.contains(_furnishing)
+                  value: _furnishing != null && furnishingOptions.contains(_furnishing)
                       ? _furnishing
                       : null,
                   decoration: _buildInputDecoration(context, "Furnishing"),
                   items: furnishingOptions.map((option) {
                     return DropdownMenuItem<String>(
                       value: option,
-                      child: Text(option,style: TextStyle(color: Colors.blue.shade600,fontWeight: FontWeight.w600),),
+                      child: Text(
+                        option,
+                        style: TextStyle(
+                          color: Colors.blue.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     );
                   }).toList(),
                   onChanged: (val) {
@@ -2114,13 +2099,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         apiApartmentName = '';
                       } else if (_furnishing == 'Semi Furnished' ||
                           _furnishing == 'Fully Furnished') {
-                        if (_selectedFurniture.isNotEmpty) {
+                        // ✅ Auto-fill from API when available
+                        if ((apiApartmentName != null && apiApartmentName!.isNotEmpty)) {
+                          furnitureController.text = apiApartmentName!;
+                        } else if (_selectedFurniture.isNotEmpty) {
                           furnitureController.text = _selectedFurniture.entries
                               .map((e) => '${e.key} (${e.value})')
                               .join(', ');
                           apiApartmentName = furnitureController.text;
-                        } else if (apiApartmentName != null && apiApartmentName!.isNotEmpty) {
-                          furnitureController.text = apiApartmentName!;
                         }
                       }
                     });
@@ -2142,59 +2128,117 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         "Select Furniture Items",
                       ),
                       onChanged: (val) {
-                        apiApartmentName = val; // keep updated
+                        // ✅ Keep API name updated
+                        apiApartmentName = val;
                       },
                     ),
                   ),
 
 
 
+
                 const SizedBox(height: 16),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    const Text(
-                      "Kitchen Type:",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    ChoiceChip(
-                      label: Text(
-                        "Modern",
-                        style: TextStyle(
-                          color: _kitchenType == 'Modern'
-                              ? Colors.white
-                              : Colors
-                              .black87,
+                FormField<String>(
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: (_) {
+                    if (_kitchenType?.isEmpty ?? true) {
+                      return "Please select a kitchen type";
+                    }
+                    return null;
+                  },
+                  builder: (FormFieldState<String> state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Kitchen Type:",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
-                      ),
-                      selectedColor: Colors.blueAccent,
-                      backgroundColor: Colors.grey.shade200,
-                      selected: _kitchenType == 'Modern',
-                      onSelected: (_) =>
-                          setState(() => _kitchenType = 'Modern'),
-                    ),
-                    ChoiceChip(
-                      label: Text(
-                        "Western",
-                        style: TextStyle(
-                          color: _kitchenType == 'Western'
-                              ? Colors.white
-                              : Colors
-                              .black87,
+                        Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+
+
+                            // ✅ Western Style
+                            ChoiceChip(
+                              label: Text(
+                                "Western Style",
+                                style: TextStyle(
+                                  color: _kitchenType == 'Western Style'
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              selectedColor: Colors.blueAccent,
+                              backgroundColor: Colors.grey.shade200,
+                              selected: _kitchenType == 'Western Style',
+                              onSelected: (_) {
+                                setState(() {
+                                  _kitchenType = 'Western Style';
+                                  state.didChange(_kitchenType);
+                                });
+                              },
+                            ),
+
+                            // ✅ Indian Style
+                            ChoiceChip(
+                              label: Text(
+                                "Indian Style",
+                                style: TextStyle(
+                                  color: _kitchenType == 'Indian Style'
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              selectedColor: Colors.blueAccent,
+                              backgroundColor: Colors.grey.shade200,
+                              selected: _kitchenType == 'Indian Style',
+                              onSelected: (_) {
+                                setState(() {
+                                  _kitchenType = 'Indian Style';
+                                  state.didChange(_kitchenType);
+                                });
+                              },
+                            ),
+
+                            // ✅ No
+                            ChoiceChip(
+                              label: Text(
+                                "No",
+                                style: TextStyle(
+                                  color: _kitchenType == 'No'
+                                      ? Colors.white
+                                      : Colors.black87,
+                                ),
+                              ),
+                              selectedColor: Colors.blueAccent,
+                              backgroundColor: Colors.grey.shade200,
+                              selected: _kitchenType == 'No',
+                              onSelected: (_) {
+                                setState(() {
+                                  _kitchenType = 'No';
+                                  state.didChange(_kitchenType);
+                                });
+                              },
+                            ),
+                          ],
                         ),
-                      ),
-                      selectedColor: Colors.blueAccent,
-                      backgroundColor: Colors.grey.shade200,
-                      selected: _kitchenType == 'Western',
-                      onSelected: (_) =>
-                          setState(() => _kitchenType = 'Western'),
-                    ),
-                  ],
+                        if (state.hasError)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 5),
+                            child: Text(
+                              state.errorText!,
+                              style: const TextStyle(color: Colors.red, fontSize: 12),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
 
 
@@ -2223,53 +2267,69 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const Text(
+                          "Bathroom :",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+
                         Wrap(
                           crossAxisAlignment: WrapCrossAlignment.center,
                           spacing: 10,
                           runSpacing: 10,
                           children: [
-                            const Text(
-                              "Bathroom :",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
 
                             ChoiceChip(
-                              label: const Text("Western"),
+                              label: const Text("Western Style"),
                               labelStyle: TextStyle(
-                                color: _bathroom == 'Western'
+                                color: _bathroom == 'Western Style'
                                     ? Colors.white
                                     : Colors.black87,
                               ),
                               selectedColor: Colors.blueAccent,
                               backgroundColor: Colors.grey.shade200,
-                              selected: _bathroom == 'Western',
+                              selected: _bathroom == 'Western Style',
                               onSelected: (_) {
                                 setState(() {
-                                  _bathroom = 'Western';
-                                  state.didChange(
-                                      _bathroom); // ✅ tell FormField value changed
+                                  _bathroom = 'Western Style';
+                                  state.didChange(_bathroom); // ✅ tell FormField value changed
                                 });
                               },
                             ),
 
                             ChoiceChip(
-                              label: const Text("Indian"),
+                              label: const Text("Indian Style"),
                               labelStyle: TextStyle(
-                                color: _bathroom == 'Indian'
+                                color: _bathroom == 'Indian Style'
                                     ? Colors.white
                                     : Colors.black87,
                               ),
                               selectedColor: Colors.blueAccent,
                               backgroundColor: Colors.grey.shade200,
-                              selected: _bathroom == 'Indian',
+                              selected: _bathroom == 'Indian Style',
                               onSelected: (_) {
                                 setState(() {
-                                  _bathroom = 'Indian';
-                                  state.didChange(
-                                      _bathroom); // ✅ tell FormField value changed
+                                  _bathroom = 'Indian Style';
+                                  state.didChange(_bathroom); // ✅ tell FormField value changed
+                                });
+                              },
+                            ),
+                            ChoiceChip(
+                              label: const Text("No"),
+                              labelStyle: TextStyle(
+                                color: _bathroom == 'No'
+                                    ? Colors.white
+                                    : Colors.black87,
+                              ),
+                              selectedColor: Colors.blueAccent,
+                              backgroundColor: Colors.grey.shade200,
+                              selected: _bathroom == 'No',
+                              onSelected: (_) {
+                                setState(() {
+                                  _bathroom = 'No';
+                                  state.didChange(_bathroom);
                                 });
                               },
                             ),
@@ -2281,8 +2341,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                             padding: const EdgeInsets.only(top: 5, left: 5),
                             child: Text(
                               state.errorText!,
-                              style: const TextStyle(
-                                  color: Colors.red, fontSize: 12),
+                              style: const TextStyle(color: Colors.red, fontSize: 12),
                             ),
                           ),
                       ],
@@ -2947,7 +3006,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
       final bool isFurnished = _furnishing == 'Semi Furnished' || _furnishing == 'Fully Furnished';
 
-// Build "Fan (1), Light (2)" string (only items with qty > 0)
       final String furnitureList = (_selectedFurniture.entries)
           .where((e) => (e.value) > 0)
           .map((e) => '${e.key} (${e.value})')
@@ -3056,7 +3114,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Wardrobe',
       'AC',
       'Washing Machine',
-      'Fridge',
+      'Refrigerator',
       'Modular Kitchen',
       'Chimney',
       'Single Bed',

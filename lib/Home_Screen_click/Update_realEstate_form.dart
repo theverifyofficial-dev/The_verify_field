@@ -2072,6 +2072,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   },
                 ),
                 const SizedBox(height: 16),
+                // Furnishing Dropdown
                 DropdownButtonFormField<String>(
                   value: _furnishing != null && furnishingOptions.contains(_furnishing)
                       ? _furnishing
@@ -2135,9 +2136,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   ),
 
 
-
-
-                const SizedBox(height: 16),
+                      const SizedBox(height: 16),
                 FormField<String>(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (_) {
@@ -2648,7 +2647,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10)),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       backgroundColor: Colors.blueAccent,
                     ),
                     child: const Text(
@@ -2657,12 +2657,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         fontSize: 16,
                         fontFamily: "Poppins",
                         fontWeight: FontWeight.bold,
-                        color: Colors.white, // White text for good visibility
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                      const SizedBox(height: 16),
 
               ],
             ),
@@ -2874,7 +2874,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
     final prefs = await SharedPreferences.getInstance();
 
-    // Map of required fields and their values
+    // Validate required fields
     final requiredFields = {
       'Location': _locationController.text,
       'Flat Number': _flatNumberController.text,
@@ -2890,9 +2890,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Total Floor': _totalFloorController.text,
       'Balcony': _balcony,
       'Square Feet': _squareFeetController.text,
-      'Maintenance': (_maintenance == "Custom"
-          ? _customMaintenance
-          : _maintenance),
+      'Maintenance': (_maintenance == "Custom" ? _customMaintenance : _maintenance),
       'Parking': _parking,
       'Property Age': _propertyAge,
       'Fieldworker Address': _fieldWorkerAddressController.text,
@@ -2900,9 +2898,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Metro Distance': _nearMetroController.text,
       'Highway Distance': _highwayController.text,
       'Main Market Distance': _mainMarketController.text,
-      'Meter Type': (_houseMeter == "Custom"
-          ? _houseMeterController.text
-          : _houseMeter),
+      'Meter Type': (_houseMeter == "Custom" ? _houseMeterController.text : _houseMeter),
       'Flat Available Date': _flatAvailableDate?.toIso8601String(),
       'Kitchen': _kitchenType,
       'Bathroom': _bathroom,
@@ -2912,12 +2908,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Field Worker Number': prefs.getString('number'),
     };
 
-    // Check for missing fields
     for (var entry in requiredFields.entries) {
-      if (entry.value == null ||
-          (entry.value is String && (entry.value as String)
-              .trim()
-              .isEmpty)) {
+      if (entry.value == null || (entry.value is String && (entry.value as String).trim().isEmpty)) {
         Fluttertoast.showToast(
           msg: "${entry.key} is required",
           toastLength: Toast.LENGTH_SHORT,
@@ -2926,11 +2918,10 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
           textColor: Colors.white,
           fontSize: 16.0,
         );
-        return; // Stop submission if any field is missing
+        return;
       }
     }
 
-    // All fields are filled, start submission
     setState(() {
       _isSubmitting = true;
     });
@@ -2938,14 +2929,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     try {
       final provider = Provider.of<PropertyIdProvider>(context, listen: false);
       await provider.fetchLatestPropertyId();
-      final propertyId = provider.latestPropertyId;
 
       final uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget
-              .propertyId}");
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget.propertyId}"
+      );
+
       var request = http.MultipartRequest('POST', uri);
 
-      // Add all fields
+      // Basic details
       request.fields['P_id'] = widget.propertyId.toString();
       request.fields['locations'] = _locationController.text;
       request.fields['Flat_number'] = _flatNumberController.text;
@@ -2953,8 +2944,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       request.fields['Residence_Commercial'] = _resOrComm ?? '';
       request.fields['Apartment_Address'] = _apartmentAddressController.text;
       request.fields['Typeofproperty'] = _propertyType ?? '';
-      request.fields['Bhk'] =
-      (_bhk == "Custom" ? _customBhk ?? '' : _bhk ?? '');
+      request.fields['Bhk'] = (_bhk == "Custom" ? _customBhk ?? '' : _bhk ?? '');
       request.fields['show_Price'] = _priceController.text;
       request.fields['Last_Price'] = _lastPriceController.text;
       request.fields['asking_price'] = _askingPriceController.text;
@@ -2962,26 +2952,19 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       request.fields['Total_floor'] = _totalFloorController.text;
       request.fields['Balcony'] = _balcony ?? '';
       request.fields['squarefit'] = _squareFeetController.text;
-      request.fields['maintance'] =
-      (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance ??
-          '');
+      request.fields['maintance'] = (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance ?? '');
       request.fields['parking'] = _parking ?? '';
       request.fields['age_of_property'] = _propertyAge ?? '';
-      request.fields['fieldworkar_address'] =
-          _fieldWorkerAddressController.text;
+      request.fields['fieldworkar_address'] = _fieldWorkerAddressController.text;
       request.fields['Road_Size'] = _roadSizeController.text;
       request.fields['metro_distance'] = _nearMetroController.text;
       request.fields['highway_distance'] = _highwayController.text;
       request.fields['main_market_distance'] = _mainMarketController.text;
-      request.fields['meter'] =
-      (_houseMeter == "Custom" ? _houseMeterController.text : _houseMeter ??
-          '');
+      request.fields['meter'] = (_houseMeter == "Custom" ? _houseMeterController.text : _houseMeter ?? '');
       request.fields['owner_name'] = _ownerNameController.text;
       request.fields['owner_number'] = _ownerNumberController.text;
-      request.fields['current_dates'] =
-          DateFormat('yyyy-MM-dd').format(DateTime.now());
-      request.fields['available_date'] =
-          _flatAvailableDate?.toIso8601String() ?? '';
+      request.fields['current_dates'] = DateFormat('yyyy-MM-dd').format(DateTime.now());
+      request.fields['available_date'] = _flatAvailableDate?.toIso8601String() ?? '';
       request.fields['kitchen'] = _kitchenType ?? '';
       request.fields['bathroom'] = _bathroom ?? '';
       request.fields['lift'] = _lift ?? '';
@@ -2992,10 +2975,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       request.fields['care_taker_number'] = _careTakerNumberController.text;
       request.fields['registry_and_gpa'] = _registryAndGpa ?? '';
       request.fields['loan'] = _loan ?? '';
-      request.fields['field_worker_current_location'] =
-          _Google_Location.text ?? '';
-      // request.fields['furnished_unfurnished'] = getFurnishingStringForApi();
-// Map UI value -> backend value (change to 'Semi Furnished' / 'Fully Furnished' if your API wants full labels)
+      request.fields['field_worker_current_location'] = _Google_Location.text ?? '';
+
+      // ✅ Furnishing + Furniture
       String _furnishingForBackend(String? val) {
         switch (val) {
           case 'Semi Furnished':  return 'Semi Furnished';
@@ -3006,45 +2988,41 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
       final bool isFurnished = _furnishing == 'Semi Furnished' || _furnishing == 'Fully Furnished';
 
-      final String furnitureList = (_selectedFurniture.entries)
+      // If user typed in the TextFormField → take that, else use selectedFurniture
+      final String furnitureList = furnitureController.text.trim().isNotEmpty
+          ? furnitureController.text.trim()
+          : _selectedFurniture.entries
           .where((e) => (e.value) > 0)
           .map((e) => '${e.key} (${e.value})')
           .join(', ')
           .trim();
 
-// Always send clean furnished flag
       request.fields['furnished_unfurnished'] = _furnishingForBackend(_furnishing);
 
-// Send furniture details (or "No Furniture" to avoid NULL)
+      // ⚠️ check key name from backend! (try 'apartment_name' if this fails)
       request.fields['Apartment_name'] = isFurnished
           ? (furnitureList.isNotEmpty ? furnitureList : 'No Furniture')
           : 'No Furniture';
 
-// (Optional) debug logs to see exactly what's going out:
       print('=> furnished_unfurnished: ${request.fields['furnished_unfurnished']}');
       print('=> Apartment_name: ${request.fields['Apartment_name']}');
+
+      // Lat/Long
       final lat = prefs.getDouble('latitude');
       final long = prefs.getDouble('longitude');
       request.fields['Latitude'] = lat?.toString() ?? '';
       request.fields['Longitude'] = long?.toString() ?? '';
 
-      // Add main image
+      // Files
       if (_imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'property_photo',
-          _imageFile!.path,
-        ));
+        request.files.add(await http.MultipartFile.fromPath('property_photo', _imageFile!.path));
       }
-
-      // Add multiple images
       for (int i = 0; i < _images.length; i++) {
         File imageFile = File(_images[i].path);
-        request.files.add(await http.MultipartFile.fromPath(
-          'images[]',
-          imageFile.path,
-        ));
+        request.files.add(await http.MultipartFile.fromPath('images[]', imageFile.path));
       }
 
+      // Send request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
@@ -3053,10 +3031,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        int propertyId = 0;
-        if (data['P_id'] != null) {
-          propertyId = int.tryParse(data['P_id'].toString()) ?? 0;
-        }
+        int propertyId = int.tryParse(data['P_id'].toString()) ?? 0;
         Fluttertoast.showToast(
           msg: "Successfully Registered, Property ID: $propertyId",
           toastLength: Toast.LENGTH_SHORT,
@@ -3069,8 +3044,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       } else {
         throw Exception("Failed to upload data.");
       }
-    }
-    catch (e) {
+    } catch (e) {
       Fluttertoast.showToast(
         msg: "Error: ${e.toString()}",
         toastLength: Toast.LENGTH_SHORT,
@@ -3137,9 +3111,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       ),
       builder: (ctx) {
         return Padding(
-          padding: MediaQuery
-              .of(context)
-              .viewInsets, // ensures keyboard doesn't hide content
+          padding: MediaQuery.of(context).viewInsets, // avoids keyboard overlap
           child: StatefulBuilder(
             builder: (context, setModalState) {
               return Padding(
@@ -3150,14 +3122,13 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                     const Text(
                       'Select Furniture',
                       style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.4, // Limit height
+                      height: MediaQuery.of(context).size.height * 0.4,
                       child: SingleChildScrollView(
                         child: Column(
                           children: furnitureItems.map((item) {
@@ -3174,11 +3145,10 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                                 });
                               },
                               child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                                 child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
@@ -3195,8 +3165,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                                             });
                                           },
                                         ),
-                                        Text(item, style: const TextStyle(
-                                            fontSize: 14)),
+                                        Text(item,
+                                            style: const TextStyle(fontSize: 14)),
                                       ],
                                     ),
                                     if (isSelected)
@@ -3239,19 +3209,18 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                     ElevatedButton(
                       onPressed: () {
                         setState(() {
+                          // ✅ Update main selection map
                           _selectedFurniture = Map.fromEntries(
                             tempSelection.entries.where((e) => e.value > 0),
                           );
 
-                          // ✅ Update text field with new selection
+                          // ✅ Update text field
                           furnitureController.text = _selectedFurniture.entries
                               .map((e) => '${e.key} (${e.value})')
                               .join(', ');
-                        });
 
-                        // Debug print
-                        _selectedFurniture.forEach((item, quantity) {
-                          print('$item: $quantity');
+                          // ✅ Update API variable directly here
+                          apiApartmentName = furnitureController.text;
                         });
 
                         Navigator.pop(ctx);
@@ -3259,12 +3228,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       child: const Text("Save Selection"),
                     ),
                     SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.04, // 2% of screen height
+                      height: MediaQuery.of(context).size.height * 0.04,
                     ),
-
                   ],
                 ),
               );

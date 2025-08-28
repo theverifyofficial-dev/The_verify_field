@@ -212,10 +212,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           borderRadius: BorderRadius.circular(16),
                           gradient: LinearGradient(
                             colors: [
-                              Color(0xfFF31D8FF),
-                              primaryColor.withOpacity(0.1 * _shineAnimation.value),
-                              Color(0xFFFD0098)
-
+                              const Color(0xFF31D8FF),
+                              primaryColor.withOpacity(0.1 + 0.3 * _shineAnimation.value),
+                              const Color(0xFFFD0098),
                             ],
                             stops: const [0.0, 0.5, 1.0],
                             begin: Alignment(-1.0 + (2.0 * _shineAnimation.value), -1.0),
@@ -243,49 +242,49 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             borderRadius: BorderRadius.circular(16),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
-                              child: Container(
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      height: 50,
-                                      width: 50,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 8,
-                                            offset: const Offset(2, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.asset(
-                                          AppImages.houseRealEstate,
-                                          fit: BoxFit.cover,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    height: 50,
+                                    width: 50,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.1),
+                                          blurRadius: 8,
+                                          offset: const Offset(2, 4),
                                         ),
+                                      ],
+                                    ),
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.asset(
+                                        AppImages.houseRealEstate,
+                                        fit: BoxFit.cover,
                                       ),
                                     ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        "Real Estate",
-                                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade700,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: "PoppinsBold"
-                                        ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Text(
+                                      "Real Estate",
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        color: isDarkMode
+                                            ? Colors.white
+                                            : Colors.grey.shade700,
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: "PoppinsBold",
                                       ),
                                     ),
-                                    Icon(
-                                      Icons.arrow_forward_ios_rounded,
-                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade700,
-                                      size: 20,
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  Icon(
+                                    Icons.arrow_forward_ios_rounded,
+                                    color: isDarkMode ? Colors.white : Colors.grey.shade700,
+                                    size: 20,
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -293,6 +292,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                       );
                     },
                   ),
+
                 ),
 
                 const SizedBox(height: 30),

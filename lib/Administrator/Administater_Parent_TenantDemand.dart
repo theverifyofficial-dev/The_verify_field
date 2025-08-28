@@ -65,24 +65,30 @@ class _Administater_parent_TenandDemandState extends State<Administater_parent_T
           children: [
             SizedBox(height: 5,),
             Container(
-              margin: EdgeInsets.only(bottom: 5),
-              padding: EdgeInsets.all(3),
+              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               height: 50,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10), color: Colors.grey),
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(10),
+              ),
               child: TabBar(
                 indicator: BoxDecoration(
-                  color: Colors.red[500],
+                  color: Colors.red,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                // ignore: prefer_const_literals_to_create_immutables
-                tabs: [
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+                indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
+                tabs: const [
                   Tab(text: 'New Demands'),
-                  Tab(text: 'Pending '),
+                  Tab(text: 'Pending'),
                   Tab(text: 'Your Demands'),
                 ],
               ),
             ),
+
             Expanded(
               child: TabBarView(children: [
                 Administater_Assignd_Tenant_details(),

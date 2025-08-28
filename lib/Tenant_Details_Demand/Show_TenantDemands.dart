@@ -68,27 +68,6 @@ class _Tenant_demandsState extends State<Tenant_demands> {
   final TenantController tenantController = Get.put(TenantController());
 
 
-  // Future<List<Catid>> fetchData(id) async {
-  //   var url = Uri.parse('https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num');
-  //   final responce = await http.get(url);
-  //   if (responce.statusCode == 200) {
-  //     List listresponce = json.decode(responce.body);
-  //     listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-  //     return listresponce.map((data) => Catid.FromJson(data)).toList();
-  //   }
-  //   else {
-  //     throw Exception('Unexpected error occured!');
-  //   }
-  // }
-
-  // String _num = '';
-  // String _na = '';
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _loaduserdata();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -100,11 +79,11 @@ class _Tenant_demandsState extends State<Tenant_demands> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        final reversedList = tenantController.filteredList.reversed.toList();
+        final reversedList = tenantController.filteredList;
+
 
         return Column(
             children: [
-              // 🔎 Search Bar
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: TextField(

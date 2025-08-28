@@ -904,7 +904,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                           ),
                           SizedBox(
                             //height: size.height,
-                            height: 640,
+                            height: 650,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: data.length,
@@ -1503,7 +1503,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            height: 640,
+                            height: 650,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: data.length,

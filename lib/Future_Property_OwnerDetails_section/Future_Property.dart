@@ -18,10 +18,6 @@ class Catid {
   final String Building_image;
   final String Longitude;
   final String Latitude;
-  final String BHK;
-  final String tyope;
-  final String floor_;
-  final String buy_Rent;
   final String Building_information;
   final String Ownername;
   final String Owner_number;
@@ -38,10 +34,6 @@ class Catid {
     required this.Building_image,
     required this.Longitude,
     required this.Latitude,
-    required this.BHK,
-    required this.tyope,
-    required this.floor_,
-    required this.buy_Rent,
     required this.Building_information,
     required this.Ownername,
     required this.Owner_number,
@@ -60,10 +52,6 @@ class Catid {
       Building_image: json['images'] ?? "",
       Longitude: json['longitude'] ?? "",
       Latitude: json['latitude'] ?? "",
-      BHK: json['select_bhk'] ?? "",
-      tyope: json['typeofproperty'] ?? "",
-      floor_: json['floor_number'] ?? "",
-      buy_Rent: json['buy_rent'] ?? "",
       Building_information: json['building_information_facilitys'] ?? "",
       Ownername: json['ownername'] ?? "",
       Owner_number: json['ownernumber'] ?? "",
@@ -132,10 +120,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               item.Building_image.toLowerCase().contains(query) ||
               item.Longitude.toLowerCase().contains(query) ||
               item.Latitude.toLowerCase().contains(query) ||
-              item.BHK.toLowerCase().contains(query) ||
-              item.tyope.toLowerCase().contains(query) ||
-              item.floor_.toLowerCase().contains(query) ||
-              item.buy_Rent.toLowerCase().contains(query) ||
               item.Building_information.toLowerCase().contains(query) ||
               item.Ownername.toLowerCase().contains(query) ||
               item.Owner_number.toLowerCase().contains(query) ||
@@ -164,6 +148,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
+        print("API Response Body: ${response.body}");
         List listResponse = json.decode(response.body);
         listResponse.sort((a, b) => b['id'].compareTo(a['id']));
         _allProperties = listResponse.map((data) => Catid.FromJson(data)).toList();
@@ -411,7 +396,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                 itemCount: _filteredProperties.length,
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
-
+                  final displayIndex = _filteredProperties.length - index; // ✅ reverse order
                   return FutureBuilder<http.Response>(
                     future: http.get(Uri.parse(
                         "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${property.id}")),
@@ -427,6 +412,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                       }
 
                       return PropertyCard(
+                        displayIndex: displayIndex,   // ✅ pass here
                         property: property,
                         isRedDot: isRedDot,
                         onTap: () {
@@ -478,17 +464,29 @@ class PropertyCard extends StatelessWidget {
   final dynamic property;
   final bool isRedDot;
   final VoidCallback onTap;
+  final int displayIndex;   // ✅ new
 
   const PropertyCard({
     Key? key,
     required this.property,
     required this.isRedDot,
     required this.onTap,
+    required this.displayIndex,
+
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    bool hasMissingFields = [
+      property.Building_information,
+      property.Ownername,
+      property.Owner_number,
+      property.Caretaker_name,
+      property.Caretaker_number,
+      property.vehicleNo,
+    ].any((field) => field.trim().isEmpty);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
@@ -528,8 +526,8 @@ class PropertyCard extends StatelessWidget {
                   top: 12,
                   right: 12,
                   child: Container(
-                    width: 14,
-                    height: 14,
+                    width: 18,
+                    height: 18,
                     decoration: BoxDecoration(
                       color: isRedDot ? Colors.red : Colors.green,
                       shape: BoxShape.circle,
@@ -548,39 +546,7 @@ class PropertyCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        property.BHK,
-                        style: TextStyle(
-                          fontFamily: "PoppinsBold",
-                          fontSize: 18,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          property.buy_Rent,
-                          style: TextStyle(
-                            fontFamily: "Poppins",
-                            fontWeight: FontWeight.w600,
-                            color: Colors.blue[700],
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Location
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.location_on, size: 20, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -588,7 +554,7 @@ class PropertyCard extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: "Poppins",
                             color: isDark ? Colors.grey[300] : Colors.grey[700],
-                            fontSize: 13,
+                            fontSize: 18,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -596,25 +562,26 @@ class PropertyCard extends StatelessWidget {
                     ],
                   ),
 
+
                   const SizedBox(height: 12),
 
                   // Owner Info
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 6,
-                    children: [
-                      _infoChip("Owner", property.Ownername, isDark),
-                      _infoChip("Contact", property.Owner_number, isDark),
-                      _infoChip("Caretaker", property.Caretaker_name, isDark),
-                      _infoChip("Caretaker No", property.Caretaker_number, isDark),
-                    ],
-                  ),
+                  // Wrap(
+                  //   spacing: 10,
+                  //   runSpacing: 6,
+                  //   children: [
+                  //     _infoChip("Owner", property.Ownername, isDark),
+                  //     _infoChip("Contact", property.Owner_number, isDark),
+                  //     _infoChip("Caretaker", property.Caretaker_name, isDark),
+                  //     _infoChip("Caretaker No", property.Caretaker_number, isDark),
+                  //   ],
+                  // ),
 
                   const SizedBox(height: 12),
 
                   // Property Address
                   Text(
-                    "Address:",
+                    "Field Worker Address:",
                     style: TextStyle(
                       fontFamily: "PoppinsBold",
                       fontSize: 14,
@@ -634,25 +601,69 @@ class PropertyCard extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 12),
+                  //
+                  // if (hasMissingFields)
+                  //   Container(
+                  //     width: double.infinity,
+                  //     margin: const EdgeInsets.only(top: 8, bottom: 8),
+                  //     padding: const EdgeInsets.all(10),
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.red.shade100,
+                  //       borderRadius: BorderRadius.circular(8),
+                  //     ),
+                  //     child: Row(
+                  //       children: [
+                  //         const Icon(Icons.warning_amber_rounded,
+                  //             color: Colors.red, size: 20),
+                  //         const SizedBox(width: 8),
+                  //         Expanded(
+                  //           child: Text(
+                  //             "Some fields are missing. Please update the building details.",
+                  //             style: TextStyle(
+                  //               color: Colors.red.shade800,
+                  //               fontSize: 13,
+                  //               fontWeight: FontWeight.w600,
+                  //             ),
+                  //           ),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  const SizedBox(height: 12),
 
                   // Property ID
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.blueGrey[800] : Colors.blueGrey[50],
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        "ID: ${property.id}",
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Property No. ${displayIndex}" /*+abc.data![len].Building_Name.toUpperCase()*/,
                         style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: isDark ? Colors.white70 : Colors.blueGrey[700],
+                            fontSize: 13,
+                            color: isDark ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight
+                                .w500,
+                            letterSpacing: 0.5
                         ),
                       ),
-                    ),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.blueGrey[800] : Colors.blueGrey[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "ID: ${property.id}",
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: isDark ? Colors.white70 : Colors.blueGrey[700],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

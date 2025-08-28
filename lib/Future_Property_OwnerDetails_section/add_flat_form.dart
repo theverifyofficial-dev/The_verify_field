@@ -277,6 +277,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
     _formattedAskingPrice = int.tryParse(askingInput) != null ? formatPrice(int.parse(askingInput)) : '';
   }
   final List<String> yesNoOptions = ['Yes', 'No'];
+  final List<String> registryOptions = ['Registry', 'GPA'];
 
   Future<void> uploadImageWithTitle(File imageFile) async {
 
@@ -846,8 +847,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                       children: [
                         Expanded(
                           child: _blueDropdownRow(
-                            'Register',
-                            yesNoOptions,
+                            'Registry',
+                            registryOptions,
                             _registry,
                                 (val) => setState(() => _registry = val),
                             validator: (val) =>
@@ -1497,7 +1498,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle()),
+          child: Text(item, style:  TextStyle(fontSize: 11)),
         ))
             .toList(),
       ),

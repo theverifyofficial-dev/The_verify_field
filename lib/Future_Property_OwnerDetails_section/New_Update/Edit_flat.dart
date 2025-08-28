@@ -609,6 +609,7 @@ class EditFlatState extends State<EditFlat> {
   String? _selectedItem1;
   final List<String> buy_rent = ['Buy', 'Rent',''];
   final List<String> yesNoOptions = ['Yes', 'No',''];
+  final List<String> registryOptions = ['Registry', 'GPA'];
   String? _floor1;
   final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
   final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
@@ -811,7 +812,7 @@ class EditFlatState extends State<EditFlat> {
                                 Expanded(
                                   child: _buildDropdownRegister(
                                     'Register',
-                                    yesNoOptions,
+                                    registryOptions,
                                     _registry,
                                     (val) => setState(() => _registry = val),
                                     validator: (val) =>

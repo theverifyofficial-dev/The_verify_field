@@ -766,6 +766,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
         child: Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 8),
 
@@ -1234,7 +1235,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 // Price (normal input)
                 TextFormField(
                   controller: _priceController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.name,
                   decoration: InputDecoration(
                     labelText: _buyOrRent == 'Buy'
                         ? "Selling Price (₹)"
@@ -1256,6 +1257,18 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                               .brightness == Brightness.dark
                               ? Colors.grey.shade700
                               : Colors.grey.shade300),
+                    ),
+                    focusColor: Colors.red,
+                    // 🔴 Border when validation fails
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Colors.red, width: 2),
+                    ),
+
+                    // 🔴 Border when validation fails & field is focused
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(color: Colors.red, width: 2),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -1294,19 +1307,30 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 // Asking Price
                 TextFormField(
                   controller: _askingPriceController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.name,
                   decoration: _buildInputDecoration(
                       context, "Asking Price (₹) by owner"),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter price"; // <-- this triggers red border
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
 
                 // Last Price
                 TextFormField(
                   controller: _lastPriceController,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.name,
                   decoration: _buildInputDecoration(
                       context, "Last Price (₹) by owner"),
-                ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return "Please enter price"; // <-- this triggers red border
+                    }
+                    return null;
+                  },  ),
                 const SizedBox(height: 16),
                 //flatNumber
                 TextFormField(
@@ -1315,7 +1339,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   decoration: _buildInputDecoration(context, "Flat Number"),
                   validator: (val) =>
                   val == null || val.isEmpty
-                      ? "Enter number"
+                      ? "Enter Flat number"
                       : null,
                 ),
                 const SizedBox(height: 16),
@@ -1336,7 +1360,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       context, "Apartment Name & Address"),
                   validator: (val) =>
                   val == null || val.isEmpty
-                      ? "Enter Apartment Name & Adress "
+                      ? "Enter Apartment Name & Address "
                       : null,
                 ),
                 const SizedBox(height: 16),
@@ -1350,7 +1374,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   decoration: _buildInputDecoration(context, "Facility"),
                   validator: (val) =>
                   val == null || val.isEmpty
-                      ? "Enter Apartment Name"
+                      ? "Enter Facility"
                       : null,
                 ),
 
@@ -1396,19 +1420,15 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                             '8 Floor',
                             '9 Floor',
                             '10 Floor',
-                            ''
                           ],
-                              onSelected: (val) {
-                                setState(() {
-                                  _totalFloor = val;
-                                  _totalFloorController.text = val;
-                                });
-                              },
-                            ),
+                          onSelected: (val) {
+                            setState(() {
+                              _totalFloorController.text = val; // ✅ only use controller
+                            });
+                          },
+                        ),
                         validator: (val) =>
-                        _totalFloor == null || _totalFloor!.isEmpty
-                            ? "Select total floor"
-                            : null,
+                        val == null || val.isEmpty ? "Select total floor" : null, // ✅ no _totalFloor check
                       ),
                     ),
 
@@ -1993,46 +2013,49 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       child: _buildReadOnlyField(
                         label: "House Meter Type",
                         controller: TextEditingController(
-                            text: _houseMeter == 'Custom'
-                                ? 'Custom'
-                                : _houseMeter),
-                        onTap: () =>
-                            _showBottomSheet(
-                              options: ['Commercial','Govt', 'Custom',''],
-                              onSelected: (val) {
-                                setState(() {
-                                  _houseMeter = val;
-                                  if (val != 'Custom') {
-                                    _houseMeterController.text =
-                                        val; // assign directly
-                                  } else {
-                                    _houseMeterController
-                                        .clear(); // clear so user can type in custom input field
-                                  }
-                                });
-                              },
-                            ),
-                        validator: (val) =>
-                        (_houseMeterController.text.isEmpty)
-                            ? "Select house meter type"
-                            : null,
+                          text: _houseMeter == 'Custom' ? 'Custom' : _houseMeter,
+                        ),
+                        onTap: () => _showBottomSheet(
+                          options: ['Commercial', 'Govt', 'Custom', ''],
+                          onSelected: (val) {
+                            setState(() {
+                              _houseMeter = val;
+                              if (val != 'Custom') {
+                                _houseMeterController.text = val; // keep selected value
+                              } else {
+                                _houseMeterController.clear(); // allow typing new
+                              }
+                            });
+                          },
+                        ),
+                        // ✅ Show red only if nothing is selected
+                        validator: (val) {
+                          if ((_houseMeter ?? '').isEmpty) {
+                            return "Select house meter type";
+                          }
+                          return null; // no red if auto-filled
+                        },
                       ),
                     ),
-                    // Custom input only when "Custom" is selected
                     if (_houseMeter == 'Custom') ...[
                       Expanded(
                         child: Padding(
                           padding: const EdgeInsets.only(left: 16.0),
                           child: TextFormField(
                             decoration: _buildInputDecoration(
-                                context, "Enter Custom House Meter Type"),
-                            onChanged: (val) =>
-                            _houseMeterController.text = val,
-                            // update same controller
-                            validator: (val) =>
-                            val == null || val.isEmpty
-                                ? "Enter custom meter type"
-                                : null,
+                              context,
+                              "Enter Custom House Meter Type",
+                            ),
+                            controller: _houseMeterController,
+                            onChanged: (val) => _houseMeterController.text = val,
+                            // ✅ Red only if user selects Custom but leaves it blank
+                            validator: (val) {
+                              if (_houseMeter == 'Custom' &&
+                                  (val == null || val.isEmpty)) {
+                                return "Enter custom meter type";
+                              }
+                              return null; // don’t show red for auto-filled values
+                            },
                           ),
                         ),
                       ),
@@ -2077,14 +2100,24 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   value: _furnishing != null && furnishingOptions.contains(_furnishing)
                       ? _furnishing
                       : null,
-                  decoration: _buildInputDecoration(context, "Furnishing"),
+                  decoration: _buildInputDecoration(context, "Furnishing").copyWith(
+                    errorStyle: const TextStyle(height: 0, color: Colors.transparent), // hide error text
+                    errorBorder: OutlineInputBorder( // remove red border
+                      borderSide: BorderSide(color: Colors.grey.shade400),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder( // also remove red when focused
+                      borderSide: BorderSide(color: Colors.blue),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   items: furnishingOptions.map((option) {
                     return DropdownMenuItem<String>(
                       value: option,
                       child: Text(
                         option,
-                        style: TextStyle(
-                          color: Colors.blue.shade600,
+                        style: const TextStyle(
+                          color: Colors.blue,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -2100,7 +2133,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         apiApartmentName = '';
                       } else if (_furnishing == 'Semi Furnished' ||
                           _furnishing == 'Fully Furnished') {
-                        // ✅ Auto-fill from API when available
                         if ((apiApartmentName != null && apiApartmentName!.isNotEmpty)) {
                           furnitureController.text = apiApartmentName!;
                         } else if (_selectedFurniture.isNotEmpty) {
@@ -2112,8 +2144,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       }
                     });
                   },
-                  validator: (val) =>
-                  val == null || val.isEmpty ? 'Please select furnishing' : null,
+                  validator: (val) {
+                    if (val == null || val.isEmpty) {
+                      return ''; // return empty string instead of error msg
+                    }
+                    return null;
+                  },
                 ),
 
 // Show TextField only when Semi/Full Furnished
@@ -2127,16 +2163,32 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       decoration: _buildInputDecoration(
                         context,
                         "Select Furniture Items",
+                      ).copyWith(
+                        errorStyle: const TextStyle(height: 0, color: Colors.transparent), // hide error text
+                        errorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.blue),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onChanged: (val) {
-                        // ✅ Keep API name updated
                         apiApartmentName = val;
+                      },
+                      validator: (val) {
+                        if (val == null || val.isEmpty) {
+                          return ''; // no visible error
+                        }
+                        return null;
                       },
                     ),
                   ),
 
 
-                      const SizedBox(height: 16),
+
+                const SizedBox(height: 16),
                 FormField<String>(
                   autovalidateMode: AutovalidateMode.onUserInteraction,
                   validator: (_) {
@@ -2390,6 +2442,10 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   controller: _fieldWorkerNameController,
                   decoration: _buildInputDecoration(
                       context, "Field Worker Name"),
+                  validator: (val) =>
+                  val == null || val.isEmpty
+                      ? "Enter Field Worker Name"
+                      : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -2403,6 +2459,10 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
                   decoration: _buildInputDecoration(
                       context, "Field Worker Number"),
+                  validator: (val) =>
+                  val == null || val.isEmpty
+                      ? "Enter Field Worker Number"
+                      : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -2557,8 +2617,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         if (!status.isGranted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                                content: Text(
-                                    'Location permission is required')),
+                                content: Text('Location permission is required')),
                           );
                           return;
                         }
@@ -2710,19 +2769,23 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(
-            color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
+            color: isDark ? Colors.blue : Colors.blue.shade300,
             width: 2),
       ),
-
-      // 🔴 Add these two
+      focusColor: Colors.red,
+      // 🔴 Border when validation fails
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
+
+      // 🔴 Border when validation fails & field is focused
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
+      // 🔴 Add these two
+
 
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,

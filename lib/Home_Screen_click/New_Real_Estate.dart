@@ -424,34 +424,37 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: SingleChildScrollView(
-
               scrollDirection: Axis.horizontal,
-              child: Row(
-             children: ['Rent', 'Buy', 'Commercial'].map((label) {
-                  final bool isSelected = label == selectedLabel;
+              child: Align(
+                alignment: Alignment.centerLeft, // 👈 Force start from left
+                child: Row(
+                  children: ['Rent', 'Buy', 'Commercial'].map((label) {
+                    final bool isSelected = label == selectedLabel;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: ElevatedButton(
-                      onPressed: () => _setSearchText(label, label),
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          color: isSelected ? Colors.white : Colors.black,
-                          fontFamily: "Poppins",
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ElevatedButton(
+                        onPressed: () => _setSearchText(label, label),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor:
+                          isSelected ? Colors.blue : Colors.grey.shade300,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black,
+                            fontFamily: "Poppins",
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isSelected ? Colors.blue : Colors.grey.shade300,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                      ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),
@@ -604,14 +607,13 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                       Positioned(
                                         top: 12,
                                         right: 12,
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        child: Wrap(
+                                          spacing: 8, // space between the two containers
                                           children: [
-// SizedBox(width: 10,),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                               decoration: BoxDecoration(
-                                                color: _getPropertyTypeColor("${_filteredProperties[index].pId}"),
+                                                color: Colors.deepOrangeAccent,
                                                 borderRadius: BorderRadius.circular(20),
                                               ),
                                               child: Text(
@@ -622,9 +624,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                   fontFamily: "PoppinsBold",
                                                 ),
                                               ),
-                                            ),
-                                            SizedBox(
-                                              width: MediaQuery.of(context).size.width * 0.60, // 75% of screen width
                                             ),
                                             Container(
                                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
@@ -641,10 +640,9 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                 ),
                                               ),
                                             ),
-
                                           ],
                                         ),
-                                      ),
+                                      )
                                     ],
                                   ),
                                   Padding(

@@ -898,7 +898,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         width: 2,
                       ),
                     ),
-
+                    focusColor: Colors.red,
                     // 🔴 Border when validation fails
                     errorBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),

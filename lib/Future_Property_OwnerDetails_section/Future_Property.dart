@@ -64,7 +64,6 @@ class Catid {
   }
 }
 
-
 class FrontPage_FutureProperty extends StatefulWidget {
   const FrontPage_FutureProperty({super.key});
 
@@ -398,23 +397,31 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
                   final displayIndex = _filteredProperties.length - index; // ✅ reverse order
+                  String statusText = "Loading...";
+                  Color statusColor = Colors.grey;
                   return FutureBuilder<http.Response>(
                     future: http.get(Uri.parse(
-                        "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${property.id}")),
+                        "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${property.id}")),
                     builder: (context, snapshot) {
-                      bool isRedDot = false;
                       if (snapshot.hasData) {
                         try {
                           final body = jsonDecode(snapshot.data!.body);
-                          isRedDot = body is List &&
-                              body.isNotEmpty &&
-                              body[0]['logg'] == 0;
+                          if (body is List && body.isNotEmpty) {
+                            if (body[0]['logg'] == 0) {
+                              statusText = "UnLive";
+                              statusColor = Colors.red;
+                            } else {
+                              statusText = "Live";
+                              statusColor = Colors.green;
+                            }
+                          }
                         } catch (_) {}
                       }
                       return PropertyCard(
                         displayIndex: displayIndex,   // ✅ pass here
                         property: property,
-                        isRedDot: isRedDot,
+                        statusText: statusText,     // ✅ pass status text
+                        statusColor: statusColor,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -462,14 +469,16 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 }
 class PropertyCard extends StatelessWidget {
   final dynamic property;
-  final bool isRedDot;
+  final String statusText;
+  final Color statusColor;
   final VoidCallback onTap;
-  final int displayIndex;   // ✅ new
+  final int displayIndex;
 
   const PropertyCard({
     Key? key,
     required this.property,
-    required this.isRedDot,
+    required this.statusText,
+    required this.statusColor,
     required this.onTap,
     required this.displayIndex,
 
@@ -526,12 +535,18 @@ class PropertyCard extends StatelessWidget {
                   top: 12,
                   right: 12,
                   child: Container(
-                    width: 18,
-                    height: 18,
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: isRedDot ? Colors.red : Colors.green,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 2),
+                      color: statusColor,
+                      border: Border.all(color: statusColor, width: 1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      statusText,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -601,37 +616,6 @@ class PropertyCard extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 12),
-                  //
-                  // if (hasMissingFields)
-                  //   Container(
-                  //     width: double.infinity,
-                  //     margin: const EdgeInsets.only(top: 8, bottom: 8),
-                  //     padding: const EdgeInsets.all(10),
-                  //     decoration: BoxDecoration(
-                  //       color: Colors.red.shade100,
-                  //       borderRadius: BorderRadius.circular(8),
-                  //     ),
-                  //     child: Row(
-                  //       children: [
-                  //         const Icon(Icons.warning_amber_rounded,
-                  //             color: Colors.red, size: 20),
-                  //         const SizedBox(width: 8),
-                  //         Expanded(
-                  //           child: Text(
-                  //             "Some fields are missing. Please update the building details.",
-                  //             style: TextStyle(
-                  //               color: Colors.red.shade800,
-                  //               fontSize: 13,
-                  //               fontWeight: FontWeight.w600,
-                  //             ),
-                  //           ),
-                  //         ),
-                  //       ],
-                  //     ),
-                  //   ),
-                  const SizedBox(height: 12),
-
-                  // Property ID
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [

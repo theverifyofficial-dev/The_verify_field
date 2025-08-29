@@ -835,7 +835,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
           autovalidateMode: AutovalidateMode.always,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 8),
-
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,

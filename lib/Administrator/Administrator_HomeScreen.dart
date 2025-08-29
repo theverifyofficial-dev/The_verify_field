@@ -38,7 +38,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     _shineController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 3),
-    )..repeat();
+    )
+      ..repeat();
     _shineAnimation = CurvedAnimation(
       parent: _shineController,
       curve: Curves.easeInOut,
@@ -114,26 +115,32 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Theme.of(context).primaryColor;
+    final isDarkMode = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    final primaryColor = Theme
+        .of(context)
+        .primaryColor;
 
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         surfaceTintColor: Colors.black,
-        backgroundColor:  Colors.black,
+        backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 70),
         leading: Container(
           margin: const EdgeInsets.only(left: 8), // Add some margin if needed
           child: InkWell(
             borderRadius: BorderRadius.circular(20), // For better tap effect
-            onTap: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (context) => ProfilePage()),
-            ),
+            onTap: () =>
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                ),
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min, // Important for proper centering
+                mainAxisSize: MainAxisSize.min,
+                // Important for proper centering
                 children: [
                   Icon(
                     PhosphorIcons.user_circle,
@@ -142,7 +149,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   ),
                   if (userName != null && userName!.isNotEmpty)
                     Padding(
-                      padding: const EdgeInsets.only(top: 2), // Small top padding
+                      padding: const EdgeInsets.only(top: 2),
+                      // Small top padding
                       child: Text(
                         userName!.length > 10
                             ? '${userName!.substring(0, 10)}..'
@@ -162,11 +170,14 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
             ),
           ),
         ),
-        leadingWidth: 80, // Fixed width for consistent spacing
+        leadingWidth: 80,
+        // Fixed width for consistent spacing
         actions: [
           IconButton(
             icon: Icon(
-              ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
+              ThemeSwitcher
+                  .of(context)
+                  ?.themeMode == ThemeMode.dark
                   ? Icons.light_mode
                   : Icons.dark_mode,
               color: Colors.yellow,
@@ -195,10 +206,11 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
             crossAxisAlignment: CrossAxisAlignment.start,
             children: AnimationConfiguration.toStaggeredList(
               duration: const Duration(milliseconds: 500),
-              childAnimationBuilder: (widget) => SlideAnimation(
-                verticalOffset: 50.0,
-                child: AnimationLimiter(child: widget),
-              ),
+              childAnimationBuilder: (widget) =>
+                  SlideAnimation(
+                    verticalOffset: 50.0,
+                    child: AnimationLimiter(child: widget),
+                  ),
               children: [
                 const SizedBox(height: 20),
                 // Main Real Estate Card with Shine Effect
@@ -213,12 +225,15 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           gradient: LinearGradient(
                             colors: [
                               const Color(0xFF31D8FF),
-                              primaryColor.withOpacity(0.1 + 0.3 * _shineAnimation.value),
+                              primaryColor.withOpacity(
+                                  0.1 + 0.3 * _shineAnimation.value),
                               const Color(0xFFFD0098),
                             ],
                             stops: const [0.0, 0.5, 1.0],
-                            begin: Alignment(-1.0 + (2.0 * _shineAnimation.value), -1.0),
-                            end: Alignment(1.0 - (2.0 * _shineAnimation.value), 1.0),
+                            begin: Alignment(
+                                -1.0 + (2.0 * _shineAnimation.value), -1.0),
+                            end: Alignment(
+                                1.0 - (2.0 * _shineAnimation.value), 1.0),
                           ),
                         ),
                         child: Card(
@@ -226,19 +241,22 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                             side: BorderSide(
-                              color: primaryColor.withOpacity(0.3 * _shineAnimation.value),
+                              color: primaryColor.withOpacity(
+                                  0.3 * _shineAnimation.value),
                               width: 1.5,
                             ),
                           ),
                           elevation: 6,
                           shadowColor: primaryColor.withOpacity(0.2),
                           child: InkWell(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ADministaterShow_realestete(),
-                              ),
-                            ),
+                            onTap: () =>
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (
+                                        context) => const ADministaterShow_realestete(),
+                                  ),
+                                ),
                             borderRadius: BorderRadius.circular(16),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -270,7 +288,11 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Expanded(
                                     child: Text(
                                       "Real Estate",
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      style: Theme
+                                          .of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
                                         color: isDarkMode
                                             ? Colors.white
                                             : Colors.grey.shade700,
@@ -281,7 +303,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   ),
                                   Icon(
                                     Icons.arrow_forward_ios_rounded,
-                                    color: isDarkMode ? Colors.white : Colors.grey.shade700,
+                                    color: isDarkMode ? Colors.white : Colors
+                                        .grey.shade700,
                                     size: 20,
                                   ),
                                 ],
@@ -300,54 +323,84 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                 // Grid of Feature Cards
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    childAspectRatio: 0.9,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    children: [
-                      _buildFeatureCard(
-                        context: context,
-                        imagePath: AppImages.agreement,
-                        title: "Rent Agreement",
-                        onTap: _AgreementURL,
-                        shineAnimation: _shineAnimation,
-                      ),
-                      _buildFeatureCard(
-                        context: context,
-                        imagePath: AppImages.agreement_details,
-                        title: "Agreement Details",
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => AgreementDetails()),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final screenWidth = MediaQuery
+                          .of(context)
+                          .size
+                          .width;
+                      final screenHeight = MediaQuery
+                          .of(context)
+                          .size
+                          .height;
+
+                      // Dynamic grid calculation
+                      final crossAxisCount = screenWidth > 800 ? 4 :
+                      screenWidth > 600 ? 3 : 2;
+
+                      // Calculate item width based on available space
+                      final availableWidth = constraints.maxWidth;
+                      final itemWidth = (availableWidth -
+                          ((crossAxisCount - 1) * 16)) / crossAxisCount;
+                      final childAspectRatio = itemWidth /
+                          (itemWidth * 1.1); // Height is 10% more than width
+
+                      return GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: crossAxisCount,
+                          childAspectRatio: childAspectRatio,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
                         ),
-                        shineAnimation: _shineAnimation,
-                      ),
-                      _buildFeatureCard(
-                        context: context,
-                        imagePath: AppImages.propertysale,
-                        title: "Future Property",
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => ADministaterShow_FutureProperty()),
-                        ),
-                        shineAnimation: _shineAnimation,
-                      ),
-                      _buildFeatureCard(
-                        context: context,
-                        imagePath: AppImages.tenant,
-                        title: "Tenant Demands",
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const Administater_parent_TenandDemand(),
-                          ),
-                        ),
-                        shineAnimation: _shineAnimation,
-                      ),
-                    ],
+                        itemCount: 4,
+                        itemBuilder: (context, index) {
+                          final List<Map<String, dynamic>> featureItems = [
+                            {
+                              'image': AppImages.agreement,
+                              'title': "Rent Agreement",
+                              'onTap': _AgreementURL,
+                            },
+                            {
+                              'image': AppImages.agreement_details,
+                              'title': "Agreement Details",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) =>
+                                          AgreementDetails())),
+                            },
+                            {
+                              'image': AppImages.propertysale,
+                              'title': "Future Property",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) =>
+                                          ADministaterShow_FutureProperty())),
+                            },
+                            {
+                              'image': AppImages.tenant,
+                              'title': "Tenant Demands",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (
+                                          context) => const Administater_parent_TenandDemand())),
+                            },
+                          ];
+
+                          final item = featureItems[index];
+
+                          return _buildFeatureCard(
+                            context: context,
+                            imagePath: item['image'],
+                            title: item['title'],
+                            onTap: item['onTap'],
+                            shineAnimation: _shineAnimation,
+                            itemWidth: itemWidth,
+                          );
+                        },
+                      );
+                    },
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -365,9 +418,19 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     required String title,
     required VoidCallback onTap,
     required Animation<double> shineAnimation,
+    required double itemWidth,
   }) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = Theme.of(context).primaryColor;
+    final isDarkMode = Theme
+        .of(context)
+        .brightness == Brightness.dark;
+    final primaryColor = Theme
+        .of(context)
+        .primaryColor;
+
+    // Calculate sizes based on item width
+    final imageSize = itemWidth * 0.35;
+    final fontSize = itemWidth * 0.07;
+    final padding = itemWidth * 0.08;
 
     return AnimatedBuilder(
       animation: shineAnimation,
@@ -400,13 +463,13 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
               onTap: onTap,
               borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: EdgeInsets.all(padding),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     Container(
-                      height: 60,
-                      width: 60,
+                      height: imageSize,
+                      width: imageSize,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
@@ -419,29 +482,33 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                       ),
                       child: Image.asset(
                         imagePath,
-                        fit: BoxFit.cover,
+                        fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      title,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: isDarkMode ? Colors.white : Colors.black87,
-                        fontWeight: FontWeight.w600,
-                        fontFamily: 'Poppins',
+                    Flexible(
+                      child: Text(
+                        title,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: fontSize.clamp(12, 16),
+                          // Minimum 12, maximum 16
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'Poppins',
+                          height: 1.2,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
-                    const SizedBox(height: 8),
                     CircleAvatar(
-                      backgroundColor: isDarkMode ? Colors.white10 : Colors.grey.shade100,
+                      radius: imageSize * 0.25,
+                      backgroundColor: isDarkMode ? Colors.white10 : Colors.grey
+                          .shade100,
                       child: Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: isDarkMode ? Colors.white : Colors.black87,
-                        size: 16,
+                        size: imageSize * 0.2,
                       ),
                     ),
                   ],

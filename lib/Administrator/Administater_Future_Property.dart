@@ -206,7 +206,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     final size = MediaQuery.of(context).size;
     return Scaffold(
 
-      backgroundColor: Colors.black,
+      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
         surfaceTintColor: Colors.black,
@@ -278,7 +278,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                   style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white
+                                      // color: Colors.white
                                   ),
                                 ),
                               ),
@@ -304,534 +304,366 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            height: 650,
+                            height: 700,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: data.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                int displayIndex = abc.data!.length - len;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                          context,
-                                          MaterialPageRoute
-                                            (builder: (context) => Administater_Future_Property_details(idd: '${abc.data![len].id}',))
-                                      );
-                                  },
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Column(
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                    const BorderRadius.all(Radius.circular(10)),
-                                                    child: Container(
-                                                      height: 400,
-                                                      width: 310,
-                                                      child: CachedNetworkImage(
-                                                        imageUrl:
-                                                        "https://verifyserve.social/PHP_Files/future_property/"+abc.data![len].Building_image,
-                                                        fit: BoxFit.contain,
-                                                        placeholder: (context, url) => Image.asset(
-                                                          AppImages.loading,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                        errorWidget: (context, error, stack) =>
-                                                            Image.asset(
-                                                              AppImages.imageNotFound,
-                                                              fit: BoxFit.cover,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
+                              itemCount: abc.data?.length ?? 0,
+                              itemBuilder: (BuildContext context, int index) {
+                                if (abc.data == null || abc.data!.isEmpty || index >= abc.data!.length) {
+                                  return Container();
+                                }
 
-                                                ],
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
+                                final property = abc.data![index];
+                                final displayIndex = abc.data!.length - index;
+                                final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-                                                  Row(
-                                                    children: [
+                                // Color scheme for light and dark mode
+                                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
+                                final textColor = isDarkMode ? Colors.white : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors.green[300] : Colors.green;
+                                final redColor = isDarkMode ? Colors.red[300] : Colors.red;
+                                final orangeColor = isDarkMode ? Colors.orange[300] : Colors.orange;
+                                final blueColor = isDarkMode ? Colors.blue[300] : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors.purple[300] : Colors.purple;
 
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].tyope/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.red.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].BHK/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.red.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].floor_/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].buy_Rent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
-
-                                                  Row(
-                                                    children: [
-                                                      Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                                      SizedBox(width: 2,),
-                                                      Text("Owner Name | Owner Number",
-                                                        overflow: TextOverflow.ellipsis,
-                                                        maxLines: 2,
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(5),
-                                                              border: Border.all(width: 1, color: Colors.green),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors.green.withOpacity(0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(0, 0),
-                                                                    blurStyle: BlurStyle.outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text(""+abc.data![len].Ownername/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          GestureDetector(
-                                                            onTap: (){
-
-                                                              showDialog<bool>(
-                                                                context: context,
-                                                                builder: (context) => AlertDialog(
-                                                                  title: Text('Call Property Owner'),
-                                                                  content: Text('Do you really want to Call Owner?'),
-                                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                                  actions: <Widget>[
-                                                                    ElevatedButton(
-                                                                      onPressed: () => Navigator.of(context).pop(false),
-                                                                      child: Text('No'),
-                                                                    ),
-                                                                    ElevatedButton(
-                                                                      onPressed: () async {
-                                                                        FlutterPhoneDirectCaller.callNumber('${abc.data![len].Owner_number}');
-                                                                      },
-                                                                      child: Text('Yes'),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ) ?? false;
-                                                            },
-                                                            child: Container(
-                                                              padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                              decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(5),
-                                                                border: Border.all(width: 1, color: Colors.green),
-                                                                boxShadow: [
-                                                                  BoxShadow(
-                                                                      color: Colors.green.withOpacity(0.5),
-                                                                      blurRadius: 10,
-                                                                      offset: Offset(0, 0),
-                                                                      blurStyle: BlurStyle.outer
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              child: Row(
-                                                                children: [
-                                                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                                                  //w SizedBox(width: 10,),
-                                                                  Text(""+abc.data![len].Owner_number/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                    style: TextStyle(
-                                                                        fontSize: 13,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w500,
-                                                                        letterSpacing: 0.5
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                                      SizedBox(width: 2,),
-                                                      Text("Property Address",
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 300,
-                                                        child: Text(""+abc.data![len].Building_Address,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          maxLines: 2,
-                                                          style: TextStyle(
-                                                              fontSize: 10,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w400
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].Building_Location/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].date/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
-
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text("Property No = $displayIndex"/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text("Property id = "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-
-
-                                                ],
-                                              ),
-
-
-                                            ],
-                                          ),
-                                        ),
+                                return Container(
+                                  width: 350,
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: backgroundColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
                                       ),
                                     ],
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Administater_Future_Property_details(
+                                            idd: property.id?.toString() ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Column(
+                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                          const BorderRadius.all(Radius.circular(10)),
+                                          child: Container(
+                                            height: 300,
+                                            width: 310,
+                                            child: CachedNetworkImage(
+                                              imageUrl:
+                                              "https://verifyserve.social/PHP_Files/future_property/"+(property.Building_image??""),
+                                              fit: BoxFit.contain,
+                                              placeholder: (context, url) => Image.asset(
+                                                AppImages.loading,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              errorWidget: (context, error, stack) =>
+                                                  Image.asset(
+                                                    AppImages.imageNotFound,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+
+
+
+                                        // Property Details
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                // Property Type, BHK, Floor, Buy/Rent
+                                                Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 8,
+                                                  children: [
+                                                    if (property.tyope != null)
+                                                      _buildFeatureChip(property.tyope!, greenColor!, isDarkMode),
+                                                    if (property.BHK != null)
+                                                      _buildFeatureChip(property.BHK!, redColor!, isDarkMode),
+                                                    if (property.floor_ != null)
+                                                      _buildFeatureChip(property.floor_!, orangeColor!, isDarkMode),
+                                                    if (property.buy_Rent != null)
+                                                      _buildFeatureChip(property.buy_Rent!, blueColor!, isDarkMode),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Owner Information
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.person_outline, size: 16, color: secondaryTextColor),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Owner Information",
+                                                        style: TextStyle(
+                                                          fontFamily: 'Poppins',
+                                                          fontSize: 12,
+                                                          color: secondaryTextColor,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 8),
+
+                                                // Owner Name and Number
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: isDarkMode ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          property.Ownername ?? 'N/A',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 14,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    if (property.Owner_number != null)
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          showDialog<bool>(
+                                                            context: context,
+                                                            builder: (context) => AlertDialog(
+                                                              backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+                                                              title: Text(
+                                                                'Call Property Owner',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: textColor,
+                                                                ),
+                                                              ),
+                                                              content: Text(
+                                                                'Do you really want to call the owner?',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  color: textColor,
+                                                                ),
+                                                              ),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(16),
+                                                              ),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  onPressed: () => Navigator.of(context).pop(false),
+                                                                  child: Text(
+                                                                    'Cancel',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Poppins',
+                                                                      color: textColor,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                ElevatedButton(
+                                                                  onPressed: () async {
+                                                                    Navigator.of(context).pop(true);
+                                                                    FlutterPhoneDirectCaller.callNumber(property.Owner_number!);
+                                                                  },
+                                                                  child: Text(
+                                                                    'Call',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Poppins',
+                                                                      fontWeight: FontWeight.bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(Icons.phone, size: 16, color: blueColor),
+                                                              const SizedBox(width: 4),
+                                                              Text(
+                                                                property.Owner_number!,
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  fontSize: 14,
+                                                                  color: blueColor,
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Property Address
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Icon(Icons.location_on_outlined, size: 16, color: secondaryTextColor),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            "Property Address",
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 12,
+                                                              color: secondaryTextColor,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(height: 4),
+                                                          Text(
+                                                            property.Building_Address ?? 'Address not available',
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 13,
+                                                              color: textColor,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Location and Date
+                                                Row(
+                                                  children: [
+                                                    if (property.Building_Location != null)
+                                                      Expanded(
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Text(
+                                                            property.Building_Location!,
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 12,
+                                                              color: blueColor,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    if (property.Building_Location != null && property.date != null)
+                                                      const SizedBox(width: 8),
+                                                    if (property.date != null)
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: isDarkMode ? Colors.purple[900]!.withOpacity(0.3) : Colors.purple[50],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          property.date!,
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: purpleColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Property ID and Index
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: cardColor,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          "Property No #$displayIndex",
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: cardColor,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          "Property ID: ${property.id?.toString() ?? 'N/A'}",
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -876,7 +708,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                   style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white
                                   ),
                                 ),
                               ),
@@ -903,535 +734,366 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            //height: size.height,
-                            height: 650,
+                            height: 700,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: data.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                int displayIndex = abc.data!.length - len;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute
-                                          (builder: (context) => Administater_Future_Property_details(idd: '${abc.data![len].id}',))
-                                    );
-                                  },
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Column(
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                    const BorderRadius.all(Radius.circular(10)),
-                                                    child: Container(
-                                                      height: 400,
-                                                      width: 310,
-                                                      child: CachedNetworkImage(
-                                                        imageUrl:
-                                                        "https://verifyserve.social/PHP_Files/future_property/"+abc.data![len].Building_image,
-                                                        fit: BoxFit.contain,
-                                                        placeholder: (context, url) => Image.asset(
-                                                          AppImages.loading,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                        errorWidget: (context, error, stack) =>
-                                                            Image.asset(
-                                                              AppImages.imageNotFound,
-                                                              fit: BoxFit.cover,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
+                              itemCount: abc.data?.length ?? 0,
+                              itemBuilder: (BuildContext context, int index) {
+                                if (abc.data == null || abc.data!.isEmpty || index >= abc.data!.length) {
+                                  return Container();
+                                }
 
-                                                ],
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
+                                final property = abc.data![index];
+                                final displayIndex = abc.data!.length - index;
+                                final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-                                                  Row(
-                                                    children: [
+                                // Color scheme for light and dark mode
+                                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
+                                final textColor = isDarkMode ? Colors.white : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors.green[300] : Colors.green;
+                                final redColor = isDarkMode ? Colors.red[300] : Colors.red;
+                                final orangeColor = isDarkMode ? Colors.orange[300] : Colors.orange;
+                                final blueColor = isDarkMode ? Colors.blue[300] : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors.purple[300] : Colors.purple;
 
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].tyope/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.red.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].BHK/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.red.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].floor_/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].buy_Rent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
-
-                                                  Row(
-                                                    children: [
-                                                      Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                                      SizedBox(width: 2,),
-                                                      Text("Owner Name | Owner Number",
-                                                        overflow: TextOverflow.ellipsis,
-                                                        maxLines: 2,
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(5),
-                                                              border: Border.all(width: 1, color: Colors.green),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors.green.withOpacity(0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(0, 0),
-                                                                    blurStyle: BlurStyle.outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text(""+abc.data![len].Ownername/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          GestureDetector(
-                                                            onTap: (){
-
-                                                              showDialog<bool>(
-                                                                context: context,
-                                                                builder: (context) => AlertDialog(
-                                                                  title: Text('Call Property Owner'),
-                                                                  content: Text('Do you really want to Call Owner?'),
-                                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                                  actions: <Widget>[
-                                                                    ElevatedButton(
-                                                                      onPressed: () => Navigator.of(context).pop(false),
-                                                                      child: Text('No'),
-                                                                    ),
-                                                                    ElevatedButton(
-                                                                      onPressed: () async {
-                                                                        FlutterPhoneDirectCaller.callNumber('${abc.data![len].Owner_number}');
-                                                                      },
-                                                                      child: Text('Yes'),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ) ?? false;
-                                                            },
-                                                            child: Container(
-                                                              padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                              decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(5),
-                                                                border: Border.all(width: 1, color: Colors.green),
-                                                                boxShadow: [
-                                                                  BoxShadow(
-                                                                      color: Colors.green.withOpacity(0.5),
-                                                                      blurRadius: 10,
-                                                                      offset: Offset(0, 0),
-                                                                      blurStyle: BlurStyle.outer
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              child: Row(
-                                                                children: [
-                                                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                                                  //w SizedBox(width: 10,),
-                                                                  Text(""+abc.data![len].Owner_number/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                    style: TextStyle(
-                                                                        fontSize: 13,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w500,
-                                                                        letterSpacing: 0.5
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                                      SizedBox(width: 2,),
-                                                      Text("Property Address",
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 300,
-                                                        child: Text(""+abc.data![len].Building_Address,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          maxLines: 2,
-                                                          style: TextStyle(
-                                                              fontSize: 10,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w400
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].Building_Location/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].date/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
-
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text("Property No = $displayIndex"/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text("Property id = "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-
-
-                                                ],
-                                              ),
-
-
-                                            ],
-                                          ),
-                                        ),
+                                return Container(
+                                  width: 350,
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: backgroundColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
                                       ),
                                     ],
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Administater_Future_Property_details(
+                                            idd: property.id?.toString() ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Column(
+                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                          const BorderRadius.all(Radius.circular(10)),
+                                          child: Container(
+                                            height: 300,
+                                            width: 310,
+                                            child: CachedNetworkImage(
+                                              imageUrl:
+                                              "https://verifyserve.social/PHP_Files/future_property/"+(property.Building_image??""),
+                                              fit: BoxFit.contain,
+                                              placeholder: (context, url) => Image.asset(
+                                                AppImages.loading,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              errorWidget: (context, error, stack) =>
+                                                  Image.asset(
+                                                    AppImages.imageNotFound,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+
+
+
+                                        // Property Details
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                // Property Type, BHK, Floor, Buy/Rent
+                                                Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 8,
+                                                  children: [
+                                                    if (property.tyope != null)
+                                                      _buildFeatureChip(property.tyope!, greenColor!, isDarkMode),
+                                                    if (property.BHK != null)
+                                                      _buildFeatureChip(property.BHK!, redColor!, isDarkMode),
+                                                    if (property.floor_ != null)
+                                                      _buildFeatureChip(property.floor_!, orangeColor!, isDarkMode),
+                                                    if (property.buy_Rent != null)
+                                                      _buildFeatureChip(property.buy_Rent!, blueColor!, isDarkMode),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Owner Information
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.person_outline, size: 16, color: secondaryTextColor),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Owner Information",
+                                                        style: TextStyle(
+                                                          fontFamily: 'Poppins',
+                                                          fontSize: 12,
+                                                          color: secondaryTextColor,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 8),
+
+                                                // Owner Name and Number
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: isDarkMode ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          property.Ownername ?? 'N/A',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 14,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    if (property.Owner_number != null)
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          showDialog<bool>(
+                                                            context: context,
+                                                            builder: (context) => AlertDialog(
+                                                              backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+                                                              title: Text(
+                                                                'Call Property Owner',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: textColor,
+                                                                ),
+                                                              ),
+                                                              content: Text(
+                                                                'Do you really want to call the owner?',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  color: textColor,
+                                                                ),
+                                                              ),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(16),
+                                                              ),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  onPressed: () => Navigator.of(context).pop(false),
+                                                                  child: Text(
+                                                                    'Cancel',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Poppins',
+                                                                      color: textColor,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                ElevatedButton(
+                                                                  onPressed: () async {
+                                                                    Navigator.of(context).pop(true);
+                                                                    FlutterPhoneDirectCaller.callNumber(property.Owner_number!);
+                                                                  },
+                                                                  child: Text(
+                                                                    'Call',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Poppins',
+                                                                      fontWeight: FontWeight.bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(Icons.phone, size: 16, color: blueColor),
+                                                              const SizedBox(width: 4),
+                                                              Text(
+                                                                property.Owner_number!,
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  fontSize: 14,
+                                                                  color: blueColor,
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Property Address
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Icon(Icons.location_on_outlined, size: 16, color: secondaryTextColor),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            "Property Address",
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 12,
+                                                              color: secondaryTextColor,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(height: 4),
+                                                          Text(
+                                                            property.Building_Address ?? 'Address not available',
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 13,
+                                                              color: textColor,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Location and Date
+                                                Row(
+                                                  children: [
+                                                    if (property.Building_Location != null)
+                                                      Expanded(
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Text(
+                                                            property.Building_Location!,
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 12,
+                                                              color: blueColor,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    if (property.Building_Location != null && property.date != null)
+                                                      const SizedBox(width: 8),
+                                                    if (property.date != null)
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: isDarkMode ? Colors.purple[900]!.withOpacity(0.3) : Colors.purple[50],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          property.date!,
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: purpleColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Property ID and Index
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: cardColor,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          "Property No #$displayIndex",
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: cardColor,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          "Property ID: ${property.id?.toString() ?? 'N/A'}",
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -1476,7 +1138,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                   style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white
                                   ),
                                 ),
                               ),
@@ -1503,534 +1164,366 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            height: 650,
+                            height: 700,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
-                              itemCount: data.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                int displayIndex = abc.data!.length - len;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute
-                                          (builder: (context) => Administater_Future_Property_details(idd: '${abc.data![len].id}',))
-                                    );
-                                  },
-                                  child: Column(
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-                                        child: Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.white,
-                                            borderRadius: BorderRadius.circular(10),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.center,
-                                            mainAxisAlignment: MainAxisAlignment.start,
-                                            children: [
-                                              Column(
-                                                children: [
-                                                  ClipRRect(
-                                                    borderRadius:
-                                                    const BorderRadius.all(Radius.circular(10)),
-                                                    child: Container(
-                                                      height: 400,
-                                                      width: 310,
-                                                      child: CachedNetworkImage(
-                                                        imageUrl:
-                                                        "https://verifyserve.social/PHP_Files/future_property/"+abc.data![len].Building_image,
-                                                        fit: BoxFit.contain,
-                                                        placeholder: (context, url) => Image.asset(
-                                                          AppImages.loading,
-                                                          fit: BoxFit.cover,
-                                                        ),
-                                                        errorWidget: (context, error, stack) =>
-                                                            Image.asset(
-                                                              AppImages.imageNotFound,
-                                                              fit: BoxFit.cover,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
+                              itemCount: abc.data?.length ?? 0,
+                              itemBuilder: (BuildContext context, int index) {
+                                if (abc.data == null || abc.data!.isEmpty || index >= abc.data!.length) {
+                                  return Container();
+                                }
 
-                                                ],
-                                              ),
-                                              SizedBox(width: 5,),
-                                              Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                mainAxisAlignment: MainAxisAlignment.center,
-                                                children: [
+                                final property = abc.data![index];
+                                final displayIndex = abc.data!.length - index;
+                                final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-                                                  Row(
-                                                    children: [
+                                // Color scheme for light and dark mode
+                                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
+                                final textColor = isDarkMode ? Colors.white : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors.green[300] : Colors.green;
+                                final redColor = isDarkMode ? Colors.red[300] : Colors.red;
+                                final orangeColor = isDarkMode ? Colors.orange[300] : Colors.orange;
+                                final blueColor = isDarkMode ? Colors.blue[300] : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors.purple[300] : Colors.purple;
 
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].tyope/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.red.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].BHK/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.red),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.red.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].floor_/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].buy_Rent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
-
-                                                  Row(
-                                                    children: [
-                                                      Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                                      SizedBox(width: 2,),
-                                                      Text("Owner Name | Owner Number",
-                                                        overflow: TextOverflow.ellipsis,
-                                                        maxLines: 2,
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 5,
-                                                      ),
-                                                      Row(
-                                                        children: [
-                                                          Container(
-                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                            decoration: BoxDecoration(
-                                                              borderRadius: BorderRadius.circular(5),
-                                                              border: Border.all(width: 1, color: Colors.green),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                    color: Colors.green.withOpacity(0.5),
-                                                                    blurRadius: 10,
-                                                                    offset: Offset(0, 0),
-                                                                    blurStyle: BlurStyle.outer
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //w SizedBox(width: 10,),
-                                                                Text(""+abc.data![len].Ownername/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w500,
-                                                                      letterSpacing: 0.5
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Row(
-                                                        children: [
-                                                          GestureDetector(
-                                                            onTap: (){
-
-                                                              showDialog<bool>(
-                                                                context: context,
-                                                                builder: (context) => AlertDialog(
-                                                                  title: Text('Call Property Owner'),
-                                                                  content: Text('Do you really want to Call Owner?'),
-                                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                                  actions: <Widget>[
-                                                                    ElevatedButton(
-                                                                      onPressed: () => Navigator.of(context).pop(false),
-                                                                      child: Text('No'),
-                                                                    ),
-                                                                    ElevatedButton(
-                                                                      onPressed: () async {
-                                                                        FlutterPhoneDirectCaller.callNumber('${abc.data![len].Owner_number}');
-                                                                      },
-                                                                      child: Text('Yes'),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ) ?? false;
-                                                            },
-                                                            child: Container(
-                                                              padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                              decoration: BoxDecoration(
-                                                                borderRadius: BorderRadius.circular(5),
-                                                                border: Border.all(width: 1, color: Colors.green),
-                                                                boxShadow: [
-                                                                  BoxShadow(
-                                                                      color: Colors.green.withOpacity(0.5),
-                                                                      blurRadius: 10,
-                                                                      offset: Offset(0, 0),
-                                                                      blurStyle: BlurStyle.outer
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                              child: Row(
-                                                                children: [
-                                                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                                                  //w SizedBox(width: 10,),
-                                                                  Text(""+abc.data![len].Owner_number/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                    style: TextStyle(
-                                                                        fontSize: 13,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w500,
-                                                                        letterSpacing: 0.5
-                                                                    ),
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                                      SizedBox(width: 2,),
-                                                      Text("Property Address",
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-                                                      SizedBox(
-                                                        width: 300,
-                                                        child: Text(""+abc.data![len].Building_Address,
-                                                          overflow: TextOverflow.ellipsis,
-                                                          maxLines: 2,
-                                                          style: TextStyle(
-                                                              fontSize: 10,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w400
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].Building_Location/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].date/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(
-                                                        width: 10,
-                                                      ),
-
-
-
-                                                    ],
-                                                  ),
-
-                                                  SizedBox(
-                                                    height: 10,
-                                                  ),
-
-                                                  Row(
-                                                    children: [
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text("Property No = $displayIndex"/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 10,),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.blue),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.blue.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text("Property id = "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-
-                                                    ],
-                                                  ),
-
-
-
-                                                ],
-                                              ),
-
-
-                                            ],
-                                          ),
-                                        ),
+                                return Container(
+                                  width: 350,
+                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: backgroundColor,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
                                       ),
                                     ],
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Administater_Future_Property_details(
+                                            idd: property.id?.toString() ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Column(
+                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                          const BorderRadius.all(Radius.circular(10)),
+                                          child: Container(
+                                            height: 300,
+                                            width: 310,
+                                            child: CachedNetworkImage(
+                                              imageUrl:
+                                              "https://verifyserve.social/PHP_Files/future_property/"+(property.Building_image??""),
+                                              fit: BoxFit.contain,
+                                              placeholder: (context, url) => Image.asset(
+                                                AppImages.loading,
+                                                fit: BoxFit.cover,
+                                              ),
+                                              errorWidget: (context, error, stack) =>
+                                                  Image.asset(
+                                                    AppImages.imageNotFound,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            ),
+                                          ),
+                                        ),
+
+
+
+                                        // Property Details
+                                        Expanded(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(16),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                // Property Type, BHK, Floor, Buy/Rent
+                                                Wrap(
+                                                  spacing: 8,
+                                                  runSpacing: 8,
+                                                  children: [
+                                                    if (property.tyope != null)
+                                                      _buildFeatureChip(property.tyope!, greenColor!, isDarkMode),
+                                                    if (property.BHK != null)
+                                                      _buildFeatureChip(property.BHK!, redColor!, isDarkMode),
+                                                    if (property.floor_ != null)
+                                                      _buildFeatureChip(property.floor_!, orangeColor!, isDarkMode),
+                                                    if (property.buy_Rent != null)
+                                                      _buildFeatureChip(property.buy_Rent!, blueColor!, isDarkMode),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Owner Information
+                                                Row(
+                                                  children: [
+                                                    Icon(Icons.person_outline, size: 16, color: secondaryTextColor),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Text(
+                                                        "Owner Information",
+                                                        style: TextStyle(
+                                                          fontFamily: 'Poppins',
+                                                          fontSize: 12,
+                                                          color: secondaryTextColor,
+                                                          fontWeight: FontWeight.w500,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 8),
+
+                                                // Owner Name and Number
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: isDarkMode ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          property.Ownername ?? 'N/A',
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 14,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    if (property.Owner_number != null)
+                                                      GestureDetector(
+                                                        onTap: () {
+                                                          showDialog<bool>(
+                                                            context: context,
+                                                            builder: (context) => AlertDialog(
+                                                              backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+                                                              title: Text(
+                                                                'Call Property Owner',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  fontWeight: FontWeight.bold,
+                                                                  color: textColor,
+                                                                ),
+                                                              ),
+                                                              content: Text(
+                                                                'Do you really want to call the owner?',
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  color: textColor,
+                                                                ),
+                                                              ),
+                                                              shape: RoundedRectangleBorder(
+                                                                borderRadius: BorderRadius.circular(16),
+                                                              ),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  onPressed: () => Navigator.of(context).pop(false),
+                                                                  child: Text(
+                                                                    'Cancel',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Poppins',
+                                                                      color: textColor,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                ElevatedButton(
+                                                                  onPressed: () async {
+                                                                    Navigator.of(context).pop(true);
+                                                                    FlutterPhoneDirectCaller.callNumber(property.Owner_number!);
+                                                                  },
+                                                                  child: Text(
+                                                                    'Call',
+                                                                    style: TextStyle(
+                                                                      fontFamily: 'Poppins',
+                                                                      fontWeight: FontWeight.bold,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          );
+                                                        },
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Row(
+                                                            children: [
+                                                              Icon(Icons.phone, size: 16, color: blueColor),
+                                                              const SizedBox(width: 4),
+                                                              Text(
+                                                                property.Owner_number!,
+                                                                style: TextStyle(
+                                                                  fontFamily: 'Poppins',
+                                                                  fontSize: 14,
+                                                                  color: blueColor,
+                                                                  fontWeight: FontWeight.w600,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Property Address
+                                                Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Icon(Icons.location_on_outlined, size: 16, color: secondaryTextColor),
+                                                    const SizedBox(width: 4),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          Text(
+                                                            "Property Address",
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 12,
+                                                              color: secondaryTextColor,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(height: 4),
+                                                          Text(
+                                                            property.Building_Address ?? 'Address not available',
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 13,
+                                                              color: textColor,
+                                                              fontWeight: FontWeight.w500,
+                                                            ),
+                                                            maxLines: 2,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Location and Date
+                                                Row(
+                                                  children: [
+                                                    if (property.Building_Location != null)
+                                                      Expanded(
+                                                        child: Container(
+                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                          decoration: BoxDecoration(
+                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
+                                                            borderRadius: BorderRadius.circular(8),
+                                                          ),
+                                                          child: Text(
+                                                            property.Building_Location!,
+                                                            style: TextStyle(
+                                                              fontFamily: 'Poppins',
+                                                              fontSize: 12,
+                                                              color: blueColor,
+                                                              fontWeight: FontWeight.w600,
+                                                            ),
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    if (property.Building_Location != null && property.date != null)
+                                                      const SizedBox(width: 8),
+                                                    if (property.date != null)
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: isDarkMode ? Colors.purple[900]!.withOpacity(0.3) : Colors.purple[50],
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          property.date!,
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: purpleColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 16),
+
+                                                // Property ID and Index
+                                                Row(
+                                                  children: [
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: cardColor,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          "Property No #$displayIndex",
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Expanded(
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        decoration: BoxDecoration(
+                                                          color: cardColor,
+                                                          borderRadius: BorderRadius.circular(8),
+                                                        ),
+                                                        child: Text(
+                                                          "Property ID: ${property.id?.toString() ?? 'N/A'}",
+                                                          style: TextStyle(
+                                                            fontFamily: 'Poppins',
+                                                            fontSize: 12,
+                                                            color: textColor,
+                                                            fontWeight: FontWeight.w600,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 );
                               },
@@ -2045,13 +1538,31 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
               childCount: 1, // Number of categories
             ),
           ),
-
         ],
       ),
 
     );
   }
-
+// Updated helper widget for feature chips with dark mode support
+  Widget _buildFeatureChip(String text, Color color, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDarkMode ? color.withOpacity(0.2) : color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(isDarkMode ? 0.4 : 0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 12,
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {

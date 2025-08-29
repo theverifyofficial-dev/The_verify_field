@@ -1211,7 +1211,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         controller: _balconyController,
                         onTap: () =>
                             _showBottomSheet(
-                              options: ['Front', 'Back', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',],
+                              options: ['Front Side', 'Back Side', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',],
                               onSelected: (val) {
                                 setState(() {
                                   _balcony = val;

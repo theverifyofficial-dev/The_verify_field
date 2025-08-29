@@ -210,6 +210,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String? _loan;
 
   String? _registryAndGpa;
+  String? _furnished;
 
   late TextEditingController _locationController;
   late TextEditingController _propertyTypeController;
@@ -222,6 +223,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   late TextEditingController _buildingInfoController;
   late TextEditingController _parkingController;
   late TextEditingController _priceController;
+  late TextEditingController _askingPriceController;
+  late TextEditingController _lastPriceController;
+
   late TextEditingController _fieldWorkerAddressController;
   late TextEditingController _flatNumberController;
   late TextEditingController _apartmentAddressController;
@@ -239,8 +243,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final TextEditingController _flatAvailableController = TextEditingController();
   final TextEditingController _terraceGardenController = TextEditingController();
   final TextEditingController _propertyNumberController = TextEditingController();
-  final TextEditingController _askingPriceController = TextEditingController();
-  final TextEditingController _lastPriceController = TextEditingController();
   final TextEditingController _fieldWorkerNameController = TextEditingController();
   final TextEditingController _fieldWorkerNumberController = TextEditingController();
   final TextEditingController _Google_Location = TextEditingController();
@@ -271,6 +273,10 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     '10 Floor',
     ''
   ];
+
+  String _formattedLastPrice = '';
+  String _formattedPrice = '';
+  String _formattedAskingPrice = '';
 
   void _loadSavedFieldWorkerData() async {
     final prefs = await SharedPreferences.getInstance();
@@ -308,12 +314,19 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Longitude': long,
     };
   }
-
+  String formatPrice(int value) {
+    if (value >= 10000000) {
+      return '${(value / 10000000).toStringAsFixed(2)}Cr';
+    } else if (value >= 100000) {
+      return '${(value / 100000).toStringAsFixed(2)}L';
+    } else {
+      return value.toString();
+    }
+  }
   @override
   void initState() {
     super.initState();
 
-    // Your existing initializations
     autofillFormFields(widget.propertyId);
     _loadSavedLatLong();
     fetchAndSetData(widget.propertyId);
@@ -322,6 +335,37 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       final provider = Provider.of<PropertyIdProvider>(context, listen: false);
       await provider.fetchLatestPropertyId();
       _loadSavedFieldWorkerData();
+    });
+
+    // ✅ Initialize once and keep listener
+    _priceController = TextEditingController(text: _price ?? '');
+    _priceController.addListener(() {
+      final input = _priceController.text.replaceAll(',', '').trim();
+      final number = int.tryParse(input);
+
+      setState(() {
+        _formattedPrice = number != null ? formatPrice(number) : '';
+      });
+    });
+    // ✅ Initialize once and keep listener
+    _askingPriceController = TextEditingController(text: _price ?? '');
+    _askingPriceController.addListener(() {
+      final input = _askingPriceController.text.replaceAll(',', '').trim();
+      final number = int.tryParse(input);
+
+      setState(() {
+        _formattedAskingPrice = number != null ? formatPrice(number) : '';
+      });
+    });
+
+    _lastPriceController = TextEditingController(text: _price ?? '');
+    _lastPriceController.addListener(() {
+      final input = _lastPriceController.text.replaceAll(',', '').trim();
+      final number = int.tryParse(input);
+
+      setState(() {
+        _formattedLastPrice = number != null ? formatPrice(number) : '';
+      });
     });
 
     _locationController = TextEditingController(text: _location ?? '');
@@ -334,7 +378,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     _propertyAgeController = TextEditingController(text: _propertyAge ?? '');
     _buildingInfoController = TextEditingController(text: _buildingInfo ?? '');
     _parkingController = TextEditingController(text: _customParking ?? '');
-    _priceController = TextEditingController(text: _price ?? '');
     _fieldWorkerAddressController = TextEditingController();
     _flatNumberController = TextEditingController();
     _roadSizeController = TextEditingController();
@@ -349,6 +392,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     _facilityController = TextEditingController();
     _careTakerNameController = TextEditingController();
     _careTakerNumberController = TextEditingController();
+
     furnitureController.text = apiApartmentName ?? '';
     _flatAvailableController.text = _flatAvailableDate != null
         ? DateFormat('yyyy-MM-dd').format(_flatAvailableDate!)
@@ -361,17 +405,16 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     _fieldWorkerNameController.text = '';
     _fieldWorkerNumberController.text = '';
 
-
     // Initialize furnishing & furnitureController based on your saved/fetched data:
     if (_furnishing != null &&
         (_furnishing == 'Fully Furnished' || _furnishing == 'Semi Furnished')) {
       _selectedFurniture = parseFurnitureString(furnitureController.text);
-    }
-    else {
+    } else {
       _selectedFurniture.clear();
       furnitureController.clear();
     }
   }
+
 
   bool _isLoading = true;
 
@@ -404,9 +447,22 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _balcony = data.balcony;
         _squareFeetController.text = data.squarefit;
          apiApartmentName = data.apartmentName;
-        DateTime parsedDate = DateTime.parse(data.availableDate);
-        String formattedDate = DateFormat('dd-MM-yyyy').format(parsedDate);
-        _flatAvailableController.text = formattedDate;
+        if (data.availableDate != null &&
+            data.availableDate.trim().isNotEmpty &&
+            data.availableDate.toLowerCase() != 'N/A') {
+          try {
+            DateTime parsedDate = DateTime.parse(data.availableDate);
+            String formattedDate = DateFormat('dd-MM-yyyy').format(parsedDate);
+            _flatAvailableController.text = formattedDate;
+          } catch (e) {
+            // If parsing fails, set to empty or default
+            _flatAvailableController.text = '';
+            print("Invalid date format: ${data.availableDate}");
+          }
+        } else {
+          _flatAvailableController.text = '';
+        }
+
         _maintenance = data.maintenance;
         _parking = data.parking;
         _propertyAge = data.ageOfProperty;
@@ -424,6 +480,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _lift = data.lift;
         _facilityController.text = data.facility;
         parseFurnishingFromApi(data.furnishing ?? '');
+        // _customMaintenanceController.text = data.maintenance;
+        // _customMaintenance = data.maintenance;
+        _furnished = data.furnishing;
+        String furnitureString = data.apartmentName; // "Bed(1), Sofa(2), Chair(4)"
+        _selectedFurniture = parseFurnitureString(furnitureString);
         _fieldWorkerNumberController.text = data.fieldWorkerNumber;
         _registryAndGpa = data.registryAndGpa;
         _careTakerNameController.text = data.caretakerName;
@@ -440,26 +501,30 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
           _isLoading = false;
         });
       }
-    } catch (e) {
+    }
+    catch (e) {
       print('Error fetching data: $e');
       setState(() {
         _isLoading = false;
       });
     }
   }
+  Map<String, int> parseFurnitureString(String furnitureString) {
+    if (furnitureString.isEmpty) return {};
 
-  Map<String, int> parseFurnitureString(String input) {
     final Map<String, int> furnitureMap = {};
-    final regex = RegExp(r'([^,]+)\((\d+)\)');
-    // Matches: "Modular Kitchen(2)", "AC(2)" etc.
 
-    for (final match in regex.allMatches(input)) {
-      final name = match.group(1)?.trim() ?? '';
-      final count = int.tryParse(match.group(2) ?? '0') ?? 0;
-      if (name.isNotEmpty && count > 0) {
-        furnitureMap[name] = count;
+    furnitureString.split(',').forEach((item) {
+      item = item.trim(); // remove extra spaces
+      final match = RegExp(r'(.+)\((\d+)\)').firstMatch(item);
+      if (match != null) {
+        final name = match.group(1)?.trim() ?? '';
+        final count = int.tryParse(match.group(2) ?? '0') ?? 0;
+        if (name.isNotEmpty) {
+          furnitureMap[name] = count;
+        }
       }
-    }
+    });
 
     return furnitureMap;
   }
@@ -590,6 +655,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   @override
   void dispose() {
     _apartmentAddressController.dispose();
+    _priceController.dispose();
 
     _locationController.dispose();
     _propertyTypeController.dispose();
@@ -766,7 +832,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
         child: Form(
           key: _formKey,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
+          autovalidateMode: AutovalidateMode.always,
           child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(vertical: 8),
 
@@ -1232,105 +1298,108 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 if (_bhk == 'Custom')
                   const SizedBox(height: 16),
 
-                // Price (normal input)
                 TextFormField(
                   controller: _priceController,
-                  keyboardType: TextInputType.name,
+                  keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: _buyOrRent == 'Buy'
                         ? "Selling Price (₹)"
                         : "Rent Price (₹)",
+                    suffix: _formattedPrice.isNotEmpty
+                        ? Padding(
+                      padding: EdgeInsets.only(right: 8),
+                      child: Text(
+                        _formattedPrice,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                        : null,
+
                     labelStyle: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
-                      color: Theme
-                          .of(context)
-                          .brightness == Brightness.dark
+                      color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.grey.shade300
                           : Colors.black54,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                          color: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
+                          color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.grey.shade700
                               : Colors.grey.shade300),
-                    ),
-                    focusColor: Colors.red,
-                    // 🔴 Border when validation fails
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.red, width: 2),
-                    ),
-
-                    // 🔴 Border when validation fails & field is focused
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(color: Colors.red, width: 2),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                          color: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
+                          color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.grey.shade700
                               : Colors.grey.shade300),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10),
                       borderSide: BorderSide(
-                          color: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
+                          color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.blue.shade200
                               : Colors.blue.shade300,
                           width: 2),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 14),
+                    contentPadding:
+                    const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
                     filled: true,
-                    fillColor: Theme
-                        .of(context)
-                        .brightness == Brightness.dark
+                    fillColor: Theme.of(context).brightness == Brightness.dark
                         ? Colors.grey.shade900
                         : Colors.white,
                   ),
-                  validator: (val) =>
-                  val == null || val.isEmpty
-                      ? "Enter price"
-                      : null,
+                  validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
                 ),
-                const SizedBox(height: 16),
+
+                      const SizedBox(height: 16),
                 // Asking Price
                 TextFormField(
                   controller: _askingPriceController,
-                  keyboardType: TextInputType.name,
+                  keyboardType: TextInputType.number,
+                  validator: (val) => val == null || val.isEmpty ? "Enter Asking Price (₹) by owner" : null,
+
                   decoration: _buildInputDecoration(
-                      context, "Asking Price (₹) by owner"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter price"; // <-- this triggers red border
-                    }
-                    return null;
-                  },
+                    context,
+                    "Asking Price (₹) by owner",
+                  ).copyWith(
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 8.0),
+                      child: Text(
+                        _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 16),
-
-                // Last Price
                 TextFormField(
                   controller: _lastPriceController,
-                  keyboardType: TextInputType.name,
+                  keyboardType: TextInputType.number,
+                  validator: (val) => val == null || val.isEmpty ? "Enter Last Price (₹) by owner" : null,
+
                   decoration: _buildInputDecoration(
-                      context, "Last Price (₹) by owner"),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return "Please enter price"; // <-- this triggers red border
-                    }
-                    return null;
-                  },  ),
+                    context,
+                    "Last Price (₹) by owner",
+                  ).copyWith(
+                    suffix: Text(
+                      _formattedLastPrice,
+                      style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 16),
                 //flatNumber
                 TextFormField(
@@ -1374,7 +1443,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   decoration: _buildInputDecoration(context, "Facility"),
                   validator: (val) =>
                   val == null || val.isEmpty
-                      ? "Enter Facility"
+                      ? "Enter Facility1+"
+                      ""
                       : null,
                 ),
 
@@ -1521,8 +1591,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         onTap: () =>
                             _showBottomSheet(
                               options: [
-                                'Front',
-                                'Back',
+                                'Front Side',
+                                'Back Side',
                                 'Side',
                                 'Park Facing',
                                 'Road Facing',
@@ -2095,95 +2165,84 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   },
                 ),
                 const SizedBox(height: 16),
-                // Furnishing Dropdown
-                DropdownButtonFormField<String>(
-                  value: _furnishing != null && furnishingOptions.contains(_furnishing)
-                      ? _furnishing
-                      : null,
-                  decoration: _buildInputDecoration(context, "Furnishing").copyWith(
-                    errorStyle: const TextStyle(height: 0, color: Colors.transparent), // hide error text
-                    errorBorder: OutlineInputBorder( // remove red border
-                      borderSide: BorderSide(color: Colors.grey.shade400),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedErrorBorder: OutlineInputBorder( // also remove red when focused
-                      borderSide: BorderSide(color: Colors.blue),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  items: furnishingOptions.map((option) {
-                    return DropdownMenuItem<String>(
-                      value: option,
-                      child: Text(
-                        option,
-                        style: const TextStyle(
-                          color: Colors.blue,
-                          fontWeight: FontWeight.w600,
-                        ),
+                _buildSectionCard(
+                  child: DropdownButtonFormField<String>(
+                    value: _furnished,
+                    decoration: InputDecoration(
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).brightness==Brightness.dark ? Colors.blue : Colors.blue.shade300,
+                            width: 2),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    setState(() {
-                      _furnishing = val;
+                      focusColor: Colors.red,
+                      // 🔴 Border when validation fails
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
 
-                      if (_furnishing == 'Unfurnished') {
-                        _selectedFurniture.clear();
-                        furnitureController.text = '';
-                        apiApartmentName = '';
-                      } else if (_furnishing == 'Semi Furnished' ||
-                          _furnishing == 'Fully Furnished') {
-                        if ((apiApartmentName != null && apiApartmentName!.isNotEmpty)) {
-                          furnitureController.text = apiApartmentName!;
-                        } else if (_selectedFurniture.isNotEmpty) {
-                          furnitureController.text = _selectedFurniture.entries
-                              .map((e) => '${e.key} (${e.value})')
-                              .join(', ');
-                          apiApartmentName = furnitureController.text;
+                      // 🔴 Border when validation fails & field is focused
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
+                      // 🔴 Add these two
+                      labelText: "",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                    items: furnishingOptions.map((option) {
+                      return DropdownMenuItem(
+                        value: option,
+                        child: Text(option),
+                      );
+                    }).toList(),
+                    onChanged: (val) {
+                      setState(() {
+                        _furnished = val;
+                        // Clear previously selected furniture if not furnished
+                        if (val == 'Unfurnished') {
+                          _selectedFurniture.clear();
                         }
-                      }
-                    });
-                  },
-                  validator: (val) {
-                    if (val == null || val.isEmpty) {
-                      return ''; // return empty string instead of error msg
-                    }
-                    return null;
-                  },
+                      });
+                    },
+
+                    validator: (val) =>
+                    val == null || val.isEmpty ? 'Please select furnishing' : null,
+                  ), title: 'Furnishing',
                 ),
-
-// Show TextField only when Semi/Full Furnished
-                if (_furnishing == 'Fully Furnished' || _furnishing == 'Semi Furnished')
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16.0),
-                    child: TextFormField(
-                      controller: furnitureController,
-                      readOnly: false,
+                if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+                  _blueSectionCard(
+                    child: GestureDetector(
                       onTap: () => _showFurnitureBottomSheet(context),
-                      decoration: _buildInputDecoration(
-                        context,
-                        "Select Furniture Items",
-                      ).copyWith(
-                        errorStyle: const TextStyle(height: 0, color: Colors.transparent), // hide error text
-                        errorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderSide: BorderSide(color: Colors.blue),
-                          borderRadius: BorderRadius.circular(12),
+                      child: AbsorbPointer(
+                        child: Padding(
+                          padding:  EdgeInsets.only(top: 16.0),
+                          child:
+                          TextFormField(
+                            decoration: InputDecoration(
+                              labelText: "Select Furniture Items",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              filled: true, // ✅ enable background color
+                              fillColor: Colors.grey.shade800,
+                              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            ),
+                            controller: TextEditingController(
+                              text: _selectedFurniture.isEmpty
+                                  ? ''
+                                  : _selectedFurniture.entries
+                                  .map((e) => '${e.key} (${e.value})')
+                                  .join(', '),
+                            ),
+                          ),
                         ),
                       ),
-                      onChanged: (val) {
-                        apiApartmentName = val;
-                      },
-                      validator: (val) {
-                        if (val == null || val.isEmpty) {
-                          return ''; // no visible error
-                        }
-                        return null;
-                      },
-                    ),
+                    ), title: 'Furniture Items',
                   ),
 
 
@@ -2865,6 +2924,48 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       ),
     );
   }
+  TextStyle _sectionTitleStyle() {
+    return const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,  fontFamily: 'Poppins');
+  }
+  Widget _blueSectionCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: Colors.blue.shade600,
+        margin: const EdgeInsets.only(bottom: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: _sectionTitleStyle()),
+              const SizedBox(height: 10),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      child: Padding(
+        padding: const EdgeInsets.only(left: 6,right: 6,bottom: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: _sectionTitleStyle()),
+            const SizedBox(height: 10),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
 
   void _showBottomSheet({
     required List<String> options,
@@ -3008,9 +3109,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       request.fields['Apartment_Address'] = _apartmentAddressController.text;
       request.fields['Typeofproperty'] = _propertyType ?? '';
       request.fields['Bhk'] = (_bhk == "Custom" ? _customBhk ?? '' : _bhk ?? '');
-      request.fields['show_Price'] = _priceController.text;
-      request.fields['Last_Price'] = _lastPriceController.text;
-      request.fields['asking_price'] = _askingPriceController.text;
+      request.fields['show_Price'] = _formattedPrice;
+      request.fields['Last_Price'] = _formattedLastPrice;
+      request.fields['asking_price'] = _formattedAskingPrice;
       request.fields['Floor_'] = _floor ?? '';
       request.fields['Total_floor'] = _totalFloorController.text;
       request.fields['Balcony'] = _balcony ?? '';
@@ -3060,12 +3161,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
           .join(', ')
           .trim();
 
-      request.fields['furnished_unfurnished'] = _furnishingForBackend(_furnishing);
-
-      // ⚠️ check key name from backend! (try 'apartment_name' if this fails)
+      request.fields['furnished_unfurnished'] = _furnishingForBackend(_furnished);
       request.fields['Apartment_name'] = isFurnished
           ? (furnitureList.isNotEmpty ? furnitureList : 'No Furniture')
           : 'No Furniture';
+      print("DEBUG => _furnished: $_furnished");
+      print("DEBUG => furnished_unfurnished: ${_furnishingForBackend(_furnished)}");
 
       print('=> furnished_unfurnished: ${request.fields['furnished_unfurnished']}');
       print('=> Apartment_name: ${request.fields['Apartment_name']}');

@@ -147,22 +147,10 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                                     //physics: NeverScrollableScrollPhysics(),
                                     itemBuilder: (BuildContext context,index) {
                                       final item = reversedList[index];
-                                      int DisplayIndex = reversedList.length;
+                                      int DisplayIndex = reversedList.length - index;
                                       return GestureDetector(
                                         onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                        prefs.setInt('id_Building', abc.data![len].id);
-                                        prefs.setString('id_Longitude', abc.data![len].Longitude.toString());
-                                        prefs.setString('id_Latitude', abc.data![len].Latitude.toString());
-                                        Navigator.push(
-                                            context,
-                                            MaterialPageRoute
-                                              (builder: (context) => Tenant_Demands_details())
-                                        );*/
+
                                           Navigator.push(
                                               context,
                                               MaterialPageRoute
@@ -707,10 +695,8 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                                                                 .users_four, size: 12,
                                                               color: Colors.red,),
                                                             SizedBox(width: 2,),
-                                                            SizedBox(
-                                                              width: 100,
-                                                              child: Text(
-                                                                "Family Members = ",
+                                                            Text(
+                                                                "Family Members : ",
                                                                 overflow: TextOverflow
                                                                     .ellipsis,
                                                                 maxLines: 2,
@@ -722,8 +708,6 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                                                                         .w600
                                                                 ),
                                                               ),
-                                                            ),
-                                                            SizedBox(width: 10,),
                                                             SizedBox(
                                                               width: 100,
                                                               child: Text("" +
@@ -743,7 +727,7 @@ class _Tenant_demandsState extends State<Tenant_demands> {
                                                             ),
                                                           ],
                                                         ),
-          
+
                                                         SizedBox(
                                                           height: 5,
                                                         ),

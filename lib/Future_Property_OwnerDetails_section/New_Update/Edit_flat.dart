@@ -614,7 +614,7 @@ class EditFlatState extends State<EditFlat> {
   final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
   final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
 
-  final List<String> _balcony_items = ['Front', 'Back', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony','',];
+  final List<String> _balcony_items = ['Front Side', 'Back Side', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony','',];
 
   final List<String> _Parking_items = ['Car','Bike','Both',''];
 

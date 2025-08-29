@@ -779,119 +779,24 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                             mainAxisAlignment: MainAxisAlignment.center,
                                             children: [
 
-                                              Row(
-                                                children: [
-
-                                                  Container(
-                                                    padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(5),
-                                                      border: Border.all(width: 1, color: Colors.green),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                            color: Colors.green.withOpacity(0.5),
-                                                            blurRadius: 10,
-                                                            offset: Offset(0, 0),
-                                                            blurStyle: BlurStyle.outer
-                                                        ),
-                                                      ],
-                                                    ),
-
-                                                    child: Row(
-                                                      children: [
-                                                        // Icon(Iconsax.sort_copy,size: 15,),
-                                                        //w SizedBox(width: 10,),
-                                                        Text(""+abc.data![len].place/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w500,
-                                                              letterSpacing: 0.5
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10,),
-
-
-                                                  Container(
-                                                    padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(5),
-                                                      border: Border.all(width: 1, color: Colors.green),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                            color: Colors.green.withOpacity(0.5),
-                                                            blurRadius: 10,
-                                                            offset: Offset(0, 0),
-                                                            blurStyle: BlurStyle.outer
-                                                        ),
-                                                      ],
-                                                    ),
-
-                                                    child: Row(
-                                                      children: [
-                                                        // Icon(Iconsax.sort_copy,size: 15,),
-                                                        //w SizedBox(width: 10,),
-                                                        Text(""+abc.data![len].residenceCommercial/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w500,
-                                                              letterSpacing: 0.5
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  SizedBox(width: 10,),
-
-
-                                                  Container(
-                                                    padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(5),
-                                                      border: Border.all(width: 1, color: Colors.green),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                            color: Colors.green.withOpacity(0.5),
-                                                            blurRadius: 10,
-                                                            offset: Offset(0, 0),
-                                                            blurStyle: BlurStyle.outer
-                                                        ),
-                                                      ],
-                                                    ),
-
-                                                    child: Row(
-                                                      children: [
-                                                        // Icon(Iconsax.sort_copy,size: 15,),
-                                                        //w SizedBox(width: 10,),
-                                                        Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w500,
-                                                              letterSpacing: 0.5
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  SizedBox(
-                                                    width: 40,
-                                                  ),
-                                                  Text("Id : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                    style: TextStyle(
-                                                        fontSize: 13,
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.w500,
-                                                        letterSpacing: 0.5
-                                                    ),
-                                                  ),
-                                                ],
+                                            Wrap(
+                                            spacing: 8, // horizontal gap
+                                            runSpacing: 6, // vertical gap (if wraps to next line)
+                                            children: [
+                                              _buildInfoChip( text: abc.data![len].place, borderColor: Colors.green),
+                                              _buildInfoChip( text: abc.data![len].residenceCommercial, borderColor: Colors.green),
+                                              _buildInfoChip( text: abc.data![len].buyRent, borderColor: Colors.green),
+                                              Text(
+                                                "Id : ${abc.data![len].id}",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.w500,
+                                                  letterSpacing: 0.5,
+                                                ),
                                               ),
-
+                                            ],
+                                          ),
                                               SizedBox(
                                                 height: 10,
                                               ),
@@ -913,223 +818,54 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                               SizedBox(
                                                 height: 5,
                                               ),
-                                              Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
+                                          Wrap(
+                                            spacing: 8, // horizontal gap
+                                            runSpacing: 6, // vertical gap (when items wrap)
+                                            children: [
+                                              _buildInfoChip( text: abc.data![len].ownerName, borderColor: Colors.red),
+                                              GestureDetector(
+                                                onTap: () {
+                                                  showDialog<bool>(
+                                                    context: context,
+                                                    builder: (context) => AlertDialog(
+                                                      title: Text("Contact ${abc.data![len].ownerNumber}"),
+                                                      content: Text('Do you really want to Contact? ${abc.data![len].ownerNumber}'),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                      actions: [
+                                                        Row(
+                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                           children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].ownerName/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
+                                                            ElevatedButton(
+                                                              onPressed: () async {
+                                                                if (Platform.isAndroid) {
+                                                                  String url = 'whatsapp://send?phone=91${abc.data![len].ownerNumber}&text=Hello';
+                                                                  await launchUrl(Uri.parse(url));
+                                                                } else {
+                                                                  String url = 'https://wa.me/${abc.data![len].ownerNumber}';
+                                                                  await launchUrl(Uri.parse(url));
+                                                                }
+                                                              },
+                                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade800),
+                                                              child: Image.asset(AppImages.whatsaap, height: 40, width: 40),
+                                                            ),
+                                                            ElevatedButton(
+                                                              onPressed: () {
+                                                                FlutterPhoneDirectCaller.callNumber('${abc.data![len].ownerNumber}');
+                                                              },
+                                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade800),
+                                                              child: Image.asset(AppImages.call, height: 40, width: 40),
                                                             ),
                                                           ],
-                                                        ),
-                                                      ),
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      GestureDetector(
-                                                        onTap: (){
-
-                                                          showDialog<bool>(
-                                                            context: context,
-                                                            builder: (context) => AlertDialog(
-                                                              title: Text("Contact "+abc.data![len].ownerNumber),
-                                                              content: Text('Do you really want to Contact? '+abc.data![len].ownerNumber ),
-                                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                              actions: <Widget>[
-
-                                                                Row(
-                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                  children: [
-                                                                    ElevatedButton(
-                                                                      onPressed: () async {
-                                                                        DateTime now = DateTime.now();
-                                                                        /*formattedDate = "${now.day}-${now.month}-${now.year}";
-                                                                        formattedTime = "${now.hour}:${now.minute}:${now.second}";
-                                                                        fetchdata_add_responce('Try to contact on Whatsapp', widget.id, 'Date: $formattedDate Time: $formattedTime');*/
-                                                                        if(Platform.isAndroid){
-                                                                          String url = 'whatsapp://send?phone="+91${abc.data![len].ownerNumber}"&text="Hello"';
-                                                                          await launchUrl(Uri.parse(url));
-                                                                        }else {
-                                                                          String url = 'https://wa.me/${abc.data![len].ownerNumber}';
-                                                                          await launchUrl(Uri.parse(url));
-                                                                        }
-
-                                                                      },
-                                                                      style: ElevatedButton.styleFrom(
-                                                                        backgroundColor: Colors.grey.shade800,
-                                                                      ),
-                                                                      child: Container(
-                                                                        padding: EdgeInsets.only(top: 15,bottom: 15),
-                                                                        child: ClipRRect(
-                                                                          borderRadius:
-                                                                          const BorderRadius.all(Radius.circular(10)),
-                                                                          child: Container(
-                                                                            height: 60,
-                                                                            width: 60,
-                                                                            child: CachedNetworkImage(
-                                                                              imageUrl:
-                                                                              AppImages.whatsaap,
-                                                                              fit: BoxFit.cover,
-                                                                              placeholder: (context, url) => Image.asset(
-                                                                                AppImages.whatsaap,
-                                                                                fit: BoxFit.cover,
-                                                                              ),
-                                                                              errorWidget: (context, error, stack) =>
-                                                                                  Image.asset(
-                                                                                    AppImages.whatsaap,
-                                                                                    fit: BoxFit.cover,
-                                                                                  ),
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                    ElevatedButton(
-
-                                                                      onPressed: () async {
-
-                                                                        /*DateTime now = DateTime.now();
-                                                                        formattedDate = "${now.day}-${now.month}-${now.year}";
-                                                                        formattedTime = "${now.hour}:${now.minute}:${now.second}";
-                                                                        fetchdata_add_responce('Try for Calling', widget.id, 'Date: $formattedDate Time: $formattedTime');*/
-
-                                                                        /*if (await canLaunchUrl(Uri.parse('${abc.data![len].demand_number}'))) {
-                                                                      await launchUrl(Uri.parse('${abc.data![len].demand_number}'));
-                                                                    } else {
-                                                                      throw 'Could not launch ${abc.data![len].demand_number}';
-                                                                    }*/
-                                                                        FlutterPhoneDirectCaller.callNumber('${abc.data![len].ownerNumber}');
-                                                                      },
-                                                                      style: ElevatedButton.styleFrom(
-                                                                        backgroundColor: Colors.grey.shade800,
-                                                                      ),
-                                                                      child: Container(
-                                                                        padding: EdgeInsets.only(top: 15,bottom: 15),
-                                                                        child: ClipRRect(
-                                                                          borderRadius:
-                                                                          const BorderRadius.all(Radius.circular(10)),
-                                                                          child: Container(
-                                                                            height: 60,
-                                                                            width: 60,
-                                                                            child: CachedNetworkImage(
-                                                                              imageUrl:
-                                                                              AppImages.call,
-                                                                              fit: BoxFit.cover,
-                                                                              placeholder: (context, url) => Image.asset(
-                                                                                AppImages.call,
-                                                                                fit: BoxFit.cover,
-                                                                              ),
-                                                                              errorWidget: (context, error, stack) =>
-                                                                                  Image.asset(
-                                                                                    AppImages.call,
-                                                                                    fit: BoxFit.cover,
-                                                                                  ),
-                                                                            ),
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ],),
-
-
-                                                              ],
-                                                            ),
-                                                          ) ?? false;
-                                                        },
-                                                        child: Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.green),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.green.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].ownerNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-
-                                                      SizedBox(width: 5,),
-                                                      Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.green),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.green.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].ownerVehicleNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 13,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-
-                                                ],
+                                                        )
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                                child: _buildInfoChip( text: abc.data![len].ownerNumber, borderColor: Colors.red),
                                               ),
+                                              _buildInfoChip( text: abc.data![len].ownerVehicleNumber, borderColor: Colors.red),
+                                            ],
+                                          ),
                                               SizedBox(
                                                 height: 5,
                                               ),
@@ -1156,34 +892,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                   SizedBox(
                                                     width: 5,
                                                   ),
-                                                  Container(
-                                                    padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(5),
-                                                      border: Border.all(width: 1, color: Colors.purple),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                            color: Colors.purple.withOpacity(0.5),
-                                                            blurRadius: 10,
-                                                            offset: Offset(0, 0),
-                                                            blurStyle: BlurStyle.outer
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        // Icon(Iconsax.sort_copy,size: 15,),
-                                                        //w SizedBox(width: 10,),
-                                                        Text(""+abc.data![len].caretakerName/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w500,
-                                                              letterSpacing: 0.5
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
+                                                  _buildInfoChip(
+                                                    text: abc.data![len].caretakerName,
+                                                    borderColor: Colors.purple,
                                                   ),
 
                                                   SizedBox(
@@ -1214,34 +925,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                         ),
                                                       ) ?? false;
                                                     },
-                                                    child: Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.purple),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.purple.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].caretakerNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                                    child: _buildInfoChip(
+                                                      text: abc.data![len].caretakerNumber,
+                                                      borderColor: Colors.purple,
                                                     ),
                                                   ),
 
@@ -4784,4 +4470,32 @@ print(abc.data![len].subid);
         )
       );
   }
+
+  Widget _buildInfoChip({required String text, required Color borderColor}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(width: 1, color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: borderColor.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Colors.black,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+
 }

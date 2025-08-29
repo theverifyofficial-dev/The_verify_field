@@ -159,6 +159,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
           _isLoading = false;
         });
       } else {
+
         throw Exception('Unexpected error occurred!');
       }
     } catch (e) {
@@ -410,7 +411,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                               body[0]['logg'] == 0;
                         } catch (_) {}
                       }
-
                       return PropertyCard(
                         displayIndex: displayIndex,   // ✅ pass here
                         property: property,

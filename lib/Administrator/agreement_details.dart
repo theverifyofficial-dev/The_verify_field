@@ -35,10 +35,14 @@ class _AgreementDetailsState extends State<AgreementDetails> {
 
         if (decoded is List) {
           setState(() {
-            agreements =
-                decoded.map((e) => AgreementModel.fromJson(e)).toList();
+            agreements = decoded
+                .map((e) => AgreementModel.fromJson(e))
+                .toList()
+                .reversed
+                .toList();
             isLoading = false;
-          });
+          }
+          );
         } else {
           throw Exception('Invalid data format');
         }
@@ -228,7 +232,7 @@ class _AgreementDetailsState extends State<AgreementDetails> {
               const SizedBox(height: 12),
               ElevatedButton(
                 onPressed: () => _launchURL('https://theverify.in/${item.agreementPdf}'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,foregroundColor: Colors.black),
                 child: const Text('View Agreement PDF'),
               ),
             ],

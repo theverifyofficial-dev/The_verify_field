@@ -412,26 +412,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                           ),
                         );
 
-                        final result = await fetchData_Logg();
-
-                        // if (result.isNotEmpty) {
-                        //   SharedPreferences prefs = await SharedPreferences.getInstance();
-                        //   prefs.setString('id_future', result.first.id.toString());
-                        //
-                        //   Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //       builder: (_) => const FrontPage_FutureProperty(),
-                        //     ),
-                        //   );
-                        // } else {
-                        //   // No data found
-                        //   ScaffoldMessenger.of(context).showSnackBar(
-                        //     const SnackBar(
-                        //       content: Text('No future property found.'),
-                        //     ),
-                        //   );
-                        // }
                       },
                     },
                       {

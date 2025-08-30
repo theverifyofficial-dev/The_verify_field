@@ -6,6 +6,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import '../../constant.dart';
 import '../Administater_Realestate_Details.dart';
+import 'package:intl/intl.dart';
 
 class Catid {
   final int id;
@@ -252,6 +253,15 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       throw Exception("Failed to fetch data: $e");
     }
   }
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return "-";
+    try {
+      DateTime date = DateTime.parse(dateString); // expects yyyy-MM-dd or full ISO format
+      return DateFormat('dd/MMM/yyyy').format(date); // Example: 29-08-2025
+    } catch (e) {
+      return dateString; // fallback if parsing fails
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -259,6 +269,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     return Scaffold(
       // backgroundColor: Colors.black,
       appBar: AppBar(
+        surfaceTintColor: Colors.black,
         centerTitle: true,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
@@ -279,21 +290,21 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
             ],
           ),
         ),
-        actions:  [
-          GestureDetector(
-            onTap: () {
-              // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
-            },
-            child: const Icon(
-              PhosphorIcons.image,
-              color: Colors.black,
-              size: 30,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-        ],
+        // actions:  [
+        //   GestureDetector(
+        //     onTap: () {
+        //       // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
+        //     },
+        //     child: const Icon(
+        //       PhosphorIcons.image,
+        //       color: Colors.black,
+        //       size: 30,
+        //     ),
+        //   ),
+        //   const SizedBox(
+        //     width: 20,
+        //   ),
+        // ],
       ),
 
       body: SingleChildScrollView(
@@ -333,58 +344,104 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                             width: 320,
                             margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: Theme.of(context).brightness == Brightness.dark
+                                  ? [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 12,
+                                  color: Colors.black.withOpacity(0.6),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 6),
+                                  spreadRadius: 1,
+                                ),
+                              ]
+                                  : [
+                                BoxShadow(
+                                  color: Colors.blueGrey.withOpacity(0.08),
+                                  blurRadius: 20,
                                   offset: const Offset(0, 4),
+                                  spreadRadius: 1,
                                 ),
                               ],
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Property Image
-                                ClipRRect(
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(16),
-                                    topRight: Radius.circular(16),
-                                  ),
-                                  child: Container(
-                                    height: 220,
-                                    width: double.infinity,
-                                    child: CachedNetworkImage(
-                                      imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${abc.data![len].propertyPhoto}",
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) => Container(
-                                        color: Colors.grey[200],
-                                        child: Center(
-                                          child: Image.asset(
-                                            AppImages.loading,
-                                            width: 40,
-                                            height: 40,
-                                          ),
-                                        ),
+                                // Property Image with subtle overlay
+                                Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(20),
+                                        topRight: Radius.circular(20),
                                       ),
-                                      errorWidget: (context, error, stack) => Container(
-                                        color: Colors.grey[200],
-                                        child: Center(
-                                          child: Image.asset(
-                                            AppImages.imageNotFound,
-                                            width: 40,
-                                            height: 40,
+                                      child: Container(
+                                        height: 300,
+                                        width: double.infinity,
+                                        child: CachedNetworkImage(
+                                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${abc.data![len].propertyPhoto}",
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => Container(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey[800]
+                                                : Colors.grey[50],
+                                            child: Center(
+                                              child: Image.asset(
+                                                AppImages.loading,
+                                                width: 40,
+                                                height: 40,
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Colors.grey[400]
+                                                    : Colors.blueGrey[200],
+                                              ),
+                                            ),
+                                          ),
+                                          errorWidget: (context, error, stack) => Container(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey[800]
+                                                : Colors.grey[50],
+                                            child: Center(
+                                              child: Image.asset(
+                                                AppImages.imageNotFound,
+                                                width: 40,
+                                                height: 40,
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Colors.grey[400]
+                                                    : Colors.blueGrey[200],
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
+                                    // Subtle gradient overlay
+                                    // Container(
+                                    //   height: 300,
+                                    //   decoration: BoxDecoration(
+                                    //     borderRadius: const BorderRadius.only(
+                                    //       topLeft: Radius.circular(20),
+                                    //       topRight: Radius.circular(20),
+                                    //     ),
+                                    //     gradient: LinearGradient(
+                                    //       begin: Alignment.topCenter,
+                                    //       end: Alignment.bottomCenter,
+                                    //       colors: [
+                                    //         Colors.transparent,
+                                    //         Theme.of(context).brightness == Brightness.dark
+                                    //             ? Colors.black.withOpacity(0.4)
+                                    //             : Colors.black.withOpacity(0.03),
+                                    //       ],
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                  ],
                                 ),
 
                                 // Property Details
                                 Padding(
-                                  padding: const EdgeInsets.all(16),
+                                  padding: const EdgeInsets.all(20),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
@@ -397,43 +454,45 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                                             context: context,
                                             text: abc.data![len].typeOfProperty.toUpperCase(),
                                             color: Colors.blue,
+                                            icon: Icons.apartment,
                                           ),
                                           _buildFeatureChip(
                                             context: context,
                                             text: abc.data![len].buyRent.toUpperCase(),
-                                            color: Colors.green,
+                                            color: Colors.teal,
+                                            icon: Icons.swap_horiz,
                                           ),
                                           _buildFeatureChip(
                                             context: context,
                                             text: abc.data![len].bhk.toUpperCase(),
-                                            color: Colors.pink,
+                                            color: Colors.orange,
+                                            icon: Icons.hotel,
                                           ),
                                         ],
                                       ),
 
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 16),
 
                                       // Location and Floor
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
+                                      Row(
                                         children: [
-                                          _buildFeatureChip(
+                                          _buildInfoItem(
                                             context: context,
-                                            text: abc.data![len].locations,
-                                            color: Colors.purple,
                                             icon: Icons.location_on,
+                                            value: abc.data![len].locations,
+                                            color: Colors.orangeAccent,
                                           ),
-                                          _buildFeatureChip(
+                                          const SizedBox(width: 12),
+                                          _buildInfoItem(
                                             context: context,
-                                            text: abc.data![len].floor,
-                                            color: Colors.purple,
                                             icon: Icons.stairs,
+                                            value: abc.data![len].floor,
+                                            color: Colors.redAccent,
                                           ),
                                         ],
                                       ),
 
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 16),
 
                                       // Property Address
                                       Row(
@@ -441,10 +500,12 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                                         children: [
                                           Icon(
                                             Icons.location_city_rounded,
-                                            size: 18,
-                                            color: Theme.of(context).primaryColor,
+                                            size: 20,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.blue[300]
+                                                : Colors.blue[600],
                                           ),
-                                          const SizedBox(width: 8),
+                                          const SizedBox(width: 10),
                                           Expanded(
                                             child: Text(
                                               abc.data![len].apartmentAddress,
@@ -452,59 +513,85 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontFamily: 'Poppins',
-                                                fontSize: 12,
-                                                color: Theme.of(context).textTheme.bodyLarge?.color,
+                                                fontSize: 13,
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Colors.grey[300]
+                                                    : Colors.blueGrey,
                                                 fontWeight: FontWeight.w500,
+                                                height: 1.4,
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
 
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 16),
 
                                       // Available Date and Price
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
-                                          _buildFeatureChip(
+                                          _buildInfoItem(
                                             context: context,
-                                            text: abc.data![len].availableDate,
-                                            color: Colors.pinkAccent,
                                             icon: Icons.calendar_today,
+                                            value:  _formatDate(abc.data![len].availableDate),
+                                            color: Colors.cyan,
                                           ),
 
                                           Text(
                                             "₹ ${abc.data![len].showPrice}",
                                             style: TextStyle(
                                               fontFamily: 'Poppins',
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold,
-                                              color: Colors.green[700],
+                                              fontSize: 22,
+                                              fontWeight: FontWeight.w700,
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.green[300]
+                                                  : Colors.green[700],
+                                              letterSpacing: 0.5,
                                             ),
                                           ),
                                         ],
                                       ),
 
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 16),
 
                                       // Property ID and Index
-                                      Row(
-                                        children: [
-                                          _buildInfoBadge(
-                                            context: context,
-                                            label: "Property #",
-                                            value: displayIndex.toString(),
-                                            color: Colors.blueGrey,
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Colors.grey[800]
+                                              : Colors.grey[50],
+                                          borderRadius: BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade700
+                                                : Colors.grey.shade100,
+                                            width: 1,
                                           ),
-                                          const SizedBox(width: 8),
-                                          _buildInfoBadge(
-                                            context: context,
-                                            label: "ID",
-                                            value: abc.data![len].id.toString(),
-                                            color: Colors.blueGrey,
-                                          ),
-                                        ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                          children: [
+                                            _buildIdBadge(
+                                              context: context,
+                                              label: "PROPERTY ID #",
+                                              value: displayIndex.toString(),
+                                            ),
+                                            Container(
+                                              width: 1,
+                                              height: 20,
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.grey[600]
+                                                  : Colors.grey[200],
+                                            ),
+                                            _buildIdBadge(
+                                              context: context,
+                                              label: "ID",
+                                              value: abc.data![len].id.toString(),
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -525,38 +612,46 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
 
     );
   }
-  // Helper widget for feature chips
+
+// Helper widget for feature chips
   Widget _buildFeatureChip({
     required BuildContext context,
     required String text,
     required Color color,
-    IconData? icon,
+    required IconData icon,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    Color getAdaptiveColor(Color lightColor, Color darkColor) {
+      return isDarkMode ? darkColor : lightColor;
+    }
+
+    final adaptiveColor = color is MaterialColor
+        ? getAdaptiveColor(color[600]!, color[300]!)
+        : getAdaptiveColor(color, color.withOpacity(0.8));
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isDarkMode ? color.withOpacity(0.2) : color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: adaptiveColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: adaptiveColor.withOpacity(0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null)
-            Icon(
-              icon,
-              size: 14,
-              color: color,
-            ),
-          if (icon != null) const SizedBox(width: 4),
+          Icon(
+            icon,
+            size: 14,
+            color: adaptiveColor,
+          ),
+          const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
               fontFamily: 'Poppins',
-              fontSize: 11,
-              color: color,
+              fontSize: 14,
+              color: adaptiveColor,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -565,44 +660,94 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     );
   }
 
-// Helper widget for info badges
-  Widget _buildInfoBadge({
+// Helper widget for info items
+  Widget _buildInfoItem({
     required BuildContext context,
-    required String label,
+    required IconData icon,
     required String value,
     required Color color,
   }) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    Color getAdaptiveColor(Color lightColor, Color darkColor) {
+      return isDarkMode ? darkColor : lightColor;
+    }
+
+    final adaptiveColor = color is MaterialColor
+        ? getAdaptiveColor(color[300]!, color[300]!)
+        : getAdaptiveColor(color, color.withOpacity(0.9));
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        color: adaptiveColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: adaptiveColor.withOpacity(0.3)),
       ),
-      child: RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: '$label ',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 10,
-                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
-                fontWeight: FontWeight.w500,
-              ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: adaptiveColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 14,
+              color: adaptiveColor,
+              fontWeight: FontWeight.w600,
             ),
-            TextSpan(
-              text: value,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 11,
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontWeight: FontWeight.w600,
-              ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Helper widget for ID badges
+  Widget _buildIdBadge({
+    required BuildContext context,
+    required String label,
+    required String value,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final badgeColor = isDarkMode ? Colors.grey[700]! : Colors.grey[200]!;
+    final textColor = isDarkMode ? Colors.grey[300]! : Colors.grey[800]!;
+    final labelColor = isDarkMode ? Colors.grey[400]! : Colors.grey[600]!;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: badgeColor.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: badgeColor.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 12,
+              color: labelColor,
+              fontWeight: FontWeight.w600,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontFamily: 'PoppinsBold',
+              fontSize: 15,
+              color: textColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

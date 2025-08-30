@@ -719,6 +719,13 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
             child: Column(
             children: <Widget>[
 
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Add Flat",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
+                ],
+              ),
+              SizedBox(height: 5,),
               Container(
                 margin: EdgeInsets.only(left: 20),
                 child: Row(

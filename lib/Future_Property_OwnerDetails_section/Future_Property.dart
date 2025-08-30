@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
@@ -13,53 +12,107 @@ import 'Future_property_details.dart';
 
 class Catid {
   final int id;
-  final String Building_Address;
-  final String Building_Location;
-  final String Building_image;
-  final String Longitude;
-  final String Latitude;
-  final String Building_information;
-  final String Ownername;
-  final String Owner_number;
-  final String Caretaker_name;
-  final String Caretaker_number;
-  final String vehicleNo;
-  final String property_address_for_fieldworkar;
-  final String date;
+  final String? images;
+  final String? ownerName;
+  final String? ownerNumber;
+  final String? caretakerName;
+  final String? caretakerNumber;
+  final String? place;
+  final String? buyRent;
+  final String? typeOfProperty;
+  final String? selectBhk;
+  final String? floorNumber;
+  final String? squareFeet;
+  final String? propertyNameAddress;
+  final String? buildingInformationFacilities;
+  final String? propertyAddressForFieldworker;
+  final String? ownerVehicleNumber;
+  final String? yourAddress;
+  final String? fieldWorkerName;
+  final String? fieldWorkerNumber;
+  final String? currentDate;
+  final String? longitude;
+  final String? latitude;
+  final String? roadSize;
+  final String? metroDistance;
+  final String? metroName;
+  final String? mainMarketDistance;
+  final String? ageOfProperty;
+  final String? lift;
+  final String? parking;
+  final String? totalFloor;
+  final String? residenceCommercial;
+  final String? facility;
 
   Catid({
     required this.id,
-    required this.Building_Address,
-    required this.Building_Location,
-    required this.Building_image,
-    required this.Longitude,
-    required this.Latitude,
-    required this.Building_information,
-    required this.Ownername,
-    required this.Owner_number,
-    required this.Caretaker_name,
-    required this.Caretaker_number,
-    required this.vehicleNo,
-    required this.property_address_for_fieldworkar,
-    required this.date,
+    required this.images,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.caretakerName,
+    required this.caretakerNumber,
+    required this.place,
+    required this.buyRent,
+    required this.typeOfProperty,
+    required this.selectBhk,
+    required this.floorNumber,
+    required this.squareFeet,
+    required this.propertyNameAddress,
+    required this.buildingInformationFacilities,
+    required this.propertyAddressForFieldworker,
+    required this.ownerVehicleNumber,
+    required this.yourAddress,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    required this.currentDate,
+    required this.longitude,
+    required this.latitude,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.metroName,
+    required this.mainMarketDistance,
+    required this.ageOfProperty,
+    required this.lift,
+    required this.parking,
+    required this.totalFloor,
+    required this.residenceCommercial,
+    required this.facility,
   });
 
   factory Catid.FromJson(Map<String, dynamic> json) {
     return Catid(
       id: json['id'] ?? 0,
-      Building_Address: json['propertyname_address'] ?? "",
-      Building_Location: json['place'] ?? "",
-      Building_image: json['images'] ?? "",
-      Longitude: json['longitude'] ?? "",
-      Latitude: json['latitude'] ?? "",
-      Building_information: json['building_information_facilitys'] ?? "",
-      Ownername: json['ownername'] ?? "",
-      Owner_number: json['ownernumber'] ?? "",
-      Caretaker_name: json['caretakername'] ?? "",
-      Caretaker_number: json['caretakernumber'] ?? "",
-      vehicleNo: json['owner_vehical_number'] ?? "",
-      property_address_for_fieldworkar: json['property_address_for_fieldworkar'] ?? "",
-      date: json['current_date_'] ?? "",
+      images: json['images'],
+      ownerName: json['ownername'],
+      ownerNumber: json['ownernumber'],
+      caretakerName: json['caretakername'],
+      caretakerNumber: json['caretakernumber'],
+      place: json['place'],
+      buyRent: json['buy_rent'],
+      typeOfProperty: json['typeofproperty'],
+      selectBhk: json['select_bhk'],
+      floorNumber: json['floor_number'],
+      squareFeet: json['sqyare_feet'],
+      propertyNameAddress: json['propertyname_address'],
+      buildingInformationFacilities: json['building_information_facilitys'],
+      propertyAddressForFieldworker: json['property_address_for_fieldworkar'],
+      ownerVehicleNumber: json['owner_vehical_number'],
+      yourAddress: json['your_address'],
+      fieldWorkerName: json['fieldworkarname'],
+      fieldWorkerNumber: json['fieldworkarnumber'],
+      currentDate: json['current_date_'],
+      longitude: json['longitude'],
+      latitude: json['latitude'],
+      roadSize: json['Road_Size'],
+      metroDistance: json['metro_distance'],
+      metroName: json['metro_name'],
+      mainMarketDistance: json['main_market_distance'],
+      ageOfProperty: json['age_of_property'],
+      lift: json['lift'],
+      parking: json['parking'],
+      totalFloor: json['total_floor'],
+      residenceCommercial: json['Residence_commercial'],
+      facility: json['facility'],
     );
   }
 }
@@ -111,21 +164,41 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 
       if (query.isEmpty) {
         filtered = List.from(_allProperties);
-        selectedLabel = ''; // optional
+        selectedLabel = ''; // optional reset
       } else {
         filtered = _allProperties.where((item) {
-          return item.Building_Address.toLowerCase().contains(query) ||
-              item.Building_Location.toLowerCase().contains(query) ||
-              item.Building_image.toLowerCase().contains(query) ||
-              item.Longitude.toLowerCase().contains(query) ||
-              item.Latitude.toLowerCase().contains(query) ||
-              item.Building_information.toLowerCase().contains(query) ||
-              item.Ownername.toLowerCase().contains(query) ||
-              item.Owner_number.toLowerCase().contains(query) ||
-              item.Caretaker_name.toLowerCase().contains(query) ||
-              item.Caretaker_number.toLowerCase().contains(query) ||
-              item.property_address_for_fieldworkar.toLowerCase().contains(query) ||
-              item.date.toLowerCase().contains(query);
+          return (item.id.toString()).toLowerCase().contains(query) ||
+              (item.images ?? '').toLowerCase().contains(query) ||
+              (item.ownerName ?? '').toLowerCase().contains(query) ||
+              (item.ownerNumber ?? '').toLowerCase().contains(query) ||
+              (item.caretakerName ?? '').toLowerCase().contains(query) ||
+              (item.caretakerNumber ?? '').toLowerCase().contains(query) ||
+              (item.place ?? '').toLowerCase().contains(query) ||
+              (item.buyRent ?? '').toLowerCase().contains(query) ||
+              (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
+              (item.selectBhk ?? '').toLowerCase().contains(query) ||
+              (item.floorNumber ?? '').toLowerCase().contains(query) ||
+              (item.squareFeet ?? '').toLowerCase().contains(query) ||
+              (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
+              (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
+              (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
+              (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
+              (item.yourAddress ?? '').toLowerCase().contains(query) ||
+              (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
+              (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
+              (item.currentDate ?? '').toLowerCase().contains(query) ||
+              (item.longitude ?? '').toLowerCase().contains(query) ||
+              (item.latitude ?? '').toLowerCase().contains(query) ||
+              (item.roadSize ?? '').toLowerCase().contains(query) ||
+              (item.metroDistance ?? '').toLowerCase().contains(query) ||
+              (item.metroName ?? '').toLowerCase().contains(query) ||
+              (item.mainMarketDistance ?? '').toLowerCase().contains(query) ||
+              (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
+              (item.lift ?? '').toLowerCase().contains(query) ||
+              (item.parking ?? '').toLowerCase().contains(query) ||
+              (item.totalFloor ?? '').toLowerCase().contains(query) ||
+              (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
+              (item.facility ?? '').toLowerCase().contains(query);
         }).toList();
       }
 
@@ -140,17 +213,25 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     setState(() {
       _isLoading = true;
     });
+
     print("FIELDWORKER NUMBER: $_number");
 
     try {
-      var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$_number");
+      var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$_number",
+      );
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         print("API Response Body: ${response.body}");
-        List listResponse = json.decode(response.body);
+
+        List<dynamic> listResponse = json.decode(response.body);
+
         listResponse.sort((a, b) => b['id'].compareTo(a['id']));
-        _allProperties = listResponse.map((data) => Catid.FromJson(data)).toList();
+
+        _allProperties = listResponse
+            .map((data) => Catid.FromJson(data))
+            .toList();
 
         _filteredProperties = _allProperties; // show all initially
 
@@ -158,7 +239,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
           _isLoading = false;
         });
       } else {
-
         throw Exception('Unexpected error occurred!');
       }
     } catch (e) {
@@ -417,7 +497,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                           }
                         } catch (_) {}
                       }
-                      return PropertyCard(
+                      return
+                        PropertyCard(
                         displayIndex: displayIndex,   // ✅ pass here
                         property: property,
                         statusText: statusText,     // ✅ pass status text
@@ -464,8 +545,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       _SUbid = prefs.getString('id_future') ?? '';
     });
   }
-
-
 }
 class PropertyCard extends StatelessWidget {
   final dynamic property;
@@ -481,45 +560,89 @@ class PropertyCard extends StatelessWidget {
     required this.statusColor,
     required this.onTap,
     required this.displayIndex,
-
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    bool hasMissingFields = [
-      property.Building_information,
-      property.Ownername,
-      property.Owner_number,
-      property.Caretaker_name,
-      property.Caretaker_number,
-      property.vehicleNo,
-    ].any((field) => field.trim().isEmpty);
+    // Utility check
+    bool _isNullOrEmpty(String? value) =>
+        value == null || value.trim().isEmpty;
+
+    // Map all Catid fields with readable labels
+    final Map<String, dynamic> fields = {
+      "Images": property.images,
+      "Owner Name": property.ownerName,
+      "Owner Number": property.ownerNumber,
+      "Caretaker Name": property.caretakerName,
+      "Caretaker Number": property.caretakerNumber,
+      "Place": property.place,
+      "Buy/Rent": property.buyRent,
+      "Property Name/Address": property.propertyNameAddress,
+      "Property Address (Fieldworker)":
+      property.propertyAddressForFieldworker,
+      "Owner Vehicle Number": property.ownerVehicleNumber,
+      "Your Address": property.yourAddress,
+      "Field Worker Name": property.fieldWorkerName,
+      "Field Worker Number": property.fieldWorkerNumber,
+      "Current Date": property.currentDate,
+      "Longitude": property.longitude,
+      "Latitude": property.latitude,
+      "Road Size": property.roadSize,
+      "Metro Distance": property.metroDistance,
+      "Metro Name": property.metroName,
+      "Main Market Distance": property.mainMarketDistance,
+      "Age of Property": property.ageOfProperty,
+      "Lift": property.lift,
+      "Parking": property.parking,
+      "Total Floor": property.totalFloor,
+      "Residence/Commercial": property.residenceCommercial,
+      "Facility": property.facility,
+    };
+
+    // Check for missing fields
+    final missingFields = fields.entries
+        .where((entry) {
+      final value = entry.value;
+      if (value == null) return true;
+      if (value is String && value.trim().isEmpty) return true;
+      return false;
+    })
+        .map((entry) => entry.key)
+        .toList();
+
+    final hasMissingFields = missingFields.isNotEmpty;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 20),
       color: isDark ? Colors.grey[900] : Colors.white,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+          width: 1,
+        ),
       ),
-      elevation: 3,
+      elevation: 5,
+      shadowColor: Colors.black.withOpacity(0.1),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         onTap: onTap,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image with overlay and status dot
+            // 🔹 Image with overlay + badge
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                   child: CachedNetworkImage(
                     imageUrl:
-                    "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.Building_image}",
+                    "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images}",
                     height: 400,
                     width: double.infinity,
-                    fit: BoxFit.fill,
+                    fit: BoxFit.cover,
                     placeholder: (context, url) => Center(
                       child: Image.asset(AppImages.loader, height: 50),
                     ),
@@ -530,73 +653,79 @@ class PropertyCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Status Dot
+
+                // Status tag (Buy/Rent)
                 Positioned(
-                  top: 12,
-                  right: 12,
+                  top: 14,
+                  right: 14,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: statusColor,
-                      border: Border.all(color: statusColor, width: 1),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 6,
+                          offset: const Offset(2, 2),
+                        ),
+                      ],
                     ),
                     child: Text(
                       statusText,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
                       ),
                     ),
                   ),
                 ),
               ],
             ),
+
+            // 🔹 Content
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // BHK + Buy/Rent
+                  // Location
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.location_on, size: 20, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
+                      Icon(Icons.location_on, size: 20, color: Colors.redAccent),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          property.Building_Location,
+                          property.place,
                           style: TextStyle(
                             fontFamily: "Poppins",
-                            color: isDark ? Colors.grey[300] : Colors.grey[700],
                             fontSize: 18,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.black87,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                        Text(
+                              property.residenceCommercial,
+                              style: TextStyle(
+                                fontFamily: "Poppins",
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+
                     ],
                   ),
 
-
                   const SizedBox(height: 12),
 
-                  // Owner Info
-                  // Wrap(
-                  //   spacing: 10,
-                  //   runSpacing: 6,
-                  //   children: [
-                  //     _infoChip("Owner", property.Ownername, isDark),
-                  //     _infoChip("Contact", property.Owner_number, isDark),
-                  //     _infoChip("Caretaker", property.Caretaker_name, isDark),
-                  //     _infoChip("Caretaker No", property.Caretaker_number, isDark),
-                  //   ],
-                  // ),
-
-                  const SizedBox(height: 12),
-
-                  // Property Address
+                  // Address
                   Text(
-                    "Field Worker Address:",
+                    "Field Worker Address",
                     style: TextStyle(
                       fontFamily: "PoppinsBold",
                       fontSize: 14,
@@ -605,50 +734,70 @@ class PropertyCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    property.property_address_for_fieldworkar,
+                    property.propertyAddressForFieldworker,
                     style: TextStyle(
                       fontFamily: "Poppins",
                       fontSize: 13,
+                      height: 1.3,
                       color: isDark ? Colors.grey[300] : Colors.grey[700],
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Property No. ${displayIndex}" /*+abc.data![len].Building_Name.toUpperCase()*/,
+                        "🏠 Building No. $displayIndex",
                         style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.white : Colors.black87,
-                            fontWeight: FontWeight
-                                .w500,
-                            letterSpacing: 0.5
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0.3,
                         ),
                       ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.blueGrey[800] : Colors.blueGrey[50],
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            "ID: ${property.id}",
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: isDark ? Colors.white70 : Colors.blueGrey[700],
-                            ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: isDark ? Colors.blueGrey[800] : Colors.blueGrey[50],
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          "ID: ${property.id}",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isDark ? Colors.white70 : Colors.blueGrey[700],
                           ),
                         ),
                       ),
                     ],
                   ),
+
+                  const SizedBox(height: 10),
+
+                  // ⚠ Missing fields
+                  if (hasMissingFields)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.redAccent, width: 1),
+                      ),
+                      child: Text(
+                        "⚠ Missing fields: ${missingFields.join(", ")}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.redAccent,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -656,35 +805,6 @@ class PropertyCard extends StatelessWidget {
         ),
       ),
     );
-  }
 
-  Widget _infoChip(String label, String value, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white12 : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            "$label: ",
-            style: TextStyle(
-              fontFamily: "PoppinsBold",
-              fontSize: 12,
-              color: isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              color: isDark ? Colors.grey[300] : Colors.grey[800],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

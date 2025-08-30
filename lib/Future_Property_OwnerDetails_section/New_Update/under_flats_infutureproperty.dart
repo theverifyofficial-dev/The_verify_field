@@ -280,7 +280,7 @@ class Catid1 {
   final String work_profile;
   final String bhk;
   final String type_of_property;
-  final String sub_id;
+  final int sub_id;
 
   Catid1(
       {required this.id,required this.tenant_name,required this.tenant_phone_number,required this.flat_rent,required this.shifting_date,required this.members
@@ -288,7 +288,8 @@ class Catid1 {
         ,required this.sub_id});
 
   factory Catid1.FromJson(Map<String, dynamic>json){
-    return Catid1(id: json['id'],
+    return Catid1(
+        id: json['id'],
         tenant_name: json['tenant_name'], tenant_phone_number: json['tenant_phone_number'],
         flat_rent: json['flat_rent'], shifting_date: json['shifting_date'],
         members: json['members'],
@@ -393,10 +394,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   bool movedToRealEstate = false;
 
   Future<List<Catid1>> fetchData1() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_bysubid_add_tenant_in_future_property?sub_id=${widget.id}");
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_tenant_in_future_property?sub_id=${widget.id}");
+    final Response = await http.get(url);
+    print("Tenant : ${Response.body}");
+    if (Response.statusCode == 200) {
+      List listresponce = json.decode(Response.body);
       return listresponce.map(( data) => Catid1.FromJson(data)).toList();
     }
     else {
@@ -2011,7 +2013,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 ),
                                                 SizedBox(
                                                   width: 120,
-                                                  child: Text(""+abc.data![len].sub_id,
+                                                  child: Text(""+abc.data![len].sub_id.toString(),
                                                     overflow: TextOverflow.ellipsis,
                                                     maxLines: 2,
                                                     style: TextStyle(
@@ -2021,15 +2023,10 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                     ),
                                                   ),
                                                 ),
-
                                               ],
                                             ),
-
                                           ],
                                         ),
-
-
-
                                       ),
                                     )
                                   ],
@@ -2061,15 +2058,13 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => add_tenant_under_futureproperty(id: '${widget.id}',Subid: '${widget.Subid}',)));
-                  // Navigator.of(context).push(
-                  //     MaterialPageRoute(builder: (context) => Provider.value(value: bloc,child: AddTenant(type: widget.type),)));
+                          builder: (context) => AddTenantUnderFutureProperty(id: '${widget.id}',subId: '${widget.Subid}',)));
                 },
                 child:  Row(
                   children: [
-                    const Icon(Icons.add_circle),
+                    const Icon(Icons.add_circle,color: Colors.white,),
                     const SizedBox(width: 5,),
-                    Text("Add Tenant",style: const TextStyle(fontSize: 15),),
+                    Text("Add Tenant",style: const TextStyle(fontSize: 15,color: Colors.white),),
                   ],
                 ),),
             ],

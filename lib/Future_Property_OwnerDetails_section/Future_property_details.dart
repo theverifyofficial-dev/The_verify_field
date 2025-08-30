@@ -549,9 +549,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   String data = 'Initial Data';
 
   Future<void> _handleMenuItemClick(String value) async {
-    // Handle the menu item click
     print("You clicked: $value");
-    if (value == 'Edit Property') {
+    if (value == 'Edit Building') {
       final result = await fetchData(); // Only call once
       Navigator.push(
         context,
@@ -563,7 +562,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       );
     }
 
-    if (value.toString() == 'Add Property Images') {
+    if (value.toString() == 'Add Building Images') {
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -619,7 +618,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           PopupMenuButton<String>(
             onSelected: _handleMenuItemClick,
             itemBuilder: (BuildContext context) {
-              return {'Edit Property','Add Property Images',/*'Duplicate Property'*/}.map((String choice) {
+              return {'Edit Building','Add Building Images',/*'Duplicate Property'*/}.map((String choice) {
                 return PopupMenuItem<String>(
                   value: choice,
                   child: Text(choice),

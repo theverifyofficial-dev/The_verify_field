@@ -313,6 +313,13 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text("Add Building",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
+                ],
+              ),
+              SizedBox(height: 5,),
               _buildSectionCard(
                 title: 'Upload Main Image',
                 child: Row(

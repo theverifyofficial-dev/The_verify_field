@@ -17,92 +17,214 @@ import '../property_preview.dart';
 import '../ui_decoration_tools/constant.dart';
 import '../model/realestateSlider.dart';
 import 'Administator_Realestate.dart';
+import 'package:intl/intl.dart';
 
 class Catid {
   final int id;
-  final String property_num;
-  final String Address_;
-  final String Place_;
-  final String sqft;
-  final String Price;
-  final String Sell_price;
-  final String Persnol_price;
-  final String maintenance;
-  final String Buy_Rent;
-  final String Residence_Commercial;
-  final String floor_ ;
-  final String flat_;
-  final String Furnished;
-  final String Details;
-  final String Ownername;
-  final String Owner_number;
-  final String Building_information;
+  final String propertyPhoto;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String apartmentName;
+  final String apartmentAddress;
+  final String typeOfProperty;
+  final String bhk;
+  final String showPrice;
+  final String lastPrice;
+  final String askingPrice;
+  final String floor;
+  final String totalFloor;
   final String balcony;
+  final String squareFit;
+  final String maintance;
+  final String parking;
+  final String ageOfProperty;
+  final String fieldWorkerAddress;
+  final String roadSize;
+  final String metroDistance;
+  final String highwayDistance;
+  final String mainMarketDistance;
+  final String meter;
+  final String ownerName;
+  final String ownerNumber;
+  final String currentDates;
+  final String availableDate;
   final String kitchen;
-  final String Baathroom;
-  final String Parking;
-  final String Typeofproperty;
-  final String Bhk_Squarefit;
-  final String Address_apnehisaabka;
-  final String Caretaker_name;
-  final String Caretaker_number;
-  final String Building_Location;
-  final String Building_Name;
-  final String Building_Address;
-  final String Building_image;
-  final String Longitude;
-  final String Latitude;
-  final String Rent;
-  final String Verify_price;
-  final String BHK;
-  final String tyope;
-  final String maintence ;
-  final String buy_Rent ;
+  final String bathroom;
+  final String lift;
   final String facility;
-  final String Feild_name ;
-  final String Feild_number;
-  final String date;
+  final String furnishedUnfurnished;
+  final String fieldWorkerName;
+  final String liveUnlive;
+  final String fieldWorkerNumber;
+  final String registryAndGpa;
+  final String loan;
+  final String longitude;
+  final String latitude;
+  final String videoLink;
+  final String fieldWorkerCurrentLocation;
+  final String careTakerName;
+  final String careTakerNumber;
+  final int subid;
 
-  Catid(
-      {required this.id,required this.property_num,required this.Address_,required this.Place_,required this.sqft,
-        required this.Price,required this.Sell_price,required this.Persnol_price,required this.maintenance,
-        required this.Buy_Rent,required this.Residence_Commercial,required this.floor_,required this.flat_,
-        required this.Furnished,required this.Details,required this.Ownername,required this.Owner_number,
-        required this.Building_information,required this.balcony,required this.kitchen,required this.Baathroom,
-        required this.Parking,required this.Typeofproperty,required this.Bhk_Squarefit,required this.Address_apnehisaabka,
-        required this.Caretaker_name,required this.Caretaker_number, required this.Building_Location, required this.Building_Name, required this.Building_Address, required this.Building_image, required this.Longitude, required this.Latitude, required this.Rent, required this.Verify_price, required this.BHK, required this.tyope, required this.maintence, required this.buy_Rent,
-        required this.facility,required this.Feild_name,required this.Feild_number,required this.date});
+  const Catid({
+    required this.id,
+    required this.propertyPhoto,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.apartmentName,
+    required this.apartmentAddress,
+    required this.typeOfProperty,
+    required this.bhk,
+    required this.showPrice,
+    required this.lastPrice,
+    required this.askingPrice,
+    required this.floor,
+    required this.totalFloor,
+    required this.balcony,
+    required this.squareFit,
+    required this.maintance,
+    required this.parking,
+    required this.ageOfProperty,
+    required this.fieldWorkerAddress,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.highwayDistance,
+    required this.mainMarketDistance,
+    required this.meter,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.currentDates,
+    required this.availableDate,
+    required this.kitchen,
+    required this.bathroom,
+    required this.lift,
+    required this.facility,
+    required this.furnishedUnfurnished,
+    required this.fieldWorkerName,
+    required this.liveUnlive,
+    required this.fieldWorkerNumber,
+    required this.registryAndGpa,
+    required this.loan,
+    required this.longitude,
+    required this.latitude,
+    required this.videoLink,
+    required this.fieldWorkerCurrentLocation,
+    required this.careTakerName,
+    required this.careTakerNumber,
+    required this.subid,
+  });
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['PVR_id'],
-        property_num: json['Property_Number'], Address_: json['Address_'],
-        Place_: json['Place_'], sqft: json['City'],
-        Price: json['Price'], Sell_price: json['Waterfilter'],
-        Persnol_price: json['Gas_meter'], maintenance: json['maintenance'],
-        Buy_Rent: json['Buy_Rent'], Residence_Commercial: json['Residence_Commercial'],
-        floor_: json['floor_'], flat_: json['flat_'],
-        Furnished: json['Furnished'], Details: json['Details'],
-        Ownername: json['Ownername'], Owner_number: json['Owner_number'],
-        Building_information: json['Building_information'], balcony: json['balcony'],
-        kitchen: json['kitchen'], Baathroom: json['Baathroom'],
-        Parking: json['Parking'], Typeofproperty: json['Typeofproperty'],
-        Bhk_Squarefit: json['Bhk_Squarefit'], Address_apnehisaabka: json['Address_apnehisaabka'],
-        Caretaker_name: json['Water_geyser'], Caretaker_number: json['CareTaker_number'], Building_Location: json['Place_'],
-        Building_Name: json['Building_information'],
-        Building_Address: json['Address_'],
-        Building_image: json['Realstate_image'],
-        Longitude: json['Longtitude'],
-        Latitude: json['Latitude'],
-        Rent: json['Property_Number'],
-        Verify_price: json['Gas_meter'],
-        BHK: json['Bhk_Squarefit'],
-        tyope: json['Typeofproperty'],
-        maintence: json['maintenance'],
-        buy_Rent: json['Buy_Rent'],
-        facility: json['Lift'],
-        Feild_name: json['fieldworkarname'],
-        Feild_number: json['fieldworkarnumber'],
-        date: json['date_']);
+  factory Catid.fromJson(Map<String, dynamic> json) {
+    return Catid(
+      id: json['P_id'] is int
+          ? json['P_id']
+          : int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
+      propertyPhoto: json['property_photo']?.toString() ?? '',
+      locations: json['locations']?.toString() ?? '',
+      flatNumber: json['Flat_number']?.toString() ?? '',
+      buyRent: json['Buy_Rent']?.toString() ?? '',
+      residenceCommercial: json['Residence_Commercial']?.toString() ?? '',
+      apartmentName: json['Apartment_name']?.toString() ?? '',
+      apartmentAddress: json['Apartment_Address']?.toString() ?? '',
+      typeOfProperty: json['Typeofproperty']?.toString() ?? '',
+      bhk: json['Bhk']?.toString() ?? '',
+      showPrice: json['show_Price']?.toString() ?? '',
+      lastPrice: json['Last_Price']?.toString() ?? '',
+      askingPrice: json['asking_price']?.toString() ?? '',
+      floor: json['Floor_']?.toString() ?? '',
+      totalFloor: json['Total_floor']?.toString() ?? '',
+      balcony: json['Balcony']?.toString() ?? '',
+      squareFit: json['squarefit']?.toString() ?? '',
+      maintance: json['maintance']?.toString() ?? '',
+      parking: json['parking']?.toString() ?? '',
+      ageOfProperty: json['age_of_property']?.toString() ?? '',
+      fieldWorkerAddress: json['fieldworkar_address']?.toString() ?? '',
+      roadSize: json['Road_Size']?.toString() ?? '',
+      metroDistance: json['metro_distance']?.toString() ?? '',
+      highwayDistance: json['highway_distance']?.toString() ?? '',
+      mainMarketDistance: json['main_market_distance']?.toString() ?? '',
+      meter: json['meter']?.toString() ?? '',
+      ownerName: json['owner_name']?.toString() ?? '',
+      ownerNumber: json['owner_number']?.toString() ?? '',
+      currentDates: json['current_dates']?.toString() ?? '',
+      availableDate: json['available_date']?.toString() ?? '',
+      kitchen: json['kitchen']?.toString() ?? '',
+      bathroom: json['bathroom']?.toString() ?? '',
+      lift: json['lift']?.toString() ?? '',
+      facility: json['Facility']?.toString() ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished']?.toString() ?? '',
+      fieldWorkerName: json['field_warkar_name']?.toString() ?? '',
+      liveUnlive: json['live_unlive']?.toString() ?? '',
+      fieldWorkerNumber: json['field_workar_number']?.toString() ?? '',
+      registryAndGpa: json['registry_and_gpa']?.toString() ?? '',
+      loan: json['loan']?.toString() ?? '',
+      longitude: json['Longitude']?.toString() ?? '',
+      latitude: json['Latitude']?.toString() ?? '',
+      videoLink: json['video_link']?.toString() ?? '',
+      fieldWorkerCurrentLocation:
+      json['field_worker_current_location']?.toString() ?? '',
+      careTakerName: json['care_taker_name']?.toString() ?? '',
+      careTakerNumber: json['care_taker_number']?.toString() ?? '',
+      subid: json['subid'] is int
+          ? json['subid']
+          : int.tryParse(json['subid']?.toString() ?? '0') ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "P_id": id,
+      "property_photo": propertyPhoto,
+      "locations": locations,
+      "Flat_number": flatNumber,
+      "Buy_Rent": buyRent,
+      "Residence_Commercial": residenceCommercial,
+      "Apartment_name": apartmentName,
+      "Apartment_Address": apartmentAddress,
+      "Typeofproperty": typeOfProperty,
+      "Bhk": bhk,
+      "show_Price": showPrice,
+      "Last_Price": lastPrice,
+      "asking_price": askingPrice,
+      "Floor_": floor,
+      "Total_floor": totalFloor,
+      "Balcony": balcony,
+      "squarefit": squareFit,
+      "maintance": maintance,
+      "parking": parking,
+      "age_of_property": ageOfProperty,
+      "fieldworkar_address": fieldWorkerAddress,
+      "Road_Size": roadSize,
+      "metro_distance": metroDistance,
+      "highway_distance": highwayDistance,
+      "main_market_distance": mainMarketDistance,
+      "meter": meter,
+      "owner_name": ownerName,
+      "owner_number": ownerNumber,
+      "current_dates": currentDates,
+      "available_date": availableDate,
+      "kitchen": kitchen,
+      "bathroom": bathroom,
+      "lift": lift,
+      "Facility": facility,
+      "furnished_unfurnished": furnishedUnfurnished,
+      "field_warkar_name": fieldWorkerName,
+      "live_unlive": liveUnlive,
+      "field_workar_number": fieldWorkerNumber,
+      "registry_and_gpa": registryAndGpa,
+      "loan": loan,
+      "Longitude": longitude,
+      "Latitude": latitude,
+      "video_link": videoLink,
+      "field_worker_current_location": fieldWorkerCurrentLocation,
+      "care_taker_name": careTakerName,
+      "care_taker_number": careTakerNumber,
+      "subid": subid,
+    };
   }
 }
 
@@ -121,11 +243,15 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
   int _currentIndex = 0;
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.idd}");
+    final url = Uri.parse(
+      "https://verifyserve.social/WebService4.asmx/display_main_realesate_data_by_id?P_id=${widget.idd}",
+    );
+
+    // var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.idd}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => Catid.fromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -174,7 +300,15 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
   // late final int iid;
   late PageController _pageController;
-
+  String _formatDate(String? dateString) {
+    if (dateString == null || dateString.isEmpty) return "-";
+    try {
+      DateTime date = DateTime.parse(dateString); // expects yyyy-MM-dd or full ISO format
+      return DateFormat('dd-MM-yyyy').format(date); // Example: 29-08-2025
+    } catch (e) {
+      return dateString; // fallback if parsing fails
+    }
+  }
   int _id = 0;
 // Declare this at the top of your widget class
   late Future<List<RealEstateSlider>> _futureCarousel;
@@ -305,7 +439,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Lottie.asset("assets/images/no data.json",width: 450),
-                      Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
+                      Text("${widget.idd} No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
                     ],
                   ),
                 );
@@ -393,7 +527,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                         width: 120,
                                         height: 120,
                                         child: CachedNetworkImage(
-                                          imageUrl: "https://verifyserve.social/${abc.data![len].Building_image}",
+                                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${abc.data![len].propertyPhoto}",
                                           fit: BoxFit.cover,
                                           placeholder: (context, url) => Container(color: Colors.grey[200]),
                                           errorWidget: (context, url, error) => Icon(Icons.home),
@@ -407,7 +541,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            abc.data![len].Building_Location,
+                                            abc.data![len].locations,
                                             style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.bold,
@@ -421,10 +555,10 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                             spacing: 8,
                                             runSpacing: 8,
                                             children: [
-                                              _buildDetailChip(abc.data![len].tyope, Colors.blue),
-                                              _buildDetailChip(abc.data![len].BHK, Colors.green),
-                                              _buildDetailChip(abc.data![len].floor_, Colors.orange),
-                                              _buildDetailChip(abc.data![len].buy_Rent, Colors.purple),
+                                              _buildDetailChip(abc.data![len].typeOfProperty, Colors.blue),
+                                              _buildDetailChip(abc.data![len].bhk, Colors.green),
+                                              _buildDetailChip(abc.data![len].floor, Colors.orange),
+                                              _buildDetailChip(abc.data![len].buyRent, Colors.purple),
                                             ],
                                           ),
                                         ],
@@ -454,7 +588,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                         ),
                                       ),
                                       Text(
-                                        "₹${abc.data![len].Rent}${abc.data![len].Verify_price}",
+                                        "₹${abc.data![len].showPrice}",
                                         style: TextStyle(
                                           fontSize: 18,
                                           color: Colors.green[800],
@@ -472,13 +606,27 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   title: 'Property Information',
                                   icon: Icons.info_outline,
                                   children: [
-                                    _buildInfoRow('Sqft', abc.data![len].sqft),
+                                    _buildInfoRow('Flat Number', abc.data![len].flatNumber),
+                                    _buildInfoRow('Sqft', abc.data![len].squareFit),
                                     _buildInfoRow('Balcony', abc.data![len].balcony),
-                                    _buildInfoRow('Parking', "${abc.data![len].Parking} Parking"),
+                                    _buildInfoRow('Total Floor', abc.data![len].totalFloor),
+                                    _buildInfoRow('Parking', "${abc.data![len].parking} Parking"),
                                     _buildInfoRow('Kitchen', "${abc.data![len].kitchen} Kitchen"),
-                                    _buildInfoRow('Bathroom', "${abc.data![len].Baathroom} Bathroom"),
-                                    _buildInfoRow('Furnished', abc.data![len].Furnished),
-                                    _buildInfoRow('Details', abc.data![len].Details),
+                                    _buildInfoRow('Bathroom', "${abc.data![len].bathroom} Bathroom"),
+                                    _buildInfoRow('Balcony', "${abc.data![len].balcony} "),
+                                    _buildInfoRow('Maintance', "${abc.data![len].maintance} "),
+                                    _buildInfoRow('Age Of Property', "${abc.data![len].ageOfProperty} "),
+                                    _buildInfoRow('Road Size', "${abc.data![len].roadSize} "),
+                                    _buildInfoRow('Near Metro', "${abc.data![len].metroDistance} "),
+                                    _buildInfoRow('Metro Distance', "${abc.data![len].highwayDistance} "),
+                                    _buildInfoRow('Main Market Distance', "${abc.data![len].registryAndGpa} "),
+                                    _buildInfoRow('Registry and Gpa', "${abc.data![len].mainMarketDistance} "),
+                                    _buildInfoRow('Loan', "${abc.data![len].loan} "),
+                                    _buildInfoRow('Meter', "${abc.data![len].meter} unit "),
+                                    _buildInfoRow('Lift', "${abc.data![len].lift}"),
+                                    _buildInfoRow('Residence /Commercial', "${abc.data![len].residenceCommercial}"),
+                                    _buildInfoRow('Facility', "${abc.data![len].facility}"),
+                                    _buildInfoRow('Furnished', "${abc.data![len].furnishedUnfurnished}, ${abc.data![len].apartmentName}"),
                                   ],
                                 ),
 
@@ -498,7 +646,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   icon: Icons.location_on_outlined,
                                   children: [
                                     Text(
-                                      abc.data![len].Address_,
+                                      abc.data![len].apartmentAddress,
                                       style: TextStyle(fontFamily: 'Poppins'),
                                     ),
                                   ],
@@ -510,8 +658,8 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   icon: Icons.person_outline,
                                   children: [
                                     _buildContactRow(
-                                      name: abc.data![len].Ownername,
-                                      number: abc.data![len].Owner_number,
+                                      name: abc.data![len].ownerName,
+                                      number: abc.data![len].ownerNumber,
                                       context: context,
                                     ),
                                   ],
@@ -522,8 +670,8 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   icon: Icons.support_agent_outlined,
                                   children: [
                                     _buildContactRow(
-                                      name: abc.data![len].Caretaker_name,
-                                      number: abc.data![len].Caretaker_number,
+                                      name: abc.data![len].careTakerName,
+                                      number: abc.data![len].careTakerNumber,
                                       context: context,
                                     ),
                                   ],
@@ -533,9 +681,9 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   title: 'Field Worker',
                                   icon: Icons.engineering_outlined,
                                   children: [
-                                    _buildInfoRow('Name', abc.data![len].Feild_name),
-                                    _buildInfoRow('Number', abc.data![len].Feild_number),
-                                    _buildInfoRow('Address', abc.data![len].Address_apnehisaabka),
+                                    _buildInfoRow('Name', abc.data![len].fieldWorkerName),
+                                    _buildInfoRow('Number', abc.data![len].fieldWorkerNumber),
+                                    _buildInfoRow('Address', abc.data![len].fieldWorkerAddress),
                                   ],
                                 ),
 
@@ -544,9 +692,10 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   title: 'Additional Information',
                                   icon: Icons.note_outlined,
                                   children: [
-                                    _buildInfoRow('Added Date', abc.data![len].date),
-                                    _buildInfoRow('Sell Price', abc.data![len].Sell_price),
-                                    _buildInfoRow('List Price', abc.data![len].Price),
+                                    _buildInfoRow('Added Date',  _formatDate(abc.data![len].availableDate),),
+                                    _buildInfoRow('Show Price', abc.data![len].showPrice),
+                                    _buildInfoRow('Ask Price', abc.data![len].askingPrice),
+                                    _buildInfoRow('Last Price', abc.data![len].lastPrice),
                                     _buildInfoRow('Property ID', abc.data![len].id.toString(),),
                                   ],
                                 ),
@@ -570,6 +719,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
     );
   }
+
   Widget _buildSection({required String title, required IconData icon, required List<Widget> children}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

@@ -9,66 +9,210 @@ import '../Administater_Realestate_Details.dart';
 
 class Catid {
   final int id;
-  final String Building_Name;
-  final String Building_Address;
-  final String Building_Location;
-  final String Building_image;
-  final String Longitude;
-  final String Latitude;
-  final String Rent;
-  final String Verify_price;
-  final String BHK;
-  final String sqft;
-  final String tyope;
-  final String floor_ ;
-  final String maintence ;
-  final String buy_Rent ;
-  final String Building_information;
-  final String Parking;
+  final String propertyPhoto;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String apartmentName;
+  final String apartmentAddress;
+  final String typeOfProperty;
+  final String bhk;
+  final String showPrice;
+  final String lastPrice;
+  final String askingPrice;
+  final String floor;
+  final String totalFloor;
   final String balcony;
-  final String facility;
-  final String Furnished;
+  final String squareFit;
+  final String maintance;
+  final String parking;
+  final String ageOfProperty;
+  final String fieldWorkerAddress;
+  final String roadSize;
+  final String metroDistance;
+  final String highwayDistance;
+  final String mainMarketDistance;
+  final String meter;
+  final String ownerName;
+  final String ownerNumber;
+  final String currentDates;
+  final String availableDate;
   final String kitchen;
-  final String Baathroom;
-  final String Ownername;
-  final String Owner_number;
-  final String Caretaker_name;
-  final String Caretaker_number;
-  final String Date;
+  final String bathroom;
+  final String lift;
+  final String facility;
+  final String furnishedUnfurnished;
+  final String fieldWorkerName;
+  final String liveUnlive;
+  final String fieldWorkerNumber;
+  final String registryAndGpa;
+  final String loan;
+  final String longitude;
+  final String latitude;
+  final String videoLink;
+  final String fieldWorkerCurrentLocation;
+  final String careTakerName;
+  final String careTakerNumber;
+  final int subid;
 
-  Catid(
-      {required this.id, required this.Building_Name, required this.Building_Address, required this.Building_Location, required this.Building_image, required this.Longitude, required this.Latitude, required this.Rent, required this.Verify_price, required this.BHK, required this.sqft, required this.tyope, required this.floor_, required this.maintence, required this.buy_Rent,
-        required this.Building_information,required this.balcony,required this.Parking,required this.facility,required this.Furnished,required this.kitchen,required this.Baathroom,required this.Ownername,required this.Owner_number,
-        required this.Caretaker_name,required this.Caretaker_number,required this.Date});
+  const Catid({
+    required this.id,
+    required this.propertyPhoto,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.apartmentName,
+    required this.apartmentAddress,
+    required this.typeOfProperty,
+    required this.bhk,
+    required this.showPrice,
+    required this.lastPrice,
+    required this.askingPrice,
+    required this.floor,
+    required this.totalFloor,
+    required this.balcony,
+    required this.squareFit,
+    required this.maintance,
+    required this.parking,
+    required this.ageOfProperty,
+    required this.fieldWorkerAddress,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.highwayDistance,
+    required this.mainMarketDistance,
+    required this.meter,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.currentDates,
+    required this.availableDate,
+    required this.kitchen,
+    required this.bathroom,
+    required this.lift,
+    required this.facility,
+    required this.furnishedUnfurnished,
+    required this.fieldWorkerName,
+    required this.liveUnlive,
+    required this.fieldWorkerNumber,
+    required this.registryAndGpa,
+    required this.loan,
+    required this.longitude,
+    required this.latitude,
+    required this.videoLink,
+    required this.fieldWorkerCurrentLocation,
+    required this.careTakerName,
+    required this.careTakerNumber,
+    required this.subid,
+  });
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['PVR_id'],
-        Building_Name: json['Building_information'],
-        Building_Address: json['Address_'],
-        Building_Location: json['Place_'],
-        Building_image: json['Realstate_image'],
-        Longitude: json['Longtitude'],
-        Latitude: json['Latitude'],
-        Rent: json['Property_Number'],
-        Verify_price: json['Gas_meter'],
-        BHK: json['Bhk_Squarefit'],
-        sqft: json['City'],
-        tyope: json['Typeofproperty'],
-        floor_: json['floor_'],
-        maintence: json['maintenance'],
-        buy_Rent: json['Buy_Rent'],
-        Building_information: json['Building_information'],
-        balcony: json['balcony'],
-        Parking: json['Parking'],
-        facility: json['Lift'],
-        Furnished: json['Furnished'],
-        kitchen: json['kitchen'],
-        Baathroom: json['Baathroom'],
-        Ownername: json['Ownername'],
-        Owner_number: json['Owner_number'],
-        Caretaker_name: json['Water_geyser'],
-        Caretaker_number: json['CareTaker_number'],
-        Date: json['date_']);
+  factory Catid.fromJson(Map<String, dynamic> json) {
+    return Catid(
+      id: json['P_id'] is int
+          ? json['P_id']
+          : int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
+      propertyPhoto: json['property_photo']?.toString() ?? '',
+      locations: json['locations']?.toString() ?? '',
+      flatNumber: json['Flat_number']?.toString() ?? '',
+      buyRent: json['Buy_Rent']?.toString() ?? '',
+      residenceCommercial: json['Residence_Commercial']?.toString() ?? '',
+      apartmentName: json['Apartment_name']?.toString() ?? '',
+      apartmentAddress: json['Apartment_Address']?.toString() ?? '',
+      typeOfProperty: json['Typeofproperty']?.toString() ?? '',
+      bhk: json['Bhk']?.toString() ?? '',
+      showPrice: json['show_Price']?.toString() ?? '',
+      lastPrice: json['Last_Price']?.toString() ?? '',
+      askingPrice: json['asking_price']?.toString() ?? '',
+      floor: json['Floor_']?.toString() ?? '',
+      totalFloor: json['Total_floor']?.toString() ?? '',
+      balcony: json['Balcony']?.toString() ?? '',
+      squareFit: json['squarefit']?.toString() ?? '',
+      maintance: json['maintance']?.toString() ?? '',
+      parking: json['parking']?.toString() ?? '',
+      ageOfProperty: json['age_of_property']?.toString() ?? '',
+      fieldWorkerAddress: json['fieldworkar_address']?.toString() ?? '',
+      roadSize: json['Road_Size']?.toString() ?? '',
+      metroDistance: json['metro_distance']?.toString() ?? '',
+      highwayDistance: json['highway_distance']?.toString() ?? '',
+      mainMarketDistance: json['main_market_distance']?.toString() ?? '',
+      meter: json['meter']?.toString() ?? '',
+      ownerName: json['owner_name']?.toString() ?? '',
+      ownerNumber: json['owner_number']?.toString() ?? '',
+      currentDates: json['current_dates']?.toString() ?? '',
+      availableDate: json['available_date']?.toString() ?? '',
+      kitchen: json['kitchen']?.toString() ?? '',
+      bathroom: json['bathroom']?.toString() ?? '',
+      lift: json['lift']?.toString() ?? '',
+      facility: json['Facility']?.toString() ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished']?.toString() ?? '',
+      fieldWorkerName: json['field_warkar_name']?.toString() ?? '',
+      liveUnlive: json['live_unlive']?.toString() ?? '',
+      fieldWorkerNumber: json['field_workar_number']?.toString() ?? '',
+      registryAndGpa: json['registry_and_gpa']?.toString() ?? '',
+      loan: json['loan']?.toString() ?? '',
+      longitude: json['Longitude']?.toString() ?? '',
+      latitude: json['Latitude']?.toString() ?? '',
+      videoLink: json['video_link']?.toString() ?? '',
+      fieldWorkerCurrentLocation:
+      json['field_worker_current_location']?.toString() ?? '',
+      careTakerName: json['care_taker_name']?.toString() ?? '',
+      careTakerNumber: json['care_taker_number']?.toString() ?? '',
+      subid: json['subid'] is int
+          ? json['subid']
+          : int.tryParse(json['subid']?.toString() ?? '0') ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      "P_id": id,
+      "property_photo": propertyPhoto,
+      "locations": locations,
+      "Flat_number": flatNumber,
+      "Buy_Rent": buyRent,
+      "Residence_Commercial": residenceCommercial,
+      "Apartment_name": apartmentName,
+      "Apartment_Address": apartmentAddress,
+      "Typeofproperty": typeOfProperty,
+      "Bhk": bhk,
+      "show_Price": showPrice,
+      "Last_Price": lastPrice,
+      "asking_price": askingPrice,
+      "Floor_": floor,
+      "Total_floor": totalFloor,
+      "Balcony": balcony,
+      "squarefit": squareFit,
+      "maintance": maintance,
+      "parking": parking,
+      "age_of_property": ageOfProperty,
+      "fieldworkar_address": fieldWorkerAddress,
+      "Road_Size": roadSize,
+      "metro_distance": metroDistance,
+      "highway_distance": highwayDistance,
+      "main_market_distance": mainMarketDistance,
+      "meter": meter,
+      "owner_name": ownerName,
+      "owner_number": ownerNumber,
+      "current_dates": currentDates,
+      "available_date": availableDate,
+      "kitchen": kitchen,
+      "bathroom": bathroom,
+      "lift": lift,
+      "Facility": facility,
+      "furnished_unfurnished": furnishedUnfurnished,
+      "field_warkar_name": fieldWorkerName,
+      "live_unlive": liveUnlive,
+      "field_workar_number": fieldWorkerNumber,
+      "registry_and_gpa": registryAndGpa,
+      "loan": loan,
+      "Longitude": longitude,
+      "Latitude": latitude,
+      "video_link": videoLink,
+      "field_worker_current_location": fieldWorkerCurrentLocation,
+      "care_taker_name": careTakerName,
+      "care_taker_number": careTakerNumber,
+      "subid": subid,
+    };
   }
 }
 
@@ -83,16 +227,29 @@ class See_All_Realestate extends StatefulWidget {
 class _See_All_RealestateState extends State<See_All_Realestate> {
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_RealEstate_by_fieldworkarnumber?fieldworkarnumber=${widget.id}&looking=Flat");
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
+    try {
+      final url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=${widget.id}&live_unlive=Flat",
+      );
 
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['PVR_id'].compareTo(a['PVR_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+
+        if (body is List) {
+          // Reverse the list instead of sorting by PVR_id
+          final reversedList = body.reversed.toList();
+          return reversedList.map((data) => Catid.fromJson(data)).toList();
+        } else {
+          throw Exception("Invalid JSON format: Expected a list");
+        }
+      } else {
+        throw Exception("Server error: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("fetchData error: $e");
+      throw Exception("Failed to fetch data: $e");
     }
   }
 
@@ -100,7 +257,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
-      backgroundColor: Colors.black,
+      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
@@ -164,413 +321,199 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                       itemBuilder: (BuildContext context,int len) {
                         int displayIndex = abc.data!.length - len;
                         return GestureDetector(
-                          onTap: (){
+                          onTap: () {
                             Navigator.push(
-                                context,
-                                MaterialPageRoute
-                                  (builder: (context) => Administater_View_Details(idd: '${abc.data![len].id}',))
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Administater_View_Details(idd: '${abc.data![len].id}'),
+                              ),
                             );
                           },
                           child: Container(
-                            width: 310,
-                            margin: EdgeInsets.only(
-                                bottom: 10, top: 10, left:5, right: 10),
+                            width: 320,
+                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10)),
+                              color: Theme.of(context).cardColor,
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                SizedBox(
-                                  height: 400,
-                                  width: size.width,
-                                  child:ClipRRect(
-                                    borderRadius: const BorderRadius.only(topLeft:Radius.circular(5),topRight: Radius.circular(5)),
-                                    child:  CachedNetworkImage(
-                                      imageUrl:
-                                      "https://www.verifyserve.social/${abc.data![len].Building_image}",
-                                      // height: 60.h,
-                                      // width: 120.w,
+                                // Property Image
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(16),
+                                    topRight: Radius.circular(16),
+                                  ),
+                                  child: Container(
+                                    height: 220,
+                                    width: double.infinity,
+                                    child: CachedNetworkImage(
+                                      imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${abc.data![len].propertyPhoto}",
                                       fit: BoxFit.cover,
-                                      placeholder: (context, url) => Image.asset(
-                                        AppImages.loading,
-                                        // height: 60.h,
-                                        // width: 120.w,
-                                        fit: BoxFit.cover,
-                                      ),
-                                      errorWidget: (context, error, stack) =>
-                                          Image.asset(
-                                            AppImages.imageNotFound,
-                                            // height: 60.h,
-                                            // width: 120.w,
-                                            fit: BoxFit.cover,
+                                      placeholder: (context, url) => Container(
+                                        color: Colors.grey[200],
+                                        child: Center(
+                                          child: Image.asset(
+                                            AppImages.loading,
+                                            width: 40,
+                                            height: 40,
                                           ),
+                                        ),
+                                      ),
+                                      errorWidget: (context, error, stack) => Container(
+                                        color: Colors.grey[200],
+                                        child: Center(
+                                          child: Image.asset(
+                                            AppImages.imageNotFound,
+                                            width: 40,
+                                            height: 40,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
 
-                                const SizedBox(
-                                  height: 10,
-                                ),
-
-                                Row(
-                                  children: [
-
-                                    SizedBox(
-                                      width: 5,
-                                    ),
-
-                                    Container(
-                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(width: 1, color: Colors.blue),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Colors.blue.withOpacity(0.5),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 0),
-                                              blurStyle: BlurStyle.outer
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                          //SizedBox(width: 10,),
-                                          Text(""+abc.data![len].tyope.toUpperCase()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w500,
-                                                letterSpacing: 0.5
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    SizedBox(
-                                      width: 20,
-                                    ),
-                                    Container(
-                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(width: 1, color: Colors.green),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Colors.green.withOpacity(0.5),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 0),
-                                              blurStyle: BlurStyle.outer
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        children: <Widget> [
-
-
-                                          Text(""+abc.data![len].buy_Rent.toUpperCase(),
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w500,
-                                                letterSpacing: 0.5
-                                            ),
-                                          ),
-
-                                        ],
-                                      ),
-                                    ),
-
-                                    SizedBox(
-                                      width: 20,
-                                    ),
-
-                                    Container(
-                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(width: 1, color: Colors.pink),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Colors.pink
-                                                  .withOpacity(0.5),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 0),
-                                              blurStyle: BlurStyle.outer
-                                          ),
-                                        ],
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                          //w SizedBox(width: 10,),
-                                          Text(""+abc.data![len].BHK.toUpperCase()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w500,
-                                                letterSpacing: 0.5
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-
-                                  ],
-                                ),
-
-                                SizedBox(
-                                  height: 10,
-                                ),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                                      children: [
-
-                                        SizedBox(width: 5,),
-                                        Container(
-                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(5),
-                                            border: Border.all(width: 1, color: Colors.purple),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.purple.withOpacity(0.5),
-                                                  blurRadius: 10,
-                                                  offset: Offset(0, 0),
-                                                  blurStyle: BlurStyle.outer
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                              Text(""+abc.data![len].Building_Location, maxLines: 2,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 10,),
-                                        Container(
-                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(5),
-                                            border: Border.all(width: 1, color: Colors.purple),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.purple.withOpacity(0.5),
-                                                  blurRadius: 10,
-                                                  offset: Offset(0, 0),
-                                                  blurStyle: BlurStyle.outer
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                              Text(""+abc.data![len].floor_, maxLines: 2,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(width: 10,),
-
-                                      ],
-                                    ),
-
-
-                                  ],
-                                ),
-
-                                SizedBox(
-                                  height: 10,
-                                ),
-
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal:5),
-                                  child: Row(
+                                // Property Details
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(
-                                        Icons.location_city_rounded,
-                                        size: 20,
-                                        color: Colors.blue,
+                                      // Property Type, Buy/Rent, BHK
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: [
+                                          _buildFeatureChip(
+                                            context: context,
+                                            text: abc.data![len].typeOfProperty.toUpperCase(),
+                                            color: Colors.blue,
+                                          ),
+                                          _buildFeatureChip(
+                                            context: context,
+                                            text: abc.data![len].buyRent.toUpperCase(),
+                                            color: Colors.green,
+                                          ),
+                                          _buildFeatureChip(
+                                            context: context,
+                                            text: abc.data![len].bhk.toUpperCase(),
+                                            color: Colors.pink,
+                                          ),
+                                        ],
                                       ),
-                                      Expanded(
 
-                                          child: Text("${abc.data![len].Building_information}" ,
-                                            maxLines: 5,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: TextStyle(
+                                      const SizedBox(height: 12),
+
+                                      // Location and Floor
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: [
+                                          _buildFeatureChip(
+                                            context: context,
+                                            text: abc.data![len].locations,
+                                            color: Colors.purple,
+                                            icon: Icons.location_on,
+                                          ),
+                                          _buildFeatureChip(
+                                            context: context,
+                                            text: abc.data![len].floor,
+                                            color: Colors.purple,
+                                            icon: Icons.stairs,
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 12),
+
+                                      // Property Address
+                                      Row(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Icon(
+                                            Icons.location_city_rounded,
+                                            size: 18,
+                                            color: Theme.of(context).primaryColor,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Expanded(
+                                            child: Text(
+                                              abc.data![len].apartmentAddress,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontFamily: 'Poppins',
+                                                fontSize: 12,
+                                                color: Theme.of(context).textTheme.bodyLarge?.color,
                                                 fontWeight: FontWeight.w500,
-                                                fontSize: 10,
-                                                color: Colors.black
+                                              ),
                                             ),
-                                          )
+                                          ),
+                                        ],
                                       ),
 
+                                      const SizedBox(height: 12),
+
+                                      // Available Date and Price
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          _buildFeatureChip(
+                                            context: context,
+                                            text: abc.data![len].availableDate,
+                                            color: Colors.pinkAccent,
+                                            icon: Icons.calendar_today,
+                                          ),
+
+                                          Text(
+                                            "₹ ${abc.data![len].showPrice}",
+                                            style: TextStyle(
+                                              fontFamily: 'Poppins',
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.green[700],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 12),
+
+                                      // Property ID and Index
+                                      Row(
+                                        children: [
+                                          _buildInfoBadge(
+                                            context: context,
+                                            label: "Property #",
+                                            value: displayIndex.toString(),
+                                            color: Colors.blueGrey,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          _buildInfoBadge(
+                                            context: context,
+                                            label: "ID",
+                                            value: abc.data![len].id.toString(),
+                                            color: Colors.blueGrey,
+                                          ),
+                                        ],
+                                      ),
                                     ],
                                   ),
                                 ),
-
-                                SizedBox(height: 10,),
-
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                                      children: [
-
-                                        SizedBox(width: 5,),
-                                        Container(
-                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(5),
-                                            border: Border.all(width: 1, color: Colors.pinkAccent),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.pinkAccent.withOpacity(0.5),
-                                                  blurRadius: 10,
-                                                  offset: Offset(0, 0),
-                                                  blurStyle: BlurStyle.outer
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                              Text(""+abc.data![len].Date, maxLines: 2,
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                                      child: Text(
-                                        "₹ ${abc.data![len].Rent}${abc.data![len].Verify_price}",
-                                        style: const TextStyle(color: Colors.green,fontWeight: FontWeight.w500,fontSize: 22),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-
-                                SizedBox(height: 10,),
-
-                                Row(
-                                  children: [
-                                    SizedBox(width: 5,),
-                                    Container(
-                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(width: 1, color: Colors.green),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Colors.green.withOpacity(0.5),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 0),
-                                              blurStyle: BlurStyle.outer
-                                          ),
-                                        ],
-                                      ),
-
-                                      child: Row(
-                                        children: [
-                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                          //w SizedBox(width: 10,),-
-                                          Text("Property No = $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w500,
-                                                letterSpacing: 0.5
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-
-                                    Container(
-                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(5),
-                                        border: Border.all(width: 1, color: Colors.green),
-                                        boxShadow: [
-                                          BoxShadow(
-                                              color: Colors.green.withOpacity(0.5),
-                                              blurRadius: 10,
-                                              offset: Offset(0, 0),
-                                              blurStyle: BlurStyle.outer
-                                          ),
-                                        ],
-                                      ),
-
-                                      child: Row(
-                                        children: [
-                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                          //w SizedBox(width: 10,),
-                                          Text("Id = "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                            style: TextStyle(
-                                                fontSize: 13,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w500,
-                                                letterSpacing: 0.5
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-
-                                  ],
-                                ),
-
-                                SizedBox(height: 10,),
-
-                                // const SizedBox(
-                                //   height: 10,
-                                // )
                               ],
                             ),
                           ),
                         );
-                      },
+                        },
                     ),
                   ),
                 ],
@@ -580,6 +523,87 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
         ),
       ),
 
+    );
+  }
+  // Helper widget for feature chips
+  Widget _buildFeatureChip({
+    required BuildContext context,
+    required String text,
+    required Color color,
+    IconData? icon,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDarkMode ? color.withOpacity(0.2) : color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null)
+            Icon(
+              icon,
+              size: 14,
+              color: color,
+            ),
+          if (icon != null) const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 11,
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// Helper widget for info badges
+  Widget _buildInfoBadge({
+    required BuildContext context,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[800] : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: RichText(
+        text: TextSpan(
+          children: [
+            TextSpan(
+              text: '$label ',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 10,
+                color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            TextSpan(
+              text: value,
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 11,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

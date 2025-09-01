@@ -18,45 +18,108 @@ import 'See_All_Futureproperty.dart';
 
 class Catid {
   final int id;
-  final String Building_Address;
-  final String Building_Location;
-  final String Building_image;
-  final String Longitude;
-  final String Latitude;
-  final String BHK;
-  final String tyope;
-  final String floor_ ;
-  final String buy_Rent ;
-  final String Building_information;
-  final String Ownername;
-  final String Owner_number;
-  final String Caretaker_name;
-  final String Caretaker_number;
-  final String vehicleNo;
-  final String date;
+  final String? images;
+  final String? ownerName;
+  final String? ownerNumber;
+  final String? caretakerName;
+  final String? caretakerNumber;
+  final String? place;
+  final String? buyRent;
+  final String? typeOfProperty;
+  final String? selectBhk;
+  final String? floorNumber;
+  final String? squareFeet;
+  final String? propertyNameAddress;
+  final String? buildingInformationFacilities;
+  final String? propertyAddressForFieldworker;
+  final String? ownerVehicleNumber;
+  final String? yourAddress;
+  final String? fieldWorkerName;
+  final String? fieldWorkerNumber;
+  final String? currentDate;
+  final String? longitude;
+  final String? latitude;
+  final String? roadSize;
+  final String? metroDistance;
+  final String? metroName;
+  final String? mainMarketDistance;
+  final String? ageOfProperty;
+  final String? lift;
+  final String? parking;
+  final String? totalFloor;
+  final String? residenceCommercial;
+  final String? facility;
 
-  Catid(
-      {required this.id, required this.Building_Address, required this.Building_Location, required this.Building_image, required this.Longitude, required this.Latitude, required this.BHK, required this.tyope, required this.floor_, required this.buy_Rent,
-        required this.Building_information,required this.Ownername,required this.Owner_number, required this.Caretaker_name,required this.Caretaker_number,required this.vehicleNo,required this.date});
+  Catid({
+    required this.id,
+    required this.images,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.caretakerName,
+    required this.caretakerNumber,
+    required this.place,
+    required this.buyRent,
+    required this.typeOfProperty,
+    required this.selectBhk,
+    required this.floorNumber,
+    required this.squareFeet,
+    required this.propertyNameAddress,
+    required this.buildingInformationFacilities,
+    required this.propertyAddressForFieldworker,
+    required this.ownerVehicleNumber,
+    required this.yourAddress,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    required this.currentDate,
+    required this.longitude,
+    required this.latitude,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.metroName,
+    required this.mainMarketDistance,
+    required this.ageOfProperty,
+    required this.lift,
+    required this.parking,
+    required this.totalFloor,
+    required this.residenceCommercial,
+    required this.facility,
+  });
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['id'],
-        Building_Address: json['propertyname_address'],
-        Building_Location: json['place'],
-        Building_image: json['images'],
-        Longitude: json['longitude'],
-        Latitude: json['latitude'],
-        BHK: json['select_bhk'],
-        tyope: json['typeofproperty'],
-        floor_: json['floor_number'],
-        buy_Rent: json['buy_rent'],
-        Building_information: json['building_information_facilitys'],
-        Ownername: json['ownername'],
-        Owner_number: json['ownernumber'],
-        Caretaker_name: json['caretakername'],
-        Caretaker_number: json['caretakernumber'],
-        vehicleNo: json['owner_vehical_number'],
-        date: json['current_date_']);
+  factory Catid.FromJson(Map<String, dynamic> json) {
+    return Catid(
+      id: json['id'] ?? 0,
+      images: json['images'],
+      ownerName: json['ownername'],
+      ownerNumber: json['ownernumber'],
+      caretakerName: json['caretakername'],
+      caretakerNumber: json['caretakernumber'],
+      place: json['place'],
+      buyRent: json['buy_rent'],
+      typeOfProperty: json['typeofproperty'],
+      selectBhk: json['select_bhk'],
+      floorNumber: json['floor_number'],
+      squareFeet: json['sqyare_feet'],
+      propertyNameAddress: json['propertyname_address'],
+      buildingInformationFacilities: json['building_information_facilitys'],
+      propertyAddressForFieldworker: json['property_address_for_fieldworkar'],
+      ownerVehicleNumber: json['owner_vehical_number'],
+      yourAddress: json['your_address'],
+      fieldWorkerName: json['fieldworkarname'],
+      fieldWorkerNumber: json['fieldworkarnumber'],
+      currentDate: json['current_date_'],
+      longitude: json['longitude'],
+      latitude: json['latitude'],
+      roadSize: json['Road_Size'],
+      metroDistance: json['metro_distance'],
+      metroName: json['metro_name'],
+      mainMarketDistance: json['main_market_distance'],
+      ageOfProperty: json['age_of_property'],
+      lift: json['lift'],
+      parking: json['parking'],
+      totalFloor: json['total_floor'],
+      residenceCommercial: json['Residence_commercial'],
+      facility: json['facility'],
+    );
   }
 }
 
@@ -70,7 +133,6 @@ class ADministaterShow_FutureProperty extends StatefulWidget {
 class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_FutureProperty> {
 
   void _showBottomSheet(BuildContext context) {
-
     List<String> timing = [
       "Residential",
       "Plots",
@@ -90,10 +152,10 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       backgroundColor: Colors.black,
       context: context,
       builder: (BuildContext context) {
-        return  DefaultTabController(
+        return DefaultTabController(
           length: 2,
           child: Padding(
-            padding: EdgeInsets.only(left: 5,right: 5,top: 0, bottom: 5),
+            padding: EdgeInsets.only(left: 5, right: 5, top: 0, bottom: 5),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -103,7 +165,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                   padding: EdgeInsets.all(3),
                   height: 50,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10), color: Colors.grey),
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.grey),
                   child: TabBar(
                     indicator: BoxDecoration(
                       color: Colors.red[500],
@@ -133,7 +196,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   String _number = '';
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=9711775300");
+    var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=9711775300"); //sumit
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -146,7 +210,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   }
 
   Future<List<Catid>> fetchData1() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=9711275300");
+    var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=9711275300"); //ravi
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -159,7 +224,8 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   }
 
   Future<List<Catid>> fetchData2() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=9971172204");
+    var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=9971172204"); //faizan
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -175,14 +241,14 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   void initState() {
     _loaduserdata();
     super.initState();
-
   }
 
   bool _isDeleting = false;
 
   //Delete api
   Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
+    final url = Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
     if (response.statusCode == 200) {
@@ -200,10 +266,11 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   }
 
 
-
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
+    final size = MediaQuery
+        .of(context)
+        .size;
     return Scaffold(
 
       // backgroundColor: Colors.black,
@@ -253,7 +320,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
             delegate: SliverChildBuilderDelegate(
                   (context, index) {
-
                 return FutureBuilder<List<Catid>>(
                   future: fetchData(),
                   builder: (context, abc) {
@@ -276,16 +342,19 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                 child: Text(
                                   'Sumit kasaniya',
                                   style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      // color: Colors.white
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    // color: Colors.white
                                   ),
                                 ),
                               ),
                               GestureDetector(
                                 onTap: () async {
                                   final result = await fetchData();
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> SeeAll_FutureProperty(id: '9711775300',)));
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          SeeAll_FutureProperty(
+                                            id: '9711775300',)));
                                 },
                                 child: Padding(
                                   padding: const EdgeInsets.all(8.0),
@@ -304,362 +373,301 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            height: 700,
+                            height: 520,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: abc.data?.length ?? 0,
                               itemBuilder: (BuildContext context, int index) {
-                                if (abc.data == null || abc.data!.isEmpty || index >= abc.data!.length) {
+                                if (abc.data == null || abc.data!.isEmpty ||
+                                    index >= abc.data!.length) {
                                   return Container();
                                 }
 
                                 final property = abc.data![index];
                                 final displayIndex = abc.data!.length - index;
-                                final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+                                final bool isDarkMode = Theme
+                                    .of(context)
+                                    .brightness == Brightness.dark;
 
                                 // Color scheme for light and dark mode
-                                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
-                                final textColor = isDarkMode ? Colors.white : Colors.black87;
-                                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
-                                final cardColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
-                                final greenColor = isDarkMode ? Colors.green[300] : Colors.green;
-                                final redColor = isDarkMode ? Colors.red[300] : Colors.red;
-                                final orangeColor = isDarkMode ? Colors.orange[300] : Colors.orange;
-                                final blueColor = isDarkMode ? Colors.blue[300] : Colors.blue;
-                                final purpleColor = isDarkMode ? Colors.purple[300] : Colors.purple;
+                                final backgroundColor = isDarkMode ? Colors
+                                    .grey[900] : Colors.white;
+                                final textColor = isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors
+                                    .grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode
+                                    ? Colors.grey[800]
+                                    : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors
+                                    .green[300] : Colors.green;
+                                final redColor = isDarkMode
+                                    ? Colors.red[300]
+                                    : Colors.red;
+                                final orangeColor = isDarkMode ? Colors
+                                    .orange[300] : Colors.orange;
+                                final blueColor = isDarkMode
+                                    ? Colors.blue[300]
+                                    : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors
+                                    .purple[300] : Colors.purple;
+                                print(" Sumit : ${property.images}");
 
                                 return Container(
-                                  width: 350,
-                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  width: 340,
+                                  margin: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 12),
                                   decoration: BoxDecoration(
                                     color: backgroundColor,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4),
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
+                                    border: Border.all(
+                                      color: isDarkMode
+                                          ? Colors.grey[700]!
+                                          : Colors.grey[200]!,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: GestureDetector(
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Administater_Future_Property_details(
-                                            idd: property.id?.toString() ?? '',
-                                          ),
+                                          builder: (context) =>
+                                              Administater_Future_Property_details(
+                                                idd: property.id?.toString() ??
+                                                    '',
+                                              ),
                                         ),
                                       );
                                     },
                                     child: Column(
-                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment
+                                          .start,
                                       children: [
+                                        // ---------- Image ----------
                                         ClipRRect(
-                                          borderRadius:
-                                          const BorderRadius.all(Radius.circular(10)),
-                                          child: Container(
-                                            height: 300,
-                                            width: 310,
-                                            child: CachedNetworkImage(
-                                              imageUrl:
-                                              "https://verifyserve.social/PHP_Files/future_property/"+(property.Building_image??""),
-                                              fit: BoxFit.contain,
-                                              placeholder: (context, url) => Image.asset(
-                                                AppImages.loading,
-                                                fit: BoxFit.cover,
-                                              ),
-                                              errorWidget: (context, error, stack) =>
-                                                  Image.asset(
-                                                    AppImages.imageNotFound,
-                                                    fit: BoxFit.cover,
+                                          borderRadius: const BorderRadius
+                                              .vertical(
+                                              top: Radius.circular(20)),
+                                          child: CachedNetworkImage(
+                                            imageUrl:
+                                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property
+                                                .images ?? ""}",
+                                            height: 220,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                Container(
+                                                  height: 220,
+                                                  color: Colors.grey[200],
+                                                  child: const Center(
+                                                    child: CircularProgressIndicator(
+                                                        strokeWidth: 2),
                                                   ),
-                                            ),
+                                                ),
+                                            errorWidget: (context, error,
+                                                stack) =>
+                                                Container(
+                                                  height: 220,
+                                                  color: Colors.grey[100],
+                                                  child: Icon(
+                                                      Icons.broken_image,
+                                                      size: 60,
+                                                      color: Colors.grey[400]),
+                                                ),
                                           ),
                                         ),
 
+                                        // ---------- Content ----------
+                                        Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment
+                                                .start,
+                                            children: [
+                                              // Chips: Property type / floors / buy-rent
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  if (property.typeOfProperty !=
+                                                      null)
+                                                    _buildChip(property
+                                                        .typeOfProperty!,
+                                                        greenColor!,
+                                                        isDarkMode),
+                                                  if (property.totalFloor !=
+                                                      null)
+                                                    _buildChip(
+                                                        "Floor: ${property
+                                                            .totalFloor!}",
+                                                        orangeColor!,
+                                                        isDarkMode),
+                                                  if (property.buyRent != null)
+                                                    _buildChip(
+                                                        property.buyRent!,
+                                                        blueColor!, isDarkMode),
+                                                ],
+                                              ),
 
+                                              const SizedBox(height: 12),
 
-                                        // Property Details
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                // Property Type, BHK, Floor, Buy/Rent
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: [
-                                                    if (property.tyope != null)
-                                                      _buildFeatureChip(property.tyope!, greenColor!, isDarkMode),
-                                                    if (property.BHK != null)
-                                                      _buildFeatureChip(property.BHK!, redColor!, isDarkMode),
-                                                    if (property.floor_ != null)
-                                                      _buildFeatureChip(property.floor_!, orangeColor!, isDarkMode),
-                                                    if (property.buy_Rent != null)
-                                                      _buildFeatureChip(property.buy_Rent!, blueColor!, isDarkMode),
-                                                  ],
+                                              // ---------- Owner Info ----------
+                                              Text(
+                                                "Owner Information",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: secondaryTextColor,
                                                 ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Owner Information
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.person_outline, size: 16, color: secondaryTextColor),
-                                                    const SizedBox(width: 4),
-                                                    Expanded(
-                                                      child: Text(
-                                                        "Owner Information",
-                                                        style: TextStyle(
-                                                          fontFamily: 'Poppins',
-                                                          fontSize: 12,
-                                                          color: secondaryTextColor,
-                                                          fontWeight: FontWeight.w500,
-                                                        ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.ownerName ??
+                                                          'Unknown Owner',
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight
+                                                            .w600,
+                                                        color: textColor,
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 8),
-
-                                                // Owner Name and Number
-                                                Row(
-                                                  children: [
-                                                    Expanded(
+                                                  ),
+                                                  if (property.ownerNumber !=
+                                                      null)
+                                                    InkWell(
+                                                      onTap: () {
+                                                        FlutterPhoneDirectCaller
+                                                            .callNumber(property
+                                                            .ownerNumber!);
+                                                      },
+                                                      borderRadius: BorderRadius
+                                                          .circular(30),
                                                       child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        padding: const EdgeInsets
+                                                            .symmetric(
+                                                            horizontal: 12,
+                                                            vertical: 6),
                                                         decoration: BoxDecoration(
-                                                          color: isDarkMode ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          color: blueColor!
+                                                              .withOpacity(0.1),
+                                                          borderRadius: BorderRadius
+                                                              .circular(12),
                                                         ),
-                                                        child: Text(
-                                                          property.Ownername ?? 'N/A',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 14,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons.phone,
+                                                                size: 16,
+                                                                color: blueColor),
+                                                            const SizedBox(
+                                                                width: 4),
+                                                            Text(
+                                                              property
+                                                                  .ownerNumber!,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight: FontWeight
+                                                                    .w500,
+                                                                color: blueColor,
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Property Address ----------
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .start,
+                                                children: [
+                                                  Icon(Icons
+                                                      .location_on_outlined,
+                                                      size: 18,
+                                                      color: secondaryTextColor),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(
+                                                      property
+                                                          .propertyAddressForFieldworker ??
+                                                          'Address not available',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight
+                                                            .w400,
+                                                        color: textColor,
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Location + Date ----------
+                                              Row(
+                                                children: [
+                                                  if (property.place != null)
+                                                    _buildMiniChip(
+                                                        property.place!,
+                                                        blueColor!),
+                                                  if (property.currentDate !=
+                                                      null) ...[
                                                     const SizedBox(width: 8),
-                                                    if (property.Owner_number != null)
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          showDialog<bool>(
-                                                            context: context,
-                                                            builder: (context) => AlertDialog(
-                                                              backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-                                                              title: Text(
-                                                                'Call Property Owner',
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  fontWeight: FontWeight.bold,
-                                                                  color: textColor,
-                                                                ),
-                                                              ),
-                                                              content: Text(
-                                                                'Do you really want to call the owner?',
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  color: textColor,
-                                                                ),
-                                                              ),
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.circular(16),
-                                                              ),
-                                                              actions: <Widget>[
-                                                                TextButton(
-                                                                  onPressed: () => Navigator.of(context).pop(false),
-                                                                  child: Text(
-                                                                    'Cancel',
-                                                                    style: TextStyle(
-                                                                      fontFamily: 'Poppins',
-                                                                      color: textColor,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                ElevatedButton(
-                                                                  onPressed: () async {
-                                                                    Navigator.of(context).pop(true);
-                                                                    FlutterPhoneDirectCaller.callNumber(property.Owner_number!);
-                                                                  },
-                                                                  child: Text(
-                                                                    'Call',
-                                                                    style: TextStyle(
-                                                                      fontFamily: 'Poppins',
-                                                                      fontWeight: FontWeight.bold,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          );
-                                                        },
-                                                        child: Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                          decoration: BoxDecoration(
-                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(Icons.phone, size: 16, color: blueColor),
-                                                              const SizedBox(width: 4),
-                                                              Text(
-                                                                property.Owner_number!,
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  fontSize: 14,
-                                                                  color: blueColor,
-                                                                  fontWeight: FontWeight.w600,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
+                                                    _buildMiniChip(property
+                                                        .currentDate!,
+                                                        purpleColor!),
                                                   ],
-                                                ),
+                                                ],
+                                              ),
 
-                                                const SizedBox(height: 16),
+                                              const SizedBox(height: 14),
 
-                                                // Property Address
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Icon(Icons.location_on_outlined, size: 16, color: secondaryTextColor),
-                                                    const SizedBox(width: 4),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(
-                                                            "Property Address",
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 12,
-                                                              color: secondaryTextColor,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 4),
-                                                          Text(
-                                                            property.Building_Address ?? 'Address not available',
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 13,
-                                                              color: textColor,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                            maxLines: 2,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ],
+                                              // ---------- IDs ----------
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      "Property No: $displayIndex",
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight
+                                                            .w500,
+                                                        color: secondaryTextColor,
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Location and Date
-                                                Row(
-                                                  children: [
-                                                    if (property.Building_Location != null)
-                                                      Expanded(
-                                                        child: Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                          decoration: BoxDecoration(
-                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          child: Text(
-                                                            property.Building_Location!,
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 12,
-                                                              color: blueColor,
-                                                              fontWeight: FontWeight.w600,
-                                                            ),
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    if (property.Building_Location != null && property.date != null)
-                                                      const SizedBox(width: 8),
-                                                    if (property.date != null)
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: isDarkMode ? Colors.purple[900]!.withOpacity(0.3) : Colors.purple[50],
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          property.date!,
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: purpleColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Property ID and Index
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: cardColor,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          "Property No #$displayIndex",
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
+                                                  ),
+                                                  Text(
+                                                    "ID: ${property.id
+                                                        ?.toString() ?? 'N/A'}",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight
+                                                          .w600,
+                                                      color: textColor,
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: cardColor,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          "Property ID: ${property.id?.toString() ?? 'N/A'}",
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
@@ -683,7 +691,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
             delegate: SliverChildBuilderDelegate(
                   (context, index) {
-
                 return FutureBuilder<List<Catid>>(
                   future: fetchData1(),
                   builder: (context, abc) {
@@ -706,15 +713,18 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                 child: Text(
                                   'Ravi Kumar',
                                   style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                               GestureDetector(
                                 onTap: () async {
                                   final result = await fetchData1();
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> SeeAll_FutureProperty(id: '9711275300',)));
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          SeeAll_FutureProperty(
+                                            id: '9711275300',)));
                                   //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
                                 },
                                 child: Padding(
@@ -734,43 +744,63 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            height: 700,
+                            height: 520,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: abc.data?.length ?? 0,
                               itemBuilder: (BuildContext context, int index) {
-                                if (abc.data == null || abc.data!.isEmpty || index >= abc.data!.length) {
+                                if (abc.data == null || abc.data!.isEmpty ||
+                                    index >= abc.data!.length) {
                                   return Container();
                                 }
 
                                 final property = abc.data![index];
                                 final displayIndex = abc.data!.length - index;
-                                final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+                                final bool isDarkMode = Theme
+                                    .of(context)
+                                    .brightness == Brightness.dark;
 
                                 // Color scheme for light and dark mode
-                                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
-                                final textColor = isDarkMode ? Colors.white : Colors.black87;
-                                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
-                                final cardColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
-                                final greenColor = isDarkMode ? Colors.green[300] : Colors.green;
-                                final redColor = isDarkMode ? Colors.red[300] : Colors.red;
-                                final orangeColor = isDarkMode ? Colors.orange[300] : Colors.orange;
-                                final blueColor = isDarkMode ? Colors.blue[300] : Colors.blue;
-                                final purpleColor = isDarkMode ? Colors.purple[300] : Colors.purple;
+                                final backgroundColor = isDarkMode ? Colors
+                                    .grey[900] : Colors.white;
+                                final textColor = isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors
+                                    .grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode
+                                    ? Colors.grey[800]
+                                    : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors
+                                    .green[300] : Colors.green;
+                                final redColor = isDarkMode
+                                    ? Colors.red[300]
+                                    : Colors.red;
+                                final orangeColor = isDarkMode ? Colors
+                                    .orange[300] : Colors.orange;
+                                final blueColor = isDarkMode
+                                    ? Colors.blue[300]
+                                    : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors
+                                    .purple[300] : Colors.purple;
 
                                 return Container(
-                                  width: 350,
-                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  width: 340,
+                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                   decoration: BoxDecoration(
                                     color: backgroundColor,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4),
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
+                                    border: Border.all(
+                                      color: isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: GestureDetector(
                                     onTap: () {
@@ -784,319 +814,178 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                       );
                                     },
                                     child: Column(
-                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        // ---------- Image ----------
                                         ClipRRect(
-                                          borderRadius:
-                                          const BorderRadius.all(Radius.circular(10)),
-                                          child: Container(
-                                            height: 300,
-                                            width: 310,
-                                            child: CachedNetworkImage(
-                                              imageUrl:
-                                              "https://verifyserve.social/PHP_Files/future_property/"+(property.Building_image??""),
-                                              fit: BoxFit.contain,
-                                              placeholder: (context, url) => Image.asset(
-                                                AppImages.loading,
-                                                fit: BoxFit.cover,
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                                          child: CachedNetworkImage(
+                                            imageUrl:
+                                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images ?? ""}",
+                                            height: 220,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => Container(
+                                              height: 220,
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: CircularProgressIndicator(strokeWidth: 2),
                                               ),
-                                              errorWidget: (context, error, stack) =>
-                                                  Image.asset(
-                                                    AppImages.imageNotFound,
-                                                    fit: BoxFit.cover,
-                                                  ),
+                                            ),
+                                            errorWidget: (context, error, stack) => Container(
+                                              height: 220,
+                                              color: Colors.grey[100],
+                                              child: Icon(Icons.broken_image, size: 60, color: Colors.grey[400]),
                                             ),
                                           ),
                                         ),
 
+                                        // ---------- Content ----------
+                                        Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Chips: Property type / floors / buy-rent
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  if (property.typeOfProperty != null)
+                                                    _buildChip(property.typeOfProperty!, greenColor!, isDarkMode),
+                                                  if (property.totalFloor != null)
+                                                    _buildChip("Floor: ${property.totalFloor!}", orangeColor!, isDarkMode),
+                                                  if (property.buyRent != null)
+                                                    _buildChip(property.buyRent!, blueColor!, isDarkMode),
+                                                ],
+                                              ),
 
+                                              const SizedBox(height: 12),
 
-                                        // Property Details
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                // Property Type, BHK, Floor, Buy/Rent
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: [
-                                                    if (property.tyope != null)
-                                                      _buildFeatureChip(property.tyope!, greenColor!, isDarkMode),
-                                                    if (property.BHK != null)
-                                                      _buildFeatureChip(property.BHK!, redColor!, isDarkMode),
-                                                    if (property.floor_ != null)
-                                                      _buildFeatureChip(property.floor_!, orangeColor!, isDarkMode),
-                                                    if (property.buy_Rent != null)
-                                                      _buildFeatureChip(property.buy_Rent!, blueColor!, isDarkMode),
-                                                  ],
+                                              // ---------- Owner Info ----------
+                                              Text(
+                                                "Owner Information",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: secondaryTextColor,
                                                 ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Owner Information
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.person_outline, size: 16, color: secondaryTextColor),
-                                                    const SizedBox(width: 4),
-                                                    Expanded(
-                                                      child: Text(
-                                                        "Owner Information",
-                                                        style: TextStyle(
-                                                          fontFamily: 'Poppins',
-                                                          fontSize: 12,
-                                                          color: secondaryTextColor,
-                                                          fontWeight: FontWeight.w500,
-                                                        ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.ownerName ?? 'Unknown Owner',
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: textColor,
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 8),
-
-                                                // Owner Name and Number
-                                                Row(
-                                                  children: [
-                                                    Expanded(
+                                                  ),
+                                                  if (property.ownerNumber != null)
+                                                    InkWell(
+                                                      onTap: () {
+                                                        FlutterPhoneDirectCaller.callNumber(property.ownerNumber!);
+                                                      },
+                                                      borderRadius: BorderRadius.circular(30),
                                                       child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                                         decoration: BoxDecoration(
-                                                          color: isDarkMode ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          color: blueColor!.withOpacity(0.1),
+                                                          borderRadius: BorderRadius.circular(12),
                                                         ),
-                                                        child: Text(
-                                                          property.Ownername ?? 'N/A',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 14,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons.phone, size: 16, color: blueColor),
+                                                            const SizedBox(width: 4),
+                                                            Text(
+                                                              property.ownerNumber!,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight: FontWeight.w500,
+                                                                color: blueColor,
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Property Address ----------
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(Icons.location_on_outlined, size: 18, color: secondaryTextColor),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.propertyAddressForFieldworker ??
+                                                          'Address not available',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w400,
+                                                        color: textColor,
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Location + Date ----------
+                                              Row(
+                                                children: [
+                                                  if (property.place != null)
+                                                    _buildMiniChip(property.place!, blueColor!),
+                                                  if (property.currentDate != null) ...[
                                                     const SizedBox(width: 8),
-                                                    if (property.Owner_number != null)
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          showDialog<bool>(
-                                                            context: context,
-                                                            builder: (context) => AlertDialog(
-                                                              backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-                                                              title: Text(
-                                                                'Call Property Owner',
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  fontWeight: FontWeight.bold,
-                                                                  color: textColor,
-                                                                ),
-                                                              ),
-                                                              content: Text(
-                                                                'Do you really want to call the owner?',
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  color: textColor,
-                                                                ),
-                                                              ),
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.circular(16),
-                                                              ),
-                                                              actions: <Widget>[
-                                                                TextButton(
-                                                                  onPressed: () => Navigator.of(context).pop(false),
-                                                                  child: Text(
-                                                                    'Cancel',
-                                                                    style: TextStyle(
-                                                                      fontFamily: 'Poppins',
-                                                                      color: textColor,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                ElevatedButton(
-                                                                  onPressed: () async {
-                                                                    Navigator.of(context).pop(true);
-                                                                    FlutterPhoneDirectCaller.callNumber(property.Owner_number!);
-                                                                  },
-                                                                  child: Text(
-                                                                    'Call',
-                                                                    style: TextStyle(
-                                                                      fontFamily: 'Poppins',
-                                                                      fontWeight: FontWeight.bold,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          );
-                                                        },
-                                                        child: Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                          decoration: BoxDecoration(
-                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(Icons.phone, size: 16, color: blueColor),
-                                                              const SizedBox(width: 4),
-                                                              Text(
-                                                                property.Owner_number!,
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  fontSize: 14,
-                                                                  color: blueColor,
-                                                                  fontWeight: FontWeight.w600,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
+                                                    _buildMiniChip(property.currentDate!, purpleColor!),
                                                   ],
-                                                ),
+                                                ],
+                                              ),
 
-                                                const SizedBox(height: 16),
+                                              const SizedBox(height: 14),
 
-                                                // Property Address
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Icon(Icons.location_on_outlined, size: 16, color: secondaryTextColor),
-                                                    const SizedBox(width: 4),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(
-                                                            "Property Address",
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 12,
-                                                              color: secondaryTextColor,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 4),
-                                                          Text(
-                                                            property.Building_Address ?? 'Address not available',
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 13,
-                                                              color: textColor,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                            maxLines: 2,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ],
+                                              // ---------- IDs ----------
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      "Property No: $displayIndex",
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: secondaryTextColor,
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Location and Date
-                                                Row(
-                                                  children: [
-                                                    if (property.Building_Location != null)
-                                                      Expanded(
-                                                        child: Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                          decoration: BoxDecoration(
-                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          child: Text(
-                                                            property.Building_Location!,
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 12,
-                                                              color: blueColor,
-                                                              fontWeight: FontWeight.w600,
-                                                            ),
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    if (property.Building_Location != null && property.date != null)
-                                                      const SizedBox(width: 8),
-                                                    if (property.date != null)
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: isDarkMode ? Colors.purple[900]!.withOpacity(0.3) : Colors.purple[50],
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          property.date!,
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: purpleColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Property ID and Index
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: cardColor,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          "Property No #$displayIndex",
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
+                                                  ),
+                                                  Text(
+                                                    "ID: ${property.id?.toString() ?? 'N/A'}",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: textColor,
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: cardColor,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          "Property ID: ${property.id?.toString() ?? 'N/A'}",
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 );
-                              },
+                                },
                             ),
                           ),
                         ],
@@ -1113,7 +1002,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
             delegate: SliverChildBuilderDelegate(
                   (context, index) {
-
                 return FutureBuilder<List<Catid>>(
                   future: fetchData2(),
                   builder: (context, abc) {
@@ -1136,15 +1024,18 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                 child: Text(
                                   'Faizan khan',
                                   style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
                               GestureDetector(
                                 onTap: () async {
                                   final result = await fetchData2();
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> SeeAll_FutureProperty(id: '9971172204',)));
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          SeeAll_FutureProperty(
+                                            id: '9971172204',)));
                                   //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
                                 },
                                 child: Padding(
@@ -1164,43 +1055,63 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                             ],
                           ),
                           SizedBox(
-                            height: 700,
+                            height: 520,
                             child: ListView.builder(
                               scrollDirection: Axis.horizontal,
                               itemCount: abc.data?.length ?? 0,
                               itemBuilder: (BuildContext context, int index) {
-                                if (abc.data == null || abc.data!.isEmpty || index >= abc.data!.length) {
+                                if (abc.data == null || abc.data!.isEmpty ||
+                                    index >= abc.data!.length) {
                                   return Container();
                                 }
 
                                 final property = abc.data![index];
                                 final displayIndex = abc.data!.length - index;
-                                final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+                                final bool isDarkMode = Theme
+                                    .of(context)
+                                    .brightness == Brightness.dark;
 
                                 // Color scheme for light and dark mode
-                                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
-                                final textColor = isDarkMode ? Colors.white : Colors.black87;
-                                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
-                                final cardColor = isDarkMode ? Colors.grey[800] : Colors.grey[100];
-                                final greenColor = isDarkMode ? Colors.green[300] : Colors.green;
-                                final redColor = isDarkMode ? Colors.red[300] : Colors.red;
-                                final orangeColor = isDarkMode ? Colors.orange[300] : Colors.orange;
-                                final blueColor = isDarkMode ? Colors.blue[300] : Colors.blue;
-                                final purpleColor = isDarkMode ? Colors.purple[300] : Colors.purple;
+                                final backgroundColor = isDarkMode ? Colors
+                                    .grey[900] : Colors.white;
+                                final textColor = isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors
+                                    .grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode
+                                    ? Colors.grey[800]
+                                    : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors
+                                    .green[300] : Colors.green;
+                                final redColor = isDarkMode
+                                    ? Colors.red[300]
+                                    : Colors.red;
+                                final orangeColor = isDarkMode ? Colors
+                                    .orange[300] : Colors.orange;
+                                final blueColor = isDarkMode
+                                    ? Colors.blue[300]
+                                    : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors
+                                    .purple[300] : Colors.purple;
 
                                 return Container(
-                                  width: 350,
-                                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                  width: 340,
+                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                   decoration: BoxDecoration(
                                     color: backgroundColor,
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(20),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: isDarkMode ? Colors.black.withOpacity(0.4) : Colors.grey.withOpacity(0.2),
-                                        blurRadius: 12,
-                                        offset: const Offset(0, 4),
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 8),
                                       ),
                                     ],
+                                    border: Border.all(
+                                      color: isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
+                                      width: 1,
+                                    ),
                                   ),
                                   child: GestureDetector(
                                     onTap: () {
@@ -1214,319 +1125,178 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                       );
                                     },
                                     child: Column(
-                                      // crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        // ---------- Image ----------
                                         ClipRRect(
-                                          borderRadius:
-                                          const BorderRadius.all(Radius.circular(10)),
-                                          child: Container(
-                                            height: 300,
-                                            width: 310,
-                                            child: CachedNetworkImage(
-                                              imageUrl:
-                                              "https://verifyserve.social/PHP_Files/future_property/"+(property.Building_image??""),
-                                              fit: BoxFit.contain,
-                                              placeholder: (context, url) => Image.asset(
-                                                AppImages.loading,
-                                                fit: BoxFit.cover,
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                                          child: CachedNetworkImage(
+                                            imageUrl:
+                                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images ?? ""}",
+                                            height: 220,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => Container(
+                                              height: 220,
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: CircularProgressIndicator(strokeWidth: 2),
                                               ),
-                                              errorWidget: (context, error, stack) =>
-                                                  Image.asset(
-                                                    AppImages.imageNotFound,
-                                                    fit: BoxFit.cover,
-                                                  ),
+                                            ),
+                                            errorWidget: (context, error, stack) => Container(
+                                              height: 220,
+                                              color: Colors.grey[100],
+                                              child: Icon(Icons.broken_image, size: 60, color: Colors.grey[400]),
                                             ),
                                           ),
                                         ),
 
+                                        // ---------- Content ----------
+                                        Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Chips: Property type / floors / buy-rent
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  if (property.typeOfProperty != null)
+                                                    _buildChip(property.typeOfProperty!, greenColor!, isDarkMode),
+                                                  if (property.totalFloor != null)
+                                                    _buildChip("Floor: ${property.totalFloor!}", orangeColor!, isDarkMode),
+                                                  if (property.buyRent != null)
+                                                    _buildChip(property.buyRent!, blueColor!, isDarkMode),
+                                                ],
+                                              ),
 
+                                              const SizedBox(height: 12),
 
-                                        // Property Details
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                // Property Type, BHK, Floor, Buy/Rent
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: [
-                                                    if (property.tyope != null)
-                                                      _buildFeatureChip(property.tyope!, greenColor!, isDarkMode),
-                                                    if (property.BHK != null)
-                                                      _buildFeatureChip(property.BHK!, redColor!, isDarkMode),
-                                                    if (property.floor_ != null)
-                                                      _buildFeatureChip(property.floor_!, orangeColor!, isDarkMode),
-                                                    if (property.buy_Rent != null)
-                                                      _buildFeatureChip(property.buy_Rent!, blueColor!, isDarkMode),
-                                                  ],
+                                              // ---------- Owner Info ----------
+                                              Text(
+                                                "Owner Information",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: secondaryTextColor,
                                                 ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Owner Information
-                                                Row(
-                                                  children: [
-                                                    Icon(Icons.person_outline, size: 16, color: secondaryTextColor),
-                                                    const SizedBox(width: 4),
-                                                    Expanded(
-                                                      child: Text(
-                                                        "Owner Information",
-                                                        style: TextStyle(
-                                                          fontFamily: 'Poppins',
-                                                          fontSize: 12,
-                                                          color: secondaryTextColor,
-                                                          fontWeight: FontWeight.w500,
-                                                        ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.ownerName ?? 'Unknown Owner',
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: textColor,
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 8),
-
-                                                // Owner Name and Number
-                                                Row(
-                                                  children: [
-                                                    Expanded(
+                                                  ),
+                                                  if (property.ownerNumber != null)
+                                                    InkWell(
+                                                      onTap: () {
+                                                        FlutterPhoneDirectCaller.callNumber(property.ownerNumber!);
+                                                      },
+                                                      borderRadius: BorderRadius.circular(30),
                                                       child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                                         decoration: BoxDecoration(
-                                                          color: isDarkMode ? Colors.green[900]!.withOpacity(0.3) : Colors.green[50],
-                                                          borderRadius: BorderRadius.circular(8),
+                                                          color: blueColor!.withOpacity(0.1),
+                                                          borderRadius: BorderRadius.circular(12),
                                                         ),
-                                                        child: Text(
-                                                          property.Ownername ?? 'N/A',
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 14,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons.phone, size: 16, color: blueColor),
+                                                            const SizedBox(width: 4),
+                                                            Text(
+                                                              property.ownerNumber!,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight: FontWeight.w500,
+                                                                color: blueColor,
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ),
                                                     ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Property Address ----------
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(Icons.location_on_outlined, size: 18, color: secondaryTextColor),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.propertyAddressForFieldworker ??
+                                                          'Address not available',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w400,
+                                                        color: textColor,
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Location + Date ----------
+                                              Row(
+                                                children: [
+                                                  if (property.place != null)
+                                                    _buildMiniChip(property.place!, blueColor!),
+                                                  if (property.currentDate != null) ...[
                                                     const SizedBox(width: 8),
-                                                    if (property.Owner_number != null)
-                                                      GestureDetector(
-                                                        onTap: () {
-                                                          showDialog<bool>(
-                                                            context: context,
-                                                            builder: (context) => AlertDialog(
-                                                              backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
-                                                              title: Text(
-                                                                'Call Property Owner',
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  fontWeight: FontWeight.bold,
-                                                                  color: textColor,
-                                                                ),
-                                                              ),
-                                                              content: Text(
-                                                                'Do you really want to call the owner?',
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  color: textColor,
-                                                                ),
-                                                              ),
-                                                              shape: RoundedRectangleBorder(
-                                                                borderRadius: BorderRadius.circular(16),
-                                                              ),
-                                                              actions: <Widget>[
-                                                                TextButton(
-                                                                  onPressed: () => Navigator.of(context).pop(false),
-                                                                  child: Text(
-                                                                    'Cancel',
-                                                                    style: TextStyle(
-                                                                      fontFamily: 'Poppins',
-                                                                      color: textColor,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                                ElevatedButton(
-                                                                  onPressed: () async {
-                                                                    Navigator.of(context).pop(true);
-                                                                    FlutterPhoneDirectCaller.callNumber(property.Owner_number!);
-                                                                  },
-                                                                  child: Text(
-                                                                    'Call',
-                                                                    style: TextStyle(
-                                                                      fontFamily: 'Poppins',
-                                                                      fontWeight: FontWeight.bold,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          );
-                                                        },
-                                                        child: Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                          decoration: BoxDecoration(
-                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              Icon(Icons.phone, size: 16, color: blueColor),
-                                                              const SizedBox(width: 4),
-                                                              Text(
-                                                                property.Owner_number!,
-                                                                style: TextStyle(
-                                                                  fontFamily: 'Poppins',
-                                                                  fontSize: 14,
-                                                                  color: blueColor,
-                                                                  fontWeight: FontWeight.w600,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
+                                                    _buildMiniChip(property.currentDate!, purpleColor!),
                                                   ],
-                                                ),
+                                                ],
+                                              ),
 
-                                                const SizedBox(height: 16),
+                                              const SizedBox(height: 14),
 
-                                                // Property Address
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Icon(Icons.location_on_outlined, size: 16, color: secondaryTextColor),
-                                                    const SizedBox(width: 4),
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                                        children: [
-                                                          Text(
-                                                            "Property Address",
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 12,
-                                                              color: secondaryTextColor,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                          ),
-                                                          const SizedBox(height: 4),
-                                                          Text(
-                                                            property.Building_Address ?? 'Address not available',
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 13,
-                                                              color: textColor,
-                                                              fontWeight: FontWeight.w500,
-                                                            ),
-                                                            maxLines: 2,
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ],
+                                              // ---------- IDs ----------
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      "Property No: $displayIndex",
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: secondaryTextColor,
                                                       ),
                                                     ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Location and Date
-                                                Row(
-                                                  children: [
-                                                    if (property.Building_Location != null)
-                                                      Expanded(
-                                                        child: Container(
-                                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                          decoration: BoxDecoration(
-                                                            color: isDarkMode ? Colors.blue[900]!.withOpacity(0.3) : Colors.blue[50],
-                                                            borderRadius: BorderRadius.circular(8),
-                                                          ),
-                                                          child: Text(
-                                                            property.Building_Location!,
-                                                            style: TextStyle(
-                                                              fontFamily: 'Poppins',
-                                                              fontSize: 12,
-                                                              color: blueColor,
-                                                              fontWeight: FontWeight.w600,
-                                                            ),
-                                                            overflow: TextOverflow.ellipsis,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    if (property.Building_Location != null && property.date != null)
-                                                      const SizedBox(width: 8),
-                                                    if (property.date != null)
-                                                      Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: isDarkMode ? Colors.purple[900]!.withOpacity(0.3) : Colors.purple[50],
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          property.date!,
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: purpleColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 16),
-
-                                                // Property ID and Index
-                                                Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: cardColor,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          "Property No #$displayIndex",
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
+                                                  ),
+                                                  Text(
+                                                    "ID: ${property.id?.toString() ?? 'N/A'}",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: textColor,
                                                     ),
-                                                    const SizedBox(width: 8),
-                                                    Expanded(
-                                                      child: Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                                                        decoration: BoxDecoration(
-                                                          color: cardColor,
-                                                          borderRadius: BorderRadius.circular(8),
-                                                        ),
-                                                        child: Text(
-                                                          "Property ID: ${property.id?.toString() ?? 'N/A'}",
-                                                          style: TextStyle(
-                                                            fontFamily: 'Poppins',
-                                                            fontSize: 12,
-                                                            color: textColor,
-                                                            fontWeight: FontWeight.w600,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
                                 );
-                              },
+                                },
                             ),
                           ),
                         ],
@@ -1543,6 +1313,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
     );
   }
+
 // Updated helper widget for feature chips with dark mode support
   Widget _buildFeatureChip(String text, Color color, bool isDarkMode) {
     return Container(
@@ -1563,6 +1334,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       ),
     );
   }
+
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -1582,4 +1354,39 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     }
   }
 
+  Widget _buildChip(String label, Color color, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(isDarkMode ? 0.2 : 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniChip(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: color,
+        ),
+      ),
+    );
+  }
 }

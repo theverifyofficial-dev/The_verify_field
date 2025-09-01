@@ -651,8 +651,9 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
+                              SizedBox(height: 30,),
                               Text(
-                                "No Data Found!",
+                                "No Multiple Images Found",
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w500,

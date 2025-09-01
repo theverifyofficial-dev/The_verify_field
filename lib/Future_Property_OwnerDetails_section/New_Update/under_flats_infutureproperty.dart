@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +10,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../ui_decoration_tools/constant.dart';
 import '../../../model/realestateSlider.dart';
 import '../../property_preview.dart';
-import '../Duplicate_Property.dart';
 import '../Future_Property.dart';
 import 'Edit_flat.dart';
 import 'add_image_under_futureproperty.dart';

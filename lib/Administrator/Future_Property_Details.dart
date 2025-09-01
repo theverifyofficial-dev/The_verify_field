@@ -308,19 +308,19 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
             ],
           ),
         ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: _handleMenuItemClick,
-            itemBuilder: (BuildContext context) {
-              return {'Edit Property',  'Add Property Images', 'Delete This Property'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
-        ],
+        // actions: [
+        //   PopupMenuButton<String>(
+        //     onSelected: _handleMenuItemClick,
+        //     itemBuilder: (BuildContext context) {
+        //       return {'Edit Property',  'Add Property Images', 'Delete This Property'}.map((String choice) {
+        //         return PopupMenuItem<String>(
+        //           value: choice,
+        //           child: Text(choice),
+        //         );
+        //       }).toList();
+        //     },
+        //   ),
+        // ],
       ),
 
       body: SingleChildScrollView(

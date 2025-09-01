@@ -193,13 +193,13 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                 final item = properties[index];
                 return GestureDetector(
                   onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            Future_Property_details(idd: item.id.toString()),
-                      ),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) =>
+                    //         Future_Property_details(idd: item.id.toString()),
+                    //   ),
+                    // );
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(10),

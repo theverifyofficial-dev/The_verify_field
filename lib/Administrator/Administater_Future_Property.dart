@@ -1,15 +1,11 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Home_Screen_click/Commercial_property_Filter.dart';
 import '../Home_Screen_click/Filter_Options.dart';
 import '../ui_decoration_tools/constant.dart';
@@ -657,7 +653,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                                   ),
                                                   Text(
                                                     "ID: ${property.id
-                                                        ?.toString() ?? 'N/A'}",
+                                                        .toString() ?? 'N/A'}",
                                                     style: TextStyle(
                                                       fontSize: 13,
                                                       fontWeight: FontWeight
@@ -699,7 +695,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                     } else if (abc.hasError) {
                       return Center(child: Text('Error: ${abc.error}'));
                     } else if (!abc.hasData || abc.data!.isEmpty) {
-                      return Center(child: Text('No data available'));
+                      return Center(child: Text('No Building available'));
                     } else {
                       final data = abc.data!;
                       return Column(

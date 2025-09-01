@@ -937,6 +937,7 @@ class _View_DetailsState extends State<View_Details> {
 
 
   Future<bool> _checkCallPermission() async {
+
     var status = await Permission.phone.status;
 
     if (status.isDenied) {

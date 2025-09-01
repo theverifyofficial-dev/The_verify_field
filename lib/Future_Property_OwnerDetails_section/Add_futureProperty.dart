@@ -272,7 +272,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     await uploadImageWithTitle(_imageFile!);
   }
   String? _selectedItem;
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri'];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor',];
   String? _selectedLift;
   final List<String> lift_options = ['Yes','No'];
 

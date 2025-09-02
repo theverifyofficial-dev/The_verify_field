@@ -169,36 +169,37 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
         filtered = _allProperties.where((item) {
           return (item.id.toString()).toLowerCase().contains(query) ||
               (item.images ?? '').toLowerCase().contains(query) ||
-              (item.ownerName ?? '').toLowerCase().contains(query) ||
-              (item.ownerNumber ?? '').toLowerCase().contains(query) ||
-              (item.caretakerName ?? '').toLowerCase().contains(query) ||
-              (item.caretakerNumber ?? '').toLowerCase().contains(query) ||
+              // (item.ownerName ?? '').toLowerCase().contains(query) ||
+              // (item.ownerNumber ?? '').toLowerCase().contains(query) ||
+              // (item.caretakerName ?? '').toLowerCase().contains(query) ||
+              // (item.caretakerNumber ?? '').toLowerCase().contains(query) ||
               (item.place ?? '').toLowerCase().contains(query) ||
               (item.buyRent ?? '').toLowerCase().contains(query) ||
-              (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
-              (item.selectBhk ?? '').toLowerCase().contains(query) ||
-              (item.floorNumber ?? '').toLowerCase().contains(query) ||
-              (item.squareFeet ?? '').toLowerCase().contains(query) ||
-              (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
-              (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
+              //(item.typeOfProperty ?? '').toLowerCase().contains(query) ||
+              //(item.selectBhk ?? '').toLowerCase().contains(query) ||
+              // (item.floorNumber ?? '').toLowerCase().contains(query) ||
+              // (item.squareFeet ?? '').toLowerCase().contains(query) ||
+              // (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
+              // (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
               (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
-              (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
-              (item.yourAddress ?? '').toLowerCase().contains(query) ||
-              (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
-              (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
-              (item.currentDate ?? '').toLowerCase().contains(query) ||
-              (item.longitude ?? '').toLowerCase().contains(query) ||
-              (item.latitude ?? '').toLowerCase().contains(query) ||
-              (item.roadSize ?? '').toLowerCase().contains(query) ||
-              (item.metroDistance ?? '').toLowerCase().contains(query) ||
-              (item.metroName ?? '').toLowerCase().contains(query) ||
-              (item.mainMarketDistance ?? '').toLowerCase().contains(query) ||
-              (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
-              (item.lift ?? '').toLowerCase().contains(query) ||
-              (item.parking ?? '').toLowerCase().contains(query) ||
-              (item.totalFloor ?? '').toLowerCase().contains(query) ||
-              (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
-              (item.facility ?? '').toLowerCase().contains(query);
+              // (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
+              // (item.yourAddress ?? '').toLowerCase().contains(query) ||
+              // (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
+              // (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
+              // (item.currentDate ?? '').toLowerCase().contains(query) ||
+              // (item.longitude ?? '').toLowerCase().contains(query) ||
+              // (item.latitude ?? '').toLowerCase().contains(query) ||
+              // (item.roadSize ?? '').toLowerCase().contains(query) ||
+              // (item.metroDistance ?? '').toLowerCase().contains(query) ||
+              // (item.metroName ?? '').toLowerCase().contains(query) ||
+              // (item.mainMarketDistance ?? '').toLowerCase().contains(query) ||
+              // (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
+              // (item.lift ?? '').toLowerCase().contains(query) ||
+              // (item.parking ?? '').toLowerCase().contains(query) ||
+              // (item.totalFloor ?? '').toLowerCase().contains(query) ||
+              (item.residenceCommercial ?? '').toLowerCase().contains(query);
+          //||
+              //(item.facility ?? '').toLowerCase().contains(query);
         }).toList();
       }
 

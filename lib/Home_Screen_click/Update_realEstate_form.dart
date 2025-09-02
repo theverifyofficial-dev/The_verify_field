@@ -693,7 +693,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     }
   }
   final List<String> _metroOptions = [
-    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur',''
+    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur','Dwarka Mor',''
   ];
   Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [

@@ -963,7 +963,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle(color: Colors.grey.shade800,fontSize: 12)),
+          child: Text(item, style:  TextStyle(color: Colors.grey.shade800,fontSize: 11)),
         ))
             .toList(),
       ),
@@ -1026,7 +1026,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       });
     }
   }
-
 }
 
 class _FacilityBottomSheet extends StatefulWidget {
@@ -1054,7 +1053,6 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-
       child: Container(
         color: Colors.white,
         child: Padding(

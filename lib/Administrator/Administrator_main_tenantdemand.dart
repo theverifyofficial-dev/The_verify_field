@@ -79,143 +79,102 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
       throw Exception('Unexpected error occured!');
     }
   }
-
-  String _num = '';
-  String _na = '';
   late Future<List<Catid>> _futureData;
   List<Catid> _allData = [];
   List<Catid> _filteredData = [];
   final TextEditingController _searchController = TextEditingController();
-  bool _isLoading = true;
-  String? _error;
-
+  String _num = '';
+  String _na = '';
   @override
   void initState() {
     super.initState();
+    _loaduserdata();
+
     _searchController.addListener(_onSearchChanged);
 
-    // ensure _num is set before this (your _loaduserdata should populate it)
-    _futureData = fetchData(_num);
+    _futureData = fetchData(""+1.toString());
     _futureData.then((data) {
-      // keep a local copy for filtering
       setState(() {
         _allData = data;
-        _filteredData = []; // empty means "no search" => show fullList
+        _filteredData = List.from(_allData.reversed); // show all initially
       });
     }).catchError((e) {
-      // optional: handle error
+      print("Error fetching data: $e");
     });
   }
 
-  void _onSearchChanged()
-  {
+  void _onSearchChanged() {
     final query = _searchController.text.trim().toLowerCase();
 
     setState(() {
-      _filteredData = _allData.where((item) {
-        // ✅ Safe helper function for comparing any field
-        bool containsIgnoreCase(dynamic field) {
-          if (field == null) return false;
-          return field.toString().toLowerCase().contains(query);
-        }
+      if (query.isEmpty) {
+        _filteredData = List.from(_allData); // show all if no search
+      } else {
+        _filteredData = _allData.where((item) {
+          return item.id.toString().contains(query) ||
+              item.V_name.toLowerCase().contains(query) ||
+              item.V_number.toLowerCase().contains(query) ||
+              item.bhk.toLowerCase().contains(query) ||
+              item.budget.toLowerCase().contains(query) ||
+              item.place.toLowerCase().contains(query) ||
+              item.floor_option.toLowerCase().contains(query) ||
+              item.Additional_Info.toLowerCase().contains(query) ||
+              item.Shifting_date.toLowerCase().contains(query) ||
+              item.Current_date.toLowerCase().contains(query) ||
+              item.Parking.toLowerCase().contains(query) ||
+              item.Gadi_Number.toLowerCase().contains(query) ||
+              item.FeildWorker_Name.toLowerCase().contains(query) ||
+              item.FeildWorker_Number.toLowerCase().contains(query) ||
+              item.Current__Date.toLowerCase().contains(query) ||
+              item.Family_Members.toLowerCase().contains(query) ||
+              item.buyrent.toLowerCase().contains(query);
+        }).toList();
+      }
 
-        return containsIgnoreCase(item.place) ||
-            containsIgnoreCase(item.bhk) ||
-            containsIgnoreCase(item.id) ||
-            containsIgnoreCase(item.budget) ||
-            containsIgnoreCase(item.V_name) ||
-            containsIgnoreCase(item.V_number) ||
-            containsIgnoreCase(item.floor_option) ||
-            containsIgnoreCase(item.Additional_Info) ||
-            containsIgnoreCase(item.Shifting_date) ||
-            containsIgnoreCase(item.Current_date) ||
-            containsIgnoreCase(item.Parking) ||
-            containsIgnoreCase(item.Gadi_Number) ||
-            containsIgnoreCase(item.FeildWorker_Name) ||
-            containsIgnoreCase(item.FeildWorker_Number) ||
-            containsIgnoreCase(item.Current__Date) ||
-            containsIgnoreCase(item.Family_Members) ||
-            containsIgnoreCase(item.buyrent);
-      }).toList();
     });
-  }
-
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      /*appBar: PreferredSize(
-        preferredSize: Size.fromHeight(100.0), // Set the height here
+      body: Container(
         child: Column(
           children: [
-            AppBar(
-            centerTitle: true,
-            backgroundColor: Colors.black,
-            title: Image.asset(AppImages.verify, height: 75),
 
-
-            leading: InkWell(
-              onTap: () {
-                Navigator.pop(context);
+            GestureDetector(
+              onTap: () async {
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => Tenant_ALl_demands()));
               },
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      SizedBox(
-                        width: 3,
-                      ),
-                      Icon(
-                        PhosphorIcons.caret_left_bold,
-                        color: Colors.white,
-                        size: 30,
-                      ),
-                    ],
+              child: Center(
+                child: Container(
+                  height: 50,
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(10),
+                          topRight: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                          bottomLeft: Radius.circular(10)),
+                      color: Colors.red.withOpacity(0.8)),
+                  child: Center(
+                    child: Text(
+                      " All Tenant Demands",
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.8,
+                          fontSize: 18),
+                    ),
                   ),
-
-                ],
-              ),
-            ),
-            actions:  [
-              GestureDetector(
-                onTap: () {
-                  //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
-                },
-                child: const Icon(
-                  PhosphorIcons.image,
-                  color: Colors.black,
-                  size: 30,
                 ),
               ),
-              const SizedBox(
-                width: 20,
-              ),
-            ],
-      ),
-
-            SizedBox(
-              height: 20,
             ),
 
-            Column(
-              children: [
-                //  Lottie.asset("assets/images/no data.json",width: 450),
-                Text("Tenant Demands",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-              ],
-            ),
-          ],
-        ),),*/
-
-        body: Column(
-          children: [
-            // 🔍 Search Box (Always pinned at top)
+            SizedBox(height: 10,),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
@@ -230,306 +189,246 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
               ),
             ),
 
-            // 📋 FutureBuilder List (scrollable only here)
+            // // 🔹 Count of total properties found
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+            //   child: Text(
+            //     "Total Properties Found: ${_filteredData.length}",
+            //     style: const TextStyle(
+            //       fontSize: 16,
+            //       fontWeight: FontWeight.bold,
+            //     ),
+            //   ),
+            // ),
             Expanded(
               child: FutureBuilder<List<Catid>>(
-                future: fetchData("1"),
+                future: fetchData("" + 1.toString()), // your API call
                 builder: (context, abc) {
                   if (abc.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator());
                   } else if (abc.hasError) {
-                    return Center(child: Text('${abc.error}'));
+                    return Text('${abc.error}');
                   } else if (abc.data == null || abc.data!.isEmpty) {
-                    // Empty state UI
                     return Center(
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Lottie.asset("assets/images/no data.json", width: 250),
-                          const Text(
+                          Text(
                             "No Data Found!",
                             style: TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black,
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0,
-                            ),
+                                fontSize: 20,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white,
+                                fontFamily: 'Poppins',
+                                letterSpacing: 0),
                           ),
                         ],
                       ),
                     );
                   } else {
-
-                    bool containsIgnoreCase(dynamic field, String query) {
-                      if (field == null) return false;
-                      return field.toString().toLowerCase().contains(query.toLowerCase());
-                    }
-
                     final query = _searchController.text.trim().toLowerCase();
 
+                    // Filter data based on search text
                     final filtered = abc.data!.where((item) {
-                      return containsIgnoreCase(item.id, query) ||
-                          containsIgnoreCase(item.V_name, query) ||
-                          containsIgnoreCase(item.V_number, query) ||
-                          containsIgnoreCase(item.bhk, query) ||
-                          containsIgnoreCase(item.budget, query) ||
-                          containsIgnoreCase(item.place, query) ||
-                          containsIgnoreCase(item.floor_option, query) ||
-                          containsIgnoreCase(item.Additional_Info, query) ||
-                          containsIgnoreCase(item.Shifting_date, query) ||
-                          containsIgnoreCase(item.Current_date, query) ||
-                          containsIgnoreCase(item.Parking, query) ||
-                          containsIgnoreCase(item.Gadi_Number, query) ||
-                          containsIgnoreCase(item.FeildWorker_Name, query) ||
-                          containsIgnoreCase(item.FeildWorker_Number, query) ||
-                          containsIgnoreCase(item.Current__Date, query) ||
-                          containsIgnoreCase(item.Family_Members, query) ||
-                          containsIgnoreCase(item.buyrent, query);
-                    }).toList();
+                      bool contains(dynamic field) {
+                        if (field == null) return false;
+                        return field.toString().toLowerCase().contains(query);
+                      }
 
+                      return query.isEmpty ||
+                          contains(item.id) ||
+                          contains(item.V_name) ||
+                          contains(item.V_number) ||
+                          contains(item.bhk) ||
+                          contains(item.budget) ||
+                          contains(item.place) ||
+                          contains(item.floor_option) ||
+                          contains(item.Additional_Info) ||
+                          contains(item.Shifting_date) ||
+                          contains(item.Current_date) ||
+                          contains(item.Parking) ||
+                          contains(item.Gadi_Number) ||
+                          contains(item.FeildWorker_Name) ||
+                          contains(item.FeildWorker_Number) ||
+                          contains(item.Current__Date) ||
+                          contains(item.Family_Members) ||
+                          contains(item.buyrent);
+                    }).toList().reversed.toList(); // reverse order
 
-                    return Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(
-                            "Total Properties Found: ${filtered.length}",
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: filtered.length,
-                            shrinkWrap: true,
-                            itemBuilder: (BuildContext context, int len) {
-                              int displayIndex = filtered.length - len;
-                              final item = filtered[len];
+                    return ListView.builder(
+                      itemCount: filtered.length,
+                      shrinkWrap: true,
+                      // physics: NeverScrollableScrollPhysics(),
+                      itemBuilder: (BuildContext context, int index) {
+                        final item = filtered[index];
+                        int displayIndex = filtered.length - index;
 
-                              return GestureDetector(
-                                onTap: () async {
-                                  Navigator.push(
-                                      context,
-                                      MaterialPageRoute
-                                        (builder: (context) => Tenant_Demands_details(idd: '${abc.data![len].id}', pending_id: '0',))
-                                  );
-                                },
-                                child: Column(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-                                      child: Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          children: [
-                                            SizedBox(width: 5,),
-                                            Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              mainAxisAlignment: MainAxisAlignment.center,
-                                              children: [
+                        return GestureDetector(
+                          onTap: () async {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Tenant_Demands_details(
+                                  idd: '${item.id}', // ✅ use filtered item, not item
+                                  pending_id: '0',
+                                ),
+                              ),
+                            );
+                          },
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      SizedBox(width: 5,),
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
 
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Row(
-                                                  children: [
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Row(
+                                            children: [
 
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.greenAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.greenAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //SizedBox(width: 10,),
-                                                          Icon(PhosphorIcons.house,size: 12,color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 15,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.greenAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.greenAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
                                                     ),
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.greenAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.greenAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].buyrent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 15,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.greenAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.greenAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].place/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 15,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-
                                                   ],
                                                 ),
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-
-                                                Row(
+                                                child: Row(
                                                   children: [
-                                                    Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //SizedBox(width: 10,),
+                                                    Icon(PhosphorIcons.house,size: 12,color: Colors.red,),
                                                     SizedBox(width: 2,),
-                                                    Text(" Name | Number",
-                                                      overflow: TextOverflow.ellipsis,
-                                                      maxLines: 2,
+                                                    Text(""+item.bhk/*+item.Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
-                                                          fontSize: 11,
+                                                          fontSize: 15,
                                                           color: Colors.black,
-                                                          fontWeight: FontWeight.w600),
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                                SizedBox(
-                                                  height: 5,
+                                              ),
+
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.greenAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.greenAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
                                                 ),
-                                                Row(
+                                                child: Row(
                                                   children: [
-                                                    SizedBox(width: 10,),
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.red),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.red.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].V_name/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //SizedBox(width: 10,),
+                                                    Text(""+item.buyrent/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 15,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
                                                       ),
                                                     ),
+                                                  ],
+                                                ),
+                                              ),
 
-                                                    /*SizedBox(
-                                              width: 10,
-                                            ),
 
-                                            GestureDetector(
-                                              onTap: (){
+                                              SizedBox(
+                                                width: 10,
+                                              ),
 
-                                                showDialog<bool>(
-                                                  context: context,
-                                                  builder: (context) => AlertDialog(
-                                                    title: Text("Call "+abc.data![len].V_name),
-                                                    content: Text('Do you really want to Call? '+abc.data![len].V_name ),
-                                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                    actions: <Widget>[
-                                                      ElevatedButton(
-                                                        onPressed: () => Navigator.of(context).pop(false),
-                                                        child: Text('No'),
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.greenAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.greenAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //SizedBox(width: 10,),
+                                                    Text(""+item.place/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 15,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
                                                       ),
-                                                      ElevatedButton(
-                                                        onPressed: () async {
-                                                          FlutterPhoneDirectCaller.callNumber('${abc.data![len].V_number}');
-                                                        },
-                                                        child: Text('Yes'),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ) ?? false;
-                                              },
-                                              child: Container(
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+
+                                          Row(
+                                            children: [
+                                              Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
+                                              SizedBox(width: 2,),
+                                              Text(" Name | Number",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            children: [
+                                              SizedBox(width: 10,),
+                                              Container(
                                                 padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                 decoration: BoxDecoration(
                                                   borderRadius: BorderRadius.circular(5),
@@ -545,9 +444,9 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                                                 ),
                                                 child: Row(
                                                   children: [
-                                                    Icon(Iconsax.call,size: 15,color: Colors.red,),
-                                                    SizedBox(width: 4,),
-                                                    Text(""+abc.data![len].V_number*//*+abc.data![len].Building_Name.toUpperCase()*//*,
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.V_name/*+item.Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
                                                           fontSize: 13,
                                                           color: Colors.black,
@@ -558,1761 +457,682 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
                                                   ],
                                                 ),
                                               ),
-                                            ),*/
+
+                                              /*SizedBox(
+                                                    width: 10,
+                                                  ),
+
+                                                  GestureDetector(
+                                                    onTap: (){
+
+                                                      showDialog<bool>(
+                                                        context: context,
+                                                        builder: (context) => AlertDialog(
+                                                          title: Text("Call "+item.V_name),
+                                                          content: Text('Do you really want to Call? '+item.V_name ),
+                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                          actions: <Widget>[
+                                                            ElevatedButton(
+                                                              onPressed: () => Navigator.of(context).pop(false),
+                                                              child: Text('No'),
+                                                            ),
+                                                            ElevatedButton(
+                                                              onPressed: () async {
+                                                                FlutterPhoneDirectCaller.callNumber('${item.V_number}');
+                                                              },
+                                                              child: Text('Yes'),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ) ?? false;
+                                                    },
+                                                    child: Container(
+                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius: BorderRadius.circular(5),
+                                                        border: Border.all(width: 1, color: Colors.red),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                              color: Colors.red.withOpacity(0.5),
+                                                              blurRadius: 10,
+                                                              offset: Offset(0, 0),
+                                                              blurStyle: BlurStyle.outer
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          Icon(Iconsax.call,size: 15,color: Colors.red,),
+                                                          SizedBox(width: 4,),
+                                                          Text(""+item.V_number*//*+item.Building_Name.toUpperCase()*//*,
+                                                            style: TextStyle(
+                                                                fontSize: 13,
+                                                                color: Colors.black,
+                                                                fontWeight: FontWeight.w500,
+                                                                letterSpacing: 0.5
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),*/
+                                            ],
+                                          ),
+
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
+                                              SizedBox(width: 2,),
+                                              Text("Type Of Requirement / Floor Options",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                width: 20,
+                                              ),
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.purple),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.purple.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
                                                   ],
                                                 ),
-
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Row(
+                                                child: Row(
                                                   children: [
-                                                    Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                                    SizedBox(width: 2,),
-                                                    Text("Type Of Requirement / Floor Options",
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.bhk/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.purple),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.purple.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.floor_option/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+
+
+
+
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(PhosphorIcons.car,size: 12,color: Colors.red,),
+                                              SizedBox(width: 2,),
+                                              Text("Need Parking / Vehicle Number",
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                width: 20,
+                                              ),
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.cyanAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.cyanAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.Parking/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+
+
+
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.cyanAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.cyanAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.Gadi_Number.toUpperCase(),
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+
+
+
+
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(PhosphorIcons.users_four,size: 12,color: Colors.red,),
+                                              SizedBox(width: 2,),
+                                              SizedBox(
+                                                width: 100,
+                                                child: Text("Family Members = ",
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w600
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(width: 10,),
+                                              SizedBox(
+                                                width: 100,
+                                                child: Text(""+item.Family_Members+" Members",
+                                                  overflow: TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.black,
+                                                      fontWeight: FontWeight.w400
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            children: [
+                                              Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
+                                              SizedBox(width: 2,),
+                                              Text("Additional Information",
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Row(
+                                            children: [
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+                                              Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+
+                                                  SizedBox(
+                                                    width: 300,
+                                                    child: Text(""+item.Additional_Info,
                                                       overflow: TextOverflow.ellipsis,
                                                       maxLines: 2,
                                                       style: TextStyle(
-                                                          fontSize: 11,
+                                                          fontSize: 12,
                                                           color: Colors.black,
-                                                          fontWeight: FontWeight.w600),
+                                                          fontWeight: FontWeight.w400
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+
+
+                                            ],
+                                          ),
+
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+
+                                          Row(
+                                            children: [
+                                              Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
+                                              SizedBox(width: 2,),
+                                              Text("Budget / Shifting Date",
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.w600),
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+
+                                          Row(
+                                            children: [
+
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.blue),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.blue.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
                                                     ),
                                                   ],
                                                 ),
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                child: Row(
                                                   children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                    ),
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.purple),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.purple.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.purple),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.purple.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].floor_option/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-
-
-
-
-                                                  ],
-                                                ),
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(PhosphorIcons.car,size: 12,color: Colors.red,),
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //SizedBox(width: 10,),
+                                                    Icon(PhosphorIcons.currency_inr,size: 12,color: Colors.red,),
                                                     SizedBox(width: 2,),
-                                                    Text("Need Parking / Vehicle Number",
+                                                    Text(""+item.budget/*+item.Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
-                                                          fontSize: 11,
+                                                          fontSize: 15,
                                                           color: Colors.black,
-                                                          fontWeight: FontWeight.w600),
-                                                    ),
-                                                  ],
-                                                ),
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 20,
-                                                    ),
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.cyanAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.cyanAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].Parking/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-
-
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.cyanAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.cyanAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].Gadi_Number.toUpperCase(),
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-
-
-
-
-                                                  ],
-                                                ),
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    Icon(PhosphorIcons.users_four,size: 12,color: Colors.red,),
-                                                    SizedBox(width: 2,),
-                                                    SizedBox(
-                                                      width: 100,
-                                                      child: Text("Family Members = ",
-                                                        overflow: TextOverflow.ellipsis,
-                                                        maxLines: 2,
-                                                        style: TextStyle(
-                                                            fontSize: 11,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w600
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    SizedBox(width: 10,),
-                                                    SizedBox(
-                                                      width: 100,
-                                                      child: Text(""+abc.data![len].Family_Members+" Members",
-                                                        overflow: TextOverflow.ellipsis,
-                                                        maxLines: 2,
-                                                        style: TextStyle(
-                                                            fontSize: 12,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w400
-                                                        ),
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
                                                       ),
                                                     ),
                                                   ],
                                                 ),
+                                              ),
 
-                                                SizedBox(
-                                                  height: 5,
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.blue),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.blue.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
                                                 ),
-                                                Row(
+                                                child: Row(
                                                   children: [
-                                                    Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                    SizedBox(width: 2,),
-                                                    Text("Additional Information",
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.Shifting_date/*+item.Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
-                                                          fontSize: 11,
+                                                          fontSize: 13,
                                                           color: Colors.black,
-                                                          fontWeight: FontWeight.w600),
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
-                                                Row(
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-                                                    Column(
-                                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                                      children: [
+                                              ),
 
-                                                        SizedBox(
-                                                          width: 300,
-                                                          child: Text(""+abc.data![len].Additional_Info,
-                                                            overflow: TextOverflow.ellipsis,
-                                                            maxLines: 2,
-                                                            style: TextStyle(
-                                                                fontSize: 12,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w400
-                                                            ),
-                                                          ),
+
+                                            ],
+                                          ),
+
+                                          SizedBox(height: 10,),
+
+                                          Center(
+                                            child: Text("Field Worker",style: TextStyle(fontSize: 16,
+                                                color: Colors.black,
+                                                fontWeight: FontWeight.w600),),
+                                          ),
+
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.purple),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.purple.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //SizedBox(width: 10,),
+                                                    Text(""+item.FeildWorker_Name/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 14,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+                                              GestureDetector(
+                                                onTap: (){
+
+                                                  showDialog<bool>(
+                                                    context: context,
+                                                    builder: (context) => AlertDialog(
+                                                      title: Text('Call Feild Worker'),
+                                                      content: Text('Do you really want to Call Feild Worker?'),
+                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                                                      actions: <Widget>[
+                                                        ElevatedButton(
+                                                          onPressed: () => Navigator.of(context).pop(false),
+                                                          child: Text('No'),
+                                                        ),
+                                                        ElevatedButton(
+                                                          onPressed: () async {
+                                                            FlutterPhoneDirectCaller.callNumber('${item.FeildWorker_Number}');
+                                                          },
+                                                          child: Text('Yes'),
                                                         ),
                                                       ],
                                                     ),
+                                                  ) ?? false;
+                                                },
+                                                child: Container(
+                                                  padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(5),
+                                                    border: Border.all(width: 1, color: Colors.purple),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                          color: Colors.purple.withOpacity(0.5),
+                                                          blurRadius: 10,
+                                                          offset: Offset(0, 0),
+                                                          blurStyle: BlurStyle.outer
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisAlignment: MainAxisAlignment.center,
+                                                    children: [
+                                                      // Icon(Iconsax.sort_copy,size: 15,),
+                                                      //SizedBox(width: 10,),
+                                                      Text(""+item.FeildWorker_Number/*+item.Building_Name.toUpperCase()*/,
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            color: Colors.black,
+                                                            fontWeight: FontWeight.w500,
+                                                            letterSpacing: 0.5
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
 
+                                          SizedBox(
+                                            height: 5,
+                                          ),
 
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.lightGreenAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.lightGreenAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
                                                   ],
                                                 ),
-
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-
-                                                Row(
+                                                child: Row(
                                                   children: [
-                                                    Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                    SizedBox(width: 2,),
-                                                    Text("Budget / Shifting Date",
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text("Tenant id =  "+item.id.toString()/*+item.Building_Name.toUpperCase()*/,
                                                       style: TextStyle(
-                                                          fontSize: 11,
+                                                          fontSize: 13,
                                                           color: Colors.black,
-                                                          fontWeight: FontWeight.w600),
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
                                                     ),
                                                   ],
                                                 ),
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
+                                              ),
 
-                                                Row(
+                                              SizedBox(
+                                                width: 10,
+                                              ),
+
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.lightGreenAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.lightGreenAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
                                                   children: [
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.blue),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.blue.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //SizedBox(width: 10,),
-                                                          Icon(PhosphorIcons.currency_inr,size: 12,color: Colors.red,),
-                                                          SizedBox(width: 2,),
-                                                          Text(""+abc.data![len].budget/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 15,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+item.Current_date.toString()/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
                                                       ),
                                                     ),
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.blue),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.blue.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].Shifting_date/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-
                                                   ],
                                                 ),
+                                              ),
 
-                                                SizedBox(height: 10,),
+                                            ],
+                                          ),
 
-                                                Center(
-                                                  child: Text("Field Worker",style: TextStyle(fontSize: 16,
-                                                      color: Colors.black,
-                                                      fontWeight: FontWeight.w600),),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+
+                                          Row(
+                                            children: [
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.brown),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.brown.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
                                                 ),
-
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
-
-                                                Row(
+                                                child: Row(
                                                   children: [
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.purple),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.purple.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        mainAxisAlignment: MainAxisAlignment.center,
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].FeildWorker_Name/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 14,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    GestureDetector(
-                                                      onTap: (){
-
-                                                        showDialog<bool>(
-                                                          context: context,
-                                                          builder: (context) => AlertDialog(
-                                                            title: Text('Call Feild Worker'),
-                                                            content: Text('Do you really want to Call Feild Worker?'),
-                                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                            actions: <Widget>[
-                                                              ElevatedButton(
-                                                                onPressed: () => Navigator.of(context).pop(false),
-                                                                child: Text('No'),
-                                                              ),
-                                                              ElevatedButton(
-                                                                onPressed: () async {
-                                                                  FlutterPhoneDirectCaller.callNumber('${abc.data![len].FeildWorker_Number}');
-                                                                },
-                                                                child: Text('Yes'),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ) ?? false;
-                                                      },
-                                                      child: Container(
-                                                        padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                        decoration: BoxDecoration(
-                                                          borderRadius: BorderRadius.circular(5),
-                                                          border: Border.all(width: 1, color: Colors.purple),
-                                                          boxShadow: [
-                                                            BoxShadow(
-                                                                color: Colors.purple.withOpacity(0.5),
-                                                                blurRadius: 10,
-                                                                offset: Offset(0, 0),
-                                                                blurStyle: BlurStyle.outer
-                                                            ),
-                                                          ],
-                                                        ),
-                                                        child: Row(
-                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                          children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //SizedBox(width: 10,),
-                                                            Text(""+abc.data![len].FeildWorker_Number/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                              style: TextStyle(
-                                                                  fontSize: 14,
-                                                                  color: Colors.black,
-                                                                  fontWeight: FontWeight.w500,
-                                                                  letterSpacing: 0.5
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text("Demand No = $displayIndex"/*+item.Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
                                                       ),
                                                     ),
                                                   ],
                                                 ),
+                                              ),
 
-                                                SizedBox(
-                                                  height: 5,
-                                                ),
+                                            ],
+                                          ),
 
-                                                Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.lightGreenAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.lightGreenAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text("Tenant id =  "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-                                                    SizedBox(
-                                                      width: 10,
-                                                    ),
-
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.lightGreenAccent),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.lightGreenAccent.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text(""+abc.data![len].Current_date.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-                                                  ],
-                                                ),
-
-                                                SizedBox(
-                                                  height: 10,
-                                                ),
-
-                                                Row(
-                                                  children: [
-                                                    Container(
-                                                      padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                      decoration: BoxDecoration(
-                                                        borderRadius: BorderRadius.circular(5),
-                                                        border: Border.all(width: 1, color: Colors.brown),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                              color: Colors.brown.withOpacity(0.5),
-                                                              blurRadius: 10,
-                                                              offset: Offset(0, 0),
-                                                              blurStyle: BlurStyle.outer
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          // Icon(Iconsax.sort_copy,size: 15,),
-                                                          //w SizedBox(width: 10,),
-                                                          Text("Demand No = $displayIndex"/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                            style: TextStyle(
-                                                                fontSize: 13,
-                                                                color: Colors.black,
-                                                                fontWeight: FontWeight.w500,
-                                                                letterSpacing: 0.5
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-
-                                                  ],
-                                                ),
-
-                                              ],
-                                            ),
-
-
-                                          ],
-                                        ),
+                                        ],
                                       ),
-                                    )
-                                  ],
+
+
+                                    ],
+                                  ),
                                 ),
-                              );
-                            },
+                              )
+                            ],
                           ),
-                        ),
-                      ],
+                        );
+                      },
                     );
                   }
                 },
               ),
-            )
+            ),
+
           ],
-
-      // FutureBuilder<List<Catid>>(
-      //       future: fetchData(""+1.toString()),
-      //       builder: (context,abc){
-      //         if(abc.connectionState == ConnectionState.waiting){
-      //           return Center(child: CircularProgressIndicator());
-      //         }
-      //         else if(abc.hasError){
-      //           return Text('${abc.error}');
-      //         }
-      //         else if (abc.data == null || abc.data!.isEmpty) {
-      //           // If the list is empty, show an empty image
-      //           return Center(
-      //             child: Column(
-      //               children: [
-      //                 // Lottie.asset("assets/images/no data.json",width: 450),
-      //                 Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-      //               ],
-      //             ),
-      //           );
-      //         }
-      //         else{
-      //           return ListView.builder(
-      //               itemCount: abc.data!.length,
-      //               shrinkWrap: true,
-      //               physics: NeverScrollableScrollPhysics(),
-      //               itemBuilder: (BuildContext context,int len){
-      //                 int displayIndex = abc.data!.length - len;
-      //                 return GestureDetector(
-      //                   onTap: () async {
-      //                     Navigator.push(
-      //                         context,
-      //                         MaterialPageRoute
-      //                           (builder: (context) => Tenant_Demands_details(idd: '${abc.data![len].id}', pending_id: '0',))
-      //                     );
-      //                   },
-      //                   child: Column(
-      //                     children: [
-      //                       Padding(
-      //                         padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 10),
-      //                         child: Container(
-      //                           padding: const EdgeInsets.all(10),
-      //                           decoration: BoxDecoration(
-      //                             color: Colors.white,
-      //                             borderRadius: BorderRadius.circular(10),
-      //                           ),
-      //                           child: Row(
-      //                             crossAxisAlignment: CrossAxisAlignment.center,
-      //                             mainAxisAlignment: MainAxisAlignment.start,
-      //                             children: [
-      //                               SizedBox(width: 5,),
-      //                               Column(
-      //                                 crossAxisAlignment: CrossAxisAlignment.start,
-      //                                 mainAxisAlignment: MainAxisAlignment.center,
-      //                                 children: [
-      //
-      //                                   SizedBox(
-      //                                     height: 10,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.greenAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.greenAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //SizedBox(width: 10,),
-      //                                             Icon(PhosphorIcons.house,size: 12,color: Colors.red,),
-      //                                             SizedBox(width: 2,),
-      //                                             Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 15,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.greenAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.greenAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].buyrent/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 15,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.greenAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.greenAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].place/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 15,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 10,
-      //                                   ),
-      //
-      //                                   Row(
-      //                                     children: [
-      //                                       Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-      //                                       SizedBox(width: 2,),
-      //                                       Text(" Name | Number",
-      //                                         overflow: TextOverflow.ellipsis,
-      //                                         maxLines: 2,
-      //                                         style: TextStyle(
-      //                                             fontSize: 11,
-      //                                             color: Colors.black,
-      //                                             fontWeight: FontWeight.w600),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //                                       SizedBox(width: 10,),
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.red),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.red.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].V_name/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                       /*SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       GestureDetector(
-      //                                         onTap: (){
-      //
-      //                                           showDialog<bool>(
-      //                                             context: context,
-      //                                             builder: (context) => AlertDialog(
-      //                                               title: Text("Call "+abc.data![len].V_name),
-      //                                               content: Text('Do you really want to Call? '+abc.data![len].V_name ),
-      //                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      //                                               actions: <Widget>[
-      //                                                 ElevatedButton(
-      //                                                   onPressed: () => Navigator.of(context).pop(false),
-      //                                                   child: Text('No'),
-      //                                                 ),
-      //                                                 ElevatedButton(
-      //                                                   onPressed: () async {
-      //                                                     FlutterPhoneDirectCaller.callNumber('${abc.data![len].V_number}');
-      //                                                   },
-      //                                                   child: Text('Yes'),
-      //                                                 ),
-      //                                               ],
-      //                                             ),
-      //                                           ) ?? false;
-      //                                         },
-      //                                         child: Container(
-      //                                           padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                           decoration: BoxDecoration(
-      //                                             borderRadius: BorderRadius.circular(5),
-      //                                             border: Border.all(width: 1, color: Colors.red),
-      //                                             boxShadow: [
-      //                                               BoxShadow(
-      //                                                   color: Colors.red.withOpacity(0.5),
-      //                                                   blurRadius: 10,
-      //                                                   offset: Offset(0, 0),
-      //                                                   blurStyle: BlurStyle.outer
-      //                                               ),
-      //                                             ],
-      //                                           ),
-      //                                           child: Row(
-      //                                             children: [
-      //                                               Icon(Iconsax.call,size: 15,color: Colors.red,),
-      //                                               SizedBox(width: 4,),
-      //                                               Text(""+abc.data![len].V_number*//*+abc.data![len].Building_Name.toUpperCase()*//*,
-      //                                                 style: TextStyle(
-      //                                                     fontSize: 13,
-      //                                                     color: Colors.black,
-      //                                                     fontWeight: FontWeight.w500,
-      //                                                     letterSpacing: 0.5
-      //                                                 ),
-      //                                               ),
-      //                                             ],
-      //                                           ),
-      //                                         ),
-      //                                       ),*/
-      //                                     ],
-      //                                   ),
-      //
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //                                       Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-      //                                       SizedBox(width: 2,),
-      //                                       Text("Type Of Requirement / Floor Options",
-      //                                         overflow: TextOverflow.ellipsis,
-      //                                         maxLines: 2,
-      //                                         style: TextStyle(
-      //                                             fontSize: 11,
-      //                                             color: Colors.black,
-      //                                             fontWeight: FontWeight.w600),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     crossAxisAlignment: CrossAxisAlignment.start,
-      //                                     children: [
-      //                                       SizedBox(
-      //                                         width: 20,
-      //                                       ),
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.purple),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.purple.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.purple),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.purple.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].floor_option/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //
-      //
-      //
-      //
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //                                       Icon(PhosphorIcons.car,size: 12,color: Colors.red,),
-      //                                       SizedBox(width: 2,),
-      //                                       Text("Need Parking / Vehicle Number",
-      //                                         style: TextStyle(
-      //                                             fontSize: 11,
-      //                                             color: Colors.black,
-      //                                             fontWeight: FontWeight.w600),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     crossAxisAlignment: CrossAxisAlignment.start,
-      //                                     children: [
-      //                                       SizedBox(
-      //                                         width: 20,
-      //                                       ),
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.cyanAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.cyanAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].Parking/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //
-      //
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.cyanAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.cyanAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].Gadi_Number.toUpperCase(),
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //
-      //
-      //
-      //
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 10,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //                                       Icon(PhosphorIcons.users_four,size: 12,color: Colors.red,),
-      //                                       SizedBox(width: 2,),
-      //                                       SizedBox(
-      //                                         width: 100,
-      //                                         child: Text("Family Members = ",
-      //                                           overflow: TextOverflow.ellipsis,
-      //                                           maxLines: 2,
-      //                                           style: TextStyle(
-      //                                               fontSize: 11,
-      //                                               color: Colors.black,
-      //                                               fontWeight: FontWeight.w600
-      //                                           ),
-      //                                         ),
-      //                                       ),
-      //                                       SizedBox(width: 10,),
-      //                                       SizedBox(
-      //                                         width: 100,
-      //                                         child: Text(""+abc.data![len].Family_Members+" Members",
-      //                                           overflow: TextOverflow.ellipsis,
-      //                                           maxLines: 2,
-      //                                           style: TextStyle(
-      //                                               fontSize: 12,
-      //                                               color: Colors.black,
-      //                                               fontWeight: FontWeight.w400
-      //                                           ),
-      //                                         ),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //                                       Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-      //                                       SizedBox(width: 2,),
-      //                                       Text("Additional Information",
-      //                                         style: TextStyle(
-      //                                             fontSize: 11,
-      //                                             color: Colors.black,
-      //                                             fontWeight: FontWeight.w600),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //                                   Row(
-      //                                     children: [
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //                                       Column(
-      //                                         crossAxisAlignment: CrossAxisAlignment.start,
-      //                                         children: [
-      //
-      //                                           SizedBox(
-      //                                             width: 300,
-      //                                             child: Text(""+abc.data![len].Additional_Info,
-      //                                               overflow: TextOverflow.ellipsis,
-      //                                               maxLines: 2,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 12,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w400
-      //                                               ),
-      //                                             ),
-      //                                           ),
-      //                                         ],
-      //                                       ),
-      //
-      //
-      //                                     ],
-      //                                   ),
-      //
-      //                                   SizedBox(
-      //                                     height: 10,
-      //                                   ),
-      //
-      //                                   Row(
-      //                                     children: [
-      //                                       Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-      //                                       SizedBox(width: 2,),
-      //                                       Text("Budget / Shifting Date",
-      //                                         style: TextStyle(
-      //                                             fontSize: 11,
-      //                                             color: Colors.black,
-      //                                             fontWeight: FontWeight.w600),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //
-      //                                   Row(
-      //                                     children: [
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.blue),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.blue.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //SizedBox(width: 10,),
-      //                                             Icon(PhosphorIcons.currency_inr,size: 12,color: Colors.red,),
-      //                                             SizedBox(width: 2,),
-      //                                             Text(""+abc.data![len].budget/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 15,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.blue),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.blue.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].Shifting_date/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //
-      //                                     ],
-      //                                   ),
-      //
-      //                                   SizedBox(height: 10,),
-      //
-      //                                   Center(
-      //                                     child: Text("Field Worker",style: TextStyle(fontSize: 16,
-      //                                         color: Colors.black,
-      //                                         fontWeight: FontWeight.w600),),
-      //                                   ),
-      //
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //
-      //                                   Row(
-      //                                     children: [
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.purple),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.purple.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           mainAxisAlignment: MainAxisAlignment.center,
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].FeildWorker_Name/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 14,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       GestureDetector(
-      //                                         onTap: (){
-      //
-      //                                           showDialog<bool>(
-      //                                             context: context,
-      //                                             builder: (context) => AlertDialog(
-      //                                               title: Text('Call Feild Worker'),
-      //                                               content: Text('Do you really want to Call Feild Worker?'),
-      //                                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      //                                               actions: <Widget>[
-      //                                                 ElevatedButton(
-      //                                                   onPressed: () => Navigator.of(context).pop(false),
-      //                                                   child: Text('No'),
-      //                                                 ),
-      //                                                 ElevatedButton(
-      //                                                   onPressed: () async {
-      //                                                     FlutterPhoneDirectCaller.callNumber('${abc.data![len].FeildWorker_Number}');
-      //                                                   },
-      //                                                   child: Text('Yes'),
-      //                                                 ),
-      //                                               ],
-      //                                             ),
-      //                                           ) ?? false;
-      //                                         },
-      //                                         child: Container(
-      //                                           padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                           decoration: BoxDecoration(
-      //                                             borderRadius: BorderRadius.circular(5),
-      //                                             border: Border.all(width: 1, color: Colors.purple),
-      //                                             boxShadow: [
-      //                                               BoxShadow(
-      //                                                   color: Colors.purple.withOpacity(0.5),
-      //                                                   blurRadius: 10,
-      //                                                   offset: Offset(0, 0),
-      //                                                   blurStyle: BlurStyle.outer
-      //                                               ),
-      //                                             ],
-      //                                           ),
-      //                                           child: Row(
-      //                                             mainAxisAlignment: MainAxisAlignment.center,
-      //                                             children: [
-      //                                               // Icon(Iconsax.sort_copy,size: 15,),
-      //                                               //SizedBox(width: 10,),
-      //                                               Text(""+abc.data![len].FeildWorker_Number/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                                 style: TextStyle(
-      //                                                     fontSize: 14,
-      //                                                     color: Colors.black,
-      //                                                     fontWeight: FontWeight.w500,
-      //                                                     letterSpacing: 0.5
-      //                                                 ),
-      //                                               ),
-      //                                             ],
-      //                                           ),
-      //                                         ),
-      //                                       ),
-      //                                     ],
-      //                                   ),
-      //
-      //                                   SizedBox(
-      //                                     height: 5,
-      //                                   ),
-      //
-      //                                   Row(
-      //                                     children: [
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.lightGreenAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.lightGreenAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text("Tenant id =  "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                       SizedBox(
-      //                                         width: 10,
-      //                                       ),
-      //
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.lightGreenAccent),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.lightGreenAccent.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text(""+abc.data![len].Current_date.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                     ],
-      //                                   ),
-      //
-      //                                   SizedBox(
-      //                                     height: 10,
-      //                                   ),
-      //
-      //                                   Row(
-      //                                     children: [
-      //                                       Container(
-      //                                         padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-      //                                         decoration: BoxDecoration(
-      //                                           borderRadius: BorderRadius.circular(5),
-      //                                           border: Border.all(width: 1, color: Colors.brown),
-      //                                           boxShadow: [
-      //                                             BoxShadow(
-      //                                                 color: Colors.brown.withOpacity(0.5),
-      //                                                 blurRadius: 10,
-      //                                                 offset: Offset(0, 0),
-      //                                                 blurStyle: BlurStyle.outer
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                         child: Row(
-      //                                           children: [
-      //                                             // Icon(Iconsax.sort_copy,size: 15,),
-      //                                             //w SizedBox(width: 10,),
-      //                                             Text("Demand No = $displayIndex"/*+abc.data![len].Building_Name.toUpperCase()*/,
-      //                                               style: TextStyle(
-      //                                                   fontSize: 13,
-      //                                                   color: Colors.black,
-      //                                                   fontWeight: FontWeight.w500,
-      //                                                   letterSpacing: 0.5
-      //                                               ),
-      //                                             ),
-      //                                           ],
-      //                                         ),
-      //                                       ),
-      //
-      //                                     ],
-      //                                   ),
-      //
-      //                                 ],
-      //                               ),
-      //
-      //
-      //                             ],
-      //                           ),
-      //                         ),
-      //                       )
-      //                     ],
-      //                   ),
-      //                 );
-      //               });
-      //         }
-      //
-      //
-      //       }
-      //
-      //   ),
-
-
-        /*FutureBuilder<List<Catid>>(
-            future: fetchData(""+1.toString()),
-            builder: (context,abc){
-              if(abc.connectionState == ConnectionState.waiting){
-                return Center(child: CircularProgressIndicator());
-              }
-              else if(abc.hasError){
-                return Text('${abc.error}');
-              }
-              else if (abc.data == null || abc.data!.isEmpty) {
-                // If the list is empty, show an empty image
-                return Center(
-                  child: Column(
-                    children: [
-                      // Lottie.asset("assets/images/no data.json",width: 450),
-                      Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                    ],
-                  ),
-                );
-              }
-              else{
-                return ListView.builder(
-                    itemCount: abc.data!.length,
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    itemBuilder: (BuildContext context,int len){
-                      return GestureDetector(
-                        onTap: () async {
-                          //  int itemId = abc.data![len].id;
-                          //int iiid = abc.data![len].PropertyAddress
-                          SharedPreferences prefs = await SharedPreferences.getInstance();
-                          prefs.setString('id_Document', abc.data![len].id.toString());
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute
-                                (builder: (context) => ShowProperty(iidd: abc.data![len].id.toString()))
-                          );
-                        },
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 0, left: 10, right: 10, bottom: 10),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: const BorderRadius.all(Radius.circular(5)),
-                                          child:  Container(
-                                            child: Image.asset(AppImages.propertysale,width: 120,fit: BoxFit.fill),
-                                          ),
-                                        ),
-                                        SizedBox(height: 5,),
-                                        Container(
-                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(5),
-                                            border: Border.all(width: 1, color: Colors.green),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.green.withOpacity(0.5),
-                                                  blurRadius: 10,
-                                                  offset: Offset(0, 0),
-                                                  blurStyle: BlurStyle.outer
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                              //w SizedBox(width: 10,),
-                                              Text(""+abc.data![len].type.toUpperCase(),
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(width: 5,),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                            SizedBox(width: 2,),
-                                            Text("Property Address",
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: 180,
-                                          child: Text(""+abc.data![len].PropertyAddress,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.home_1_copy,size: 12,color: Colors.red,),
-                                            SizedBox(width: 2,),
-                                            Text("Society",
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: 180,
-                                          child: Text(""+abc.data![len].Society,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                            SizedBox(width: 2,),
-                                            Text("Place",
-                                              style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: 180,
-                                          child: Text(""+abc.data![len].Place,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            Icon(Iconsax.building_3_copy,size: 14,color: Colors.red,),
-                                            SizedBox(width: 3,),
-                                            Text(""+abc.data![len].City.toUpperCase(),
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey.shade600,
-                                                  fontWeight: FontWeight.w500
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      );
-                    });
-              }
-
-
-            }
-
-        ),*/
-
+        ),
 
       ),
 
-     /* floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                style: const ButtonStyle(
-                  padding: MaterialStatePropertyAll(EdgeInsets.symmetric(vertical: 10,horizontal: 10)),
-
-                ),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => add_Tenant_num()));
-                  // Navigator.of(context).push(
-                  //     MaterialPageRoute(builder: (context) => Provider.value(value: bloc,child: AddTenant(type: widget.type),)));
-                },
-                child:  Row(
-                  children: [
-                    const Icon(Icons.add_circle),
-                    const SizedBox(width: 5,),
-                    Text("Add Demand",style: const TextStyle(fontSize: 15),),
-                  ],
-                ),),
-            ],
-          ),
-          const SizedBox(height: 30,)
-        ],
-      ),*/
 
     );
   }

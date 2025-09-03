@@ -528,6 +528,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                         return Center(
                           child: Column(
                             children: [
+                              SizedBox(height: 30,),
                               // Lottie.asset("assets/images/no data.json",width: 450),
                               Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
                             ],
@@ -1727,6 +1728,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                         return Center(
                           child: Column(
                             children: [
+                              SizedBox(height: 30,),
                               // Lottie.asset("assets/images/no data.json",width: 450),
                               Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
                             ],

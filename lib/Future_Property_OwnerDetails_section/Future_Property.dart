@@ -168,21 +168,23 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       } else {
         filtered = _allProperties.where((item) {
           return (item.id.toString()).toLowerCase().contains(query) ||
-              (item.images ?? '').toLowerCase().contains(query) ||
-              // (item.ownerName ?? '').toLowerCase().contains(query) ||
+              // (item.images ?? '').toLowerCase().contains(query) ||
+              (item.ownerName ?? '').toLowerCase().contains(query) ||
               // (item.ownerNumber ?? '').toLowerCase().contains(query) ||
-              // (item.caretakerName ?? '').toLowerCase().contains(query) ||
+              (item.caretakerName ?? '').toLowerCase().contains(query) ||
               // (item.caretakerNumber ?? '').toLowerCase().contains(query) ||
               (item.place ?? '').toLowerCase().contains(query) ||
               (item.buyRent ?? '').toLowerCase().contains(query) ||
-              //(item.typeOfProperty ?? '').toLowerCase().contains(query) ||
-              //(item.selectBhk ?? '').toLowerCase().contains(query) ||
+              // (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
+              // (item.selectBhk ?? '').toLowerCase().contains(query) ||
               // (item.floorNumber ?? '').toLowerCase().contains(query) ||
               // (item.squareFeet ?? '').toLowerCase().contains(query) ||
-              // (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
+              (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
               // (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
               (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
-              // (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
+              (item.residenceCommercial ?? '').toLowerCase().contains(query);
+
+          // (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
               // (item.yourAddress ?? '').toLowerCase().contains(query) ||
               // (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
               // (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
@@ -197,9 +199,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               // (item.lift ?? '').toLowerCase().contains(query) ||
               // (item.parking ?? '').toLowerCase().contains(query) ||
               // (item.totalFloor ?? '').toLowerCase().contains(query) ||
-              (item.residenceCommercial ?? '').toLowerCase().contains(query);
-          //||
-              //(item.facility ?? '').toLowerCase().contains(query);
+              // (item.facility ?? '').toLowerCase().contains(query);
         }).toList();
       }
 
@@ -718,7 +718,6 @@ class PropertyCard extends StatelessWidget {
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
-
                     ],
                   ),
 
@@ -746,7 +745,31 @@ class PropertyCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
+
+                  // Address
+                  // Text(
+                  //   "Main Address",
+                  //   style: TextStyle(
+                  //     fontFamily: "PoppinsBold",
+                  //     fontSize: 14,
+                  //     color: isDark ? Colors.white : Colors.black87,
+                  //   ),
+                  // ),
+                  // const SizedBox(height: 4),
+                  // Text(
+                  //   property.yourAddress,
+                  //   style: TextStyle(
+                  //     fontFamily: "Poppins",
+                  //     fontSize: 13,
+                  //     height: 1.3,
+                  //     color: isDark ? Colors.grey[300] : Colors.grey[700],
+                  //   ),
+                  //   maxLines: 2,
+                  //   overflow: TextOverflow.ellipsis,
+                  // ),
+                  //
+                  // const SizedBox(height: 14),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

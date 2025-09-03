@@ -31,6 +31,7 @@ import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:xml/xml.dart' as xml;
 
+import 'Reverse_in_Futureproperty.dart';
 import 'Update_realEstate_form.dart';
 
 class Catid {
@@ -339,68 +340,73 @@ class _View_DetailsState extends State<View_Details> {
     return Scaffold(
       // backgroundColor: Colors.black,
       appBar: AppBar(
-        // actions: [
-        //
-        //   PopupMenuButton<String>(
-        //     icon: Icon(Icons.how_to_reg
-        //       ,color: Colors.white,size: 30,),
-        //     onSelected: (value) {
-        //       if (value == 'Book Property') {
-        //         showDialog<bool>(
-        //           context: context,
-        //           builder: (context) => AlertDialog(
-        //             title: Text('Book Property'),
-        //             content: Text('Do you really want to book this property?'),
-        //             shape: RoundedRectangleBorder(
-        //               borderRadius: BorderRadius.circular(12),
-        //             ),
-        //             backgroundColor: Theme.of(context).dialogBackgroundColor,
-        //             titleTextStyle: TextStyle(
-        //               color: Theme.of(context).textTheme.titleLarge?.color,
-        //               fontSize: MediaQuery.of(context).size.width * 0.05,
-        //               fontWeight: FontWeight.bold,
-        //             ),
-        //             contentTextStyle: TextStyle(
-        //               color: Theme.of(context).textTheme.bodyMedium?.color,
-        //             ),
-        //             actions: [
-        //               TextButton(
-        //                 onPressed: () => Navigator.pop(context, false),
-        //                 child: Text(
-        //                   'CANCEL',
-        //                   style: TextStyle(
-        //                     color: Theme.of(context).colorScheme.error,
-        //                   ),
-        //                 ),
-        //               ),
-        //               ElevatedButton(
-        //                 style: ElevatedButton.styleFrom(
-        //                   backgroundColor: Theme.of(context).colorScheme.tertiary,
-        //                 ),
-        //                 onPressed: () async {
-        //                   await Book_property();
-        //                   Navigator.pop(context, true);
-        //                 },
-        //                 child: Text(
-        //                   'CONFIRM',
-        //                   style: TextStyle(
-        //                     color: Theme.of(context).colorScheme.onTertiary,
-        //                   ),
-        //                 ),
-        //               ),
-        //             ],
-        //           ),
-        //         );
-        //       }
-        //     },
-        //     itemBuilder: (context) => [
-        //       PopupMenuItem(
-        //         value: 'Book Property',
-        //         child: Text('Book Property'),
-        //       ),
-        //     ],
-        //   ),
-        // ],
+        actions: [
+          IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context){
+              return ReverseInFutureProperty(id: widget.id,);
+            }));
+          }, icon: Icon(Icons.menu))
+
+          // PopupMenuButton<String>(
+          //   icon: Icon(Icons.how_to_reg
+          //     ,color: Colors.white,size: 30,),
+          //   onSelected: (value) {
+          //     if (value == 'Book Property') {
+          //       showDialog<bool>(
+          //         context: context,
+          //         builder: (context) => AlertDialog(
+          //           title: Text('Book Property'),
+          //           content: Text('Do you really want to book this property?'),
+          //           shape: RoundedRectangleBorder(
+          //             borderRadius: BorderRadius.circular(12),
+          //           ),
+          //           backgroundColor: Theme.of(context).dialogBackgroundColor,
+          //           titleTextStyle: TextStyle(
+          //             color: Theme.of(context).textTheme.titleLarge?.color,
+          //             fontSize: MediaQuery.of(context).size.width * 0.05,
+          //             fontWeight: FontWeight.bold,
+          //           ),
+          //           contentTextStyle: TextStyle(
+          //             color: Theme.of(context).textTheme.bodyMedium?.color,
+          //           ),
+          //           actions: [
+          //             TextButton(
+          //               onPressed: () => Navigator.pop(context, false),
+          //               child: Text(
+          //                 'CANCEL',
+          //                 style: TextStyle(
+          //                   color: Theme.of(context).colorScheme.error,
+          //                 ),
+          //               ),
+          //             ),
+          //             ElevatedButton(
+          //               style: ElevatedButton.styleFrom(
+          //                 backgroundColor: Theme.of(context).colorScheme.tertiary,
+          //               ),
+          //               onPressed: () async {
+          //                 await Book_property();
+          //                 Navigator.pop(context, true);
+          //               },
+          //               child: Text(
+          //                 'CONFIRM',
+          //                 style: TextStyle(
+          //                   color: Theme.of(context).colorScheme.onTertiary,
+          //                 ),
+          //               ),
+          //             ),
+          //           ],
+          //         ),
+          //       );
+          //     }
+          //   },
+          //   itemBuilder: (context) => [
+          //     PopupMenuItem(
+          //       value: 'Book Property',
+          //       child: Text('Book Property'),
+          //     ),
+          //   ],
+          // ),
+        ],
         centerTitle: true,
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,
@@ -571,7 +577,6 @@ class _View_DetailsState extends State<View_Details> {
 
                             ],
                           ),
-
                           SizedBox(height: 10
                           ),
                           // Property Title and Basic Info
@@ -590,6 +595,13 @@ class _View_DetailsState extends State<View_Details> {
                                       fontFamily: "PoppinsBold",
                                     ),
                                   ),
+                              // Text(
+                              //   '${property.videoLink ?? ""}',
+                              //   style: theme.textTheme.headlineSmall?.copyWith(
+                              //         fontWeight: FontWeight.bold,
+                              //         fontFamily: "PoppinsBold",
+                              //       ),
+                              //     ),
                                 ],
                               ),
 

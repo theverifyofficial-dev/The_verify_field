@@ -248,6 +248,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final TextEditingController _Google_Location = TextEditingController();
   final TextEditingController furnitureController = TextEditingController();
   String? apiApartmentName;
+  final TextEditingController _videoLinkController = TextEditingController();
 
   String? _parking, _houseMeter;
   String full_address = '';
@@ -439,6 +440,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _loan = data.loan;
         _registryAndGpa = data.registryAndGpa;
         _propertyTypeController.text = data.typeofProperty;
+        _videoLinkController.text = data.videoLink;
         _bhkController.text = data.bhk;
         _floorController.text = data.floor;
         _balconyController.text = data.balcony;
@@ -2554,6 +2556,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       context, "Care Taker Number"),
                 ),
                 const SizedBox(height: 16),
+                TextFormField(
+                  controller: _videoLinkController,
+                  // keyboardType: TextInputType.name,
+                  decoration: _buildInputDecoration(
+                      context, "Video Link"),
+                ),
+                const SizedBox(height: 16),
+
                 Row(
                   children: [
                     ElevatedButton(
@@ -3066,6 +3076,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Kitchen': _kitchenType,
       'Bathroom': _bathroom,
       'Lift': _lift,
+      'video_link': _videoLinkController.text,
       'Facility': _facilityController.text,
       'Field Worker Name': prefs.getString('name'),
       'Field Worker Number': prefs.getString('number'),
@@ -3136,6 +3147,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       request.fields['field_workar_number'] = prefs.getString('number') ?? '';
       request.fields['care_taker_name'] = _careTakerNameController.text;
       request.fields['care_taker_number'] = _careTakerNumberController.text;
+      request.fields['video_link'] = _videoLinkController.text;
+      print("Video link field value: '${_videoLinkController.text}'");
       request.fields['registry_and_gpa'] = _registryAndGpa ?? '';
       request.fields['loan'] = _loan ?? '';
       request.fields['field_worker_current_location'] = _Google_Location.text ?? '';

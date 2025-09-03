@@ -89,6 +89,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
   final TextEditingController _fieldWorkerNameController = TextEditingController();
   final TextEditingController _fieldWorkerNumberController = TextEditingController();
   final TextEditingController _careTakerNameController = TextEditingController();
+  final TextEditingController _videoLinkController = TextEditingController();
   final TextEditingController _careTakerNumberController = TextEditingController();
   late TextEditingController _someController;
   final TextEditingController _Google_Location = TextEditingController();
@@ -2058,7 +2059,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                       context, "Care Taker Name"),
                 ),
                 const SizedBox(height: 16),
-
                 TextFormField(
                   controller: _careTakerNumberController,
                   keyboardType: TextInputType.phone,
@@ -2069,6 +2069,16 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                   ],
 
                 ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  controller: _videoLinkController,
+                  // keyboardType: TextInputType.name,
+                  decoration: _buildInputDecoration(
+                      context, "Video Link"),
+                ),
+
+
 
                 const SizedBox(height: 16),
                 Row(
@@ -2719,7 +2729,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_main_realestate_propperty.php");
       var request = http.MultipartRequest('POST', uri);
 
-      // Add all fields
       request.fields['locations'] = _location ?? '';
       request.fields['Flat_number'] = _flatNumberController.text;
       request.fields['Buy_Rent'] = _buyOrRent ?? '';
@@ -2749,6 +2758,8 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       request.fields['meter'] = (_houseMeter == "Custom" ? _houseMeterController.text : (_houseMeter ?? ''));
       request.fields['owner_name'] = _ownerNameController.text;
       request.fields['owner_number'] = _ownerNumberController.text;
+      request.fields['video_link'] = _videoLinkController.text;
+      print("Video link field value: '${_videoLinkController.text}'");
       request.fields['current_dates'] = DateFormat('yyyy-MM-dd').format(DateTime.now());
       request.fields['available_date'] = _flatAvailableDate?.toIso8601String() ?? '';
       request.fields['kitchen'] = _kitchenType ?? '';

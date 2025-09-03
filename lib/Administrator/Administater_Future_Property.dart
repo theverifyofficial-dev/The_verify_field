@@ -503,7 +503,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                                   if (property.totalFloor !=
                                                       null)
                                                     _buildChip(
-                                                        "Floor: ${property
+                                                        "Total: ${property
                                                             .totalFloor!}",
                                                         orangeColor!,
                                                         isDarkMode),
@@ -850,7 +850,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                                   if (property.typeOfProperty != null)
                                                     _buildChip(property.typeOfProperty!, greenColor!, isDarkMode),
                                                   if (property.totalFloor != null)
-                                                    _buildChip("Floor: ${property.totalFloor!}", orangeColor!, isDarkMode),
+                                                    _buildChip("Total: ${property.totalFloor!}", orangeColor!, isDarkMode),
                                                   if (property.buyRent != null)
                                                     _buildChip(property.buyRent!, blueColor!, isDarkMode),
                                                 ],
@@ -1161,7 +1161,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                                   if (property.typeOfProperty != null)
                                                     _buildChip(property.typeOfProperty!, greenColor!, isDarkMode),
                                                   if (property.totalFloor != null)
-                                                    _buildChip("Floor: ${property.totalFloor!}", orangeColor!, isDarkMode),
+                                                    _buildChip("Total: ${property.totalFloor!}", orangeColor!, isDarkMode),
                                                   if (property.buyRent != null)
                                                     _buildChip(property.buyRent!, blueColor!, isDarkMode),
                                                 ],
@@ -1169,7 +1169,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
 
                                               const SizedBox(height: 12),
 
-                                              // ---------- Owner Info ----------
                                               Text(
                                                 "Owner Information",
                                                 style: TextStyle(

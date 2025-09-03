@@ -478,8 +478,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
                   final displayIndex = _filteredProperties.length - index; // ✅ reverse order
-                  String statusText = "Loading...";
                   Color statusColor = Colors.grey;
+                  String loggValue = "Loading...";
                   return FutureBuilder<http.Response>(
                     future: http.get(Uri.parse(
                         "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${property.id}")),
@@ -488,21 +488,23 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                         try {
                           final body = jsonDecode(snapshot.data!.body);
                           if (body is List && body.isNotEmpty) {
-                            if (body[0]['logg'] == 0) {
-                              statusText = "UnLive";
-                              statusColor = Colors.red;
-                            } else {
-                              statusText = "Live";
-                              statusColor = Colors.green;
-                            }
+                            final logg = body[0]['logg'];
+                            loggValue = logg.toString();
+                            statusColor = (logg == 0) ? Colors.red : Colors.green;
                           }
-                        } catch (_) {}
+                        } catch (_) {
+                          loggValue = "Error";
+                          statusColor = Colors.grey;
+                        }
+                      } else if (snapshot.hasError) {
+                        loggValue = "Error";
+                        statusColor = Colors.grey;
                       }
                       return
                         PropertyCard(
                         displayIndex: displayIndex,   // ✅ pass here
                         property: property,
-                        statusText: statusText,     // ✅ pass status text
+                        statusText: loggValue,     // ✅ pass status text
                         statusColor: statusColor,
                         onTap: () {
                           Navigator.push(

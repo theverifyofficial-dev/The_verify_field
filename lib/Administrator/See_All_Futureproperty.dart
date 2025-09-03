@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../ui_decoration_tools/constant.dart';
+import 'Future_Property_Details.dart';
 
 class Catid {
   final int id;
@@ -176,7 +177,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
           } else if (snapshot.data == null || snapshot.data!.isEmpty) {
             return const Center(
               child: Text(
-                "No Data Found!",
+                "No Building Found!",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
@@ -200,6 +201,16 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                     //         Future_Property_details(idd: item.id.toString()),
                     //   ),
                     // );
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            Administater_Future_Property_details(
+                               idd: item.id.toString() ?? '',
+                            ),
+                      ),
+                    );
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(10),

@@ -6,14 +6,10 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../ui_decoration_tools/constant.dart';
 import '../../../model/realestateSlider.dart';
 import '../../property_preview.dart';
-import '../Future_Property.dart';
-import 'Edit_flat.dart';
-import 'add_image_under_futureproperty.dart';
-import 'add_tenant_infutureproperty.dart';
+
 
 class Property {
   final int pId;
@@ -298,16 +294,16 @@ class Catid1 {
   }
 }
 
-class underflat_futureproperty extends StatefulWidget {
+class Admin_underflat_futureproperty extends StatefulWidget {
   String id;
   String Subid;
-  underflat_futureproperty({super.key, required this.id,required this.Subid});
+  Admin_underflat_futureproperty({super.key, required this.id,required this.Subid});
 
   @override
-  State<underflat_futureproperty> createState() => _underflat_futurepropertyState();
+  State<Admin_underflat_futureproperty> createState() => Admin_underflat_futurepropertyState();
 }
 
-class _underflat_futurepropertyState extends State<underflat_futureproperty> {
+class Admin_underflat_futurepropertyState extends State<Admin_underflat_futureproperty> {
 
   Future<List<RealEstateSlider1>> fetchCarouselData() async {
     final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
@@ -324,26 +320,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       throw Exception('Failed to load data');
     }
   }
-  Future<void> _handleMenuItemClick(String value) async {
-    // Handle the menu item click
-    print("You clicked: $value");
-    if(value.toString() == 'Edit Flat'){
-
-      fetchData();
-      final Result = await fetchData();
-      Navigator.push(context, MaterialPageRoute(builder: (context)
-      => EditFlat(id: widget.id,)
-      ));
-      print(widget.id);
-    }
-    if(value.toString() == 'Add Flat Images'){
-      print(widget.Subid);
-      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Futureproipoerty_FileUploadPage(idd: '${widget.id}',)));
-
-    }
-    print(widget.id);
-
-  }
   Property?property;
   Future<List<Property>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
@@ -356,41 +332,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       throw Exception('Unexpected error occured!');
     }
   }
-// Step 1: Copy property to Real-Estate
-  int tapCount = 0;
 
-  Future<http.Response> copyToRealEstate(int propertyId) async {
-    final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php');
-    try {
-      final response = await http.post(uri, body: {
-        'action': 'copy',
-        'P_id': propertyId.toString(), // widget.id
-      });
-      return response;
-    } catch (e) {
-      throw Exception('Error copying property: $e');
-    }
-  }
-
-// Step 2: Book or Unbook property (delete action)
-  Future<http.Response> deleteProperty({required int id, required bool isBook}) async {
-    final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php');
-    try {
-      final response = await http.post(uri, body: {
-        'action': 'delete',
-        'subid': isBook ? id.toString() : id.toString(), // Book = Subid, Unbook = Id
-      });
-      return response;
-    } catch (e) {
-      throw Exception('Error deleting property: $e');
-    }
-  }
-
-
-// In your StatefulWidget
-  bool movedToRealEstate = false;
 
   Future<List<Catid1>> fetchData1() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_tenant_in_future_property?sub_id=${widget.id}");
@@ -405,31 +347,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     }
   }
 
-  Future<void> Book_property() async {
-    final url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php');
-
-    try {
-      final response = await http.post(
-        url,
-        body: {
-          'P_id': widget.id.toString(),
-          'looking': 'FLat',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        print(response.body);
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => FrontPage_FutureProperty()),
-              (route) => route.isFirst,
-        );
-      } else {
-        print('Failed Registration');
-      }
-    } catch (e) {
-      print('Error: $e');
-    }
-  }
 
 
   Future<void> _loadAllData() async {
@@ -448,26 +365,17 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   @override
   void initState() {
     super.initState();
-    _loadLastTapCount();
 
     _loadAllData();
   }
 
-  Future<void> _loadLastTapCount() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      tapCount = prefs.getInt('lastTapCount') ?? 0;
-    });
-  }
-
-  Future<void> _saveLastTapCount() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('lastTapCount', tapCount);
-  }
 
   late Future<List<RealEstateSlider1>> _sliderFuture;
   late Future<List<Property>> _propertyFuture;
   late Future<List<Catid1>> _catidFuture;
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -493,19 +401,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
             ],
           ),
         ),
-        actions:  [
-          PopupMenuButton<String>(
-            onSelected: _handleMenuItemClick,
-            itemBuilder: (BuildContext context) {
-              return {'Edit Flat','Add Flat Images',}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
-        ],
       ),
 
       body: RefreshIndicator(
@@ -736,8 +631,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                         ),
                                                         child: Row(
                                                           children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
                                                             Text(""+abc.data![len].floor/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                               style: TextStyle(
                                                                   fontSize: 13,
@@ -2006,130 +1899,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                     }
                 ),
               ],
-            ),
-
-          ),
-        ),
-      ),
-
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                style: const ButtonStyle(
-                  padding: MaterialStatePropertyAll(EdgeInsets.symmetric(vertical: 10,horizontal: 10)),
-
-                ),
-                onPressed: () {
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => AddTenantUnderFutureProperty(id: '${widget.id}',subId: '${widget.Subid}',)));
-                },
-                child:  Row(
-                  children: [
-                    const Icon(Icons.add_circle,color: Colors.white,),
-                    const SizedBox(width: 5,),
-                    Text("Add Tenant",style: const TextStyle(fontSize: 15,color: Colors.white),),
-                  ],
-                ),),
-            ],
-          ),
-          const SizedBox(height: 30,)
-        ],
-      ),
-
-
-// In bottomNavigationBar
-
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(12),
-        height: 80,
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: SizedBox(
-          width: double.infinity,
-          height: 60,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 20),
-            ),
-            onPressed: () async {
-              try {
-                if (tapCount % 2 == 0) {
-                  // Move to Real-Estate
-                  print("Move to RealEstate tapped: ${widget.id}");
-                  final response = await http.post(
-                    Uri.parse(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                    body: {'action': 'copy', 'P_id': widget.id.toString()},
-                  );
-
-                  print("Move API Status Code: ${response.statusCode}");
-                  print("Move API Response Body: ${response.body}");
-
-                  if (response.statusCode == 200) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                        Text('Property copied to Real-Estate successfully!',style: TextStyle(color: Colors.white),),
-                        backgroundColor: Colors.green,
-                        duration: const Duration(seconds: 1), // Show for 1 second
-
-                      ),
-                    );
-                  }
-                } else {
-                  // Book
-                  print("Book tapped. Sending Subid: ${widget.Subid}");
-                  final response = await http.post(
-                    Uri.parse(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                    body: {'action': 'delete', 'subid': widget.Subid.toString()},
-                  );
-
-                  print("Book API Status Code: ${response.statusCode}");
-                  print("Book API Response Body: ${response.body}");
-
-                  if (response.statusCode == 200) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Property booked successfully!',style: TextStyle(color: Colors.white),),
-                        backgroundColor: Colors.blue,
-                        duration: const Duration(seconds: 1), // Show for 1 second
-
-                      ),
-                    );
-                  }
-                }
-
-                setState(() {
-                  tapCount++; // Increment to toggle next action
-                });
-
-                await _saveLastTapCount(); // Save last tap
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: Text(
-              tapCount % 2 == 0 ? 'Live to RealEstate' : 'UnLive',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
             ),
           ),
         ),

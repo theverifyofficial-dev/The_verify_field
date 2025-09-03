@@ -390,12 +390,12 @@ class _Home_ScreenState extends State<Home_Screen> {
                     },
                     {
                       "image": AppImages.agreement,
-                      "title": "Rent Agreement",
+                      "title": "Rent\n Agreement",
                       "onTap": _AgreementURL,
                     },
                     {
                       "image": AppImages.agreement_details,
-                      "title": "Agreement Details",
+                      "title": "Agreement\n Details",
                       "onTap": () => Navigator.push(
                           context,
                           MaterialPageRoute(

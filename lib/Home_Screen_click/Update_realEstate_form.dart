@@ -2862,16 +2862,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   }
 
 
-  Widget _buildReadOnlyField({
+  Widget _buildReadOnlyField(
+      {
     required String label,
     required TextEditingController controller,
     required VoidCallback onTap,
     String? Function(String?)? validator,
   }) {
-    final isDark = Theme
-        .of(context)
-        .brightness == Brightness.dark;
-
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: AbsorbPointer(
@@ -3076,7 +3074,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Kitchen': _kitchenType,
       'Bathroom': _bathroom,
       'Lift': _lift,
-      'video_link': _videoLinkController.text,
       'Facility': _facilityController.text,
       'Field Worker Name': prefs.getString('name'),
       'Field Worker Number': prefs.getString('number'),
@@ -3153,7 +3150,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       request.fields['loan'] = _loan ?? '';
       request.fields['field_worker_current_location'] = _Google_Location.text ?? '';
 
-      // ✅ Furnishing + Furniture
       String _furnishingForBackend(String? val) {
         switch (val) {
           case 'Semi Furnished':  return 'Semi Furnished';

@@ -338,14 +338,13 @@ class _View_DetailsState extends State<View_Details> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.black,
       appBar: AppBar(
         actions: [
           IconButton(onPressed: (){
             Navigator.push(context, MaterialPageRoute(builder: (context){
               return ReverseInFutureProperty(id: widget.id,);
             }));
-          }, icon: Icon(Icons.menu))
+          }, icon: Icon(Icons.menu,color: Colors.white,))
 
           // PopupMenuButton<String>(
           //   icon: Icon(Icons.how_to_reg

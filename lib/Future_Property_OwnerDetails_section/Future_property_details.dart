@@ -674,6 +674,10 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       );
                     }).toList();
                   },
+                  icon: Icon(
+                    Icons.more_vert,
+                    color: Colors.white, // ✅ makes the icon white
+                  ),
                 ),
               ],
             ),

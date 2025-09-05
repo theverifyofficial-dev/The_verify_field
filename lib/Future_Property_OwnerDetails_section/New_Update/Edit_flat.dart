@@ -614,7 +614,8 @@ class EditFlatState extends State<EditFlat> {
   final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
   final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
 
-  final List<String> _balcony_items = ['Front Side', 'Back Side', 'Side', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony','',];
+  final List<String> _balcony_items = ['Front Side Balcony', 'Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',''];
+
 
   final List<String> _Parking_items = ['Car','Bike','Both',''];
 
@@ -856,7 +857,8 @@ class EditFlatState extends State<EditFlat> {
                           items: furnishingOptions.map((option) {
                             return DropdownMenuItem(
                               value: option,
-                              child: Text(option),
+                              child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                              ),
                             );
                           }).toList(),
                           onChanged: (val) {
@@ -884,11 +886,12 @@ class EditFlatState extends State<EditFlat> {
                                 TextFormField(
                                   decoration: InputDecoration(
                                     labelText: "Select Furniture Items",
+                                    labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     filled: true, // ✅ enable background color
-                                    fillColor: Colors.grey.shade800,
+                                    fillColor: Theme.of(context).brightness==Brightness.dark?Colors.grey.shade800:Colors.white,
                                     contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   ),
                                   controller: TextEditingController(
@@ -1010,19 +1013,18 @@ class EditFlatState extends State<EditFlat> {
 
                       TextFormField(
                         controller: _showPrice,
+                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           labelText:"Show Price (₹)",
+                          floatingLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
 
                           suffix: _formattedPrice.isNotEmpty
                               ? Padding(
                             padding: EdgeInsets.only(right: 8),
                             child: Text(
                               _formattedPrice,
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                             ),
                           )
                               : null,
@@ -1069,16 +1071,14 @@ class EditFlatState extends State<EditFlat> {
                       TextFormField(
                         controller: _lastPrice,
                         keyboardType: TextInputType.number,
+                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                         decoration: _buildInputDecoration(
                           context,
                           "Last Price (₹) by owner",
                         ).copyWith(
                           suffix: Text(
                             _formattedLastPrice,
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                           ),
                         ),
                       ),
@@ -1086,6 +1086,7 @@ class EditFlatState extends State<EditFlat> {
                       TextFormField(
                         controller: _askingPrice,
                         keyboardType: TextInputType.number,
+                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                         decoration: _buildInputDecoration(
                           context,
                           "Asking Price (₹) by owner",
@@ -1094,10 +1095,7 @@ class EditFlatState extends State<EditFlat> {
                             padding: const EdgeInsets.only(right: 8.0),
                             child: Text(
                               _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                             ),
                           ),
                         ),
@@ -1135,13 +1133,7 @@ class EditFlatState extends State<EditFlat> {
                                   controller: _customMaintenanceController, // ✅ attach controller
                                   decoration: InputDecoration(
                                     labelText: "Enter Maintenance Fee",
-                                    labelStyle: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 13,
-                                      color: Theme.of(context).brightness == Brightness.dark
-                                          ? Colors.grey.shade300
-                                          : Colors.black54,
-                                    ),
+                                    labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
                                       borderSide: BorderSide(
@@ -1339,6 +1331,7 @@ class EditFlatState extends State<EditFlat> {
 
       child: DropdownButtonFormField<String>(
         value: selectedValue,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         validator: validator,
         // dropdownColor: Colors.blue,
         decoration: InputDecoration(
@@ -1372,7 +1365,6 @@ class EditFlatState extends State<EditFlat> {
             ),
           ),
         ),
-        style: const TextStyle(),
         icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
         onChanged: onChanged,
         items: items
@@ -1428,13 +1420,13 @@ class EditFlatState extends State<EditFlat> {
             ),
           ),
         ),
-        style: const TextStyle(),
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
         onChanged: onChanged,
         items: items
             .map((item) => DropdownMenuItem<String>(
           value: item,
-          child: Text(item, style:  TextStyle(fontSize: 12)),
+          child: Text(item, style:  TextStyle(fontSize: 10)),
         ))
             .toList(),
       ),
@@ -1530,11 +1522,7 @@ class EditFlatState extends State<EditFlat> {
         .brightness == Brightness.dark;
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 15,
-        // color: isDark ? Colors.grey.shade300 : Colors.black54,
-      ),
+      labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         // borderSide: BorderSide(
@@ -1594,8 +1582,11 @@ class EditFlatState extends State<EditFlat> {
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         decoration: InputDecoration(
           hintText: 'Enter $label',
+          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -1623,10 +1614,10 @@ class EditFlatState extends State<EditFlat> {
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,  // set keyboard type here
-        style: TextStyle(),
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         decoration: InputDecoration(
           hintText: 'Enter $label',
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -1747,15 +1738,7 @@ class EditFlatState extends State<EditFlat> {
           controller: controller,
           decoration: InputDecoration(
             labelText: label,
-            labelStyle: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-              color: Theme
-                  .of(context)
-                  .brightness == Brightness.dark
-                  ? Colors.grey.shade300
-                  : Colors.black54,
-            ),
+            labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(

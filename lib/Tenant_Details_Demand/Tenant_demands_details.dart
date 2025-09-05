@@ -685,7 +685,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
                                                                     //fetchdata_add_responce('Try to contact on Whatsapp', widget.id, 'Date: $formattedDate Time: $formattedTime');
 
                                                                     String phone = "+91${abc.data![len].V_number}"; // Ensure phone number is in international format without '+'
-                                                                    String message = Uri.encodeComponent("Looking for a ${abc.data![len].bhk} flat purchase in Sultanpur? Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
+                                                                    String message = Uri.encodeComponent("Looking for a ${abc.data![len].bhk} flat for ${abc.data![len].buyrent} in Sultanpur? Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
 
                                                                     String url;
 

@@ -337,6 +337,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       throw Exception('Failed to load data');
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -555,6 +556,47 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                         } catch (_) {}
                       }
 
+                      final Map<String, dynamic> fields = {
+                        "Images": property.propertyPhoto,
+                        "Owner Name": property.ownerName,
+                        "Owner Number": property.ownerNumber,
+                        "Caretaker Name": property.careTakerName,
+                        "Caretaker Number": property.careTakerNumber,
+                        "Place": property.locations,
+                        "Buy/Rent": property.buyRent,
+                        "Property Name/Address": property.apartmentAddress,
+                        "Property Address (Fieldworker)":
+                        property.fieldWorkerAddress,
+                        // "Owner Vehicle Number": property.ownerVehicleNumber,
+                        // "Your Address": property.fieldWorkerCurrentLocation,
+                        "Field Worker Name": property.fieldWorkerName,
+                        "Field Worker Number": property.fieldWorkerNumber,
+                        "Current Date": property.currentDates,
+                        "Longitude": property.longitude,
+                        "Latitude": property.latitude,
+                        "Road Size": property.roadSize,
+                        "Metro Distance": property.metroDistance,
+                        "Metro Name": property.highwayDistance,
+                        "Main Market Distance": property.mainMarketDistance,
+                        "Age of Property": property.ageOfProperty,
+                        "Lift": property.lift,
+                        "Parking": property.parking,
+                        "Total Floor": property.totalFloor,
+                        "Residence/Commercial": property.typeOfProperty,
+                        "Facility": property.facility,
+                      };
+
+                      final missingFields = fields.entries
+                          .where((entry) {
+                        final value = entry.value;
+                        if (value == null) return true;
+                        if (value is String && value.trim().isEmpty) return true;
+                        return false;
+                      })
+                          .map((entry) => entry.key)
+                          .toList();
+
+                      final hasMissingFields = missingFields.isNotEmpty;
                       return Column(
                         children: [
                           GestureDetector(
@@ -684,6 +726,26 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                             _buildFeatureItem(context, Icons.home_work, _filteredProperties[index].typeOfProperty ?? ""),
                                           ],
                                         ),
+
+                                        if (hasMissingFields)
+                                          SizedBox(height: 20,),
+                                        Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.red[50],
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.redAccent, width: 1),
+                                            ),
+                                            child: Text(
+                                              "⚠ Missing fields: ${missingFields.join(", ")}",
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.redAccent,
+                                              ),
+                                            ),
+                                          ),
 
                                       ],
                                     ),

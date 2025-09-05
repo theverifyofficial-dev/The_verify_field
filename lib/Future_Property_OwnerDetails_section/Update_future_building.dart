@@ -833,18 +833,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     return _buildSectionCard(
       title: label,
       child: TextFormField(
-        style: TextStyle(
-          color: Colors.grey.shade600, // 🔥 text color
-        ),
+        style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
         controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: 'Enter $label',
-            hintStyle:  TextStyle(
-              color: Colors.grey.shade600,  // change this to your preferred color
-              fontWeight: FontWeight.w500, // optional boldness
-            ),
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+            hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+
+            prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
@@ -873,10 +869,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        style: const TextStyle(color: Colors.black),
+        style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
         decoration: InputDecoration(
           hintText: 'Enter $label',
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),
+
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -945,6 +942,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       title: label,
       child: DropdownButtonFormField<String>(
         value: selectedValue,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+
         validator: validator,
         autovalidateMode: AutovalidateMode.always, // ✅ show error on load
         dropdownColor: Colors.grey.shade100,
@@ -978,7 +977,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
             ),
           ),
         ),
-        style: const TextStyle(color: Colors.grey),
         icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
         onChanged: onChanged,
         items: items

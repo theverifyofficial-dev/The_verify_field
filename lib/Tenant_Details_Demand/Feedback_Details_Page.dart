@@ -1158,11 +1158,6 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
                                             GestureDetector(
                                               onTap: () async {
 
-                                                /*if (await canLaunchUrl(Uri.parse('${abc.data![len].demand_number}'))) {
-                                                  await launchUrl(Uri.parse('${abc.data![len].demand_number}'));
-                                                  } else {
-                                                  throw 'Could not launch ${abc.data![len].demand_number}';
-                                                  }*/
 
                                                 showDialog<bool>(
                                                   context: context,

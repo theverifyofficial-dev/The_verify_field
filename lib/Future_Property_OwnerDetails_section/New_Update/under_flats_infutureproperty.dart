@@ -506,6 +506,10 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                 );
               }).toList();
             },
+            icon: Icon(
+              Icons.more_vert,
+              color: Colors.white, // ✅ makes the icon white
+            ),
           ),
         ],
       ),
@@ -2033,9 +2037,10 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                 },
                 child:  Row(
                   children: [
-                    const Icon(Icons.add_circle,color: Colors.white,),
+                     Icon(Icons.add_circle,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,),
                     const SizedBox(width: 5,),
-                    Text("Add Tenant",style: const TextStyle(fontSize: 15,color: Colors.white),),
+                    Text("Add Tenant",style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                        ),
                   ],
                 ),),
             ],

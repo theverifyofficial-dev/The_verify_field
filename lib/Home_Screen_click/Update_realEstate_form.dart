@@ -1610,16 +1610,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                         controller: _balconyController,
                         onTap: () =>
                             _showBottomSheet(
-                              options: [
-                                'Front Side',
-                                'Back Side',
-                                'Side',
-                                'Park Facing',
-                                'Road Facing',
-                                'Corner',
-                                'No Balcony',
-                                ''
-                              ],
+                              options: ['Front Side Balcony', 'Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony','',],
                               onSelected: (val) {
                                 setState(() {
                                   _balcony = val;

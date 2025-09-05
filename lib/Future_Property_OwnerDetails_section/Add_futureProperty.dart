@@ -316,7 +316,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Add Building",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
+                  Text("Add Building",style: TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
                 ],
               ),
               SizedBox(height: 5,),
@@ -473,7 +473,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   style:  TextStyle(color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Select Facilities',
-                    hintStyle: const TextStyle(color: Colors.grey),
+                    hintStyle:  TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                     border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
                     filled: true,
 
@@ -783,7 +783,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         // style: const TextStyle(color: Colors.black),
         decoration: InputDecoration(
           hintText: 'Enter $label',
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle:  TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
           filled: true,
@@ -834,6 +834,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       title: label,
       child: TextFormField(
         controller: controller,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         keyboardType: keyboardType,
         decoration: InputDecoration(
           hintText: 'Enter $label',
@@ -864,6 +865,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       title: label,
       child: DropdownButtonFormField<String>(
         value: selectedValue,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
         validator: validator,
         // dropdownColor: Colors.grey.shade100,
         decoration: InputDecoration(
@@ -980,11 +982,11 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Padding(
+               Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
                   "Select Facilities",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                 ),
               ),
               ...widget.options.map((option) {

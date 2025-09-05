@@ -169,9 +169,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       } else {
         filtered = _allProperties.where((item) {
           return (item.id.toString()).toLowerCase().contains(query) ||
-              // (item.images ?? '').toLowerCase().contains(query) ||
               (item.ownerName ?? '').toLowerCase().contains(query) ||
-              // (item.ownerNumber ?? '').toLowerCase().contains(query) ||
               (item.caretakerName ?? '').toLowerCase().contains(query) ||
               // (item.caretakerNumber ?? '').toLowerCase().contains(query) ||
               (item.place ?? '').toLowerCase().contains(query) ||
@@ -407,7 +405,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 
                 const SizedBox(height: 10),
 
-                // Property Count
                 if (propertyCount > 0 && _isSearchActive)
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -658,33 +655,6 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
 
-                // // Status tag (Buy/Rent)
-                // Positioned(
-                //   top: 14,
-                //   right: 14,
-                //   child: Container(
-                //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                //     decoration: BoxDecoration(
-                //       color: statusColor,
-                //       borderRadius: BorderRadius.circular(20),
-                //       boxShadow: [
-                //         BoxShadow(
-                //           color: Colors.black.withOpacity(0.2),
-                //           blurRadius: 6,
-                //           offset: const Offset(2, 2),
-                //         ),
-                //       ],
-                //     ),
-                //     child: Text(
-                //       statusText,
-                //       style: const TextStyle(
-                //         color: Colors.white,
-                //         fontWeight: FontWeight.w600,
-                //         fontSize: 12,
-                //       ),
-                //     ),
-                //   ),
-                // ),
               ],
             ),
 
@@ -694,55 +664,44 @@ class PropertyCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Location
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Wrap(
-                        // alignment: WrapAlignment.spaceBetween, // equal spacing across row
-                        spacing: 6,
-                        runSpacing: 4,
-                        children: [
-                          _buildInfoChip(
-                            context: context,
-                            text: property.place,
-                            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.green.withOpacity(0.2)
-                                : Colors.green.shade50,
-                            textColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.green.shade800,
-                            borderColor: Colors.green,
-                          ),
-                          _buildInfoChip(
-                            context: context,
-
-                            text: property.residenceCommercial,
-                            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.blue.withOpacity(0.2)
-                                : Colors.blue.shade50,
-                            textColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.blue.shade200
-                                : Colors.blue.shade800,
-                            borderColor: Colors.blue,
-                          ),
-                          _buildInfoChip(
-                            context: context,
-
-                            text: property.buyRent,
-                            backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.orange.withOpacity(0.2)
-                                : Colors.orange.shade50,
-                            textColor: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.orange.shade200
-                                : Colors.orange.shade800,
-                            borderColor: Colors.orange,
-                          ),
-                        ],
+                      Flexible(
+                        fit: FlexFit.tight,
+                        child: _buildInfoChip(
+                          context: context,
+                          text: property.place,
+                          backgroundColor: isDark ? Colors.green.withOpacity(0.2) : Colors.green.shade50,
+                          textColor: isDark ? Colors.white : Colors.green.shade800,
+                          borderColor: Colors.green,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        fit: FlexFit.tight,
+                        child: _buildInfoChip(
+                          context: context,
+                          text: property.residenceCommercial,
+                          backgroundColor: isDark ? Colors.blue.withOpacity(0.2) : Colors.blue.shade50,
+                          textColor: isDark ? Colors.blue.shade200 : Colors.blue.shade800,
+                          borderColor: Colors.blue,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Flexible(
+                        fit: FlexFit.tight,
+                        child: _buildInfoChip(
+                          context: context,
+                          text: property.buyRent,
+                          backgroundColor: isDark ? Colors.orange.withOpacity(0.2) : Colors.orange.shade50,
+                          textColor: isDark ? Colors.orange.shade200 : Colors.orange.shade800,
+                          borderColor: Colors.orange,
+                        ),
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 12),
 
                   // Address
@@ -769,46 +728,6 @@ class PropertyCard extends StatelessWidget {
 
                   const SizedBox(height: 12),
 
-                  // Address
-                  // Text(
-                  //   "Main Address",
-                  //   style: TextStyle(
-                  //     fontFamily: "PoppinsBold",
-                  //     fontSize: 14,
-                  //     color: isDark ? Colors.white : Colors.black87,
-                  //   ),
-                  // ),
-                  // const SizedBox(height: 4),
-                  // Text(
-                  //   property.yourAddress,
-                  //   style: TextStyle(
-                  //     fontFamily: "Poppins",
-                  //     fontSize: 13,
-                  //     height: 1.3,
-                  //     color: isDark ? Colors.grey[300] : Colors.grey[700],
-                  //   ),
-                  //   maxLines: 2,
-                  //   overflow: TextOverflow.ellipsis,
-                  // ),
-                  //
-                  // const SizedBox(height: 14),
-
-                  // Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     Text(
-                  //       "🏠 Building No. $displayIndex",
-                  //       style: TextStyle(
-                  //         fontSize: 13,
-                  //         color: isDark ? Colors.white70 : Colors.black87,
-                  //         fontWeight: FontWeight.w500,
-                  //         letterSpacing: 0.3,
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ),
-                  // const SizedBox(height: 10),
-
                   GridView.count(
                     crossAxisCount: 2,
                     shrinkWrap: true,
@@ -817,47 +736,50 @@ class PropertyCard extends StatelessWidget {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     children: [
-                      _buildCompactDetailItem( "🏠 Building No.","$displayIndex",context),
-                      _buildCompactDetailItem( "Add Flat ",statusText,context),
+                      _buildCompactDetailItem( "🏠 Building ID.","${property.id}",context),
+                      _buildCompactDetailItem( "  +  Add Flat ",statusText,context),
                     ],
                   ),
 
                   // const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Added: ${(() {
-                          final s = property.currentDate?.toString() ?? '';
-                          if (s.isEmpty) return '-';
-                          try {
-
-                            final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
-                            return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
-                          } catch (_) {
+                  Container(
+                    margin: EdgeInsets.all(5.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Added: ${(() {
+                            final s = property.currentDate?.toString() ?? '';
+                            if (s.isEmpty) return '-';
                             try {
-                              final dt2 = DateTime.parse(s);
-                              return DateFormat('dd MMM yyyy, hh:mm a').format(dt2);
+                    
+                              final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
+                              return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
                             } catch (_) {
-                              return s;
+                              try {
+                                final dt2 = DateTime.parse(s);
+                                return DateFormat('dd MMM yyyy, hh:mm a').format(dt2);
+                              } catch (_) {
+                                return s;
+                              }
                             }
-                          }
-                        })()}",
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: "Poppins",
+                          })()}",
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: "Poppins",
+                          ),
                         ),
-                      ),
-                      Text(
-                        "ID: ${property.id}",
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: "Poppins",
+                        Text(
+                          "Count No.: $displayIndex",
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: "Poppins",
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                   // const SizedBox(height: 10),
 
@@ -896,12 +818,11 @@ Widget _buildCompactDetailItem(String title, String value,BuildContext context) 
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // more space
     decoration: BoxDecoration(
       color: Theme.of(context).brightness == Brightness.dark
-          ? Colors.white12
-          : Colors.white,
+          ? Colors.white
+          : Colors.black87,
       borderRadius: BorderRadius.circular(6),
     ),
     child: Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           "$title: ",
@@ -909,8 +830,8 @@ Widget _buildCompactDetailItem(String title, String value,BuildContext context) 
             fontSize: 14, // bigger text
             fontWeight: FontWeight.w600,
             color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white
-                : Colors.black,
+                ? Colors.black
+                : Colors.white,
           ),
         ),
         Expanded(
@@ -919,8 +840,8 @@ Widget _buildCompactDetailItem(String title, String value,BuildContext context) 
             style: TextStyle(
               color:
               Theme.of(context).brightness==Brightness.dark?
-              Colors.white:
-              Colors.black,
+              Colors.black:
+              Colors.white,
               // shadows: [
               //   Shadow(
               //     blurRadius: 1,
@@ -949,9 +870,19 @@ Widget _buildInfoChip({
   Color? textColor,
   Color? shadowColor,
 }) {
+  final width = MediaQuery.of(context).size.width;
+
+  // Scale text & padding relative to screen width
+  double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
+  double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
+  double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
+
   return Container(
     alignment: Alignment.center,
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    padding: EdgeInsets.symmetric(
+      horizontal: horizontalPadding,
+      vertical: verticalPadding,
+    ),
     margin: const EdgeInsets.all(6),
     decoration: BoxDecoration(
       color: backgroundColor ?? Colors.transparent,
@@ -965,15 +896,17 @@ Widget _buildInfoChip({
         ),
       ],
     ),
-    child: Text(
-      text,
-      textAlign: TextAlign.center,
-      style: TextStyle(
-        fontSize: 14,
-        fontWeight: FontWeight.bold,
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white
-            : (textColor ?? Colors.black),
+    child: FittedBox( // makes text auto-fit if needed
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : (textColor ?? Colors.black),
+        ),
       ),
     ),
   );

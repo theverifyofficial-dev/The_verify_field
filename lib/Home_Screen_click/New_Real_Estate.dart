@@ -614,147 +614,148 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                               print(_filteredProperties[index].pId??0);
                             },
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                color: Theme.of(context).cardColor,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Theme.of(context).shadowColor.withOpacity(0.2),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+
+                              child: Card(
+                              elevation: 4, // ✅ elevation added
+                              shadowColor:  Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                              shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
                               ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Stack(
-                                    children: [
-                                      Container(
-                                        height: 200,
-                                        width: double.infinity,
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).highlightColor,
-                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                        ),
-                                        child: Image.network(
-                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => Center(
-                                            child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-                                          ),
-                                        ),
-                                      ),
-                                      Positioned(
-                                        top: 12,
-                                        right: 12,
-                                        child: Wrap(
-                                          spacing: 8, // space between the two containers
-                                          children: [
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: Colors.deepOrangeAccent,
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                "${_filteredProperties[index].pId}",
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontFamily: "PoppinsBold",
-                                                ),
-                                              ),
-                                            ),
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                              decoration: BoxDecoration(
-                                                color: _getPropertyTypeColor(_filteredProperties[index].buyRent),
-                                                borderRadius: BorderRadius.circular(20),
-                                              ),
-                                              child: Text(
-                                                _filteredProperties[index].buyRent ?? "Property",
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontFamily: "PoppinsBold",
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    ],
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                              color: Theme.of(context).cardColor,
+                              child:
+                               Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Stack(
                                       children: [
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                                   "₹${_filteredProperties[index].showPrice??"-"
-                                                       ".0"}"
-                                                ,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: 20,
-                                                fontFamily: "PoppinsBold",
-                                                color: Theme.of(context).textTheme.titleLarge?.color,
-                                              ),
-                                            ),
-                                            Text(
-                                              _filteredProperties[index].locations ?? "",
-                                              style: TextStyle(
-                                                fontFamily: "PoppinsBold",
-                                                color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        Wrap(
-                                          spacing: 16, // horizontal spacing between items
-                                          runSpacing: 8, // vertical spacing between lines
-                                          alignment: WrapAlignment.start,
-                                          children: [
-                                            _buildFeatureItem(context, Icons.king_bed, "${_filteredProperties[index].bhk}"),
-                                            _buildFeatureItem(context, Icons.apartment, "${_filteredProperties[index].floor}"),
-                                            _buildFeatureItem(context, Icons.home_work, _filteredProperties[index].typeOfProperty ?? ""),
-                                          ],
-                                        ),
-
-                                        if (hasMissingFields)
-                                          SizedBox(height: 20,),
                                         Container(
-                                            width: double.infinity,
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.red[50],
-                                              borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(color: Colors.redAccent, width: 1),
-                                            ),
-                                            child: Text(
-                                              "⚠ Missing fields: ${missingFields.join(", ")}",
-                                              style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.redAccent,
-                                              ),
+                                          height: 200,
+                                          width: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: Theme.of(context).highlightColor,
+                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                          ),
+                                          child: Image.network(
+                                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => Center(
+                                              child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
                                             ),
                                           ),
-
+                                        ),
+                                        Positioned(
+                                          top: 12,
+                                          right: 12,
+                                          child: Wrap(
+                                            spacing: 8, // space between the two containers
+                                            children: [
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.deepOrangeAccent,
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  "${_filteredProperties[index].pId}",
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontFamily: "PoppinsBold",
+                                                  ),
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: _getPropertyTypeColor(_filteredProperties[index].buyRent),
+                                                  borderRadius: BorderRadius.circular(20),
+                                                ),
+                                                child: Text(
+                                                  _filteredProperties[index].buyRent ?? "Property",
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 12,
+                                                    fontFamily: "PoppinsBold",
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        )
                                       ],
                                     ),
-                                  ),
-                                ],
+                                    Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                     "₹${_filteredProperties[index].showPrice??"-"
+                                                         ".0"}"
+                                                  ,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 20,
+                                                  fontFamily: "PoppinsBold",
+                                                  color: Theme.of(context).textTheme.titleLarge?.color,
+                                                ),
+                                              ),
+                                              Text(
+                                                _filteredProperties[index].locations ?? "",
+                                                style: TextStyle(
+                                                  fontFamily: "PoppinsBold",
+                                                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Wrap(
+                                            spacing: 16, // horizontal spacing between items
+                                            runSpacing: 8, // vertical spacing between lines
+                                            alignment: WrapAlignment.start,
+                                            children: [
+                                              _buildFeatureItem(context, Icons.king_bed, "${_filteredProperties[index].bhk}"),
+                                              _buildFeatureItem(context, Icons.apartment, "${_filteredProperties[index].floor}"),
+                                              _buildFeatureItem(context, Icons.home_work, _filteredProperties[index].typeOfProperty ?? ""),
+                                            ],
+                                          ),
+
+                                          if (hasMissingFields)
+                                            SizedBox(height: 20,),
+                                          Container(
+                                              width: double.infinity,
+                                              padding: const EdgeInsets.all(10),
+                                              decoration: BoxDecoration(
+                                                color: Colors.red[50],
+                                                borderRadius: BorderRadius.circular(10),
+                                                border: Border.all(color: Colors.redAccent, width: 1),
+                                              ),
+                                              child: Text(
+                                                "⚠ Missing fields: ${missingFields.join(", ")}",
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.redAccent,
+                                                ),
+                                              ),
+                                            ),
+
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ],
+                      ]
                       );
                     },
                   );

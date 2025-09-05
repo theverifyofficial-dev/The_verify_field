@@ -199,7 +199,9 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("Total_floor", _totalFloor.toString()),
       MapEntry("squarefit", _sqft.text),
       MapEntry("maintance", (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance) ?? ''),
-      MapEntry("Apartment_name", _ApartmentName.text.trim()),
+      MapEntry("Apartment_name", (_furnished == 'Semi Furnished' || _furnished == 'Fully Furnished')
+          ? (_selectedFurniture.entries.map((e) => '${e.key}(${e.value})').join(', '))
+          : (_furnished ?? ''),),
       MapEntry("Apartment_Address", _Apartment_Address.text),
       MapEntry("fieldworkar_address", field_address.text),
       MapEntry("field_worker_current_location", _Google_Location.text),
@@ -212,15 +214,10 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("Latitude", _Latitude.text),
       MapEntry("kitchen", kitchen.toString()),
       MapEntry("bathroom", bathroom.toString()),
-      MapEntry("live_unlive", "Flat"), // <-- Static value sent to API
+      MapEntry("live_unlive", "Flat"),
       MapEntry("lift", _lift.toString()),
       MapEntry("Facility", _facilityController.text),
-      MapEntry(
-        "furnished_unfurnished",
-        (_furnished == 'Semi Furnished' || _furnished == 'Fully Furnished')
-            ? (_selectedFurniture.entries.map((e) => '${e.key}(${e.value})').join(', '))
-            : (_furnished ?? ''),
-      ),
+      MapEntry("furnished_unfurnished", _furnished.toString()),
       MapEntry("registry_and_gpa", _registry.toString()),
       MapEntry("loan", _loan.toString()),
       MapEntry("show_Price", _showPrice.text.replaceAll(',', '').trim()),

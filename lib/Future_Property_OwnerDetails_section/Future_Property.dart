@@ -626,7 +626,9 @@ class PropertyCard extends StatelessWidget {
         ),
       ),
       elevation: 5,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black,
       child: InkWell(
         borderRadius: BorderRadius.circular(20),
         onTap: onTap,

@@ -58,6 +58,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
   String _buyDetail = 'registry_and_gpa';
   String? _registryAndGpa;
   String? _customParkingCount;
+  bool _isButtonDisabled = false;
 
   late TextEditingController _locationController;
   late TextEditingController _propertyTypeController;
@@ -2434,7 +2435,19 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _checkFormAndSubmit,
+                    onPressed: (_isSubmitting || _isButtonDisabled) ? null : () {
+                      _checkFormAndSubmit();
+                      setState(() {
+                        _isButtonDisabled = true; // disable after click
+                      });
+                      Future.delayed(const Duration(seconds: 5), () {
+                        if (mounted) {
+                          setState(() {
+                            _isButtonDisabled = false; // enable again after 5 sec
+                          });
+                        }
+                      });
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(

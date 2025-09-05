@@ -324,6 +324,25 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       return value.toString();
     }
   }
+  DateTime? _lastContinuePressTime;
+
+  void _checkAndSubmitContinue() {
+    final now = DateTime.now();
+
+    if (_lastContinuePressTime != null &&
+        now.difference(_lastContinuePressTime!).inSeconds < 5) {
+      Fluttertoast.showToast(
+        msg: "Please wait 5 seconds before trying again",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+      return;
+    }
+
+    _lastContinuePressTime = now;
+    _submitForm();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -2770,7 +2789,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _submitForm,
+                    onPressed: _isSubmitting ? null : _checkAndSubmitContinue,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -2778,7 +2797,16 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       ),
                       backgroundColor: Colors.blueAccent,
                     ),
-                    child: const Text(
+                    child: _isSubmitting
+                        ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                        : const Text(
                       "Continue",
                       style: TextStyle(
                         fontSize: 16,

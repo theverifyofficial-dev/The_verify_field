@@ -19,6 +19,7 @@ import 'Update_future_building.dart';
 import 'add_flat_form.dart';
 import 'New_Update/under_flats_infutureproperty.dart';
 
+import 'package:intl/intl.dart';
 
 class FutureProperty2 {
   final int id;
@@ -593,50 +594,3395 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
     return Scaffold(
 
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: _handleMenuItemClick,
-            itemBuilder: (BuildContext context) {
-              return {'Edit Building','Add Building Images',/*'Duplicate Property'*/}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   surfaceTintColor: Colors.black,
+      //   centerTitle: true,
+      //   backgroundColor: Colors.black,
+      //   title: Image.asset(AppImages.verify, height: 75),
+      //   leading: InkWell(
+      //     onTap: () {
+      //       Navigator.pop(context);
+      //     },
+      //     child: const Row(
+      //       children: [
+      //         SizedBox(
+      //           width: 3,
+      //         ),
+      //         Icon(
+      //           PhosphorIcons.caret_left_bold,
+      //           color: Colors.white,
+      //           size: 30,
+      //         ),
+      //       ],
+      //     ),
+      //   ),
+      //   actions: [
+      //     PopupMenuButton<String>(
+      //       onSelected: _handleMenuItemClick,
+      //       itemBuilder: (BuildContext context) {
+      //         return {'Edit Building','Add Building Images',/*'Duplicate Property'*/}.map((String choice) {
+      //           return PopupMenuItem<String>(
+      //             value: choice,
+      //             child: Text(choice),
+      //           );
+      //         }).toList();
+      //       },
+      //     ),
+      //   ],
+      // ),
 
       body: RefreshIndicator(
         onRefresh: _refreshAllData,
 
         child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(), // 👈 ensures pull-to-refresh works
+
           slivers: [
+            SliverAppBar(
+              pinned: true,
+              floating: false,
+              backgroundColor: Colors.black,
+              surfaceTintColor: Colors.black,
+              centerTitle: true,
+              title: Image.asset(AppImages.verify, height: 75),
+              leading: InkWell(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                child: const Row(
+                  children: [
+                    SizedBox(width: 3),
+                    Icon(
+                      PhosphorIcons.caret_left_bold,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                PopupMenuButton<String>(
+                  onSelected: _handleMenuItemClick,
+                  itemBuilder: (BuildContext context) {
+                    return {
+                      'Edit Building',
+                      'Add Building Images',
+                    }.map((String choice) {
+                      return PopupMenuItem<String>(
+                        value: choice,
+                        child: Text(choice),
+                      );
+                    }).toList();
+                  },
+                ),
+              ],
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_Ground(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Ground Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        '',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
 
 
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_first(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'First Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        '',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_second(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Second Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                // ElevatedButton(
+                                //   onPressed: () {
+                                //     print('Subid is: ${abc.data![0].subid}');
+                                //   },
+                                //   child: Text('Subid: ${abc.data![0].subid}'),
+                                // ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_third(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Third Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        '',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_four(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Forth Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                              fontSize: 12,
+                                                              fontWeight: FontWeight.w600,
+                                                              fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_five(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Fifth Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        '',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_six(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    ' Sixth Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        '',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Ground>>(
+                    future: fetchData_seven(),
+                    builder: (context, abc) {
+                      if (abc.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (abc.hasError) {
+                        return Center(child: Text('Error: ${abc.error}'));
+                      } else if (!abc.hasData || abc.data!.isEmpty) {
+                        return Center(child: Text(''));
+                      } else {
+                        final data = abc.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    'Seventh  Floor',
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Container(
+                                      margin: EdgeInsets.only(right: 10),
+                                      child: Text(
+                                        '',
+                                        style: TextStyle(
+                                            fontSize: 16,
+                                            color: Colors.black
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 250, // 👈 this controls height
+
+                              child: ListView.builder(
+
+                                // shrinkWrap: true,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  return Container(
+                                    height: 250,
+                                    child: Column(
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () async {
+                                            //  int itemId = abc.data![len].id;
+                                            //int iiid = abc.data![len].PropertyAddress
+                                            /*SharedPreferences prefs = await SharedPreferences.getInstance();
+                                        prefs.setString('id_Document', abc.data![len].id.toString());*/
+                                            Navigator.push(
+                                                context,
+                                                MaterialPageRoute
+                                                  (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
+                                            );
+
+                                          },
+                                          child: Column(
+                                            children: [
+                                              Padding(
+                                                padding: const EdgeInsets.only(top: 20, left: 5, right: 5, bottom: 0),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(10),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.red),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.red.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text("₹ "+abc.data![len].showPrice/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(
+                                                        height: 10,
+                                                      ),
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
+                                                      SizedBox(height: 6,),
+
+                                                      Row(
+                                                        children: [
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.green),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.green.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.cyan),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.cyan.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+                                                          SizedBox(
+                                                            width: 6,
+                                                          ),
+
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.deepPurple),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.deepPurple.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //w SizedBox(width: 10,),
+                                                                Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+
+
+                                                        ],
+                                                      ),
+                                                      SizedBox(height: 10,),
+                                                      Row(
+                                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                                        children: [
+                                                          Text(
+                                                            " ${(() {
+                                                              final s = abc.data![len].currentDate?.toString() ?? '';
+                                                              if (s.isEmpty) return '-';
+                                                              try {
+
+                                                                final dt = DateFormat('yyyy-MM-dd').parse(s);
+                                                                return DateFormat('dd MMM yyyy').format(dt);
+                                                              } catch (_) {
+                                                                try {
+                                                                  final dt2 = DateTime.parse(s);
+                                                                  return DateFormat('dd MMM yyyy').format(dt2);
+                                                                } catch (_) {
+                                                                  return s;
+                                                                }
+                                                              }
+                                                            })()}",
+                                                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                                fontSize: 12,
+                                                                fontWeight: FontWeight.w600,
+                                                                fontFamily: "Poppins",
+                                                                color: Colors.black
+
+                                                            ),
+                                                          ),
+                                                          SizedBox(
+                                                            width: 100,
+                                                          ),
+                                                          Text("ID : "+abc.data![len].id.toString()/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12,
+                                                                  fontWeight: FontWeight.w600,
+                                                                  fontFamily: "Poppins",
+                                                                  color: Colors.black
+                                                              )),
+                                                        ],
+                                                      )
+
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+
+                                            ],
+                                          ),
+                                        ),
+
+
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<FutureProperty2>>(
+                      future: fetchData(),
+                      builder: (context,abc){
+                        if(abc.connectionState == ConnectionState.waiting){
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        else if(abc.hasError){
+                          return Text('${abc.error}');
+                        }
+                        else if (abc.data == null || abc.data!.isEmpty) {
+                          // If the list is empty, show an empty image
+                          return Center(
+                            child: Column(
+                              children: [
+                                // Lottie.asset("assets/images/no data.json",width: 450),
+                                Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
+                              ],
+                            ),
+                          );
+                        }
+                        else{
+
+                          return ListView.builder(
+                              itemCount: 1,
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemBuilder: (BuildContext context,int len){
+                                return GestureDetector(
+                                    onTap: () async {
+
+                                    },
+                                    child: Column(
+                                      // mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        const SizedBox(height: 12),
+
+                                        Card(
+                                          elevation: 1,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Colors.white12
+                                              : Colors.grey.shade200,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(16), // slightly more padding
+                                            child: Column(
+                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                              // crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+
+                                                /// Property Type Tags
+                                                Wrap(
+                                                  spacing: 6,
+                                                  runSpacing: 4,
+                                                  children: [
+                                                    _buildInfoChip(
+                                                      text: abc.data![len].place,
+                                                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.green.withOpacity(0.2)
+                                                          : Colors.green.shade50,
+                                                      textColor: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.white
+                                                          : Colors.green.shade800,
+                                                      borderColor: Colors.green,
+                                                    ),
+                                                    _buildInfoChip(
+                                                      text: abc.data![len].residenceCommercial,
+                                                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.blue.withOpacity(0.2)
+                                                          : Colors.blue.shade50,
+                                                      textColor: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.blue.shade200
+                                                          : Colors.blue.shade800,
+                                                      borderColor: Colors.blue,
+                                                    ),
+                                                    _buildInfoChip(
+                                                      text: abc.data![len].buyRent,
+                                                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.orange.withOpacity(0.2)
+                                                          : Colors.orange.shade50,
+                                                      textColor: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.orange.shade200
+                                                          : Colors.orange.shade800,
+                                                      borderColor: Colors.orange,
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 10), // more gap before divider
+                                                Divider(height: 1, color: Theme.of(context).dividerColor),
+                                                const SizedBox(height: 10),
+
+                                                /// Owner Info
+                                                _buildCompactSection(
+                                                  icon: Icons.person_outline,
+                                                  title: "Owner Info",
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                  children: [
+                                                    _buildCompactChip(
+                                                        icon: Icons.person,
+                                                        text: abc.data![len].ownerName,
+                                                        color: Theme.of(context).brightness == Brightness.dark
+                                                            ? Colors.white
+                                                            : Colors.grey.shade200,
+                                                        borderColor: Colors.deepPurpleAccent,
+                                                        shadowColor: Colors.deepPurpleAccent
+                                                    ),
+                                                    GestureDetector(
+                                                      onTap: () => _showContactDialog(context, abc.data![len].ownerNumber),
+                                                      child: _buildCompactChip(
+                                                          icon: Icons.phone,
+                                                          text: abc.data![len].ownerNumber,
+                                                          color: Theme.of(context).brightness == Brightness.dark
+                                                              ? Colors.white
+                                                              : Colors.grey.shade200,
+                                                          borderColor: Colors.deepPurpleAccent,
+                                                          shadowColor: Colors.deepPurpleAccent
+                                                      ),
+                                                    ),
+
+                                                  ],
+                                                ),
+                                                SizedBox(height: 5,),
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    _buildCompactChip(
+                                                        icon: Icons.directions_car,
+                                                        text: abc.data![len].ownerVehicleNumber,
+                                                        color: Theme.of(context).brightness == Brightness.dark
+                                                            ? Colors.white
+                                                            : Colors.grey.shade200,
+                                                        borderColor: Colors.cyan,
+                                                        shadowColor: Colors.cyan
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 10), // extra space before Caretaker
+
+                                                /// Caretaker
+                                                _buildCompactSection(
+                                                  icon: Icons.support_agent,
+                                                  title: "Caretaker",
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Colors.white
+                                                      : Colors.black,
+                                                  children: [
+                                                    _buildCompactChip(
+                                                      borderColor: Colors.blue,
+                                                      shadowColor: Colors.red,
+                                                      icon: Icons.person,
+                                                      text: abc.data![len].caretakerName,
+                                                      color: Theme.of(context).brightness == Brightness.dark
+                                                          ? Colors.white
+                                                          : Colors.grey.shade200,
+                                                    ),
+                                                    const SizedBox(width: 25),
+                                                    GestureDetector(
+                                                      onTap: () => _showCallDialog(
+                                                        context,
+                                                        abc.data![len].caretakerNumber,
+                                                        "Caretaker",
+                                                      ),
+                                                      child: _buildCompactChip(
+                                                          icon: Icons.phone,
+                                                          text: abc.data![len].caretakerNumber,
+                                                          color: Theme.of(context).brightness == Brightness.dark
+                                                              ? Colors.white
+                                                              : Colors.grey.shade200,
+                                                          borderColor: Colors.blue,
+                                                          shadowColor: Colors.red
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 20), // extra space before Address
+
+                                                /// Address Section
+                                                _buildExpandableSection(
+                                                  icon: Icons.location_on_outlined,
+                                                  title: "Address",
+                                                  color: Colors.blueAccent,
+                                                  content: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      _buildCompactTextRow("Property:", abc.data![len].propertyNameAddress),
+                                                      const SizedBox(height: 6),
+                                                      _buildCompactTextRow("Field:", abc.data![len].propertyAddressForFieldworker),
+                                                    ],
+                                                  ),
+                                                ),
+
+                                                const SizedBox(height: 20), // gap before Details
+
+                                                /// Property Details Grid
+                                                _buildCompactSection(
+                                                  icon: Icons.info_outline,
+                                                  title: "Details",
+                                                  color: Colors.green,
+                                                  children: [
+                                                    GridView.count(
+                                                      crossAxisCount: 2,
+                                                      shrinkWrap: true,
+                                                      physics: const NeverScrollableScrollPhysics(),
+                                                      childAspectRatio: 3.2,
+                                                      crossAxisSpacing: 8,
+                                                      mainAxisSpacing: 8,
+                                                      children: [
+                                                        _buildCompactDetailItem("Floors", abc.data![len].totalFloor),
+                                                        _buildCompactDetailItem("Road Size", abc.data![len].roadSize),
+                                                        _buildCompactDetailItem("Metro", abc.data![len].metroName),
+                                                        _buildCompactDetailItem("Metro Dist", abc.data![len].metroDistance),
+                                                        _buildCompactDetailItem("Market Dist", abc.data![len].mainMarketDistance),
+                                                        _buildCompactDetailItem("Age", abc.data![len].ageOfProperty),
+                                                        _buildCompactDetailItem("Lift", abc.data![len].lift),
+                                                        _buildCompactDetailItem("Parking", abc.data![len].parking),
+                                                      ],
+                                                    ),
+                                                  ],
+                                                ),
+
+                                                const SizedBox(height: 20), // bigger gap before footer
+
+                                                /// Footer
+                                                Row(
+                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      "Added: ${(() {
+                                                        final s = abc.data![len].currentDate?.toString() ?? '';
+                                                        if (s.isEmpty) return '-';
+                                                        try {
+
+                                                          final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
+                                                          return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+                                                        } catch (_) {
+                                                          try {
+                                                            final dt2 = DateTime.parse(s);
+                                                            return DateFormat('dd MMM yyyy, hh:mm a').format(dt2);
+                                                          } catch (_) {
+                                                            return s;
+                                                          }
+                                                        }
+                                                      })()}",
+                                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: "Poppins",
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      "ID: ${abc.data![len].id}",
+                                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: "Poppins",
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                );
+                              });
+                        }
+
+
+                      }
+
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -722,6 +4068,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                 );
                               }).toList(),
                             ),
+                            const SizedBox(height: 20),
+
                           ],
                         );
                       }
@@ -732,3599 +4080,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               ),
             ),
 
-            SliverList(
 
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<FutureProperty2>>(
-                      future: fetchData(),
-                      builder: (context,abc){
-                        if(abc.connectionState == ConnectionState.waiting){
-                          return Center(child: CircularProgressIndicator());
-                        }
-                        else if(abc.hasError){
-                          return Text('${abc.error}');
-                        }
-                        else if (abc.data == null || abc.data!.isEmpty) {
-                          // If the list is empty, show an empty image
-                          return Center(
-                            child: Column(
-                              children: [
-                                // Lottie.asset("assets/images/no data.json",width: 450),
-                                Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                              ],
-                            ),
-                          );
-                        }
-                        else{
-
-                          return ListView.builder(
-                              itemCount: 1,
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemBuilder: (BuildContext context,int len){
-                                return GestureDetector(
-                                  onTap: () async {
-
-                                  },
-                                  child: Column(
-                                    children: [
-                                      const SizedBox(height: 20,),
-                                      Card(
-                                        color: Colors.grey.shade100,
-                                        child: Container(
-                                          padding: EdgeInsets.all(10),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-
-                                            Wrap(
-                                            spacing: 8, // horizontal gap
-                                            runSpacing: 6, // vertical gap (if wraps to next line)
-                                            children: [
-                                              _buildInfoChip( text: abc.data![len].place, borderColor: Colors.green),
-                                              _buildInfoChip( text: abc.data![len].residenceCommercial, borderColor: Colors.green),
-                                              _buildInfoChip( text: abc.data![len].buyRent, borderColor: Colors.green),
-                                              Text(
-                                                "Id : ${abc.data![len].id}",
-                                                style: TextStyle(
-                                                  fontSize: 13,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w500,
-                                                  letterSpacing: 0.5,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                              SizedBox(
-                                                height: 10,
-                                              ),
-
-                                              Row(
-                                                children: [
-                                                  Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                                  SizedBox(width: 2,),
-                                                  Text("Owner Name | Owner Number | Owner Vehicle Number",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    maxLines: 2,
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.w600),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                          Wrap(
-                                            spacing: 8, // horizontal gap
-                                            runSpacing: 6, // vertical gap (when items wrap)
-                                            children: [
-                                              _buildInfoChip( text: abc.data![len].ownerName, borderColor: Colors.red),
-                                              GestureDetector(
-                                                onTap: () {
-                                                  showDialog<bool>(
-                                                    context: context,
-                                                    builder: (context) => AlertDialog(
-                                                      title: Text("Contact ${abc.data![len].ownerNumber}"),
-                                                      content: Text('Do you really want to Contact? ${abc.data![len].ownerNumber}'),
-                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                      actions: [
-                                                        Row(
-                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                          children: [
-                                                            ElevatedButton(
-                                                              onPressed: () async {
-                                                                if (Platform.isAndroid) {
-                                                                  String url = 'whatsapp://send?phone=91${abc.data![len].ownerNumber}&text=Hello';
-                                                                  await launchUrl(Uri.parse(url));
-                                                                } else {
-                                                                  String url = 'https://wa.me/${abc.data![len].ownerNumber}';
-                                                                  await launchUrl(Uri.parse(url));
-                                                                }
-                                                              },
-                                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade800),
-                                                              child: Image.asset(AppImages.whatsaap, height: 40, width: 40),
-                                                            ),
-                                                            ElevatedButton(
-                                                              onPressed: () {
-                                                                FlutterPhoneDirectCaller.callNumber('${abc.data![len].ownerNumber}');
-                                                              },
-                                                              style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade800),
-                                                              child: Image.asset(AppImages.call, height: 40, width: 40),
-                                                            ),
-                                                          ],
-                                                        )
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                                child: _buildInfoChip( text: abc.data![len].ownerNumber, borderColor: Colors.red),
-                                              ),
-                                              _buildInfoChip( text: abc.data![len].ownerVehicleNumber, borderColor: Colors.red),
-                                            ],
-                                          ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                                  SizedBox(width: 2,),
-                                                  Text("Caretaker Name | Caretaker Number",
-                                                    overflow: TextOverflow.ellipsis,
-                                                    maxLines: 2,
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.w600),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
-                                                children: [
-                                                  SizedBox(
-                                                    width: 5,
-                                                  ),
-                                                  _buildInfoChip(
-                                                    text: abc.data![len].caretakerName,
-                                                    borderColor: Colors.purple,
-                                                  ),
-
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-
-                                                  GestureDetector(
-                                                    onTap: (){
-
-                                                      showDialog<bool>(
-                                                        context: context,
-                                                        builder: (context) => AlertDialog(
-                                                          title: Text('Call Property Caretaker'),
-                                                          content: Text('Do you really want to Call Caretaker?'),
-                                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                          actions: <Widget>[
-                                                            ElevatedButton(
-                                                              onPressed: () => Navigator.of(context).pop(false),
-                                                              child: Text('No'),
-                                                            ),
-                                                            ElevatedButton(
-                                                              onPressed: () async {
-                                                                FlutterPhoneDirectCaller.callNumber('${abc.data![len].caretakerNumber}');
-                                                              },
-                                                              child: Text('Yes'),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ) ?? false;
-                                                    },
-                                                    child: _buildInfoChip(
-                                                      text: abc.data![len].caretakerNumber,
-                                                      borderColor: Colors.purple,
-                                                    ),
-                                                  ),
-
-                                                ],
-                                              ),
-
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                                  SizedBox(width: 2,),
-                                                  Text("Property Address For Feild Workers",
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.w600),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  SizedBox(
-                                                    width: 300,
-                                                    child: Text(""+abc.data![len].propertyAddressForFieldworker,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      maxLines: 2,
-                                                      style: TextStyle(
-                                                          fontSize: 10,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w400
-                                                      ),
-                                                    ),
-                                                  ),
-
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                                  SizedBox(width: 2,),
-                                                  Text("Property Address",
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.w600),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  SizedBox(
-                                                    width: 300,
-                                                    child: Text(""+abc.data![len].propertyNameAddress,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      maxLines: 2,
-                                                      style: TextStyle(
-                                                          fontSize: 10,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w400
-                                                      ),
-                                                    ),
-                                                  ),
-
-                                                ],
-                                              ),
-
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                  SizedBox(width: 2,),
-                                                  Text("Additional Information",
-                                                    style: TextStyle(
-                                                        fontSize: 11,
-                                                        color: Colors.black,
-                                                        fontWeight: FontWeight.w600),
-                                                  ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                              Row(
-                                                children: [
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-                                                  SizedBox(
-                                                    width: 300,
-                                                    child: Text("Total Floor : "+abc.data![len].totalFloor,
-                                                      overflow: TextOverflow.ellipsis,
-                                                      maxLines: 4,
-                                                      style: TextStyle(
-                                                          fontSize: 10,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w400
-                                                      ),
-                                                    ),
-                                                  ),
-
-                                                ],
-                                              ),
-
-                                              SizedBox(
-                                                height: 5,
-                                              ),
-                                                Column(
-                                                children: [
-                                //                   Container(
-                                //                     padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                //                     decoration: BoxDecoration(
-                                //                       borderRadius: BorderRadius.circular(5),
-                                //                       border: Border.all(width: 1, color: Colors.blue),
-                                //                       boxShadow: [
-                                //                         BoxShadow(
-                                //                             color: Colors.blue.withOpacity(0.5),
-                                //                             blurRadius: 10,
-                                //                             offset: Offset(0, 0),
-                                //                             blurStyle: BlurStyle.outer
-                                //                         ),
-                                //                       ],
-                                //                     ),
-                                //                     child: Row(
-                                //                       children: [
-                                //                         // Icon(Iconsax.sort_copy,size: 15,),
-                                //                         //SizedBox(width: 10,),
-                                //                         Expanded(
-                                //                           child: Text(""+abc.data![len].facility/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                //                             style: TextStyle(
-                                //                                 fontSize: 13,
-                                //                                 color: Colors.black,
-                                //                                 fontWeight: FontWeight.w500,
-                                //                                 letterSpacing: 0.5
-                                //                             ),
-                                //                             overflow: TextOverflow.ellipsis,
-                                //                             maxLines: 2,
-                                //                           ),
-                                //                         ),
-                                //                       ],
-                                //                     ),
-                                //                   ),
-                                //
-                                //                   SizedBox(
-                                //                     height: 10,
-                                //                   ),
-                                //
-                                //                   Container(
-                                //                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                                //                   decoration: BoxDecoration(
-                                //                   borderRadius: BorderRadius.circular(5),
-                                //                   border: Border.all(width: 1, color: Colors.blue),
-                                //                   boxShadow: [
-                                //                   BoxShadow(
-                                //                   color: Colors.blue.withOpacity(0.5),
-                                //                   blurRadius: 10,
-                                //                   offset: const Offset(0, 0),
-                                //                   blurStyle: BlurStyle.outer,
-                                //                   ),
-                                //                   ],
-                                //                   ),
-                                //                   child: Text(
-                                //                   abc.data![len].propertyNameAddress,
-                                // style: const TextStyle(
-                                // fontSize: 13,
-                                // color: Colors.black,
-                                // fontWeight: FontWeight.w500,
-                                // letterSpacing: 0.5,
-                                // ),
-                                // ),
-                                // ),
-                                //                   Container(
-                                //                     padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                //                     decoration: BoxDecoration(
-                                //                       borderRadius: BorderRadius.circular(5),
-                                //                       border: Border.all(width: 1, color: Colors.blue),
-                                //                       boxShadow: [
-                                //                         BoxShadow(
-                                //                             color: Colors.blue.withOpacity(0.5),
-                                //                             blurRadius: 10,
-                                //                             offset: Offset(0, 0),
-                                //                             blurStyle: BlurStyle.outer
-                                //                         ),
-                                //                       ],
-                                //                     ),
-                                //                     child: Row(
-                                //                       children: [
-                                //                         // Icon(Iconsax.sort_copy,size: 15,),
-                                //                         //SizedBox(width: 10,),
-                                //                         Expanded(
-                                //                           child: Text(""+abc.data![len].facility/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                //                             style: TextStyle(
-                                //                                 fontSize: 13,
-                                //                                 color: Colors.black,
-                                //                                 fontWeight: FontWeight.w500,
-                                //                                 letterSpacing: 0.5
-                                //                             ),
-                                //                             overflow: TextOverflow.ellipsis,
-                                //                             maxLines: 2,
-                                //                           ),
-                                //                         ),
-                                //                       ],
-                                //                     ),
-                                //                   ),
-                                //
-                                //                   SizedBox(
-                                //                     height: 10,
-                                //                   ),
-                                //
-                                //                   Container(
-                                //                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                                //                   decoration: BoxDecoration(
-                                //                   borderRadius: BorderRadius.circular(5),
-                                //                   border: Border.all(width: 1, color: Colors.blue),
-                                //                   boxShadow: [
-                                //                   BoxShadow(
-                                //                   color: Colors.blue.withOpacity(0.5),
-                                //                   blurRadius: 10,
-                                //                   offset: const Offset(0, 0),
-                                //                   blurStyle: BlurStyle.outer,
-                                //                   ),
-                                //                   ],
-                                //                   ),
-                                //                   child: Text(
-                                //                   abc.data![len].propertyNameAddress,
-                                // style: const TextStyle(
-                                // fontSize: 13,
-                                // color: Colors.black,
-                                // fontWeight: FontWeight.w500,
-                                // letterSpacing: 0.5,
-                                // ),
-                                // ),
-                                // ),
-
-                                                ],
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("Building Add Date : "+abc.data![len].currentDate/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("Road Size : "+abc.data![len].roadSize/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("Metro Name : "+abc.data![len].metroName/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("Metro Distance : "+abc.data![len].metroDistance/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("Main Market Distance: "+abc.data![len].mainMarketDistance/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("Age of Property: "+abc.data![len].ageOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                              SizedBox(height: 6,),
-                                              Text("lift : "+abc.data![len].lift/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-
-
-                                              SizedBox(height: 6,),
-                                              Text("Parking "+abc.data![len].parking/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                style: TextStyle(
-                                                    fontSize: 13,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-
-
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              });
-                        }
-
-
-                      }
-
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_Ground(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Ground Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-print(abc.data![len].subid);
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(" "+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                          ],
-                                                        )
-
-
-
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      ),
-
-
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_first(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'First Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid.toString()}',))
-                                          );
-                                          print("${abc.data![len].id.toString()}");
-                                          print("${abc.data![len].id}");
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-
-                                                 padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(" "+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                          ],
-                                                        )
-
-
-
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      ),
-
-
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_second(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Second Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                // ElevatedButton(
-                                //   onPressed: () {
-                                //     print('Subid is: ${abc.data![0].subid}');
-                                //   },
-                                //   child: Text('Subid: ${abc.data![0].subid}'),
-                                // ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-                                          print(" Sub ID : ${abc.data![len].subid.toString()}");
-                                          print("ID : ${abc.data![len].id.toString()}");
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(" "+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                          ],
-                                                        )
-
-
-
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            // ElevatedButton(
-                                            //   style: ElevatedButton.styleFrom(
-                                            //     backgroundColor: Colors.deepPurple, // button background color
-                                            //     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                                            //     shape: RoundedRectangleBorder(
-                                            //       borderRadius: BorderRadius.circular(12), // rounded corners
-                                            //     ),
-                                            //     elevation: 5,
-                                            //     shadowColor: Colors.deepPurpleAccent,
-                                            //   ),
-                                            //   onPressed: () async {
-                                            //     final int propertyId = abc.data![len].id;
-                                            //
-                                            //     final url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/dublicate_data.php');
-                                            //
-                                            //     try {
-                                            //       final response = await http.post(
-                                            //         url,
-                                            //         body: {'P_id': propertyId.toString()},
-                                            //       );
-                                            //
-                                            //       if (response.statusCode == 200) {
-                                            //         print('API response: ${response.body}');
-                                            //         ScaffoldMessenger.of(context).showSnackBar(
-                                            //           const SnackBar(content: Text('Duplicate request sent successfully!')),
-                                            //         );
-                                            //       } else {
-                                            //         print('Failed to send data: ${response.statusCode}');
-                                            //         ScaffoldMessenger.of(context).showSnackBar(
-                                            //           const SnackBar(content: Text('Failed to send duplicate request')),
-                                            //         );
-                                            //       }
-                                            //     } catch (e) {
-                                            //       print('Error sending data: $e');
-                                            //       ScaffoldMessenger.of(context).showSnackBar(
-                                            //         const SnackBar(content: Text('Error occurred while sending request')),
-                                            //       );
-                                            //     }
-                                            //   },
-                                            //   child: const Text(
-                                            //     'Duplicate',
-                                            //     style: TextStyle(
-                                            //       fontSize: 16,
-                                            //       fontWeight: FontWeight.bold,
-                                            //       color: Colors.white,
-                                            //       letterSpacing: 1.2,
-                                            //     ),
-                                            //   ),
-                                            // )
-
-
-                                          ],
-                                        ),
-                                      ),
-
-
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_third(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Third Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(" "+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                          ],
-                                                        )
-
-
-
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      ),
-
-
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_four(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Forth Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                    //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(" "+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text("Floor Number"+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                          ],
-                                                        )
-
-
-
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                          ],
-                                        ),
-                                      ),
-
-
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_five(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Fifth Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                   // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          print("'${abc.data![len].id}'");
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text("Flat Number"+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        )
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Column(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child:
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_six(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    ' Sixth Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                   // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          print("'${abc.data![len].id}'");
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text("Flat Number"+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        )
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Column(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child:
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<Ground>>(
-                    future: fetchData_seven(),
-                    builder: (context, abc) {
-                      if (abc.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      } else if (abc.hasError) {
-                        return Center(child: Text('Error: ${abc.error}'));
-                      } else if (!abc.hasData || abc.data!.isEmpty) {
-                        return Center(child: Text(''));
-                      } else {
-                        final data = abc.data!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    'Seventh  Floor',
-                                    style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white
-                                    ),
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () {
-                                   // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
-                                  },
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(right: 10),
-                                      child: Text(
-                                        '',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            color: Colors.black
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(
-                              height: 300,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                itemBuilder: (BuildContext context,int len) {
-                                  return Column(
-                                    children: [
-                                      GestureDetector(
-                                        onTap: () async {
-                                          //  int itemId = abc.data![len].id;
-                                          //int iiid = abc.data![len].PropertyAddress
-                                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                                      prefs.setString('id_Document', abc.data![len].id.toString());*/
-                                          print("'${abc.data![len].id}'");
-                                          Navigator.push(
-                                              context,
-                                              MaterialPageRoute
-                                                (builder: (context) => underflat_futureproperty(id: '${abc.data![len].id}',Subid: '${abc.data![len].subid}',))
-                                          );
-
-                                        },
-                                        child: Column(
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(top: 20, left: 10, right: 10, bottom: 0),
-                                              child: Container(
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(10),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Row(
-                                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                                      mainAxisAlignment: MainAxisAlignment.start,
-                                                      children: [
-                                                        Column(
-                                                          children: [
-                                                            ClipRRect(
-                                                              borderRadius:
-                                                              const BorderRadius.all(Radius.circular(10)),
-                                                              child: Container(
-                                                                height: 100,
-                                                                width: 120,
-                                                                child: CachedNetworkImage(
-                                                                  imageUrl:
-                                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                  fit: BoxFit.cover,
-                                                                  placeholder: (context, url) => Image.asset(
-                                                                    AppImages.loading,
-                                                                    fit: BoxFit.cover,
-                                                                  ),
-                                                                  errorWidget: (context, error, stack) =>
-                                                                      Image.asset(
-                                                                        AppImages.imageNotFound,
-                                                                        fit: BoxFit.cover,
-                                                                      ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            SizedBox(
-                                                              height: 10,
-                                                            ),
-
-                                                          ],
-                                                        ),
-
-                                                        SizedBox(width: 5,),
-
-                                                        Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                          children: [
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Property no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text("Flat Number"+abc.data![len].flatNumber,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Floor no",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  child: Text(""+abc.data![len].floor,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 2,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-
-
-
-                                                              ],
-                                                            ),
-
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-
-                                                            Row(
-                                                              children: [
-                                                                Icon(PhosphorIcons.address_book,size: 12,color: Colors.red,),
-                                                                SizedBox(width: 2,),
-                                                                Text("Date",
-                                                                  style: TextStyle(
-                                                                      fontSize: 13,
-                                                                      color: Colors.black,
-                                                                      fontWeight: FontWeight.w600),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            SizedBox(
-                                                              height: 5,
-                                                            ),
-                                                            Row(
-                                                              children: [
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                SizedBox(
-                                                                  width: 110,
-                                                                  child: Text(""+abc.data![len].availableDate,
-                                                                    overflow: TextOverflow.ellipsis,
-                                                                    maxLines: 4,
-                                                                    style: TextStyle(
-                                                                        fontSize: 12,
-                                                                        color: Colors.black,
-                                                                        fontWeight: FontWeight.w400
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ],
-                                                        )
-                                                      ],
-                                                    ),
-
-                                                    SizedBox(height: 6,),
-
-                                                    Row(
-                                                      children: [
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Row(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-                                                        SizedBox(
-                                                          width: 6,
-                                                        ),
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child: Column(
-                                                            children: [
-                                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                                              //w SizedBox(width: 10,),
-                                                              Text(""+abc.data![len].locations/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-
-
-                                                        Container(
-                                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                          decoration: BoxDecoration(
-                                                            borderRadius: BorderRadius.circular(5),
-                                                            border: Border.all(width: 1, color: Colors.blue),
-                                                            boxShadow: [
-                                                              BoxShadow(
-                                                                  color: Colors.blue.withOpacity(0.5),
-                                                                  blurRadius: 10,
-                                                                  offset: Offset(0, 0),
-                                                                  blurStyle: BlurStyle.outer
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          child:
-                                                              Text(""+abc.data![len].buyRent/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                                style: TextStyle(
-                                                                    fontSize: 13,
-                                                                    color: Colors.black,
-                                                                    fontWeight: FontWeight.w500,
-                                                                    letterSpacing: 0.5
-                                                                ),
-                                                              ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
-
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
           ],
         ),
       ),
@@ -4472,28 +4228,279 @@ print(abc.data![len].subid);
       );
   }
 
-  Widget _buildInfoChip({required String text, required Color borderColor}) {
+  Widget _buildCompactSection({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required List<Widget> children
+  }) {
+    return Column(
+      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: children,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExpandableSection({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required Widget content
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        content,
+      ],
+    );
+  }
+  Widget _buildCompactChip({
+    required IconData icon,
+    required String text,
+    required Color color,       // background color
+    required Color borderColor, // border color
+    required Color shadowColor, // new: shadow color
+  }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(width: 1, color: borderColor),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor, width: 3),
         boxShadow: [
           BoxShadow(
-            color: borderColor.withOpacity(0.5),
-            blurRadius: 10,
-            offset: const Offset(0, 0),
-            blurStyle: BlurStyle.outer,
+            color: shadowColor.withOpacity(0.5), // dynamic shadow color
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        color: color, // chip background
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: Colors.black,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+
+  void _showCallDialog(BuildContext context, String number, String type) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Call $type"),
+        content: Text('Do you want to call $number?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("No"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              FlutterPhoneDirectCaller.callNumber(number);
+            },
+            child: Text("Yes"),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildCompactTextRow(String label, String value) {
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyLarge?.color),
+        children: [
+          TextSpan(
+            text: "$label ",
+            style: TextStyle(fontWeight: FontWeight.w600,fontFamily: "Poppins"),
+          ),
+          TextSpan(
+            text: value,
+            style: TextStyle(fontSize: 13),
+          ),
+        ],
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildCompactDetailItem(String title, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), // more space
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white12
+            : Colors.white,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "$title: ",
+            style: TextStyle(
+              fontSize: 15, // bigger text
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.black,
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                color:
+                Theme.of(context).brightness==Brightness.dark?
+                Colors.white:
+                Colors.black,
+                // shadows: [
+                //   Shadow(
+                //     blurRadius: 1,
+                //     // offset: Offset(2, 2),
+                //     color: Theme.of(context).brightness == Brightness.dark
+                //         ? Colors.amber
+                //         : Colors.black87,
+                //   )
+                // ],
+                fontSize: 15, // bigger text
+                fontWeight: FontWeight.w700,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  void _showContactDialog(BuildContext context, String number) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Contact Owner"),
+        content: Text('Would you like to contact $number?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("Cancel"),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                icon: Image.asset(AppImages.whatsaap, height: 36, width: 36),
+                onPressed: () async {
+                  Navigator.of(context).pop();
+                  if (Platform.isAndroid) {
+                    String url = 'whatsapp://send?phone=91$number&text=Hello';
+                    await launchUrl(Uri.parse(url));
+                  } else {
+                    String url = 'https://wa.me/$number';
+                    await launchUrl(Uri.parse(url));
+                  }
+                },
+              ),
+              IconButton(
+                icon: Image.asset(AppImages.call, height: 36, width: 36),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  FlutterPhoneDirectCaller.callNumber(number);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _buildInfoChip({
+    required String text,
+    required Color borderColor,
+    Color? backgroundColor,
+    Color? textColor,
+    Color? shadowColor, // new: optional shadow color
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      margin: const EdgeInsets.only(right: 10, bottom: 10),
+      decoration: BoxDecoration(
+        color: backgroundColor ?? Colors.transparent,
+        border: Border.all(color: borderColor, width: 2),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: (shadowColor ?? borderColor).withOpacity(0.4), // default to borderColor
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
       child: Text(
         text,
-        style: const TextStyle(
-          fontSize: 13,
-          color: Colors.black,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 0.5,
+        style: TextStyle(
+          fontSize: 13, // slightly bigger
+          fontWeight: FontWeight.bold,
+          color:
+          Theme.of(context).brightness==Brightness.dark?
+          Colors.white:Colors.black?? Colors.black,
         ),
       ),
     );

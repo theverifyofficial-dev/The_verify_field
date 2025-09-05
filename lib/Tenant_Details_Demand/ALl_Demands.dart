@@ -103,12 +103,13 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
     }).catchError((e) {
       print("Error fetching data: $e");
     });
-  }  void _onSearchChanged() {
+  }
+  void _onSearchChanged() {
     final query = _searchController.text.trim().toLowerCase();
 
     setState(() {
       if (query.isEmpty) {
-        _filteredData = List.from(_allData); // show all if no search
+        _filteredData = List.from(_allData.reversed); // keep reversed when empty
       } else {
         _filteredData = _allData.where((item) {
           return item.id.toString().contains(query) ||
@@ -128,7 +129,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
               item.Current__Date.toLowerCase().contains(query) ||
               item.Family_Members.toLowerCase().contains(query) ||
               item.buyrent.toLowerCase().contains(query);
-        }).toList();
+        }).toList().reversed.toList(); // ✅ reverse search results
       }
 
     });
@@ -251,7 +252,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                 : ListView.builder(
               itemCount: _filteredData.length,
               itemBuilder: (context, index) {
-                final item = _filteredData[index];
+                final item = _filteredData[_filteredData.length - 1 - index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 5),

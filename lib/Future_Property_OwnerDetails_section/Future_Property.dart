@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/constant.dart';
 import 'Add_futureProperty.dart';
 import 'Future_property_details.dart';
+import 'package:intl/intl.dart';
 
 class Catid {
   final int id;
@@ -657,33 +658,33 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
 
-                // Status tag (Buy/Rent)
-                Positioned(
-                  top: 14,
-                  right: 14,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 6,
-                          offset: const Offset(2, 2),
-                        ),
-                      ],
-                    ),
-                    child: Text(
-                      statusText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
+                // // Status tag (Buy/Rent)
+                // Positioned(
+                //   top: 14,
+                //   right: 14,
+                //   child: Container(
+                //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                //     decoration: BoxDecoration(
+                //       color: statusColor,
+                //       borderRadius: BorderRadius.circular(20),
+                //       boxShadow: [
+                //         BoxShadow(
+                //           color: Colors.black.withOpacity(0.2),
+                //           blurRadius: 6,
+                //           offset: const Offset(2, 2),
+                //         ),
+                //       ],
+                //     ),
+                //     child: Text(
+                //       statusText,
+                //       style: const TextStyle(
+                //         color: Colors.white,
+                //         fontWeight: FontWeight.w600,
+                //         fontSize: 12,
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
 
@@ -695,31 +696,50 @@ class PropertyCard extends StatelessWidget {
                 children: [
                   // Location
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.location_on, size: 20, color: Colors.redAccent),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          property.place,
-                          style: TextStyle(
-                            fontFamily: "Poppins",
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.black87,
+                      Wrap(
+                        // alignment: WrapAlignment.spaceBetween, // equal spacing across row
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          _buildInfoChip(
+                            context: context,
+                            text: property.place,
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.green.withOpacity(0.2)
+                                : Colors.green.shade50,
+                            textColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.green.shade800,
+                            borderColor: Colors.green,
                           ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          _buildInfoChip(
+                            context: context,
+
+                            text: property.residenceCommercial,
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.blue.withOpacity(0.2)
+                                : Colors.blue.shade50,
+                            textColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.blue.shade200
+                                : Colors.blue.shade800,
+                            borderColor: Colors.blue,
+                          ),
+                          _buildInfoChip(
+                            context: context,
+
+                            text: property.buyRent,
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.orange.withOpacity(0.2)
+                                : Colors.orange.shade50,
+                            textColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.orange.shade200
+                                : Colors.orange.shade800,
+                            borderColor: Colors.orange,
+                          ),
+                        ],
                       ),
-                        Text(
-                              property.residenceCommercial,
-                              style: TextStyle(
-                                fontFamily: "Poppins",
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
                     ],
                   ),
 
@@ -773,37 +793,73 @@ class PropertyCard extends StatelessWidget {
                   //
                   // const SizedBox(height: 14),
 
+                  // Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     Text(
+                  //       "🏠 Building No. $displayIndex",
+                  //       style: TextStyle(
+                  //         fontSize: 13,
+                  //         color: isDark ? Colors.white70 : Colors.black87,
+                  //         fontWeight: FontWeight.w500,
+                  //         letterSpacing: 0.3,
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+                  // const SizedBox(height: 10),
+
+                  GridView.count(
+                    crossAxisCount: 2,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    childAspectRatio: 3.2,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
+                    children: [
+                      _buildCompactDetailItem( "🏠 Building No.","$displayIndex",context),
+                      _buildCompactDetailItem( "Add Flat ",statusText,context),
+                    ],
+                  ),
+
+                  // const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "🏠 Building No. $displayIndex",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.black87,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0.3,
+                        "Added: ${(() {
+                          final s = property.currentDate?.toString() ?? '';
+                          if (s.isEmpty) return '-';
+                          try {
+
+                            final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
+                            return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
+                          } catch (_) {
+                            try {
+                              final dt2 = DateTime.parse(s);
+                              return DateFormat('dd MMM yyyy, hh:mm a').format(dt2);
+                            } catch (_) {
+                              return s;
+                            }
+                          }
+                        })()}",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: "Poppins",
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        decoration: BoxDecoration(
-                          color: isDark ? Colors.blueGrey[800] : Colors.blueGrey[50],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          "ID: ${property.id}",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: isDark ? Colors.white70 : Colors.blueGrey[700],
-                          ),
+                      Text(
+                        "ID: ${property.id}",
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: "Poppins",
                         ),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: 10),
+                  // const SizedBox(height: 10),
 
                   // ⚠ Missing fields
                   if (hasMissingFields)
@@ -833,4 +889,92 @@ class PropertyCard extends StatelessWidget {
     );
 
   }
+
+}
+Widget _buildCompactDetailItem(String title, String value,BuildContext context) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // more space
+    decoration: BoxDecoration(
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Colors.white12
+          : Colors.white,
+      borderRadius: BorderRadius.circular(6),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          "$title: ",
+          style: TextStyle(
+            fontSize: 14, // bigger text
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.white
+                : Colors.black,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              color:
+              Theme.of(context).brightness==Brightness.dark?
+              Colors.white:
+              Colors.black,
+              // shadows: [
+              //   Shadow(
+              //     blurRadius: 1,
+              //     // offset: Offset(2, 2),
+              //     color: Theme.of(context).brightness == Brightness.dark
+              //         ? Colors.amber
+              //         : Colors.black87,
+              //   )
+              // ],
+              fontSize: 15, // bigger text
+              fontWeight: FontWeight.w700,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+Widget _buildInfoChip({
+  required String text,
+  required Color borderColor,
+  required BuildContext context,
+  Color? backgroundColor,
+  Color? textColor,
+  Color? shadowColor,
+}) {
+  return Container(
+    alignment: Alignment.center,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    margin: const EdgeInsets.all(6),
+    decoration: BoxDecoration(
+      color: backgroundColor ?? Colors.transparent,
+      border: Border.all(color: borderColor, width: 2),
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: (shadowColor ?? borderColor).withOpacity(0.3),
+          blurRadius: 6,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Text(
+      text,
+      textAlign: TextAlign.center,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : (textColor ?? Colors.black),
+      ),
+    ),
+  );
 }

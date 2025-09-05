@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import 'New_Real_Estate.dart';
+
 class ReverseInFutureProperty extends StatefulWidget {
   final int id; // initial pid
 
@@ -179,7 +181,12 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
                   if (!mounted) return;
 
                   if (Navigator.of(ctx).canPop()) Navigator.of(ctx).pop();
-                  if (Navigator.of(context).canPop()) Navigator.of(context).pop(true);
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => Show_New_Real_Estate()),
+                        (route) => false,
+                  );
 
                   if (mounted) {
                     setState(() => _isButtonDisabled = false);
@@ -325,7 +332,7 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
                     }
                     _onSendData();
                   },
-                  child: const Text("Check Data"),
+                   child: const Text("Check Data"),
                 ),
                 ElevatedButton(
                   onPressed: _isButtonDisabled

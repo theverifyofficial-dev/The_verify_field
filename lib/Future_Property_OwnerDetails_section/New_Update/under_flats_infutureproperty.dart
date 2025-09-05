@@ -324,6 +324,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       throw Exception('Failed to load data');
     }
   }
+  bool _isLoading = false; // Add this state variable
+
   Future<void> _handleMenuItemClick(String value) async {
     // Handle the menu item click
     print("You clicked: $value");
@@ -2045,95 +2047,134 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
 // In bottomNavigationBar
 
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(12),
-        height: 80,
-        color: Theme.of(context).scaffoldBackgroundColor,
-        child: SizedBox(
-          width: double.infinity,
-          height: 60,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.blue,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+        bottomNavigationBar: Container(
+          padding: const EdgeInsets.all(12),
+          height: 80,
+          color: Theme.of(context).scaffoldBackgroundColor,
+          child: SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.blue,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(vertical: 20),
               ),
-              padding: const EdgeInsets.symmetric(vertical: 20),
-            ),
-            onPressed: () async {
-              try {
-                if (tapCount % 2 == 0) {
-                  // Move to Real-Estate
-                  print("Move to RealEstate tapped: ${widget.id}");
-                  final response = await http.post(
-                    Uri.parse(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                    body: {'action': 'copy', 'P_id': widget.id.toString()},
-                  );
+              onPressed: _isLoading
+                  ? null
+                  : () async {
+                setState(() => _isLoading = true);
 
-                  print("Move API Status Code: ${response.statusCode}");
-                  print("Move API Response Body: ${response.body}");
-
-                  if (response.statusCode == 200) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content:
-                        Text('Property copied to Real-Estate successfully!',style: TextStyle(color: Colors.white),),
-                        backgroundColor: Colors.green,
-                        duration: const Duration(seconds: 1), // Show for 1 second
-
+                try {
+                  if (tapCount % 2 == 0) {
+                    // Move to Real-Estate
+                    print("Move to RealEstate tapped: ${widget.id}");
+                    final response = await http
+                        .post(
+                      Uri.parse(
+                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php',
                       ),
-                    );
-                  }
-                } else {
-                  // Book
-                  print("Book tapped. Sending Subid: ${widget.Subid}");
-                  final response = await http.post(
-                    Uri.parse(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                    body: {'action': 'delete', 'subid': widget.Subid.toString()},
-                  );
+                      body: {'action': 'copy', 'P_id': widget.id.toString()},
+                    )
+                        .timeout(const Duration(seconds: 10));
 
-                  print("Book API Status Code: ${response.statusCode}");
-                  print("Book API Response Body: ${response.body}");
+                    print("Move API Status Code: ${response.statusCode}");
+                    print("Move API Response Body: ${response.body}");
 
-                  if (response.statusCode == 200) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Property booked successfully!',style: TextStyle(color: Colors.white),),
-                        backgroundColor: Colors.blue,
-                        duration: const Duration(seconds: 1), // Show for 1 second
-
+                    if (response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Property copied to Real-Estate successfully!',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.green,
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }
+                  } else {
+                    // Book
+                    print("Book tapped. Sending Subid: ${widget.Subid}");
+                    final response = await http
+                        .post(
+                      Uri.parse(
+                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php',
                       ),
-                    );
+                      body: {
+                        'action': 'delete',
+                        'subid': widget.Subid.toString()
+                      },
+                    )
+                        .timeout(const Duration(seconds: 10));
+
+                    print("Book API Status Code: ${response.statusCode}");
+                    print("Book API Response Body: ${response.body}");
+
+                    if (response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Property booked successfully!',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          backgroundColor: Colors.blue,
+                          duration: Duration(seconds: 1),
+                        ),
+                      );
+                    }
                   }
+
+                  setState(() => tapCount++); // toggle action
+                  await _saveLastTapCount();
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Error: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                } finally {
+                  setState(() => _isLoading = false);
                 }
-
-                setState(() {
-                  tapCount++; // Increment to toggle next action
-                });
-
-                await _saveLastTapCount(); // Save last tap
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('Error: $e'),
-                    backgroundColor: Colors.red,
+              },
+              child: _isLoading
+                  ? Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  SizedBox(
+                    width: 18,
+                    height: 30,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
                   ),
-                );
-              }
-            },
-            child: Text(
-              tapCount % 2 == 0 ? 'Live to RealEstate' : 'UnLive',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                  SizedBox(width: 12),
+                  Text(
+                    "Processing...",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              )
+                  : Text(
+                tapCount % 2 == 0 ? 'Live to RealEstate' : 'UnLive',
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
           ),
         ),
-      ),
+
     );
   }
 }

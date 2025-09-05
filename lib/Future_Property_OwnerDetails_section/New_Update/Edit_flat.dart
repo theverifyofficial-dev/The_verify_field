@@ -1284,10 +1284,27 @@ class EditFlatState extends State<EditFlat> {
                                 bottomLeft: Radius.circular(40)),
                             color: Colors.red),
                         child: _isLoading
-                            ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                          ),
+                            ? Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: const [
+                            SizedBox(
+                              width: 18,
+                              height: 30,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              "Processing...",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
                         )
                             : const Center(
                           child: Text(

@@ -1013,32 +1013,40 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
                                               SizedBox(
                                                 height: 10,
                                               ),
+
                                               Row(
                                                 children: [
-                                                  Icon(PhosphorIcons.users_four,size: 12,color: Colors.red,),
+                                                  Icon(PhosphorIcons
+                                                      .users_four, size: 12,
+                                                    color: Colors.red,),
                                                   SizedBox(width: 2,),
-                                                  SizedBox(
-                                                    width: 100,
-                                                    child: Text("Family Members = ",
-                                                      overflow: TextOverflow.ellipsis,
-                                                      maxLines: 2,
-                                                      style: TextStyle(
-                                                          fontSize: 11,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w600
-                                                      ),
+                                                  Text(
+                                                    "Family Members : ",
+                                                    overflow: TextOverflow
+                                                        .ellipsis,
+                                                    maxLines: 2,
+                                                    style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors
+                                                            .black,
+                                                        fontWeight: FontWeight
+                                                            .w600
                                                     ),
                                                   ),
-                                                  SizedBox(width: 10,),
                                                   SizedBox(
                                                     width: 100,
-                                                    child: Text(""+abc.data![len].Family_Members+" Members",
-                                                      overflow: TextOverflow.ellipsis,
+                                                    child: Text("" +
+                                                        abc.data![len].Family_Members +
+                                                        " Members",
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
                                                       maxLines: 2,
                                                       style: TextStyle(
                                                           fontSize: 12,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w400
+                                                          color: Colors
+                                                              .black,
+                                                          fontWeight: FontWeight
+                                                              .w400
                                                       ),
                                                     ),
                                                   ),

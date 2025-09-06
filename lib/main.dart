@@ -19,8 +19,8 @@ void main() async {
   await Firebase.initializeApp();
   await FireBaseApi().initNotifications();
 
-//New Update by Gurdeeep
-  //New Update by Pawan Gupta
+//New Update by Gurdeep
+  //New Update by Pawn Gupta
 
   // Set initial binding
   TenantBinding();

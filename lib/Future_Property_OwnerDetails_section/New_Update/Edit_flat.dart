@@ -188,6 +188,7 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("Balcony", balcony.toString()),
       MapEntry("Flat_number", _FlatNumber.text),
       MapEntry("owner_number", _Owner_number.text ?? ''),
+      MapEntry("video_link", _videoLink.text ?? ''),
       MapEntry("care_taker_name", _CareTaker_name.text.trim() ?? ''),
       MapEntry("care_taker_number", _CareTaker_number.text ?? ''),
       MapEntry("locations", _selectedItem.toString()),
@@ -501,6 +502,7 @@ class EditFlatState extends State<EditFlat> {
         _loan= data.loan;
         _registry = data.registryAndGpa;
         _CareTaker_name.text = data.careTakerName;
+        _videoLink.text = data.videoLink;
         _CareTaker_number.text = data.careTakerNumber;
         _Owner_number.text = data.ownerNumber;
         _Ownername.text = data.ownerName;
@@ -624,6 +626,7 @@ class EditFlatState extends State<EditFlat> {
 
   final TextEditingController _Ownername = TextEditingController();
   final TextEditingController _Owner_number = TextEditingController();
+  final TextEditingController _videoLink = TextEditingController();
   final TextEditingController _CareTaker_name = TextEditingController();
   final TextEditingController _CareTaker_number = TextEditingController();
   final TextEditingController _Longitude = TextEditingController();
@@ -1249,6 +1252,7 @@ class EditFlatState extends State<EditFlat> {
                       ),
 
 
+                      buildTextInput('Video Link', _videoLink),
                       buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
                       buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
                       buildTextInput('Owner Name (Optional)', _Ownername),

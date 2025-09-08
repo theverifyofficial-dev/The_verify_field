@@ -81,6 +81,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   final TextEditingController _Owner_number = TextEditingController();
   final TextEditingController _Address_apnehisaabka = TextEditingController();
   final TextEditingController _CareTaker_name = TextEditingController();
+  final TextEditingController _videoLink = TextEditingController();
   final TextEditingController _CareTaker_number = TextEditingController();
   final TextEditingController _Longitude = TextEditingController();
   final TextEditingController _Latitude = TextEditingController();
@@ -95,7 +96,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   final TextEditingController _customMaintenanceController = TextEditingController();
   String? _maintenance;
   String? _customMaintenance;
-  String? _houseMeter; // selected dropdown value
+  String? _houseMeter;
   String? selectedPropertyType;
   String? _totalFloor;
   String? selectedBHK;
@@ -322,6 +323,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("owner_number", _Owner_number.text ?? ''),
       MapEntry("care_taker_name", _CareTaker_name.text.trim() ?? ''),
       MapEntry("care_taker_number", _CareTaker_number.text ?? ''),
+      MapEntry("video_link", _videoLink.text ?? ''),
       MapEntry("locations", widget.place),
       MapEntry("Buy_Rent", _selectedItem1 ?? ''),
       MapEntry("Residence_Commercial", widget.Residence_commercial ?? ''),
@@ -410,6 +412,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
     _Owner_number.dispose();
     _Address_apnehisaabka.dispose();
     _CareTaker_name.dispose();
+    _videoLink.dispose();
     _CareTaker_number.dispose();
     _Longitude.dispose();
     _Latitude.dispose();
@@ -1328,7 +1331,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                         ),
                     ],
                   ),
-
+                  buildTextInput('Video Link', _videoLink),
                   buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
                   buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
                   buildTextInput('Owner Name (Optional)', _Ownername),

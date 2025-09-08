@@ -279,9 +279,12 @@ class Catid1 {
   final String bhk;
   final String type_of_property;
   final int sub_id;
+  final int video_link;
 
   Catid1(
-      {required this.id,required this.tenant_name,required this.tenant_phone_number,required this.flat_rent,required this.shifting_date,required this.members
+      {
+        required this.video_link,
+        required this.id,required this.tenant_name,required this.tenant_phone_number,required this.flat_rent,required this.shifting_date,required this.members
         ,required this.email,required this.tenant_vichal_details,required this.work_profile,required this.bhk,required this.type_of_property
         ,required this.sub_id});
 
@@ -294,6 +297,7 @@ class Catid1 {
         email: json['email'], tenant_vichal_details: json['tenant_vichal_details'],
         work_profile: json['work_profile'], bhk: json['bhk'],
         type_of_property: json['type_of_property'],
+        video_link: json['video_link'],
         sub_id: json['sub_id']);
   }
 }

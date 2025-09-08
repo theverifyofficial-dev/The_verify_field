@@ -8,10 +8,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../constant.dart';
-import '../model/futureProperty_Slideer.dart';
-import 'Add_Assign_Tenant_Demand/Admin_under_flats.dart';
-import 'Update_Future_Property.dart';
+import '../../constant.dart';
+import '../../model/futureProperty_Slideer.dart';
+import 'Admin_under_flats.dart';
+import '../Update_Future_Property.dart';
 import 'package:intl/intl.dart';
 
 class FutureProperty2 {
@@ -708,7 +708,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                                       children: [
                                         _buildCompactChip(
                                           borderColor: Colors.blue,
-                                          shadowColor: Colors.red,
+                                          shadowColor: Colors.blue,
                                           icon: Icons.person,
                                           text: abc.data![len].caretakerName,
                                           color: Theme.of(context).brightness == Brightness.dark
@@ -729,7 +729,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                                                 ? Colors.white
                                                 : Colors.grey.shade200,
                                               borderColor: Colors.blue,
-                                              shadowColor: Colors.red
+                                              shadowColor: Colors.blue,
                                           ),
                                         ),
                                       ],

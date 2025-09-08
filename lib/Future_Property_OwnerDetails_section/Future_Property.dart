@@ -209,6 +209,54 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     });
   }
 
+
+  Future<Map<String, dynamic>> fetchPropertyStatus(int subid) async {
+    try {
+
+      final response1 = await http.get(Uri.parse(
+          "https://verifyserve.social/WebService4.asmx/check_live_flat_in_main_realesate?subid=$subid&live_unlive=Flat"));
+
+      final response2 = await http.get(Uri.parse(
+          "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
+
+
+      String loggValue1 = "Loading...";
+      String loggValue2 = "Loading...";
+      Color statusColor = Colors.grey;
+
+      if (response1.statusCode == 200) {
+        final body = jsonDecode(response1.body);
+        if (body is List && body.isNotEmpty) {
+          final logg = body[0]['logg'];
+          loggValue1 = logg.toString();
+          statusColor = (logg == 0) ? Colors.red : Colors.green;
+        }
+      }
+
+      if (response2.statusCode == 200) {
+        final body = jsonDecode(response2.body);
+        if (body is List && body.isNotEmpty) {
+          final logg = body[0]['logg'];
+          loggValue2 = logg.toString();
+        }
+      }
+
+      return {
+        "loggValue1": loggValue1,   // from first API
+        "loggValue2": loggValue2,   // from second API
+        "statusColor": statusColor,
+      };
+    } catch (e) {
+      return {
+        "loggValue1": "Error",
+        "loggValue2": "Error",
+        "statusColor": Colors.grey,
+      };
+    }
+  }
+
+
+
   Future<void> _fetchAndFilterProperties() async {
     setState(() {
       _isLoading = true;
@@ -290,7 +338,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Search Box
                 Material(
                   elevation: 4,
                   borderRadius: BorderRadius.circular(12),
@@ -476,34 +523,31 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
                   final displayIndex = _filteredProperties.length - index; // ✅ reverse order
-                  Color statusColor = Colors.grey;
                   String loggValue = "Loading...";
-                  return FutureBuilder<http.Response>(
-                    future: http.get(Uri.parse(
-                        "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${property.id}")),
+                  return FutureBuilder<Map<String, dynamic>>(
+                    future: fetchPropertyStatus(property.id),  // ✅ use combined future
                     builder: (context, snapshot) {
+                      String logg1 = "Loading...";
+                      String logg2 = "Loading...";
+                      Color statusColor = Colors.grey;
+
                       if (snapshot.hasData) {
-                        try {
-                          final body = jsonDecode(snapshot.data!.body);
-                          if (body is List && body.isNotEmpty) {
-                            final logg = body[0]['logg'];
-                            loggValue = logg.toString();
-                            statusColor = (logg == 0) ? Colors.red : Colors.green;
-                          }
-                        } catch (_) {
-                          loggValue = "Error";
-                          statusColor = Colors.grey;
-                        }
+                        logg1 = snapshot.data!['loggValue1'];
+                        logg2 = snapshot.data!['loggValue2'];
+                        statusColor = snapshot.data!['statusColor'];
                       } else if (snapshot.hasError) {
-                        loggValue = "Error";
+                        logg1 = "Error";
+                        logg2 = "Error";
                         statusColor = Colors.grey;
                       }
+
                       return
                         PropertyCard(
                         displayIndex: displayIndex,   // ✅ pass here
                         property: property,
-                        statusText: loggValue,     // ✅ pass status text
+                        statusText: logg2,     // ✅ pass status text
                         statusColor: statusColor,
+                          Live_Unlive: logg1,
                         onTap: () {
                           Navigator.push(
                             context,
@@ -550,6 +594,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 class PropertyCard extends StatelessWidget {
   final dynamic property;
   final String statusText;
+  final String Live_Unlive;
   final Color statusColor;
   final VoidCallback onTap;
   final int displayIndex;
@@ -558,6 +603,7 @@ class PropertyCard extends StatelessWidget {
     Key? key,
     required this.property,
     required this.statusText,
+    required this.Live_Unlive,
     required this.statusColor,
     required this.onTap,
     required this.displayIndex,
@@ -657,6 +703,27 @@ class PropertyCard extends StatelessWidget {
                   ),
                 ),
 
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: (int.tryParse(Live_Unlive) ?? 0) > 0
+                          ? Colors.green.withOpacity(0.8)
+                          : Colors.red.withOpacity(0.8),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      (int.tryParse(Live_Unlive) ?? 0) > 0 ? "Live $Live_Unlive" : "Unlive $Live_Unlive",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
               ],
             ),
 
@@ -739,11 +806,11 @@ class PropertyCard extends StatelessWidget {
                     mainAxisSpacing: 8,
                     children: [
                       _buildCompactDetailItem( "🏠 Building ID.","${property.id}",context),
-                      _buildCompactDetailItem( "  +  Add Flat ",statusText,context),
+                      _buildCompactDetailItem( "  +  Total Flat ",statusText,context),
                     ],
                   ),
 
-                  // const SizedBox(height: 10),
+                   const SizedBox(height: 10),
                   Container(
                     margin: EdgeInsets.all(5.0),
                     child: Row(

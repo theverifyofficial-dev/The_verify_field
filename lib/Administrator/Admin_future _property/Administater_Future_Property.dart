@@ -6,9 +6,9 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../Home_Screen_click/Commercial_property_Filter.dart';
-import '../Home_Screen_click/Filter_Options.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../../Home_Screen_click/Commercial_property_Filter.dart';
+import '../../Home_Screen_click/Filter_Options.dart';
+import '../../ui_decoration_tools/constant.dart';
 import 'Future_Property_Details.dart';
 import 'See_All_Futureproperty.dart';
 

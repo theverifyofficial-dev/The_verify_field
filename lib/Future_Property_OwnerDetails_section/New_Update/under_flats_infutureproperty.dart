@@ -677,8 +677,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                         ),
                                                         child: Row(
                                                           children: [
-                                                            // Icon(Iconsax.sort_copy,size: 15,),
-                                                            //w SizedBox(width: 10,),
                                                             Text(""+abc.data![len].bhk/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                               style: TextStyle(
                                                                   fontSize: 13,
@@ -2074,25 +2072,34 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
                 try {
                   if (tapCount % 2 == 0) {
-                    // Move to Real-Estate
+                    // ---------- Update & Move ----------
                     print("Move to RealEstate tapped: ${widget.id}");
-                    final response = await http
-                        .post(
+
+                    // 1. Update first
+                    final updateResponse = await http.post(
                       Uri.parse(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php',
-                      ),
+                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
+                      body: {'action': 'update', 'P_id': widget.id.toString()},
+                    ).timeout(const Duration(seconds: 10));
+
+                    print("Update API Status Code: ${updateResponse.statusCode}");
+                    print("Update API Response Body: ${updateResponse.body}");
+
+                    // 2. Then Move (copy)
+                    final moveResponse = await http.post(
+                      Uri.parse(
+                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
                       body: {'action': 'copy', 'P_id': widget.id.toString()},
-                    )
-                        .timeout(const Duration(seconds: 10));
+                    ).timeout(const Duration(seconds: 10));
 
-                    print("Move API Status Code: ${response.statusCode}");
-                    print("Move API Response Body: ${response.body}");
+                    print("Move API Status Code: ${moveResponse.statusCode}");
+                    print("Move API Response Body: ${moveResponse.body}");
 
-                    if (response.statusCode == 200) {
+                    if (updateResponse.statusCode == 200 && moveResponse.statusCode == 200) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Property copied to Real-Estate successfully!',
+                            'Property updated & moved successfully!',
                             style: TextStyle(color: Colors.white),
                           ),
                           backgroundColor: Colors.green,
@@ -2101,28 +2108,33 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                       );
                     }
                   } else {
-                    // Book
-                    print("Book tapped. Sending Subid: ${widget.Subid}");
-                    final response = await http
-                        .post(
+                    // ---------- UnLive (Delete) ----------
+                    print("UnLive tapped. Sending Subid: ${widget.Subid}");
+
+                    // 1. Update first
+                    final updateResponse = await http.post(
                       Uri.parse(
-                        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php',
-                      ),
-                      body: {
-                        'action': 'delete',
-                        'subid': widget.Subid.toString()
-                      },
-                    )
-                        .timeout(const Duration(seconds: 10));
+                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
+                      body: {'action': 'reupdate', 'P_id': widget.id.toString()},
+                    ).timeout(const Duration(seconds: 10));
 
-                    print("Book API Status Code: ${response.statusCode}");
-                    print("Book API Response Body: ${response.body}");
+                    print("Update API Status Code: ${updateResponse.statusCode}");
+                    print("Update API Response Body: ${updateResponse.body}");
 
-                    if (response.statusCode == 200) {
+                    final deleteResponse = await http.post(
+                      Uri.parse(
+                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
+                      body: {'action': 'delete', 'subid': widget.Subid.toString()},
+                    ).timeout(const Duration(seconds: 10));
+
+                    print("Delete API Status Code: ${deleteResponse.statusCode}");
+                    print("Delete API Response Body: ${deleteResponse.body}");
+
+                    if (deleteResponse.statusCode == 200) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Property booked successfully!',
+                            'Property UnLived (deleted) successfully!',
                             style: TextStyle(color: Colors.white),
                           ),
                           backgroundColor: Colors.blue,

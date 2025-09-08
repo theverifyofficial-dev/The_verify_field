@@ -11,7 +11,7 @@ import '../Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import '../main.dart';
 import '../ui_decoration_tools/constant.dart';
 import '../profile.dart';
-import 'Administater_Future_Property.dart';
+import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'Administater_TenanDemand.dart';
 import 'Administator_Realestate.dart';

@@ -3848,38 +3848,42 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                 const SizedBox(height: 10), // extra space before Caretaker
 
                                                 /// Caretaker
-                                                _buildCompactSection(
-                                                  icon: Icons.support_agent,
-                                                  title: "Caretaker",
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.black,
+                                                Row(
                                                   children: [
-                                                    _buildCompactChip(
-                                                      borderColor: Colors.blue,
-                                                      shadowColor: Colors.red,
-                                                      icon: Icons.person,
-                                                      text: abc.data![len].caretakerName,
+                                                    _buildCompactSection(
+                                                      icon: Icons.support_agent,
+                                                      title: "Caretaker",
                                                       color: Theme.of(context).brightness == Brightness.dark
                                                           ? Colors.white
-                                                          : Colors.grey.shade200,
-                                                    ),
-                                                    const SizedBox(width: 25),
-                                                    GestureDetector(
-                                                      onTap: () => _showCallDialog(
-                                                        context,
-                                                        abc.data![len].caretakerNumber,
-                                                        "Caretaker",
-                                                      ),
-                                                      child: _buildCompactChip(
-                                                          icon: Icons.phone,
-                                                          text: abc.data![len].caretakerNumber,
+                                                          : Colors.black,
+                                                      children: [
+                                                        _buildCompactChip(
+                                                          borderColor: Colors.blue,
+                                                          shadowColor: Colors.red,
+                                                          icon: Icons.person,
+                                                          text: abc.data![len].caretakerName,
                                                           color: Theme.of(context).brightness == Brightness.dark
                                                               ? Colors.white
                                                               : Colors.grey.shade200,
-                                                          borderColor: Colors.blue,
-                                                          shadowColor: Colors.red
-                                                      ),
+                                                        ),
+                                                        const SizedBox(width: 25),
+                                                        GestureDetector(
+                                                          onTap: () => _showCallDialog(
+                                                            context,
+                                                            abc.data![len].caretakerNumber,
+                                                            "Caretaker",
+                                                          ),
+                                                          child: _buildCompactChip(
+                                                              icon: Icons.phone,
+                                                              text: abc.data![len].caretakerNumber,
+                                                              color: Theme.of(context).brightness == Brightness.dark
+                                                                  ? Colors.white
+                                                                  : Colors.grey.shade200,
+                                                              borderColor: Colors.blue,
+                                                              shadowColor: Colors.red
+                                                          ),
+                                                        ),
+                                                      ],
                                                     ),
                                                   ],
                                                 ),

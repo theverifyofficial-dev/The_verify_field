@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Administrator/Future_Property_Details.dart';
+import '../../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../../ui_decoration_tools/constant.dart';
 
 class Edit_Building_futureproperty extends StatefulWidget {

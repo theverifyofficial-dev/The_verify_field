@@ -19,10 +19,6 @@ void main() async {
   await Firebase.initializeApp();
   await FireBaseApi().initNotifications();
 
-//New Update by Gurdeep
-  //New Update by Pawn Gupta
-
-  // Set initial binding
   TenantBinding();
 
   runApp(
@@ -91,7 +87,6 @@ class _MyAppState extends State<MyApp> {
 class ThemeSwitcher extends InheritedWidget {
   final ThemeMode themeMode;
   final VoidCallback toggleTheme;
-
   const ThemeSwitcher({
     required this.themeMode,
     required this.toggleTheme,

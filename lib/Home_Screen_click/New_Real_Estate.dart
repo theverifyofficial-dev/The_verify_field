@@ -726,10 +726,9 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               _buildFeatureItem(context, Icons.home_work, _filteredProperties[index].typeOfProperty ?? ""),
                                             ],
                                           ),
-
-                                          if (hasMissingFields)
-                                            SizedBox(height: 20,),
-                                          Container(
+                                          if (hasMissingFields) ...[
+                                            SizedBox(height: 20),
+                                            Container(
                                               width: double.infinity,
                                               padding: const EdgeInsets.all(10),
                                               decoration: BoxDecoration(
@@ -746,7 +745,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                 ),
                                               ),
                                             ),
-
+                                          ]
                                         ],
                                       ),
                                     ),

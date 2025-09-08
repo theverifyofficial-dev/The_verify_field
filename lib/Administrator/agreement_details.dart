@@ -224,7 +224,7 @@ class _AgreementDetailsState extends State<AgreementDetails> {
               _text("💵 Security: ₹${item.securitys}"),
               _text("⚡ Meter: ${item.meter}"),
               _text("📆 Shifting Date: ${_formatDate(item.shiftingDate)}"),
-              _text("📆 Current Date: ${_formatDate(item.current_date)}"),
+              // _text("📆 Current Date: ${_formatDate(item.current_date)}"), //commented because of wrong year.
               _text("🛠️ Maintenance: ${item.maintaince}"),
               _text("📏 Custom Meter Unit: ${item.customMeterUnit}"),
               _text("🧾 Custom Maintenance Charge: ₹${item.customMaintenanceCharge}"),

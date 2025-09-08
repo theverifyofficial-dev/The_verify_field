@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
+import '../../ui_decoration_tools/constant.dart';
 import 'Future_Property_Details.dart';
 
 class Catid {

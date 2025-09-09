@@ -925,7 +925,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -959,7 +959,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -1292,7 +1292,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                             child: Row(
                                                               children: [
                                                                 // Icon(Iconsax.sort_copy,size: 15,),
-                                                                //SizedBox(width: 10,),
+                                                                SizedBox(width: 10,),
                                                                 Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                                   style: TextStyle(
                                                                       fontSize: 13,
@@ -1306,7 +1306,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -1340,7 +1340,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -1644,6 +1644,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                                       Row(
                                                         children: [
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -1675,7 +1676,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -1709,7 +1710,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -2025,6 +2026,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                                       Row(
                                                         children: [
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -2090,7 +2092,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -2387,6 +2389,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                                       Row(
                                                         children: [
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -2418,7 +2421,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -2452,7 +2455,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -2768,6 +2771,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                                       Row(
                                                         children: [
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -2799,7 +2803,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -3150,6 +3154,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                                       Row(
                                                         children: [
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -3215,7 +3220,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -3550,6 +3555,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               children: [
                                                                 // Icon(Iconsax.sort_copy,size: 15,),
                                                                 //SizedBox(width: 10,),
+                                                                SizedBox(width: 10,),
                                                                 Text(""+abc.data![len].typeOfProperty/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                                   style: TextStyle(
                                                                       fontSize: 13,
@@ -3563,7 +3569,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -3597,7 +3603,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                           ),
 
                                                           SizedBox(
-                                                            width: 6,
+                                                            width: 10,
                                                           ),
 
                                                           Container(
@@ -3728,264 +3734,241 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                         }
                         else{
 
-                          return ListView.builder(
-                              itemCount: 1,
-                              shrinkWrap: true,
-                              physics: NeverScrollableScrollPhysics(),
-                              itemBuilder: (BuildContext context,int len){
-                                return GestureDetector(
-                                    onTap: () async {
-
-                                    },
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Card(
+                                  elevation: 1,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white12
+                                      : Colors.grey.shade200,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
                                     child: Column(
-                                      // mainAxisAlignment: MainAxisAlignment.start,
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+
+                                        /// Property Type Tags
+                                        Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          children: [
+                                            _buildInfoChip(
+                                              text: abc.data![0].place,
+                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.green.withOpacity(0.2)
+                                                  : Colors.green.shade50,
+                                              textColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.green.shade800,
+                                              borderColor: Colors.green,
+                                            ),
+                                            _buildInfoChip(
+                                              text: abc.data![0].residenceCommercial,
+                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.blue.withOpacity(0.2)
+                                                  : Colors.blue.shade50,
+                                              textColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.blue.shade200
+                                                  : Colors.blue.shade800,
+                                              borderColor: Colors.blue,
+                                            ),
+                                            _buildInfoChip(
+                                              text: abc.data![0].buyRent,
+                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.orange.withOpacity(0.2)
+                                                  : Colors.orange.shade50,
+                                              textColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.orange.shade200
+                                                  : Colors.orange.shade800,
+                                              borderColor: Colors.orange,
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 10),
+                                        Divider(height: 1, color: Theme.of(context).dividerColor),
+                                        const SizedBox(height: 10),
+
+                                        /// Owner Info
+                                        _buildCompactSection(
+                                          icon: Icons.person_outline,
+                                          title: "Owner Info",
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black,
+                                          children: [
+                                            _buildCompactChip(
+                                              icon: Icons.person,
+                                              text: abc.data![0].ownerName,
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.grey.shade200,
+                                              borderColor: Colors.deepPurpleAccent,
+                                              shadowColor: Colors.deepPurpleAccent,
+                                            ),
+                                            GestureDetector(
+                                              onTap: () => _showContactDialog(context, abc.data![0].ownerNumber),
+                                              child: _buildCompactChip(
+                                                icon: Icons.phone,
+                                                text: abc.data![0].ownerNumber,
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Colors.white
+                                                    : Colors.grey.shade200,
+                                                borderColor: Colors.deepPurpleAccent,
+                                                shadowColor: Colors.deepPurpleAccent,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 8),
+
+                                        /// Vehicle number chip
+                                        Center(
+                                          child: _buildCompactChip(
+                                            icon: Icons.directions_car,
+                                            text: abc.data![0].ownerVehicleNumber,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.grey.shade200,
+                                            borderColor: Colors.cyan,
+                                            shadowColor: Colors.cyan,
+                                          ),
+                                        ),
+
                                         const SizedBox(height: 12),
 
-                                        Card(
-                                          elevation: 1,
-                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                        /// Caretaker Section
+                                        _buildCompactSection(
+                                          icon: Icons.support_agent,
+                                          title: "Caretaker",
                                           color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.white12
-                                              : Colors.grey.shade200,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(16), // slightly more padding
-                                            child: Column(
-                                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                              // crossAxisAlignment: CrossAxisAlignment.start,
+                                              ? Colors.white
+                                              : Colors.black,
+                                          children: [
+                                            Wrap(
+                                              spacing: 12,
+                                              runSpacing: 8,
                                               children: [
-
-                                                /// Property Type Tags
-                                                Wrap(
-                                                  spacing: 6,
-                                                  runSpacing: 4,
-                                                  children: [
-                                                    _buildInfoChip(
-                                                      text: abc.data![len].place,
-                                                      backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.green.withOpacity(0.2)
-                                                          : Colors.green.shade50,
-                                                      textColor: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.white
-                                                          : Colors.green.shade800,
-                                                      borderColor: Colors.green,
-                                                    ),
-                                                    _buildInfoChip(
-                                                      text: abc.data![len].residenceCommercial,
-                                                      backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.blue.withOpacity(0.2)
-                                                          : Colors.blue.shade50,
-                                                      textColor: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.blue.shade200
-                                                          : Colors.blue.shade800,
-                                                      borderColor: Colors.blue,
-                                                    ),
-                                                    _buildInfoChip(
-                                                      text: abc.data![len].buyRent,
-                                                      backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.orange.withOpacity(0.2)
-                                                          : Colors.orange.shade50,
-                                                      textColor: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.orange.shade200
-                                                          : Colors.orange.shade800,
-                                                      borderColor: Colors.orange,
-                                                    ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 10), // more gap before divider
-                                                Divider(height: 1, color: Theme.of(context).dividerColor),
-                                                const SizedBox(height: 10),
-
-                                                /// Owner Info
-                                                _buildCompactSection(
-                                                  icon: Icons.person_outline,
-                                                  title: "Owner Info",
+                                                _buildCompactChip(
+                                                  icon: Icons.person,
+                                                  text: abc.data![0].caretakerName,
                                                   color: Theme.of(context).brightness == Brightness.dark
                                                       ? Colors.white
-                                                      : Colors.black,
-                                                  children: [
-                                                    _buildCompactChip(
-                                                        icon: Icons.person,
-                                                        text: abc.data![len].ownerName,
-                                                        color: Theme.of(context).brightness == Brightness.dark
-                                                            ? Colors.white
-                                                            : Colors.grey.shade200,
-                                                        borderColor: Colors.deepPurpleAccent,
-                                                        shadowColor: Colors.deepPurpleAccent
-                                                    ),
-                                                    GestureDetector(
-                                                      onTap: () => _showContactDialog(context, abc.data![len].ownerNumber),
-                                                      child: _buildCompactChip(
-                                                          icon: Icons.phone,
-                                                          text: abc.data![len].ownerNumber,
-                                                          color: Theme.of(context).brightness == Brightness.dark
-                                                              ? Colors.white
-                                                              : Colors.grey.shade200,
-                                                          borderColor: Colors.deepPurpleAccent,
-                                                          shadowColor: Colors.deepPurpleAccent
-                                                      ),
-                                                    ),
-
-                                                  ],
+                                                      : Colors.grey.shade200,
+                                                  borderColor: Colors.blue,
+                                                  shadowColor: Colors.red,
                                                 ),
-                                                SizedBox(height: 5,),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  children: [
-                                                    _buildCompactChip(
-                                                        icon: Icons.directions_car,
-                                                        text: abc.data![len].ownerVehicleNumber,
-                                                        color: Theme.of(context).brightness == Brightness.dark
-                                                            ? Colors.white
-                                                            : Colors.grey.shade200,
-                                                        borderColor: Colors.cyan,
-                                                        shadowColor: Colors.cyan
-                                                    ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 10), // extra space before Caretaker
-
-                                                /// Caretaker
-                                                Row(
-                                                  children: [
-                                                    _buildCompactSection(
-                                                      icon: Icons.support_agent,
-                                                      title: "Caretaker",
-                                                      color: Theme.of(context).brightness == Brightness.dark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                      children: [
-                                                        _buildCompactChip(
-                                                          borderColor: Colors.blue,
-                                                          shadowColor: Colors.red,
-                                                          icon: Icons.person,
-                                                          text: abc.data![len].caretakerName,
-                                                          color: Theme.of(context).brightness == Brightness.dark
-                                                              ? Colors.white
-                                                              : Colors.grey.shade200,
-                                                        ),
-                                                        const SizedBox(width: 25),
-                                                        GestureDetector(
-                                                          onTap: () => _showCallDialog(
-                                                            context,
-                                                            abc.data![len].caretakerNumber,
-                                                            "Caretaker",
-                                                          ),
-                                                          child: _buildCompactChip(
-                                                              icon: Icons.phone,
-                                                              text: abc.data![len].caretakerNumber,
-                                                              color: Theme.of(context).brightness == Brightness.dark
-                                                                  ? Colors.white
-                                                                  : Colors.grey.shade200,
-                                                              borderColor: Colors.blue,
-                                                              shadowColor: Colors.red
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 20), // extra space before Address
-
-                                                /// Address Section
-                                                _buildExpandableSection(
-                                                  icon: Icons.location_on_outlined,
-                                                  title: "Address",
-                                                  color: Colors.blueAccent,
-                                                  content: Column(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                                    children: [
-                                                      _buildCompactTextRow("Property:", abc.data![len].propertyNameAddress),
-                                                      const SizedBox(height: 6),
-                                                      _buildCompactTextRow("Field:", abc.data![len].propertyAddressForFieldworker),
-                                                    ],
+                                                GestureDetector(
+                                                  onTap: () => _showCallDialog(
+                                                    context,
+                                                    abc.data![0].caretakerNumber,
+                                                    "Caretaker",
                                                   ),
-                                                ),
-
-                                                const SizedBox(height: 20), // gap before Details
-
-                                                /// Property Details Grid
-                                                _buildCompactSection(
-                                                  icon: Icons.info_outline,
-                                                  title: "Details",
-                                                  color: Colors.green,
-                                                  children: [
-                                                    GridView.count(
-                                                      crossAxisCount: 2,
-                                                      shrinkWrap: true,
-                                                      physics: const NeverScrollableScrollPhysics(),
-                                                      childAspectRatio: 3.2,
-                                                      crossAxisSpacing: 8,
-                                                      mainAxisSpacing: 8,
-                                                      children: [
-                                                        _buildCompactDetailItem("Floors", abc.data![len].totalFloor),
-                                                        _buildCompactDetailItem("Road Size", abc.data![len].roadSize),
-                                                        _buildCompactDetailItem("Metro", abc.data![len].metroName),
-                                                        _buildCompactDetailItem("Metro Dist", abc.data![len].metroDistance),
-                                                        _buildCompactDetailItem("Market Dist", abc.data![len].mainMarketDistance),
-                                                        _buildCompactDetailItem("Age", abc.data![len].ageOfProperty),
-                                                        _buildCompactDetailItem("Lift", abc.data![len].lift),
-                                                        _buildCompactDetailItem("Parking", abc.data![len].parking),
-                                                      ],
-                                                    ),
-                                                  ],
-                                                ),
-
-                                                const SizedBox(height: 20), // bigger gap before footer
-
-                                                /// Footer
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "Added: ${(() {
-                                                        final s = abc.data![len].currentDate?.toString() ?? '';
-                                                        if (s.isEmpty) return '-';
-                                                        try {
-
-                                                          final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
-                                                          return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
-                                                        } catch (_) {
-                                                          try {
-                                                            final dt2 = DateTime.parse(s);
-                                                            return DateFormat('dd MMM yyyy, hh:mm a').format(dt2);
-                                                          } catch (_) {
-                                                            return s;
-                                                          }
-                                                        }
-                                                      })()}",
-                                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      "ID: ${abc.data![len].id}",
-                                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                        fontSize: 14,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                  ],
+                                                  child: _buildCompactChip(
+                                                    icon: Icons.phone,
+                                                    text: abc.data![0].caretakerNumber,
+                                                    color: Theme.of(context).brightness == Brightness.dark
+                                                        ? Colors.white
+                                                        : Colors.grey.shade200,
+                                                    borderColor: Colors.blue,
+                                                    shadowColor: Colors.red,
+                                                  ),
                                                 ),
                                               ],
                                             ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 20),
+
+                                        /// Address Section
+                                        _buildExpandableSection(
+                                          icon: Icons.location_on_outlined,
+                                          title: "Address",
+                                          color: Colors.blueAccent,
+                                          content: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              _buildCompactTextRow("Property:", abc.data![0].propertyNameAddress),
+                                              const SizedBox(height: 6),
+                                              _buildCompactTextRow("Field:", abc.data![0].propertyAddressForFieldworker),
+                                            ],
                                           ),
                                         ),
+
+                                        const SizedBox(height: 20),
+
+                                        /// Property Details Grid
+                                        _buildCompactSection(
+                                          icon: Icons.info_outline,
+                                          title: "Details",
+                                          color: Colors.green,
+                                          children: [
+                                            GridView.builder(
+                                              shrinkWrap: true,
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                                maxCrossAxisExtent: 220,
+                                                childAspectRatio: 3.2,
+                                                crossAxisSpacing: 8,
+                                                mainAxisSpacing: 8,
+                                              ),
+                                              itemCount: 8,
+                                              itemBuilder: (context, index) {
+                                                final details = [
+                                                  ["Floors", abc.data![0].totalFloor],
+                                                  ["Road Size", abc.data![0].roadSize],
+                                                  ["Metro", abc.data![0].metroName],
+                                                  ["Metro Dist", abc.data![0].metroDistance],
+                                                  ["Market Dist", abc.data![0].mainMarketDistance],
+                                                  ["Age", abc.data![0].ageOfProperty],
+                                                  ["Lift", abc.data![0].lift],
+                                                  ["Parking", abc.data![0].parking],
+                                                ];
+                                                return _buildCompactDetailItem(details[index][0], details[index][1]);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 20),
+
+                                        /// Footer
+                                        Wrap(
+                                          alignment: WrapAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Added: ${abc.data![0].currentDate ?? '-'}",
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                            Text(
+                                              "ID: ${abc.data![0].id}",
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                          ],
+                                        ),
                                       ],
-                                    )
-                                );
-                              });
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         }
-
-
                       }
-
                   );
                 },
                 childCount: 1, // Number of categories

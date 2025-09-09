@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -156,7 +157,7 @@ class _Login_pageState extends State<Login_page> {
                   ),
                 ),
 
-                // Login Button
+                  // Login Button
                   GestureDetector(
                     onTap: _isLoading
                         ? null
@@ -165,58 +166,10 @@ class _Login_pageState extends State<Login_page> {
                         _isLoading = true;
                       });
 
-                      final number = _mobileController.text;
-                      final password = _passController.text;
+                      final number = _mobileController.text.trim();
+                      final password = _passController.text.trim();
 
-                      final response = await http.get(Uri.parse(
-                          "https://verifyserve.social/WebService3_ServiceWork.asmx/Feild_LoginApi?number=$number&password=$password"));
-
-                      if (response.body == '[{"logg":1}]') {
-                        final result = await fetchData_account();
-
-                        if (result.isNotEmpty) {
-                          final user = result.first;
-
-                          SharedPreferences prefs =
-                          await SharedPreferences.getInstance();
-                          prefs.setString('name', user.F_Name);
-                          prefs.setString('number', user.F_Number);
-                          prefs.setString('location', user.FLocation);
-
-                          Fluttertoast.showToast(
-                            msg: "Login successful",
-                            toastLength: Toast.LENGTH_SHORT,
-                            backgroundColor: Colors.green,
-                            textColor: Colors.white,
-                          );
-
-                          if (user.FAadharCard == "Administrator") {
-                            Navigator.of(context).pushReplacementNamed(
-                                AdministratorHome_Screen.route);
-                          } else if (user.FAadharCard == "FieldWorkar") {
-                            Navigator.of(context)
-                                .pushReplacementNamed(Home_Screen.route);
-                          } else {
-                            Fluttertoast.showToast(
-                              msg: "Unknown role: ${user.FAadharCard}",
-                              backgroundColor: Colors.orange,
-                              textColor: Colors.white,
-                            );
-                          }
-                        } else {
-                          Fluttertoast.showToast(
-                            msg: "No account data found!",
-                            backgroundColor: Colors.red,
-                            textColor: Colors.white,
-                          );
-                        }
-                      } else {
-                        Fluttertoast.showToast(
-                          msg: "Login Failed",
-                          backgroundColor: Colors.red,
-                          textColor: Colors.white,
-                        );
-                      }
+                      await loginUser(context, number, password);
 
                       setState(() {
                         _isLoading = false;
@@ -226,17 +179,24 @@ class _Login_pageState extends State<Login_page> {
                       height: 50,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
+                        gradient: const LinearGradient(
                           colors: [
                             Color.fromRGBO(143, 148, 251, 1),
                             Color.fromRGBO(143, 148, 251, .6),
                           ],
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 6,
+                            offset: Offset(0, 3),
+                          ),
+                        ],
                       ),
                       child: Center(
                         child: _isLoading
-                            ? CircularProgressIndicator(color: Colors.white)
-                            : Text(
+                            ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                            : const Text(
                           "Login",
                           style: TextStyle(
                             color: Colors.white,
@@ -247,7 +207,8 @@ class _Login_pageState extends State<Login_page> {
                       ),
                     ),
                   ),
-            Container(
+
+                  Container(
               margin: EdgeInsets.all(20.0),
               child: Row(
                 children: [
@@ -272,4 +233,65 @@ class _Login_pageState extends State<Login_page> {
         )
     ));
   }
+  Future<void> loginUser(BuildContext context, String number, String password) async {
+    try {
+      // Get FCM Token
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      String? fcmToken = await messaging.getToken();
+      print("🔑 FCM Token: $fcmToken");
+
+      // API call with number, password, and token
+      final response = await http.get(Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
+      ));
+
+      print("📩 Raw Response: ${response.body}");
+
+      final data = json.decode(response.body);
+
+      if (data is List && data.isNotEmpty && data[0]["status"] == "success") {
+        final user = data[0];
+
+        // Save data in SharedPreferences
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('name', user["FName"]);
+        prefs.setString('number', user["FNumber"]);
+        prefs.setString('location', user["FAadharCard"]);
+        prefs.setString('fcmToken', user["FCM"]);
+
+        Fluttertoast.showToast(
+          msg: user["message"] ?? "Login Successful ✅",
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
+
+        // Navigate by role
+        if (user["FAadharCard"] == "Administrator") {
+          Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
+        } else if (user["FAadharCard"] == "FieldWorkar") {
+          Navigator.of(context).pushReplacementNamed(Home_Screen.route);
+        } else {
+          Fluttertoast.showToast(
+            msg: "Unknown Role: ${user["FAadharCard"]}",
+            backgroundColor: Colors.orange,
+            textColor: Colors.white,
+          );
+        }
+      } else {
+        Fluttertoast.showToast(
+          msg: "Invalid Number or Password ❌",
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
+      }
+    } catch (e) {
+      print("❌ Error: $e");
+      Fluttertoast.showToast(
+        msg: "Error: $e",
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
+    }
+  }
+
 }

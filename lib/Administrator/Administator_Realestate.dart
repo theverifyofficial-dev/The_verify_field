@@ -418,7 +418,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   bool _isDeleting = false;
 
   //Delete api
-  Future<void> DeletePropertybyid(itemId) async {
+  Future<void> DeletePropertyById(itemId) async {
     final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
     final response = await http.get(url);
     // await Future.delayed(Duration(seconds: 1));
@@ -609,7 +609,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                               itemBuilder: (BuildContext context,int len) {
                                 final property = snapshot.data![len];
                                 int displayIndex = snapshot.data!.length - len;
-
+                                int reverseIndex = len - 1;
                                 return GestureDetector(
                                   onTap: (){
                                     Navigator.push(
@@ -826,7 +826,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                                                         .ellipsis,
                                                   ),
                                                 ),
-                                                Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*/,
                                                   style: Theme
                                                       .of(context)
                                                       .textTheme

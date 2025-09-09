@@ -398,10 +398,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
 
   @override
   Widget build(BuildContext context) {
-    final propertyId = Provider
-        .of<PropertyIdProvider>(context)
-        .latestPropertyId.toString();
-
     return Scaffold(
       appBar: AppBar(
         surfaceTintColor: Colors.black,
@@ -419,8 +415,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
         ),
         actions: [
           // Text('${propertyId ?? "Loading..."}',style: TextStyle(color: Colors.white),),
-
-
         ],
       ),
       body: Padding(

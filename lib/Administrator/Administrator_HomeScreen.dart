@@ -129,9 +129,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 70),
         leading: Container(
-          margin: const EdgeInsets.only(left: 8), // Add some margin if needed
+          margin: const EdgeInsets.only(left: 8),
           child: InkWell(
-            borderRadius: BorderRadius.circular(20), // For better tap effect
+            borderRadius: BorderRadius.circular(20),
             onTap: () =>
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (context) => ProfilePage()),

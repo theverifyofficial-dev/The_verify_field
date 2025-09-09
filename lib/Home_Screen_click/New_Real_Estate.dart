@@ -624,7 +624,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                               shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                               ),
-                              color: Theme.of(context).cardColor,
+                              color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
                               child:
                                Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -632,7 +632,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                     Stack(
                                       children: [
                                         Container(
-                                          height: 200,
+                                          height: 450,
                                           width: double.infinity,
                                           decoration: BoxDecoration(
                                             color: Theme.of(context).highlightColor,
@@ -652,36 +652,24 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                           child: Wrap(
                                             spacing: 8, // space between the two containers
                                             children: [
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.deepOrangeAccent,
-                                                  borderRadius: BorderRadius.circular(20),
-                                                ),
-                                                child: Text(
-                                                  "${_filteredProperties[index].pId}",
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontFamily: "PoppinsBold",
-                                                  ),
-                                                ),
+                                              _buildFeatureItem(
+                                                context: context,
+                                                // icon: Icons.king_bed,
+                                                text: "${_filteredProperties[index].pId}",
+                                                borderColor: Colors.red.shade200,
+                                                backgroundColor: Colors.red.shade50,
+                                                textColor: Colors.red.shade700,
+                                                shadowColor: Colors.red.shade100,
+                                              ),  _buildFeatureItem(
+                                                context: context,
+                                                // icon: Icons.king_bed,
+                                                text: _filteredProperties[index].buyRent ?? "Property",
+                                                borderColor: Colors.blue.shade200,
+                                                backgroundColor: Colors.blue.shade50,
+                                                textColor: Colors.blue.shade700,
+                                                shadowColor: Colors.blue.shade100,
                                               ),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: _getPropertyTypeColor(_filteredProperties[index].buyRent),
-                                                  borderRadius: BorderRadius.circular(20),
-                                                ),
-                                                child: Text(
-                                                  _filteredProperties[index].buyRent ?? "Property",
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                    fontFamily: "PoppinsBold",
-                                                  ),
-                                                ),
-                                              ),
+
                                             ],
                                           ),
                                         )
@@ -703,14 +691,14 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 20,
                                                   fontFamily: "PoppinsBold",
-                                                  color: Theme.of(context).textTheme.titleLarge?.color,
+                                                  color: Colors.black,
                                                 ),
                                               ),
                                               Text(
                                                 _filteredProperties[index].locations ?? "",
                                                 style: TextStyle(
                                                   fontFamily: "PoppinsBold",
-                                                  color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.8),
+                                                  color: Colors.black,
                                                 ),
                                               ),
                                             ],
@@ -721,9 +709,34 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                             runSpacing: 8, // vertical spacing between lines
                                             alignment: WrapAlignment.start,
                                             children: [
-                                              _buildFeatureItem(context, Icons.king_bed, "${_filteredProperties[index].bhk}"),
-                                              _buildFeatureItem(context, Icons.apartment, "${_filteredProperties[index].floor}"),
-                                              _buildFeatureItem(context, Icons.home_work, _filteredProperties[index].typeOfProperty ?? ""),
+                                              _buildFeatureItem(
+                                                context: context,
+                                                icon: Icons.king_bed,
+                                                text: "${_filteredProperties[index].bhk}",
+                                                borderColor: Colors.purple.shade200,
+                                                backgroundColor: Colors.purple.shade50,
+                                                textColor: Colors.purple.shade700,
+                                                shadowColor: Colors.purple.shade100,
+                                              ),
+                                              _buildFeatureItem(
+                                                context: context,
+                                                icon: Icons.apartment,
+                                                text: "${_filteredProperties[index].floor}",
+                                                borderColor: Colors.teal.shade200,
+                                                backgroundColor: Colors.teal.shade50,
+                                                textColor: Colors.teal.shade700,
+                                                shadowColor: Colors.teal.shade100,
+                                              ),
+                                              _buildFeatureItem(
+                                                context: context,
+                                                icon: Icons.home_work,
+                                                text: _filteredProperties[index].typeOfProperty ?? "",
+                                                borderColor: Colors.orange.shade200,
+                                                backgroundColor: Colors.orange.shade50,
+                                                textColor: Colors.orange.shade700,
+                                                shadowColor: Colors.orange.shade100,
+                                              ),
+
                                             ],
                                           ),
                                           if (hasMissingFields) ...[
@@ -830,30 +843,70 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     }
   }
 
-  Widget _buildFeatureItem(BuildContext context, IconData icon, String text) {
+  Widget _buildFeatureItem({
+    required BuildContext context,
+    required String text,
+    required Color borderColor,
+    IconData? icon, // 👈 optional now
+    Color? backgroundColor,
+    Color? textColor,
+    Color? shadowColor,
+  }) {
+    final width = MediaQuery.of(context).size.width;
+
+    // Scale text, padding, and icon size relative to screen width
+    double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
+    double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
+    double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
+    double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: horizontalPadding,
+        vertical: verticalPadding,
+      ),
+      margin: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Theme.of(context).hoverColor,
-        borderRadius: BorderRadius.circular(8),
+        color: backgroundColor ?? Colors.transparent,
+        border: Border.all(color: borderColor, width: 2),
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: (shadowColor ?? borderColor).withOpacity(0.10),
+            blurRadius: 6,
+            spreadRadius: 2,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: Theme.of(context).iconTheme.color),
-          const SizedBox(width: 4),
+          if (icon != null) ...[ // 👈 only shows if passed
+            Icon(
+              icon,
+              size: iconSize,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : (textColor ?? Colors.black),
+            ),
+            const SizedBox(width: 4),
+          ],
           Text(
             text,
             style: TextStyle(
-                fontSize: 12,
-                color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade700,
-                fontFamily: "Poppins",
-                fontWeight: FontWeight.w600
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Poppins",
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.black
+                  : (textColor ?? Colors.black),
             ),
           ),
         ],
       ),
     );
   }
+
 
 }

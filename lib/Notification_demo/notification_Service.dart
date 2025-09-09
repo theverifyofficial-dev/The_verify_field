@@ -90,6 +90,7 @@ void showLocalNotification(RemoteMessage message) {
     channelDescription: 'This channel is used for important notifications.',
     importance: Importance.max,
     priority: Priority.high,
+    styleInformation: BigTextStyleInformation(''),
     icon: '@mipmap/ic_launcher',
   );
 

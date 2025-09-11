@@ -3938,7 +3938,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                         const SizedBox(height: 20),
 
-                                        /// Footer
                                         Wrap(
                                           alignment: WrapAlignment.spaceBetween,
                                           children: [

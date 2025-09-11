@@ -392,53 +392,6 @@ class _Edit_Realestate_SecondpageState extends State<Edit_Realestate_Secondpage>
             ],
           ),
         ),
-        actions:  [
-          GestureDetector(
-            onTap: () async {
-
-              showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Delete Property'),
-                  content: Text('Do you really want to Delete This Property?'),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  backgroundColor: Colors.black,
-                  actions: <Widget>[
-                    ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('No'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        final result_delete = await fetchData22();
-                        print(result_delete.first.id);
-                        DeletePropertybyid('${result_delete.first.id}');
-                        setState(() {
-                          _isDeleting = true;
-                        });
-                        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Show_Real_Estate(),), (route) => route.isFirst);
-                      },
-                      child: Text('Yes'),
-                    ),
-                  ],
-                ),
-              ) ?? false;
-              /*final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Delete_Image()));
-
-              if (result == true) {
-                _refreshData();
-              }*/
-            },
-            child: const Icon(
-              PhosphorIcons.trash,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),

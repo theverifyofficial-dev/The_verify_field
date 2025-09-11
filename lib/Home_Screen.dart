@@ -22,6 +22,7 @@ import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/Add_New_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
+import 'Rent Agreement/Agreement_Form.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'add_properties_firstpage.dart';
 import 'ui_decoration_tools/constant.dart';
@@ -238,11 +239,44 @@ class _Home_ScreenState extends State<Home_Screen> {
   }
 
   _launchURL() async {
-    final Uri url = Uri.parse('https://theverify.in/');
+    final Uri url = Uri.parse('https://theverify.in/example.html');
     if (!await launchUrl(url)) {
       throw Exception('Could not launch $url');
     }
   }
+
+  void _showAgreementChoiceDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Choose Option"),
+          content: Text("Do you want to open the Rent Agreement via App or Website?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                // Navigate to in-app form screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => RentalWizardPage()),
+                );
+              },
+              child: Text("Via App"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                _launchURL(); // Launch website URL
+              },
+              child: Text("Via Website"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -391,7 +425,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                     {
                       "image": AppImages.agreement,
                       "title": "Rent\n Agreement",
-                      "onTap": _AgreementURL,
+                      "onTap": _showAgreementChoiceDialog,
                     },
                     {
                       "image": AppImages.agreement_details,

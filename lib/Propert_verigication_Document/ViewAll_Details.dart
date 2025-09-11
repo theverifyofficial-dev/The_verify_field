@@ -276,47 +276,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
           icon: Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 28),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Image.asset(AppImages.verify, height: 75),
-        actions: [
-          IconButton(
-            icon: Icon(PhosphorIcons.trash, color: Colors.white, size: 24),
-            onPressed: () async {
-              final confirmDelete = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Delete Property'),
-                  content: Text('Do you really want to Delete This Property?'),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  // backgroundColor: Colors.white,
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(false),
-                      child: Text('No', style: TextStyle(color: Colors.teal)),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.of(context).pop(true); // Close dialog
-                      },
-                      child: Text('Yes', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
-
-              if (confirmDelete == true) {
-                final resultDelete = await fetchData();
-                if (resultDelete.isNotEmpty) {
-                  await DeletePropertybyid('${resultDelete.first.id}');
-                  setState(() {
-                    _isDeleting = true;
-                  });
-                }
-              }
-            },
-          ),
-          SizedBox(width: 8),
-        ],
-      ),
+        title: Image.asset(AppImages.verify, height: 75),),
       body: SingleChildScrollView(
         child: Column(
           children: [

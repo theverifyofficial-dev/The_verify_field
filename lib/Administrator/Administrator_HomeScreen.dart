@@ -8,13 +8,14 @@ import 'package:verify_feild_worker/Login_page.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Statistics/Target_MainPage.dart';
 import '../Tenant_Details_Demand/Parent_class_TenantDemand.dart';
+import '../administrator/Administator_Realestate.dart';
 import '../main.dart';
 import '../ui_decoration_tools/constant.dart';
 import '../profile.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'Administater_TenanDemand.dart';
-import 'Administator_Realestate.dart';
+import 'Administator_Realestate.dart' hide ThemeSwitcher, ADministaterShow_realestete;
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class AdministratorHome_Screen extends StatefulWidget {

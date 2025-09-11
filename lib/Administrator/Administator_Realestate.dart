@@ -9,6 +9,7 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Home_Screen_click/Commercial_property_Filter.dart';
 import '../Home_Screen_click/Filter_Options.dart';
@@ -226,13 +227,24 @@ class Catid {
 }
 
 class ADministaterShow_realestete extends StatefulWidget {
-  const ADministaterShow_realestete({super.key});
+  static const administaterShowRealEstate = "/administater_show_realestate";
+
+  final bool fromNotification;
+  final String? flatId;
+
+  const ADministaterShow_realestete({
+    super.key,
+    this.fromNotification = false,
+    this.flatId,
+
+  });
 
   @override
   State<ADministaterShow_realestete> createState() => _ADministaterShow_realesteteState();
 }
 
 class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
+  final _formKey = GlobalKey<FormState>();
 
   void _showBottomSheet(BuildContext context) {
 
@@ -299,6 +311,32 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
 
 
+  Future<List<Catid>> av() async {
+    try {
+      final url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=11&live_unlive=Flat",
+      );
+
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final body = json.decode(response.body);
+
+        if (body is List) {
+          // Reverse the list instead of sorting by PVR_id
+          final reversedList = body.reversed.toList();
+          return reversedList.map((data) => Catid.fromJson(data)).toList();
+        } else {
+          throw Exception("Invalid JSON format: Expected a list");
+        }
+      } else {
+        throw Exception("Server error: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("fetchData2 error: $e");
+      throw Exception("Failed to fetch data: $e");
+    }
+  }
   Future<List<Catid>> fetchData() async {
     try {
       final url = Uri.parse(
@@ -407,16 +445,66 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
   }
 
+  String? _highlightedFlatId;
+  bool _hasHighlighted = false;
+  List<Catid> _properties = [];
+  bool _didAutoScroll = false;
 
+  final ScrollController _hScrollController = ScrollController();
+  final Map<String, GlobalKey> _itemKeys = {};
   @override
   void initState() {
-    _loaduserdata();
     super.initState();
+    _loaduserdata();
 
+    // highlight only once when page opened via notification
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map?;
+      final flatId = args?['flatId'];
+
+      if (flatId != null && !_hasHighlighted) {
+        setState(() {
+          _highlightedFlatId = flatId.toString();
+        });
+        _hasHighlighted = true;
+      }
+    });
   }
 
-  bool _isDeleting = false;
+  Future<void> _loaduserdata() async {
+    // 🔹 Replace this with your API call
+    final data = await av();
 
+    if (mounted) {
+      setState(() {
+        _properties = data;
+      });
+    }
+  }
+  @override
+  void dispose() {
+    _hScrollController.dispose();
+    super.dispose();
+  }
+
+
+  // call this when data is available (we will call it from inside FutureBuilder)
+  void _scrollToAndHighlightByIndex(int targetIndex, String flatId) {
+    const double itemWidth = 300.0; // must match your item width
+    const double itemSpacing = 16.0; // spacing between items
+    final double offset = targetIndex * (itemWidth + itemSpacing);
+
+    _hScrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 600),
+      curve: Curves.easeInOut,
+    );
+
+    setState(() {
+      _highlightedFlatId = flatId;
+    });
+  }
+  bool _isDeleting = false;
   //Delete api
   Future<void> DeletePropertyById(itemId) async {
     final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
@@ -435,8 +523,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       throw Exception('Failed to load data');
     }
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -481,93 +567,200 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         //   ),
         // ],
       ),
-      body: CustomScrollView(
-        slivers: [
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-                return FutureBuilder<List<Catid>>(
-                  future: fetchData(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return  Center(
-                        child: Lottie.asset(AppImages.loadingHand, height: 400),
-                      );
-                    } else if (snapshot.hasError) {
-                      return Center(
-                        child: Text(
-                          'Failed to load properties',
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .bodyMedium
-                              ?.copyWith(
-                            color: Colors.grey[600],
-                            fontFamily: "Poppins",
-                          ),
-                        ),
-                      );
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.home_work_outlined,
-                              size: 48,
-                              color: Colors.grey[400],
+      body: Form(
+        key: GlobalKey<FormState>(),
+        child: CustomScrollView(
+          slivers: [
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                  return FutureBuilder<List<Catid>>(
+                    future: fetchData(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return  Center(
+                          child: Lottie.asset(AppImages.loadingHand, height: 400),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Text(
+                            'Failed to load properties',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                              fontFamily: "Poppins",
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No properties available',
-                              style: Theme
-                                  .of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                color: Colors.grey[600],
-                                fontFamily: "Poppins",
+                          ),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.home_work_outlined,
+                                size: 48,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No properties available',
+                                style: Theme
+                                    .of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                  color: Colors.grey[600],
+                                  fontFamily: "Poppins",
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Sumit kasaniya',
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme
+                                          .of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              See_All_Realestate(
+                                                  id: '9711775300'),
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'View All',
+                                            style: Theme
+                                                .of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                              color: Colors.blue[700],
+                                              fontWeight: FontWeight.w600,
+                                              fontFamily: "Poppins",
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            size: 14,
+                                            color: Colors.blue[700],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
+                            SizedBox(
+                              height: 440,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: snapshot.data!.length,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16),
+                                itemBuilder: (context, index) {
+                                  final property = snapshot.data![index];
+                                  return PropertyCard(
+                                    property: property,
+                                    displayIndex: index + 1,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Administater_View_Details(idd: property.id.toString()),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              )
+
+                            ),
                           ],
-                        ),
-                      );
-                    } else {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                            child: Row(
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1,
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Catid>>(
+                    future: fetchData1(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("");
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('No data available'));
+                      } else {
+                        final data = snapshot.data!;
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  'Sumit kasaniya',
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: "PoppinsBold",
-                                    color: Theme
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                                  child: Text(
+                                    'Ravi Kumar',
+                                    style: Theme
                                         .of(context)
-                                        .colorScheme
-                                        .onSurface,
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme
+                                          .of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
                                   ),
                                 ),
-                                InkWell(
+                                GestureDetector(
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) =>
-                                            See_All_Realestate(
-                                                id: '9711775300'),
-                                      ),
-                                    );
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=> See_All_Realestate(id: '9711275300',)));
                                   },
-                                  borderRadius: BorderRadius.circular(20),
                                   child: Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 5, vertical: 4),
@@ -597,44 +790,1201 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                                 ),
                               ],
                             ),
-                          ),
-                          SizedBox(
-                            height: 440,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16),
-                              physics: const BouncingScrollPhysics(),
-                              itemCount: snapshot.data!.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                final property = snapshot.data![len];
-                                int displayIndex = snapshot.data!.length - len;
-                                int reverseIndex = len - 1;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute
-                                          (builder: (context) => Administater_View_Details(idd: '${property.id}',))
-                                    );
+                            SizedBox(
+                              height: 440,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16),
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  final property = snapshot.data![len];
+                                  int displayIndex = snapshot.data!.length - len;
+                                  return GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute
+                                            (builder: (context) => Administater_View_Details(idd: '${property.id}',))
+                                      );
 
+                                    },
+                                    child: Container(
+                                      width: 300,
+                                      margin: const EdgeInsets.only(
+                                          right: 16, bottom: 16),
+                                      decoration: BoxDecoration(
+                                        color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.08),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          // Property Image with Gradient Overlay
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: const BorderRadius
+                                                    .vertical(
+                                                    top: Radius.circular(16)),
+                                                child: SizedBox(
+                                                  height: 200,
+                                                  width: double.infinity,
+                                                  child: CachedNetworkImage(
+                                                    imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property
+                                                        .propertyPhoto}",
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) =>
+                                                        Container(
+                                                          color: Colors.grey[100],
+                                                          child: Center(
+                                                            child: Image.asset(
+                                                              AppImages.loader,
+                                                              height: 50,
+                                                              width: 50,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    errorWidget: (context, url,
+                                                        error) =>
+                                                        Container(
+                                                          color: Colors.grey[100],
+                                                          child: const Icon(
+                                                            Icons
+                                                                .home_work_outlined,
+                                                            size: 50,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Gradient Overlay
+                                              Positioned.fill(
+                                                child: DecoratedBox(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: const BorderRadius
+                                                        .vertical(
+                                                        top: Radius.circular(16)),
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.bottomCenter,
+                                                      end: Alignment.topCenter,
+                                                      colors: [
+                                                        Colors.black.withOpacity(
+                                                            0.4),
+                                                        Colors.transparent,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Price Tag
+                                              Positioned(
+                                                bottom: 16,
+                                                left: 16,
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 12, vertical: 6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius
+                                                        .circular(20),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.1),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Text(
+                                                    "₹${property.showPrice}",
+                                                    style: const TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontSize: 16,
+                                                      fontFamily: "PoppinsBold",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Property Details
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .start,
+                                                children: [
+                                                  // Location
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.location_on_outlined,
+                                                        size: 18,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Expanded(
+                                                        child: Text(
+                                                          property
+                                                              .locations,
+                                                          style: Theme
+                                                              .of(context)
+                                                              .textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
+                                                            fontFamily: "Poppins",
+                                                            fontWeight: FontWeight
+                                                                .w600,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 12),
+
+                                                  // Property Features
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: [
+                                                      _buildFeaturePill(
+                                                        Icons.category_outlined,
+                                                        property.typeOfProperty
+                                                            .toUpperCase(),
+                                                        Colors.blue[100]!,
+                                                        Colors.blue[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons
+                                                            .currency_rupee_outlined,
+                                                        property.buyRent
+                                                            .toUpperCase(),
+                                                        Colors.green[100]!,
+                                                        Colors.green[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons.bed_outlined,
+                                                        property.bhk.toUpperCase(),
+                                                        Colors.orange[100]!,
+                                                        Colors.orange[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons.stairs_outlined,
+                                                        "${property.floor}",
+                                                        Colors.purple[100]!,
+                                                        Colors.purple[800]!,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 16),
+
+                                                  // Description
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.apartmentAddress,
+                                                      style: Theme
+                                                          .of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                        fontSize: 14,
+                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: "Poppins",
+                                                      ),
+                                                      maxLines: 3,
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                    ),
+                                                  ),
+                                                  Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                    style: Theme
+                                                        .of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontFamily: "Poppins",
+                                                    ),
+                                                  ),
+
+                                                  // Footer
+                                                  const SizedBox(height: 12),
+
+                                                  Divider(
+                                                    height: 1,
+                                                    color: Colors.grey[200],
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "ID: ${property.id}",
+                                                        style: Theme
+                                                            .of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontFamily: "Poppins",
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        property.availableDate,
+                                                        style: Theme
+                                                            .of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontFamily: "Poppins",
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
                                   },
-                                  child: Container(
-                                    width: 300,
-                                    margin: const EdgeInsets.only(
-                                        right: 16, bottom: 16),
-                                    decoration: BoxDecoration(
-                                      color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.08),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 6),
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Catid>>(
+                    future: fetchData2(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("");
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('No data available'));
+                      } else {
+                        final data = snapshot.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                                  child: Text(
+                                    'Faizan Khan',
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme
+                                          .of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=> See_All_Realestate(id: '9971172204',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 4),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'View All',
+                                          style: Theme
+                                              .of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                            color: Colors.blue[700],
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: "Poppins",
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: 14,
+                                          color: Colors.blue[700],
                                         ),
                                       ],
                                     ),
-                                    child: Column(
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 440,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  final property = snapshot.data![len];
+                                  int displayIndex = snapshot.data!.length - len;
+                                  return GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute
+                                            (builder: (context) => Administater_View_Details(idd: '${property.id}',))
+                                      );
+
+                                    },
+                                    child: Container(
+                                      width: 300,
+                                      margin: const EdgeInsets.only(
+                                          right: 16, bottom: 16),
+                                      decoration: BoxDecoration(
+                                        color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.08),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          // Property Image with Gradient Overlay
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: const BorderRadius
+                                                    .vertical(
+                                                    top: Radius.circular(16)),
+                                                child: SizedBox(
+                                                  height: 200,
+                                                  width: double.infinity,
+                                                  child: CachedNetworkImage(
+                                                    imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property
+                                                        .propertyPhoto}",
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) =>
+                                                        Container(
+                                                          color: Colors.grey[100],
+                                                          child: Center(
+                                                            child: Image.asset(
+                                                              AppImages.loader,
+                                                              height: 50,
+                                                              width: 50,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    errorWidget: (context, url,
+                                                        error) =>
+                                                        Container(
+                                                          color: Colors.grey[100],
+                                                          child: const Icon(
+                                                            Icons
+                                                                .home_work_outlined,
+                                                            size: 50,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Gradient Overlay
+                                              Positioned.fill(
+                                                child: DecoratedBox(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: const BorderRadius
+                                                        .vertical(
+                                                        top: Radius.circular(16)),
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.bottomCenter,
+                                                      end: Alignment.topCenter,
+                                                      colors: [
+                                                        Colors.black.withOpacity(
+                                                            0.4),
+                                                        Colors.transparent,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Price Tag
+                                              Positioned(
+                                                bottom: 16,
+                                                left: 16,
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 12, vertical: 6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius
+                                                        .circular(20),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.1),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Text(
+                                                    "₹${property.showPrice}",
+                                                    style: const TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontSize: 16,
+                                                      fontFamily: "PoppinsBold",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Property Details
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .start,
+                                                children: [
+                                                  // Location
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.location_on_outlined,
+                                                        size: 18,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Expanded(
+                                                        child: Text(
+                                                          property
+                                                              .locations,
+                                                          style: Theme
+                                                              .of(context)
+                                                              .textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
+                                                            fontFamily: "Poppins",
+                                                            fontWeight: FontWeight
+                                                                .w600,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 12),
+
+                                                  // Property Features
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: [
+                                                      _buildFeaturePill(
+                                                        Icons.category_outlined,
+                                                        property.typeOfProperty
+                                                            .toUpperCase(),
+                                                        Colors.blue[100]!,
+                                                        Colors.blue[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons
+                                                            .currency_rupee_outlined,
+                                                        property.buyRent
+                                                            .toUpperCase(),
+                                                        Colors.green[100]!,
+                                                        Colors.green[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons.bed_outlined,
+                                                        property.bhk.toUpperCase(),
+                                                        Colors.orange[100]!,
+                                                        Colors.orange[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons.stairs_outlined,
+                                                        "${property.floor}",
+                                                        Colors.purple[100]!,
+                                                        Colors.purple[800]!,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 16),
+
+                                                  // Description
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.apartmentAddress,
+                                                      style: Theme
+                                                          .of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                        fontSize: 14,
+                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: "Poppins",
+                                                      ),
+                                                      maxLines: 3,
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                    ),
+                                                  ),
+                                                  Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                    style: Theme
+                                                        .of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontFamily: "Poppins",
+                                                    ),
+                                                  ),
+
+                                                  // Footer
+                                                  const SizedBox(height: 12),
+
+                                                  Divider(
+                                                    height: 1,
+                                                    color: Colors.grey[200],
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "ID: ${property.id}",
+                                                        style: Theme
+                                                            .of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontFamily: "Poppins",
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        property.availableDate,
+                                                        style: Theme
+                                                            .of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontFamily: "Poppins",
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
+                  return FutureBuilder<List<Catid>>(
+                    future: fetchData_rajpur(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Text("");
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('No data available'));
+                      } else {
+                        final data = snapshot.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                                  child: Text(
+                                    'Rajpur Properties',
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme
+                                          .of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                ),
+                                GestureDetector(
+                                  onTap: () {
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context)=> See_All_Realestate(id: '9818306096 ',)));
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 5, vertical: 4),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'View All',
+                                          style: Theme
+                                              .of(context)
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.copyWith(
+                                            color: Colors.blue[700],
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: "Poppins",
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          Icons.arrow_forward_ios_rounded,
+                                          size: 14,
+                                          color: Colors.blue[700],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 440,
+                              child: ListView.builder(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16),
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  final property = snapshot.data![len];
+
+                                  int displayIndex = snapshot.data!.length - len;
+                                  return GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute
+                                            (builder: (context) => Administater_View_Details(idd: '${property.id}',))
+                                      );
+
+                                    },
+                                    child: Container(
+                                      width: 300,
+                                      margin: const EdgeInsets.only(
+                                          right: 16, bottom: 16),
+                                      decoration: BoxDecoration(
+                                        color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.08),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment
+                                            .start,
+                                        children: [
+                                          // Property Image with Gradient Overlay
+                                          Stack(
+                                            children: [
+                                              ClipRRect(
+                                                borderRadius: const BorderRadius
+                                                    .vertical(
+                                                    top: Radius.circular(16)),
+                                                child: SizedBox(
+                                                  height: 200,
+                                                  width: double.infinity,
+                                                  child: CachedNetworkImage(
+                                                    imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property
+                                                        .propertyPhoto}",
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) =>
+                                                        Container(
+                                                          color: Colors.grey[100],
+                                                          child: Center(
+                                                            child: Image.asset(
+                                                              AppImages.loader,
+                                                              height: 50,
+                                                              width: 50,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                    errorWidget: (context, url,
+                                                        error) =>
+                                                        Container(
+                                                          color: Colors.grey[100],
+                                                          child: const Icon(
+                                                            Icons
+                                                                .home_work_outlined,
+                                                            size: 50,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Gradient Overlay
+                                              Positioned.fill(
+                                                child: DecoratedBox(
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: const BorderRadius
+                                                        .vertical(
+                                                        top: Radius.circular(16)),
+                                                    gradient: LinearGradient(
+                                                      begin: Alignment.bottomCenter,
+                                                      end: Alignment.topCenter,
+                                                      colors: [
+                                                        Colors.black.withOpacity(
+                                                            0.4),
+                                                        Colors.transparent,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                              // Price Tag
+                                              Positioned(
+                                                bottom: 16,
+                                                left: 16,
+                                                child: Container(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 12, vertical: 6),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius
+                                                        .circular(20),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: Colors.black
+                                                            .withOpacity(0.1),
+                                                        blurRadius: 8,
+                                                        offset: const Offset(0, 2),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: Text(
+                                                    "₹${property.showPrice}",
+                                                    style: const TextStyle(
+                                                      color: Colors.green,
+                                                      fontWeight: FontWeight.w700,
+                                                      fontSize: 16,
+                                                      fontFamily: "PoppinsBold",
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+
+                                          // Property Details
+                                          Expanded(
+                                            child: Padding(
+                                              padding: const EdgeInsets.all(16),
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment
+                                                    .start,
+                                                children: [
+                                                  // Location
+                                                  Row(
+                                                    children: [
+                                                      Icon(
+                                                        Icons.location_on_outlined,
+                                                        size: 18,
+                                                        color: Colors.grey[600],
+                                                      ),
+                                                      const SizedBox(width: 6),
+                                                      Expanded(
+                                                        child: Text(
+                                                          property
+                                                              .locations,
+                                                          style: Theme
+                                                              .of(context)
+                                                              .textTheme
+                                                              .bodyMedium
+                                                              ?.copyWith(
+                                                            color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
+                                                            fontFamily: "Poppins",
+                                                            fontWeight: FontWeight
+                                                                .w600,
+                                                          ),
+                                                          maxLines: 1,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 12),
+
+                                                  // Property Features
+                                                  Wrap(
+                                                    spacing: 8,
+                                                    runSpacing: 8,
+                                                    children: [
+                                                      _buildFeaturePill(
+                                                        Icons.category_outlined,
+                                                        property.typeOfProperty
+                                                            .toUpperCase(),
+                                                        Colors.blue[100]!,
+                                                        Colors.blue[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons
+                                                            .currency_rupee_outlined,
+                                                        property.buyRent
+                                                            .toUpperCase(),
+                                                        Colors.green[100]!,
+                                                        Colors.green[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons.bed_outlined,
+                                                        property.bhk.toUpperCase(),
+                                                        Colors.orange[100]!,
+                                                        Colors.orange[800]!,
+                                                      ),
+                                                      _buildFeaturePill(
+                                                        Icons.stairs_outlined,
+                                                        "${property.floor}",
+                                                        Colors.purple[100]!,
+                                                        Colors.purple[800]!,
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  const SizedBox(height: 16),
+
+                                                  // Description
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.apartmentAddress,
+                                                      style: Theme
+                                                          .of(context)
+                                                          .textTheme
+                                                          .bodySmall
+                                                          ?.copyWith(
+                                                        fontSize: 14,
+                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
+                                                        fontWeight: FontWeight.w600,
+                                                        fontFamily: "Poppins",
+                                                      ),
+                                                      maxLines: 3,
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                    ),
+                                                  ),
+                                                  Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                    style: Theme
+                                                        .of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.copyWith(
+                                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      fontFamily: "Poppins",
+                                                    ),
+                                                  ),
+
+                                                  // Footer
+                                                  const SizedBox(height: 12),
+
+                                                  Divider(
+                                                    height: 1,
+                                                    color: Colors.grey[200],
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Row(
+                                                    mainAxisAlignment: MainAxisAlignment
+                                                        .spaceBetween,
+                                                    children: [
+                                                      Text(
+                                                        "ID: ${property.id}",
+                                                        style: Theme
+                                                            .of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontFamily: "Poppins",
+                                                        ),
+                                                      ),
+                                                      Text(
+                                                        property.availableDate,
+                                                        style: Theme
+                                                            .of(context)
+                                                            .textTheme
+                                                            .bodySmall
+                                                            ?.copyWith(
+                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
+                                                          fontSize: 13,
+                                                          fontWeight: FontWeight.w600,
+                                                          fontFamily: "Poppins",
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                  // This FutureBuilder returns the horizontal list's data
+                  return FutureBuilder<List<Catid>>(
+                    future: av(), // your actual future
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Failed to load properties'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(child: Text('No properties available'));
+                      } else {
+                        final items = snapshot.data!;
+                        if (!_didAutoScroll && widget.flatId != null) {
+                          final targetIndex = items.indexWhere(
+                                (p) => p.id.toString() == widget.flatId.toString(),
+                          );
+
+                          if (targetIndex >= 0) {
+                            _didAutoScroll = true;
+
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              // set the highlighted item immediately
+                              setState(() {
+                                _highlightedFlatId = widget.flatId.toString();
+                              });
+
+                              // scroll to the target index without any timer
+                              _scrollToAndHighlightByIndex(targetIndex, widget.flatId.toString());
+                            });
+                          } else {
+                            _didAutoScroll = true;
+                          }
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Avjit',
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme
+                                          .of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              See_All_Realestate(
+                                                  id: '9711775300'),
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 5, vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'View All',
+                                            style: Theme
+                                                .of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.copyWith(
+                                              color: Colors.blue[700],
+                                              fontWeight: FontWeight.w600,
+                                              fontFamily: "Poppins",
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Icon(
+                                            Icons.arrow_forward_ios_rounded,
+                                            size: 14,
+                                            color: Colors.blue[700],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 440,
+                              child: ListView.builder(
+                                controller: _hScrollController, // ✅ attach controller
+
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16),
+                                physics: const BouncingScrollPhysics(),
+                                itemCount: snapshot.data!.length,
+                                itemBuilder: (BuildContext context,int len) {
+                                  final property = snapshot.data![len];
+                                  int displayIndex = snapshot.data!.length - len;
+                                  final idStr = property.id.toString(); // ✅ always use string
+
+                                  int reverseIndex = len - 1;
+                                  return GestureDetector(
+                                    onTap: (){
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute
+                                            (builder: (context) => Administater_View_Details(idd: '${property.id}',))
+                                      );
+
+                                    },
+                                    child: AnimatedContainer(
+                                      key: _itemKeys[idStr], // ✅ fix key usage
+                                      duration: const Duration(milliseconds: 400),
+                                      width: 300,
+                                      margin: const EdgeInsets.only(right: 16, bottom: 16),
+                                      decoration: BoxDecoration(
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.white10
+                                            : Colors.white,
+                                        borderRadius: BorderRadius.circular(16),
+
+                                        border: Border.all(
+                                          color: _highlightedFlatId == idStr ? Colors.red : Colors.transparent,
+                                          width: _highlightedFlatId == idStr ? 3 : 1,
+
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.08),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 6),
+                                          ),
+                                        ],
+                                      ),   child: Column(
                                       crossAxisAlignment: CrossAxisAlignment
                                           .start,
                                       children: [
@@ -885,1137 +2235,23 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                                         ),
                                       ],
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                );
-              },
-              childCount: 1,
-            ),
-          ),
-
-         SliverList(
-
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-
-                return FutureBuilder<List<Catid>>(
-                  future: fetchData1(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("");
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(child: Text('No data available'));
-                    } else {
-                      final data = snapshot.data!;
-
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Text(
-                                  'Ravi Kumar',
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: "PoppinsBold",
-                                    color: Theme
-                                        .of(context)
-                                        .colorScheme
-                                        .onSurface,
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> See_All_Realestate(id: '9711275300',)));
+                                    ),
+                                  );
                                 },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        'View All',
-                                        style: Theme
-                                            .of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                          color: Colors.blue[700],
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: "Poppins",
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.arrow_forward_ios_rounded,
-                                        size: 14,
-                                        color: Colors.blue[700],
-                                      ),
-                                    ],
-                                  ),
-                                ),
                               ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 440,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: snapshot.data!.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                final property = snapshot.data![len];
-                                int displayIndex = snapshot.data!.length - len;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute
-                                          (builder: (context) => Administater_View_Details(idd: '${property.id}',))
-                                    );
-
-                                  },
-                                  child: Container(
-                                    width: 300,
-                                    margin: const EdgeInsets.only(
-                                        right: 16, bottom: 16),
-                                    decoration: BoxDecoration(
-                                      color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.08),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      children: [
-                                        // Property Image with Gradient Overlay
-                                        Stack(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: const BorderRadius
-                                                  .vertical(
-                                                  top: Radius.circular(16)),
-                                              child: SizedBox(
-                                                height: 200,
-                                                width: double.infinity,
-                                                child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property
-                                                      .propertyPhoto}",
-                                                  fit: BoxFit.cover,
-                                                  placeholder: (context, url) =>
-                                                      Container(
-                                                        color: Colors.grey[100],
-                                                        child: Center(
-                                                          child: Image.asset(
-                                                            AppImages.loader,
-                                                            height: 50,
-                                                            width: 50,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  errorWidget: (context, url,
-                                                      error) =>
-                                                      Container(
-                                                        color: Colors.grey[100],
-                                                        child: const Icon(
-                                                          Icons
-                                                              .home_work_outlined,
-                                                          size: 50,
-                                                          color: Colors.grey,
-                                                        ),
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Gradient Overlay
-                                            Positioned.fill(
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  borderRadius: const BorderRadius
-                                                      .vertical(
-                                                      top: Radius.circular(16)),
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.bottomCenter,
-                                                    end: Alignment.topCenter,
-                                                    colors: [
-                                                      Colors.black.withOpacity(
-                                                          0.4),
-                                                      Colors.transparent,
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Price Tag
-                                            Positioned(
-                                              bottom: 16,
-                                              left: 16,
-                                              child: Container(
-                                                padding: const EdgeInsets
-                                                    .symmetric(
-                                                    horizontal: 12, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius
-                                                      .circular(20),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 8,
-                                                      offset: const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Text(
-                                                  "₹${property.showPrice}",
-                                                  style: const TextStyle(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 16,
-                                                    fontFamily: "PoppinsBold",
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-
-                                        // Property Details
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment
-                                                  .start,
-                                              children: [
-                                                // Location
-                                                Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.location_on_outlined,
-                                                      size: 18,
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    Expanded(
-                                                      child: Text(
-                                                        property
-                                                            .locations,
-                                                        style: Theme
-                                                            .of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
-                                                          fontFamily: "Poppins",
-                                                          fontWeight: FontWeight
-                                                              .w600,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 12),
-
-                                                // Property Features
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: [
-                                                    _buildFeaturePill(
-                                                      Icons.category_outlined,
-                                                      property.typeOfProperty
-                                                          .toUpperCase(),
-                                                      Colors.blue[100]!,
-                                                      Colors.blue[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons
-                                                          .currency_rupee_outlined,
-                                                      property.buyRent
-                                                          .toUpperCase(),
-                                                      Colors.green[100]!,
-                                                      Colors.green[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons.bed_outlined,
-                                                      property.bhk.toUpperCase(),
-                                                      Colors.orange[100]!,
-                                                      Colors.orange[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons.stairs_outlined,
-                                                      "${property.floor}",
-                                                      Colors.purple[100]!,
-                                                      Colors.purple[800]!,
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 16),
-
-                                                // Description
-                                                Expanded(
-                                                  child: Text(
-                                                    property.apartmentAddress,
-                                                    style: Theme
-                                                        .of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                      fontSize: 14,
-                                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
-                                                      fontWeight: FontWeight.w600,
-                                                      fontFamily: "Poppins",
-                                                    ),
-                                                    maxLines: 3,
-                                                    overflow: TextOverflow
-                                                        .ellipsis,
-                                                  ),
-                                                ),
-                                                Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                  style: Theme
-                                                      .of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                    color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontFamily: "Poppins",
-                                                  ),
-                                                ),
-
-                                                // Footer
-                                                const SizedBox(height: 12),
-
-                                                Divider(
-                                                  height: 1,
-                                                  color: Colors.grey[200],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment
-                                                      .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "ID: ${property.id}",
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      property.availableDate,
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                                },
                             ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                );
-              },
-              childCount: 1, // Number of categories
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1,
+              ),
             ),
-          ),
 
-          SliverList(
-
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-
-                return FutureBuilder<List<Catid>>(
-                  future: fetchData2(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("");
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(child: Text('No data available'));
-                    } else {
-                      final data = snapshot.data!;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Text(
-                                  'Faizan Khan',
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: "PoppinsBold",
-                                    color: Theme
-                                        .of(context)
-                                        .colorScheme
-                                        .onSurface,
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> See_All_Realestate(id: '9971172204',)));
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        'View All',
-                                        style: Theme
-                                            .of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                          color: Colors.blue[700],
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: "Poppins",
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.arrow_forward_ios_rounded,
-                                        size: 14,
-                                        color: Colors.blue[700],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 440,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: data.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                final property = snapshot.data![len];
-                                int displayIndex = snapshot.data!.length - len;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute
-                                          (builder: (context) => Administater_View_Details(idd: '${property.id}',))
-                                    );
-
-                                  },
-                                  child: Container(
-                                    width: 300,
-                                    margin: const EdgeInsets.only(
-                                        right: 16, bottom: 16),
-                                    decoration: BoxDecoration(
-                                      color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.08),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      children: [
-                                        // Property Image with Gradient Overlay
-                                        Stack(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: const BorderRadius
-                                                  .vertical(
-                                                  top: Radius.circular(16)),
-                                              child: SizedBox(
-                                                height: 200,
-                                                width: double.infinity,
-                                                child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property
-                                                      .propertyPhoto}",
-                                                  fit: BoxFit.cover,
-                                                  placeholder: (context, url) =>
-                                                      Container(
-                                                        color: Colors.grey[100],
-                                                        child: Center(
-                                                          child: Image.asset(
-                                                            AppImages.loader,
-                                                            height: 50,
-                                                            width: 50,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  errorWidget: (context, url,
-                                                      error) =>
-                                                      Container(
-                                                        color: Colors.grey[100],
-                                                        child: const Icon(
-                                                          Icons
-                                                              .home_work_outlined,
-                                                          size: 50,
-                                                          color: Colors.grey,
-                                                        ),
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Gradient Overlay
-                                            Positioned.fill(
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  borderRadius: const BorderRadius
-                                                      .vertical(
-                                                      top: Radius.circular(16)),
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.bottomCenter,
-                                                    end: Alignment.topCenter,
-                                                    colors: [
-                                                      Colors.black.withOpacity(
-                                                          0.4),
-                                                      Colors.transparent,
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Price Tag
-                                            Positioned(
-                                              bottom: 16,
-                                              left: 16,
-                                              child: Container(
-                                                padding: const EdgeInsets
-                                                    .symmetric(
-                                                    horizontal: 12, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius
-                                                      .circular(20),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 8,
-                                                      offset: const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Text(
-                                                  "₹${property.showPrice}",
-                                                  style: const TextStyle(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 16,
-                                                    fontFamily: "PoppinsBold",
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-
-                                        // Property Details
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment
-                                                  .start,
-                                              children: [
-                                                // Location
-                                                Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.location_on_outlined,
-                                                      size: 18,
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    Expanded(
-                                                      child: Text(
-                                                        property
-                                                            .locations,
-                                                        style: Theme
-                                                            .of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
-                                                          fontFamily: "Poppins",
-                                                          fontWeight: FontWeight
-                                                              .w600,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 12),
-
-                                                // Property Features
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: [
-                                                    _buildFeaturePill(
-                                                      Icons.category_outlined,
-                                                      property.typeOfProperty
-                                                          .toUpperCase(),
-                                                      Colors.blue[100]!,
-                                                      Colors.blue[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons
-                                                          .currency_rupee_outlined,
-                                                      property.buyRent
-                                                          .toUpperCase(),
-                                                      Colors.green[100]!,
-                                                      Colors.green[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons.bed_outlined,
-                                                      property.bhk.toUpperCase(),
-                                                      Colors.orange[100]!,
-                                                      Colors.orange[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons.stairs_outlined,
-                                                      "${property.floor}",
-                                                      Colors.purple[100]!,
-                                                      Colors.purple[800]!,
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 16),
-
-                                                // Description
-                                                Expanded(
-                                                  child: Text(
-                                                    property.apartmentAddress,
-                                                    style: Theme
-                                                        .of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                      fontSize: 14,
-                                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
-                                                      fontWeight: FontWeight.w600,
-                                                      fontFamily: "Poppins",
-                                                    ),
-                                                    maxLines: 3,
-                                                    overflow: TextOverflow
-                                                        .ellipsis,
-                                                  ),
-                                                ),
-                                                Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                  style: Theme
-                                                      .of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                    color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontFamily: "Poppins",
-                                                  ),
-                                                ),
-
-                                                // Footer
-                                                const SizedBox(height: 12),
-
-                                                Divider(
-                                                  height: 1,
-                                                  color: Colors.grey[200],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment
-                                                      .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "ID: ${property.id}",
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      property.availableDate,
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                );
-              },
-              childCount: 1, // Number of categories
-            ),
-          ),
-
-          SliverList(
-
-            delegate: SliverChildBuilderDelegate(
-                  (context, index) {
-
-                return FutureBuilder<List<Catid>>(
-                  future: fetchData_rajpur(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Text("");
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return Center(child: Text('No data available'));
-                    } else {
-                      final data = snapshot.data!;
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Text(
-                                  'Rajpur Properties',
-                                  style: Theme
-                                      .of(context)
-                                      .textTheme
-                                      .titleLarge
-                                      ?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    fontFamily: "PoppinsBold",
-                                    color: Theme
-                                        .of(context)
-                                        .colorScheme
-                                        .onSurface,
-                                  ),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context)=> See_All_Realestate(id: '9818306096 ',)));
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 5, vertical: 4),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        'View All',
-                                        style: Theme
-                                            .of(context)
-                                            .textTheme
-                                            .bodyMedium
-                                            ?.copyWith(
-                                          color: Colors.blue[700],
-                                          fontWeight: FontWeight.w600,
-                                          fontFamily: "Poppins",
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Icon(
-                                        Icons.arrow_forward_ios_rounded,
-                                        size: 14,
-                                        color: Colors.blue[700],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 440,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: data.length,
-                              itemBuilder: (BuildContext context,int len) {
-                                final property = snapshot.data![len];
-
-                                int displayIndex = snapshot.data!.length - len;
-                                return GestureDetector(
-                                  onTap: (){
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute
-                                          (builder: (context) => Administater_View_Details(idd: '${property.id}',))
-                                    );
-
-                                  },
-                                  child: Container(
-                                    width: 300,
-                                    margin: const EdgeInsets.only(
-                                        right: 16, bottom: 16),
-                                    decoration: BoxDecoration(
-                                      color:Theme.of(context).brightness==Brightness.dark?Colors.white10:Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.08),
-                                          blurRadius: 12,
-                                          offset: const Offset(0, 6),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start,
-                                      children: [
-                                        // Property Image with Gradient Overlay
-                                        Stack(
-                                          children: [
-                                            ClipRRect(
-                                              borderRadius: const BorderRadius
-                                                  .vertical(
-                                                  top: Radius.circular(16)),
-                                              child: SizedBox(
-                                                height: 200,
-                                                width: double.infinity,
-                                                child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property
-                                                      .propertyPhoto}",
-                                                  fit: BoxFit.cover,
-                                                  placeholder: (context, url) =>
-                                                      Container(
-                                                        color: Colors.grey[100],
-                                                        child: Center(
-                                                          child: Image.asset(
-                                                            AppImages.loader,
-                                                            height: 50,
-                                                            width: 50,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                  errorWidget: (context, url,
-                                                      error) =>
-                                                      Container(
-                                                        color: Colors.grey[100],
-                                                        child: const Icon(
-                                                          Icons
-                                                              .home_work_outlined,
-                                                          size: 50,
-                                                          color: Colors.grey,
-                                                        ),
-                                                      ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Gradient Overlay
-                                            Positioned.fill(
-                                              child: DecoratedBox(
-                                                decoration: BoxDecoration(
-                                                  borderRadius: const BorderRadius
-                                                      .vertical(
-                                                      top: Radius.circular(16)),
-                                                  gradient: LinearGradient(
-                                                    begin: Alignment.bottomCenter,
-                                                    end: Alignment.topCenter,
-                                                    colors: [
-                                                      Colors.black.withOpacity(
-                                                          0.4),
-                                                      Colors.transparent,
-                                                    ],
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                            // Price Tag
-                                            Positioned(
-                                              bottom: 16,
-                                              left: 16,
-                                              child: Container(
-                                                padding: const EdgeInsets
-                                                    .symmetric(
-                                                    horizontal: 12, vertical: 6),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius
-                                                      .circular(20),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: Colors.black
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 8,
-                                                      offset: const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Text(
-                                                  "₹${property.showPrice}",
-                                                  style: const TextStyle(
-                                                    color: Colors.green,
-                                                    fontWeight: FontWeight.w700,
-                                                    fontSize: 16,
-                                                    fontFamily: "PoppinsBold",
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-
-                                        // Property Details
-                                        Expanded(
-                                          child: Padding(
-                                            padding: const EdgeInsets.all(16),
-                                            child: Column(
-                                              crossAxisAlignment: CrossAxisAlignment
-                                                  .start,
-                                              children: [
-                                                // Location
-                                                Row(
-                                                  children: [
-                                                    Icon(
-                                                      Icons.location_on_outlined,
-                                                      size: 18,
-                                                      color: Colors.grey[600],
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    Expanded(
-                                                      child: Text(
-                                                        property
-                                                            .locations,
-                                                        style: Theme
-                                                            .of(context)
-                                                            .textTheme
-                                                            .bodyMedium
-                                                            ?.copyWith(
-                                                          color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
-                                                          fontFamily: "Poppins",
-                                                          fontWeight: FontWeight
-                                                              .w600,
-                                                        ),
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 12),
-
-                                                // Property Features
-                                                Wrap(
-                                                  spacing: 8,
-                                                  runSpacing: 8,
-                                                  children: [
-                                                    _buildFeaturePill(
-                                                      Icons.category_outlined,
-                                                      property.typeOfProperty
-                                                          .toUpperCase(),
-                                                      Colors.blue[100]!,
-                                                      Colors.blue[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons
-                                                          .currency_rupee_outlined,
-                                                      property.buyRent
-                                                          .toUpperCase(),
-                                                      Colors.green[100]!,
-                                                      Colors.green[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons.bed_outlined,
-                                                      property.bhk.toUpperCase(),
-                                                      Colors.orange[100]!,
-                                                      Colors.orange[800]!,
-                                                    ),
-                                                    _buildFeaturePill(
-                                                      Icons.stairs_outlined,
-                                                      "${property.floor}",
-                                                      Colors.purple[100]!,
-                                                      Colors.purple[800]!,
-                                                    ),
-                                                  ],
-                                                ),
-                                                const SizedBox(height: 16),
-
-                                                // Description
-                                                Expanded(
-                                                  child: Text(
-                                                    property.apartmentAddress,
-                                                    style: Theme
-                                                        .of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.copyWith(
-                                                      fontSize: 14,
-                                                      color: Theme.of(context).brightness==Brightness.dark?Colors.white70:Colors.grey[600],
-                                                      fontWeight: FontWeight.w600,
-                                                      fontFamily: "Poppins",
-                                                    ),
-                                                    maxLines: 3,
-                                                    overflow: TextOverflow
-                                                        .ellipsis,
-                                                  ),
-                                                ),
-                                                Text("Property No: $displayIndex"/* ${len + 1} or +abc.data![len].id.toString()*//*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                  style: Theme
-                                                      .of(context)
-                                                      .textTheme
-                                                      .bodySmall
-                                                      ?.copyWith(
-                                                    color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
-                                                    fontFamily: "Poppins",
-                                                  ),
-                                                ),
-
-                                                // Footer
-                                                const SizedBox(height: 12),
-
-                                                Divider(
-                                                  height: 1,
-                                                  color: Colors.grey[200],
-                                                ),
-                                                const SizedBox(height: 8),
-                                                Row(
-                                                  mainAxisAlignment: MainAxisAlignment
-                                                      .spaceBetween,
-                                                  children: [
-                                                    Text(
-                                                      "ID: ${property.id}",
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                    Text(
-                                                      property.availableDate,
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodySmall
-                                                          ?.copyWith(
-                                                        color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey[600],
-                                                        fontSize: 13,
-                                                        fontWeight: FontWeight.w600,
-                                                        fontFamily: "Poppins",
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    }
-                  },
-                );
-              },
-              childCount: 1, // Number of categories
-            ),
-          ),
-
-        ],
+          ],
+        ),
       ),
 
     );
@@ -2050,7 +2286,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       ),
     );
   }
-  void _loaduserdata() async {
+  void _loaduserdata1() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _number = prefs.getString('number') ?? '';
@@ -2067,6 +2303,279 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     } else {
       throw 'Could not launch $phoneNumber';
     }
+  }
+
+}
+class PropertyCard extends StatelessWidget {
+  final Catid property;
+  final int displayIndex;
+  final VoidCallback onTap;
+  final bool isHighlighted; // ✅ NEW
+  final Key? cardKey;       // ✅ for scrolling/highlight
+
+  const PropertyCard({
+    super.key,
+    required this.property,
+    required this.displayIndex,
+    required this.onTap,
+    this.isHighlighted = false,
+    this.cardKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageHeight = screenWidth * 0.45; // proportional height (adjust ratio)
+
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        key: cardKey,
+        duration: const Duration(milliseconds: 400),
+        width: screenWidth * 0.75, // responsive width
+        margin: const EdgeInsets.only(right: 16, bottom: 16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white10
+              : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isHighlighted ? Colors.red : Colors.transparent,
+            width: isHighlighted ? 3 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 🖼 Property image
+            _buildImage(context, property, imageHeight),
+
+            // 📝 Property details
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLocation(context, property),
+                    const SizedBox(height: 12),
+                    _buildFeatures(property),
+                    const SizedBox(height: 16),
+                    _buildDescription(context, property, displayIndex),
+                    const SizedBox(height: 12),
+                    Divider(height: 1, color: Colors.grey[200]),
+                    const SizedBox(height: 8),
+                    _buildFooter(context, property),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+// ---------------------- IMAGE ----------------------
+  Widget _buildImage(BuildContext context, Catid property, double imageHeight) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: SizedBox(
+        height: imageHeight,
+        width: double.infinity,
+        child: CachedNetworkImage(
+          imageUrl:
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+          fit: BoxFit.cover,
+          placeholder: (context, url) => Container(
+            color: Colors.grey[100],
+            child: Center(
+              child: Image.asset(AppImages.loader, height: 50, width: 50),
+            ),
+          ),
+          errorWidget: (context, url, error) => Container(
+            color: Colors.grey[100],
+            child: const Icon(Icons.home_work_outlined,
+                size: 50, color: Colors.grey),
+          ),
+        ),
+      ),
+    );
+  }
+
+// ---------------------- LOCATION ----------------------
+  Widget _buildLocation(BuildContext context, Catid property) {
+    return Row(
+      children: [
+        Icon(Icons.location_on_outlined, size: 18, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            property.locations,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[600],
+              fontFamily: "Poppins",
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+// ---------------------- FEATURES ----------------------
+  Widget _buildFeatures(Catid property) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _buildFeaturePill(Icons.category_outlined, property.typeOfProperty.toUpperCase(), Colors.blue[100]!, Colors.blue[800]!),
+        _buildFeaturePill(Icons.currency_rupee_outlined, property.buyRent.toUpperCase(), Colors.green[100]!, Colors.green[800]!),
+        _buildFeaturePill(Icons.bed_outlined, property.bhk.toUpperCase(), Colors.orange[100]!, Colors.orange[800]!),
+        _buildFeaturePill(Icons.stairs_outlined, "${property.floor}", Colors.purple[100]!, Colors.purple[800]!),
+      ],
+    );
+  }
+
+// ---------------------- DESCRIPTION ----------------------
+  Widget _buildDescription(BuildContext context, Catid property, int displayIndex) {
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            property.apartmentAddress,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontSize: 14,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[600],
+              fontWeight: FontWeight.w600,
+              fontFamily: "Poppins",
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          Text(
+            "Property No: $displayIndex",
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              fontFamily: "Poppins",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+// ---------------------- FOOTER ----------------------
+  Widget _buildFooter(BuildContext context, Catid property) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "ID: ${property.id}",
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontFamily: "Poppins",
+          ),
+        ),
+        Text(
+          property.availableDate,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontFamily: "Poppins",
+          ),
+        ),
+      ],
+    );
+  }
+
+// ---------------------- FEATURE PILL ----------------------
+  Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 4),
+          Text(text, style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontFamily: "Poppins")),
+        ],
+      ),
+    );
+  }
+// ---------------------- MAIN CARD ----------------------
+  Widget _buildPropertyCard(BuildContext context, Catid property, int displayIndex) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = screenWidth * 0.75; // 75% of screen width
+    final imageHeight = cardWidth * 0.6;  // proportional height for image
+
+    return Container(
+      width: cardWidth,
+      margin: const EdgeInsets.only(right: 16, bottom: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white10
+            : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 🖼 Property image
+          _buildImage(context, property, imageHeight),
+
+          // 📝 Property details
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildLocation(context, property),
+                  const SizedBox(height: 12),
+                  _buildFeatures(property),
+                  const SizedBox(height: 16),
+                  _buildDescription(context, property, displayIndex),
+
+                  const SizedBox(height: 12),
+                  Divider(height: 1, color: Colors.grey[200]),
+                  const SizedBox(height: 8),
+
+                  _buildFooter(context, property),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
 }

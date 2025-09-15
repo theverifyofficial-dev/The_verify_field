@@ -10,6 +10,15 @@ class DenyAgreement extends StatefulWidget {
 class _DenyAgreementState extends State<DenyAgreement> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return Scaffold(
+
+      body: Column(
+        children: [
+          Center(
+            child: Text('Denied Agreement Page'),
+          )
+        ],
+      ),
+    );
   }
 }

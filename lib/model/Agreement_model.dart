@@ -1,5 +1,5 @@
 class AgreementModel {
-  final int id;
+  final String id;
   final String ownerName;
   final String ownerRelation;
   final String relationPersonNameOwner;

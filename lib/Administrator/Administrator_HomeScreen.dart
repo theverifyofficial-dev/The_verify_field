@@ -15,6 +15,7 @@ import '../profile.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'Administater_TenanDemand.dart';
+import 'Administator_Agreement/Admin_dashboard.dart';
 import 'Administator_Realestate.dart' hide ThemeSwitcher, ADministaterShow_realestete;
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
@@ -91,13 +92,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
 
   _launchURL() async {
     final Uri url = Uri.parse('https://theverify.in/');
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
-
-  _AgreementURL() async {
-    final Uri url = Uri.parse('https://theverify.in/example.html');
     if (!await launchUrl(url)) {
       throw Exception('Could not launch $url');
     }
@@ -359,9 +353,17 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
-                              'image': AppImages.agreement,
-                              'title': "Rent Agreement",
-                              'onTap': _AgreementURL,
+                              "image": AppImages.agreement,
+                              "title": "Property Agreement",
+                              "onTap": () async {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminDashboard(),
+                                  ),
+                                );
+
+                              },
                             },
                             {
                               'image': AppImages.agreement_details,

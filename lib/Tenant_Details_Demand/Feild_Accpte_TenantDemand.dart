@@ -58,7 +58,7 @@ class Persnol_Assignd_Tenant_details extends StatefulWidget {
 class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_details> {
 
   Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Re_Demand&location_=$_location');
+    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Re_Demand&location_=sultanpur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -71,7 +71,7 @@ class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_
   }
 
   Future<List<Catid>> fetchData_pendinhg(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Pending&location_=$_location');
+    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Pending&location_=sultanpur');
     print(url);
     final responce = await http.get(url);
     if (responce.statusCode == 200) {

@@ -106,22 +106,6 @@ class _parent_TenandDemandState extends State<parent_TenandDemand> {
             ],
           ),
         ),
-        // actions:  [
-        //   GestureDetector(
-        //     onTap: () {
-        //       //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Accept_Feedback_Parent_Page()));
-        //       _showBottomSheet(context);
-        //     },
-        //     child: const Icon(
-        //       PhosphorIcons.airplane_light,
-        //       color: Colors.white,
-        //       size: 30,
-        //     ),
-        //   ),
-        //   const SizedBox(
-        //     width: 20,
-        //   ),
-        // ],
       ),
       body: DefaultTabController(
         length: 3,

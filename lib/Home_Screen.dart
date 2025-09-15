@@ -11,20 +11,14 @@ import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
-import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/profile.dart';
-import 'package:verify_feild_worker/register_Notification.dart';
 import 'Administrator/agreement_details.dart';
-import 'Demo.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
-import 'Home_Screen_click/Add_New_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
-import 'Rent Agreement/Agreement_Form.dart';
+import 'Rent Agreement/Dashboard_screen.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
-import 'add_properties_firstpage.dart';
 import 'ui_decoration_tools/constant.dart';
 import 'main.dart';
 
@@ -239,43 +233,12 @@ class _Home_ScreenState extends State<Home_Screen> {
   }
 
   _launchURL() async {
-    final Uri url = Uri.parse('https://theverify.in/example.html');
+    final Uri url = Uri.parse('https://theverify.in');
     if (!await launchUrl(url)) {
       throw Exception('Could not launch $url');
     }
   }
 
-  void _showAgreementChoiceDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Choose Option"),
-          content: Text("Do you want to open the Rent Agreement via App or Website?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                // Navigate to in-app form screen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => RentalWizardPage()),
-                );
-              },
-              child: Text("Via App"),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                _launchURL(); // Launch website URL
-              },
-              child: Text("Via Website"),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
 
   Future<void> loadUserName() async {
@@ -424,8 +387,16 @@ class _Home_ScreenState extends State<Home_Screen> {
                     },
                     {
                       "image": AppImages.agreement,
-                      "title": "Rent\n Agreement",
-                      "onTap": _showAgreementChoiceDialog,
+                      "title": "Property Agreement",
+                      "onTap": () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AgreementDashboard(),
+                          ),
+                        );
+
+                      },
                     },
                     {
                       "image": AppImages.agreement_details,

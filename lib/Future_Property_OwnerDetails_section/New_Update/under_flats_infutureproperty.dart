@@ -2138,7 +2138,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text(
-                            'Property UnLived (deleted) successfully!',
+                            'Property UnLived successfully!',
                             style: TextStyle(color: Colors.white),
                           ),
                           backgroundColor: Colors.blue,

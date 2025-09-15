@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -90,49 +91,152 @@ class _MyAppState extends State<MyApp> {
     FirebaseMessaging.instance.getInitialMessage().then((message) {
       if (message != null) _handleNotificationNavigation(message);
     });
+    // Tapped notification → navigation
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _handleNotificationNavigation(message);
+      });
+    });
 
     // Dynamic links
     _initDynamicLinks();
   }
-  void _openNotificationPage(RemoteMessage message, {bool fromTerminated = false}) {
-    final flatId = message.data['flat_id'];
 
-    if (fromTerminated) {
-      // App was terminated -> set initial stack: AdministratorHome_Screen + NotificationScreen
-      navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        AdministratorHome_Screen.route, // 👈 your admin home page
-            (route) => false,
-      );
-
-      navigatorKey.currentState?.pushNamed(
-        Routes.administaterShowRealEstate,
-        arguments: {"fromNotification": true, "flatId": flatId},
-      );
-    } else {
-      // App already running -> just push notification screen
-      navigatorKey.currentState?.pushNamed(
-        Routes.administaterShowRealEstate,
-        arguments: {"fromNotification": true, "flatId": flatId},
-      );
-    }
+  String? extractBuildingIdFromBody(String? body) {
+    if (body == null) return null;
+    final regExp = RegExp(r'Building ID:\s*(\d+)');
+    final match = regExp.firstMatch(body);
+    if (match != null) return match.group(1);
+    return null;
   }
 
-
-  // 🔹 Handle notification tap navigation
   void _handleNotificationNavigation(RemoteMessage message) {
     try {
-      final flatId = message.data['flat_id'];
-      print("➡️ Navigate with flatId: $flatId");
+      final data = message.data;
 
-      navigatorKey.currentState?.pushNamedAndRemoveUntil(
-        Routes.administaterShowRealEstate,
-            (route) => false,
-        arguments: {"fromNotification": true, "flatId": flatId},
-      );
+      String? type = data['type']?.toString();
+      String? flatId = data['flat_id']?.toString();
+      String? buildingId = data['building_id']?.toString();
+
+      // Handle nested payload safely
+      final nestedPayload = data['payload'];
+      if (nestedPayload != null) {
+        try {
+          Map<String, dynamic> payloadMap = {};
+          if (nestedPayload is String) {
+            payloadMap = Map<String, dynamic>.from(jsonDecode(nestedPayload));
+          } else if (nestedPayload is Map) {
+            payloadMap = Map<String, dynamic>.from(nestedPayload);
+          }
+
+          buildingId ??= payloadMap['building_id']?.toString() ?? payloadMap['buildingId']?.toString();
+          flatId ??= payloadMap['flat_id']?.toString() ?? payloadMap['flatId']?.toString();
+        } catch (e) {
+          print("❌ Error parsing nested payload: $e");
+        }
+      }
+
+      // Extract buildingId from body if missing
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && (buildingId == null || buildingId.isEmpty)) {
+        buildingId = extractBuildingIdFromBody(message.notification?.body);
+      }
+
+      // Navigate: Building notifications
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && buildingId != null) {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          Routes.administaterShowFutureProperty,
+              (route) => false,
+          arguments: {"fromNotification": true, "buildingId": buildingId},
+        );
+        return;
+      }
+
+      // Navigate: Flat notifications
+      if (flatId != null && flatId.isNotEmpty) {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          Routes.administaterShowRealEstate,
+              (route) => false,
+          arguments: {"fromNotification": true, "flatId": flatId},
+        );
+      } else {
+        print("⚠️ flatId missing in notification");
+      }
     } catch (e) {
       print("❌ Navigation error: $e");
     }
   }
+
+// Unified notification handler
+  void _openNotificationPage(RemoteMessage message, {bool fromTerminated = false}) {
+    try {
+      final data = message.data;
+      String? type = data['type']?.toString();
+      String? flatId = data['flat_id']?.toString();
+      String? buildingId = data['building_id']?.toString();
+
+      // ✅ Nested payload handling
+      final nestedPayload = data['payload'];
+      if (nestedPayload != null) {
+        try {
+          Map<String, dynamic> payloadMap = {};
+          if (nestedPayload is String) {
+            payloadMap = Map<String, dynamic>.from(jsonDecode(nestedPayload));
+          } else if (nestedPayload is Map) {
+            payloadMap = Map<String, dynamic>.from(nestedPayload);
+          }
+          buildingId ??= payloadMap['building_id']?.toString() ?? payloadMap['buildingId']?.toString();
+          flatId ??= payloadMap['flat_id']?.toString() ?? payloadMap['flatId']?.toString();
+        } catch (e) {
+          print("❌ Error parsing nested payload: $e");
+        }
+      }
+
+      // ✅ Extract buildingId from body if still null
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && (buildingId == null || buildingId.isEmpty)) {
+        buildingId = extractBuildingIdFromBody(message.notification?.body);
+      }
+
+      // 🔹 Handle building notifications → ADministaterShow_FutureProperty
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && buildingId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterShowFutureProperty,
+                (route) => false,
+            arguments: {"fromNotification": true, "buildingId": buildingId},
+          );
+        });
+        return;
+      }
+
+      // 🔹 Handle flat notifications → ADministaterShow_realestete
+      if (flatId != null && flatId.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (fromTerminated) {
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              AdministratorHome_Screen.route,
+                  (route) => false,
+            );
+          }
+          navigatorKey.currentState?.pushNamed(
+            Routes.administaterShowRealEstate,
+            arguments: {"fromNotification": true, "flatId": flatId},
+          );
+        });
+      } else {
+        if (!(type == "BUILDING_UPDATE" || type == "NEW_BUILDING")) {
+          print("⚠️ flatId missing in notification");
+        }
+      }
+
+    } catch (e) {
+      print("❌ Navigation error: $e");
+    }
+  }
+
+
 
   // 🔹 Setup dynamic links
   void _initDynamicLinks() async {
@@ -146,11 +250,18 @@ class _MyAppState extends State<MyApp> {
       print('❌ Dynamic Link error: $error');
     });
   }
-
   void _handleDeepLink(Uri? deepLink) {
     if (deepLink != null) {
+      final type = deepLink.queryParameters['type'];
       final flatId = deepLink.queryParameters['flatId'];
-      if (flatId != null) {
+      final buildingId = deepLink.queryParameters['buildingId'];
+
+      if (type == "BUILDING_UPDATE" && buildingId != null) {
+        navigatorKey.currentState?.pushNamed(
+          Routes.administaterShowFutureProperty,
+          arguments: {"fromNotification": true, "buildingId": buildingId},
+        );
+      } else if (flatId != null) {
         navigatorKey.currentState?.pushNamed(
           Routes.administaterShowRealEstate,
           arguments: {"fromNotification": true, "flatId": flatId},

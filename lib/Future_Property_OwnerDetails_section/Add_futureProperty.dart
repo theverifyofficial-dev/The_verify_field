@@ -32,7 +32,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   DateTime uploadDate = DateTime.now();
   //String formattedDate = DateFormat('yyyy-MM-dd').format(uploadDate);
 
-
   final TextEditingController _Ownername = TextEditingController();
   final TextEditingController _Owner_number = TextEditingController();
   final TextEditingController _Address_apnehisaabka = TextEditingController();
@@ -234,7 +233,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         );
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload successful: ${response.data}')),
+          SnackBar(content: Text('Upload successful!')),
         );
         print('Upload successful: ${response.data}');
       }
@@ -258,7 +257,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   Future<void> _handleUpload() async {
     if (!_formKey.currentState!.validate()) {
       Fluttertoast.showToast(msg: "Please fill all required fields.");
-      // showSnack("")
       return;
     }
 

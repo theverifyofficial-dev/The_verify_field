@@ -11,6 +11,7 @@ import '../../Home_Screen_click/Filter_Options.dart';
 import '../../ui_decoration_tools/constant.dart';
 import 'Future_Property_Details.dart';
 import 'See_All_Futureproperty.dart';
+import 'package:intl/intl.dart';
 
 class Catid {
   final int id;
@@ -120,7 +121,12 @@ class Catid {
 }
 
 class ADministaterShow_FutureProperty extends StatefulWidget {
-  const ADministaterShow_FutureProperty({super.key});
+  static const administaterShowFutureProperty = '/administaterShowFutureProperty';
+  final bool fromNotification;
+  final String? buildingId;
+  const ADministaterShow_FutureProperty({super.key ,
+    this.fromNotification = false,
+    this.buildingId,});
 
   @override
   State<ADministaterShow_FutureProperty> createState() => _ADministaterShow_FuturePropertyState();
@@ -232,6 +238,19 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       throw Exception('Unexpected error occured!');
     }
   }
+  Future<List<Catid>> av() async {
+    var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=11"); //faizan
+    final responce = await http.get(url);
+    if (responce.statusCode == 200) {
+      List listresponce = json.decode(responce.body);
+      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
+      return listresponce.map((data) => Catid.FromJson(data)).toList();
+    }
+    else {
+      throw Exception('Unexpected error occured!');
+    }
+  }
 
   @override
   void initState() {
@@ -260,7 +279,13 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       throw Exception('Failed to load data');
     }
   }
-
+  String formatDate(String date) {
+    try {
+      return DateFormat("dd/MMM/yyyy").format(DateTime.parse(date));
+    } catch (e) {
+      return date; // fallback if parsing fails
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -628,9 +653,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                                   if (property.currentDate !=
                                                       null) ...[
                                                     const SizedBox(width: 8),
-                                                    _buildMiniChip(property
-                                                        .currentDate!,
-                                                        purpleColor!),
+                                                    _buildMiniChip(property.currentDate??"", purpleColor!),
                                                   ],
                                                 ],
                                               ),
@@ -1032,6 +1055,315 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                                       builder: (context) =>
                                           SeeAll_FutureProperty(
                                             id: '9971172204',)));
+                                  //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Container(
+                                    margin: EdgeInsets.only(right: 10),
+                                    child: Text(
+                                      'See All',
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.red
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(
+                            height: 520,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: abc.data?.length ?? 0,
+                              itemBuilder: (BuildContext context, int index) {
+                                if (abc.data == null || abc.data!.isEmpty ||
+                                    index >= abc.data!.length) {
+                                  return Container();
+                                }
+
+                                final property = abc.data![index];
+                                final displayIndex = abc.data!.length - index;
+                                final bool isDarkMode = Theme
+                                    .of(context)
+                                    .brightness == Brightness.dark;
+
+                                // Color scheme for light and dark mode
+                                final backgroundColor = isDarkMode ? Colors
+                                    .grey[900] : Colors.white;
+                                final textColor = isDarkMode
+                                    ? Colors.white
+                                    : Colors.black87;
+                                final secondaryTextColor = isDarkMode ? Colors
+                                    .grey[400] : Colors.grey[700];
+                                final cardColor = isDarkMode
+                                    ? Colors.grey[800]
+                                    : Colors.grey[100];
+                                final greenColor = isDarkMode ? Colors
+                                    .green[300] : Colors.green;
+                                final redColor = isDarkMode
+                                    ? Colors.red[300]
+                                    : Colors.red;
+                                final orangeColor = isDarkMode ? Colors
+                                    .orange[300] : Colors.orange;
+                                final blueColor = isDarkMode
+                                    ? Colors.blue[300]
+                                    : Colors.blue;
+                                final purpleColor = isDarkMode ? Colors
+                                    .purple[300] : Colors.purple;
+
+                                return Container(
+                                  width: 340,
+                                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: backgroundColor,
+                                    borderRadius: BorderRadius.circular(20),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 8),
+                                      ),
+                                    ],
+                                    border: Border.all(
+                                      color: isDarkMode ? Colors.grey[700]! : Colors.grey[200]!,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Administater_Future_Property_details(
+                                            idd: property.id?.toString() ?? '',
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // ---------- Image ----------
+                                        ClipRRect(
+                                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                                          child: CachedNetworkImage(
+                                            imageUrl:
+                                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images ?? ""}",
+                                            height: 220,
+                                            width: double.infinity,
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) => Container(
+                                              height: 220,
+                                              color: Colors.grey[200],
+                                              child: const Center(
+                                                child: CircularProgressIndicator(strokeWidth: 2),
+                                              ),
+                                            ),
+                                            errorWidget: (context, error, stack) => Container(
+                                              height: 220,
+                                              color: Colors.grey[100],
+                                              child: Icon(Icons.broken_image, size: 60, color: Colors.grey[400]),
+                                            ),
+                                          ),
+                                        ),
+
+                                        // ---------- Content ----------
+                                        Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              // Chips: Property type / floors / buy-rent
+                                              Wrap(
+                                                spacing: 8,
+                                                runSpacing: 8,
+                                                children: [
+                                                  if (property.typeOfProperty != null)
+                                                    _buildChip(property.typeOfProperty!, greenColor!, isDarkMode),
+                                                  if (property.totalFloor != null)
+                                                    _buildChip("Total: ${property.totalFloor!}", orangeColor!, isDarkMode),
+                                                  if (property.buyRent != null)
+                                                    _buildChip(property.buyRent!, blueColor!, isDarkMode),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 12),
+
+                                              Text(
+                                                "Owner Information",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: secondaryTextColor,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.ownerName ?? 'Unknown Owner',
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: textColor,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  if (property.ownerNumber != null)
+                                                    InkWell(
+                                                      onTap: () {
+                                                        FlutterPhoneDirectCaller.callNumber(property.ownerNumber!);
+                                                      },
+                                                      borderRadius: BorderRadius.circular(30),
+                                                      child: Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                        decoration: BoxDecoration(
+                                                          color: blueColor!.withOpacity(0.1),
+                                                          borderRadius: BorderRadius.circular(12),
+                                                        ),
+                                                        child: Row(
+                                                          children: [
+                                                            Icon(Icons.phone, size: 16, color: blueColor),
+                                                            const SizedBox(width: 4),
+                                                            Text(
+                                                              property.ownerNumber!,
+                                                              style: TextStyle(
+                                                                fontSize: 13,
+                                                                fontWeight: FontWeight.w500,
+                                                                color: blueColor,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Property Address ----------
+                                              Row(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Icon(Icons.location_on_outlined, size: 18, color: secondaryTextColor),
+                                                  const SizedBox(width: 6),
+                                                  Expanded(
+                                                    child: Text(
+                                                      property.propertyAddressForFieldworker ??
+                                                          'Address not available',
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: FontWeight.w400,
+                                                        color: textColor,
+                                                      ),
+                                                      maxLines: 2,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- Location + Date ----------
+                                              Row(
+                                                children: [
+                                                  if (property.place != null)
+                                                    _buildMiniChip(property.place!, blueColor!),
+                                                  if (property.currentDate != null) ...[
+                                                    const SizedBox(width: 8),
+                                                    _buildMiniChip(property.currentDate!, purpleColor!),
+                                                  ],
+                                                ],
+                                              ),
+
+                                              const SizedBox(height: 14),
+
+                                              // ---------- IDs ----------
+                                              Row(
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      "Property No: $displayIndex",
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight.w500,
+                                                        color: secondaryTextColor,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    "ID: ${property.id?.toString() ?? 'N/A'}",
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                      color: textColor,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                                },
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+                  },
+                );
+              },
+              childCount: 1, // Number of categories
+            ),
+          ),
+          SliverList(
+
+            delegate: SliverChildBuilderDelegate(
+                  (context, index) {
+                return FutureBuilder<List<Catid>>(
+                  future: av(),
+                  builder: (context, abc) {
+                    if (abc.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator());
+                    } else if (abc.hasError) {
+                      return Center(child: Text('Error: ${abc.error}'));
+                    } else if (!abc.hasData || abc.data!.isEmpty) {
+                      return Center(child: Text('No data available'));
+                    } else {
+                      final data = abc.data!;
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Text(
+                                  'Avjit',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () async {
+                                  final result = await fetchData2();
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) =>
+                                          SeeAll_FutureProperty(
+                                            id: '11',)));
                                   //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Show_See_All(iid: 'Flat',)));
                                 },
                                 child: Padding(

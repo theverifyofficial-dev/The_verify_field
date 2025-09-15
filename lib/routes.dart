@@ -2,11 +2,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:verify_feild_worker/splash.dart';
+import 'Administrator/Admin_future _property/Administater_Future_Property.dart';
 import 'Administrator/Administator_Realestate.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
-
 class Routes {
   static const String administaterShowRealEstate = '/administater_show_realestate';
+  static const String administaterShowFutureProperty = '/administaterShowFutureProperty';
 
   static Map<String, WidgetBuilder> routes = {
     Splash.route: (context) => const Splash(),
@@ -15,8 +16,7 @@ class Routes {
     Login_page.route: (context) => const Login_page(),
 
     administaterShowRealEstate: (context) {
-      final args =
-      ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
       final fromNotification = args?['fromNotification'] ?? false;
       final flatId = args?['flatId'];
@@ -24,6 +24,19 @@ class Routes {
       return ADministaterShow_realestete(
         fromNotification: fromNotification,
         flatId: flatId,
+      );
+    },
+
+    // ✅ ADD this route
+    administaterShowFutureProperty: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+
+      final fromNotification = args?['fromNotification'] ?? false;
+      final buildingId = args?['buildingId'];
+
+      return ADministaterShow_FutureProperty(
+        fromNotification: fromNotification,
+        buildingId: buildingId,
       );
     },
   };

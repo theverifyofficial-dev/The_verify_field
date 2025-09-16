@@ -13,6 +13,7 @@ import '../main.dart';
 import '../ui_decoration_tools/constant.dart';
 import '../profile.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
+import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'Administater_TenanDemand.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
@@ -129,7 +130,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
             borderRadius: BorderRadius.circular(20),
             onTap: () =>
                 Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => ProfilePage()),
+                  MaterialPageRoute(builder: (context) => AdminProfile()),
                 ),
             child: Center(
               child: Column(

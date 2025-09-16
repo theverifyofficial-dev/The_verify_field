@@ -365,7 +365,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(6 , (index) {
+                children: List.generate(5 , (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -377,14 +377,29 @@ class _Home_ScreenState extends State<Home_Screen> {
                           MaterialPageRoute(
                               builder: (_) => Show_New_Real_Estate())),
                     },
+                    // {
+                    //   "image": AppImages.rent_pro,
+                    //   "title": "Verification",
+                    //   "onTap": () => Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //           builder: (_) => ShowProperty())),
+                    // },
+
                     {
-                      "image": AppImages.rent_pro,
-                      "title": "Verification",
-                      "onTap": () => Navigator.push(
+                      "image": AppImages.futureProperty,
+                      "title": "Future Property",
+                      "onTap": () async {
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => ShowProperty())),
+                            builder: (_) => const FrontPage_FutureProperty(),
+                          ),
+                        );
+
+                      },
                     },
+
                     {
                       "image": AppImages.agreement,
                       "title": "Property Agreement",
@@ -406,19 +421,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                           MaterialPageRoute(
                               builder: (_) => AgreementDetails())),
                     },
-                    {
-                      "image": AppImages.futureProperty,
-                      "title": "Future Property",
-                      "onTap": () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FrontPage_FutureProperty(),
-                          ),
-                        );
 
-                      },
-                    },
                       {
                       "image": AppImages.tenant,
                       "title": "Tenant Demands",

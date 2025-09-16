@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import '../../Custom_Widget/Custom_backbutton.dart';
+import 'Sub/PDF.dart';
 
 class AdminAgreementDetails extends StatefulWidget {
   final String agreementId;
@@ -15,6 +16,7 @@ class AdminAgreementDetails extends StatefulWidget {
 class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   Map<String, dynamic>? agreement;
   bool isLoading = true;
+  File? pdfFile; // store generated PDF
 
   @override
   void initState() {
@@ -22,7 +24,17 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     _fetchAgreementDetail();
   }
 
-  Future<void> _fetchAgreementDetail() async {
+
+  Future<void> _handleGeneratePdf() async {
+    if (agreement == null) return;
+
+    final file = await generateAgreementPdf(agreement!);
+
+    setState(() {
+      pdfFile = file;
+    });
+  }  Future<void> _fetchAgreementDetail() async {
+
     try {
       final response = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
@@ -222,6 +234,35 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
               _kvImage("Tenant Aadhaar Back", agreement!["tenant_aadhar_back"]),
               _kvImage("Tenant Photo", agreement!["tenant_image"]),
             ]),
+
+            // const SizedBox(height: 30),
+            //
+            // // 📄 Generate PDF button
+            // const SizedBox(height: 20),
+            // ElevatedButton.icon(
+            //   onPressed: _handleGeneratePdf,
+            //   icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
+            //   label: const Text("Generate PDF", style: TextStyle(color: Colors.white)),
+            //   style: ElevatedButton.styleFrom(
+            //     backgroundColor: Colors.blue,
+            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            //     padding: const EdgeInsets.symmetric(vertical: 14),
+            //   ),
+            // ),
+            //
+            // const SizedBox(height: 20),
+            //
+            // // 🔍 Inline PDF preview
+            // if (pdfFile != null)
+            //   SizedBox(
+            //     height: 500,
+            //     child: PdfViewPinch(
+            //       controller: PdfControllerPinch(
+            //         document: PdfDocument.openFile(pdfFile!.path),
+            //       ),
+            //     ),
+            //   ),
+
 
             const SizedBox(height: 30),
 

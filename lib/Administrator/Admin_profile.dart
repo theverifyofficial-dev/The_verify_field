@@ -4,19 +4,22 @@ import 'package:get/get_core/src/get_main.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'Login_page.dart';
-import 'model/Profile_model.dart';
+import 'package:verify_feild_worker/Administrator/Account_registeration.dart';
 
-class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+import '../Login_page.dart';
+import '../model/Profile_model.dart';
+
+class AdminProfile extends StatefulWidget {
+  const AdminProfile({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  State<AdminProfile> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<AdminProfile> {
   UserProfile? _user;
   bool _isLoading = true;
+
 
   Future<String?> getUserNumber() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -201,7 +204,32 @@ class _ProfilePageState extends State<ProfilePage> {
             // Profile Details
             profileCard(theme, isDark),
 
-            const SizedBox(height: 50),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed:  () {
+              // Navigate to SignUp page
+              Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AccountRegisteration()),
+            );
+          },
+                icon: const Icon(Icons.people_alt_outlined),
+              label: const Text("Add Account"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 36, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Logout Button
             ElevatedButton.icon(

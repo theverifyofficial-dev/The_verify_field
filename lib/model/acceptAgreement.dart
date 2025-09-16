@@ -1,5 +1,5 @@
-class AgreementModel {
-  final int id;
+class AgreementModel2 {
+  final String id;
   final String ownerName;
   final String ownerRelation;
   final String relationPersonNameOwner;
@@ -28,7 +28,7 @@ class AgreementModel {
   final String customMaintenanceCharge;
   final String current_date;
 
-  AgreementModel( {
+  AgreementModel2( {
     required this.id,
     required this.ownerName,
     required this.ownerRelation,
@@ -59,8 +59,8 @@ class AgreementModel {
     required this. current_date,
   });
 
-  factory AgreementModel.fromJson(Map<String, dynamic> json) {
-    return AgreementModel(
+  factory AgreementModel2.fromJson(Map<String, dynamic> json) {
+    return AgreementModel2(
       current_date: json['current_dates'],
       id: json['id'],
       ownerName: json['owner_name'] ?? '',

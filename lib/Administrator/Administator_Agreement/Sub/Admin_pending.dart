@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import '../../../model/Agreement_model.dart';
-import '../../../model/agrement_model.dart'; // Make sure this contains AgreementModel
+import '../../../model/acceptAgreement.dart';
 import '../Admin_Agreement_details.dart';
 
 class AdminPending extends StatefulWidget {
@@ -13,7 +12,7 @@ class AdminPending extends StatefulWidget {
 }
 
 class _AdminPendingState extends State<AdminPending> {
-  List<AgreementModel> agreements = [];
+  List<AgreementModel2> agreements = [];
   bool isLoading = true;
 
   @override
@@ -35,7 +34,7 @@ class _AdminPendingState extends State<AdminPending> {
     }
   }
 
-  Future<List<AgreementModel>> fetchAgreements() async {
+  Future<List<AgreementModel2>> fetchAgreements() async {
     final url = Uri.parse(
         'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_data_for_admin.php');
 
@@ -43,13 +42,13 @@ class _AdminPendingState extends State<AdminPending> {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => AgreementModel.fromJson(e)).toList();
+      return data.map((e) => AgreementModel2.fromJson(e)).toList();
     } else {
       throw Exception('Failed to load agreements');
     }
   }
 
-  Widget _buildAgreementCard(AgreementModel agreement) {
+  Widget _buildAgreementCard(AgreementModel2 agreement) {
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),

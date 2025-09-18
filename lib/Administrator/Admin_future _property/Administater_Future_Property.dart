@@ -83,7 +83,7 @@ class Catid {
     required this.facility,
   });
 
-  factory Catid.FromJson(Map<String, dynamic> json) {
+  factory Catid.fromJson(Map<String, dynamic> json) {
     return Catid(
       id: json['id'] ?? 0,
       images: json['images'],
@@ -122,12 +122,9 @@ class Catid {
 }
 
 class ADministaterShow_FutureProperty extends StatefulWidget {
-  static const administaterShowFutureProperty = '/administaterShowFutureProperty';
   final bool fromNotification;
   final String? buildingId;
-  const ADministaterShow_FutureProperty({super.key ,
-    this.fromNotification = false,
-    this.buildingId,});
+  const ADministaterShow_FutureProperty({super.key, this.fromNotification = false, this.buildingId});
 
   @override
   State<ADministaterShow_FutureProperty> createState() => _ADministaterShow_FuturePropertyState();
@@ -135,303 +132,120 @@ class ADministaterShow_FutureProperty extends StatefulWidget {
 
 class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_FutureProperty> {
 
-
-  String _number = '';
-  String? _highlightedBuildingId;
-  bool _hasScrolled = false;
-
   final Map<String, GlobalKey> _cardKeys = {};
   final ScrollController _horizontalController = ScrollController();
+  final ScrollController _verticalController = ScrollController();
+  String _number = '';
+  String? _highlightedBuildingId;
+  bool _isLoading = true;
+  bool _hasScrolled = false;
 
-  List<Catid> _catidList = [];
-  ScrollController _verticalController = ScrollController();
+  Map<String, List<Catid>> _groupedData = {};
+  final List<Map<String, String>> fieldWorkers = [
+    {"name": "Sumit", "id": "9711775300"},
+    {"name": "Ravi", "id": "9711275300"},
+    {"name": "Faizan", "id": "9971172204"},
+    {"name": "avjit", "id": "11"},
+  ];
 
-  Future<List<Catid>> fetchData() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=9711775300"); //sumit
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  Future<List<Catid>> fetchData1() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=9711275300"); //ravi
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  Future<List<Catid>> fetchData2() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=9971172204"); //faizan
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
-
-  Future<List<Catid>> av() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=11"); //faizan
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
   @override
   void initState() {
     super.initState();
-    _loaduserdata();
-    _loadData();
+    _loadUserData();
 
-    // Firebase notification listener
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      if (message.data.containsKey('building_id')) {
-        String buildingId = message.data['building_id'];
-        debugPrint("📩 Notification Building ID: $buildingId");
+    // Initialize empty grouped data with static headlines
+    for (var fw in fieldWorkers) {
+      _groupedData[fw['name']!] = [];
+    }
 
-        _loadDataAndScroll(buildingId);
-      }
+    // Fetch API data after first frame
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _fetchAndUpdateData();
     });
 
-    // Agar background ya terminated state se aaye
+    // Listen for notification opens
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      if (message.data.containsKey('building_id')) {
-        String buildingId = message.data['building_id'];
-        debugPrint("📩 Opened App with Building ID: $buildingId");
+      // 1️⃣ Highlight the property from notification
+      final buildingId = message.data['buildingId']; // make sure your payload has buildingId
+      if (buildingId != null) {
+        setState(() {
+          _highlightedBuildingId = buildingId.toString();
+        });
 
-        _loadDataAndScroll(buildingId);
-      }
-    });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-
-      if (args != null && args["fromNotification"] == true && args["buildingId"] != null) {
-        _highlightedBuildingId = args["buildingId"].toString();
-        debugPrint("👉 Notification opened with buildingId: $_highlightedBuildingId");
-
-        // Load data and scroll to highlighted property
-        _loadDataAndScroll(_highlightedBuildingId!);
-      } else {
-        // Normal page load
-        _loadData();
-      }
-    });
-
-  }
-
-  Widget buildHorizontalList(List<Catid> data) {
-    return Container(
-      height: 520,
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      child: ListView.builder(
-        controller: _horizontalController,
-        scrollDirection: Axis.horizontal,
-        itemCount: data.length,
-        itemBuilder: (context, i) {
-          final prop = data[i];
-          final key = _cardKeys.putIfAbsent(prop.id.toString(), () => GlobalKey());
-
-          // Assign key if not exists
-          if (!_cardKeys.containsKey(prop.id.toString())) {
-            _cardKeys[prop.id.toString()] = GlobalKey();
-          }
-          return Container(
-            key: key,
-            width: 340,
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[900]
-                  : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: _highlightedBuildingId == prop.id.toString()
-                    ? Colors.red
-                    : Colors.grey[200]!,
-                width: _highlightedBuildingId == prop.id.toString() ? 3 : 1,
-              ),
-            ),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => Administater_Future_Property_details(
-                      idd: prop.id.toString(),
-                    ),
-                  ),
-                );
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ClipRRect(
-                    borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: CachedNetworkImage(
-                      imageUrl:
-                      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${prop.images ?? ""}",
-                      height: 220,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Text(prop.ownerName ?? 'Unknown Owner'),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Future<void> _loadDataAndScroll(String buildingId) async {
-    // 1. Agar widget unmounted hai → return karo
-    if (!mounted) return;
-
-    // 2. Update highlighted ID
-    setState(() {
-      _highlightedBuildingId = buildingId;
-    });
-
-    // 3. Fetch API data
-    final data1 = await fetchData();
-    final data2 = await fetchData1();
-    final data3 = await fetchData2();
-    final data4 = await av();
-
-    if (!mounted) return; // again check
-
-    setState(() {
-      _catidList1 = data1;
-      _catidList2 = data2;
-      _catidList3 = data3;
-      _catidList4 = data4;
-
-      for (var p in [..._catidList1, ..._catidList2, ..._catidList3, ..._catidList4]) {
-        if (!_cardKeys.containsKey(p.id.toString())) {
-          _cardKeys[p.id.toString()] = GlobalKey();
-        }
-      }});
-
-    // 4. Scroll AFTER build is finished
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        _scrollToHighlightedVertical();
-      }
-    });
-  }
-  Future<void> _scrollToHighlighted() async {
-    if (_highlightedBuildingId == null) return;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final key = _cardKeys[_highlightedBuildingId!];
-      if (key?.currentContext != null) {
-        Scrollable.ensureVisible(
-          key!.currentContext!,
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.easeInOut,
-          alignment: 0.2,
-        );
-
-        // Horizontal scroll inside ListView
-        final index = [..._catidList1, ..._catidList2, ..._catidList3, ..._catidList4]
-            .indexWhere((p) => p.id.toString() == _highlightedBuildingId);
-
-        if (index != -1) {
-          _horizontalController.animateTo(
-            index * 352.0, // card width + margin
-            duration: const Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-          );
-        }
-      } else {
-        // Retry after 200ms if widget not yet built
-        Future.delayed(const Duration(milliseconds: 200), () {
+        // 2️⃣ Scroll to the highlighted property
+        WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollToHighlighted();
         });
       }
+
+      // 3️⃣ Optionally, refresh your data
+      _fetchAndUpdateData();
     });
   }
 
-  void _scrollToHighlightedHorizontal() {
-    if (_highlightedBuildingId == null || _hasScrolled) return;
 
-    final index =
-    _catidList.indexWhere((e) => e.id?.toString() == _highlightedBuildingId);
-
-    if (index != -1) {
-      _horizontalController.animateTo(
-        index * 352.0,
-        duration: const Duration(milliseconds: 500),
-        curve: Curves.easeInOut,
-      );
-      _hasScrolled = true;
-    }
+  Future<void> _loadUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _number = prefs.getString('number') ?? '';
+    });
   }
-  Future<void> _loadData() async {
+
+  Future<List<Catid>> _fetchDataByNumber(String number) async {
+    final url = Uri.parse(
+      "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number",
+    );
+
     try {
-      final data1 = await fetchData();
-      final data2 = await fetchData1();
-      final data3 = await fetchData2();
-      final data4 = await av();
+      final response = await http.get(url);
 
-      if (!mounted) return;
+      if (response.statusCode == 200) {
+        debugPrint("📡 Raw response for $number: ${response.body}");
 
-      setState(() {
-        _catidList1 = data1;
-        _catidList2 = data2;
-        _catidList3 = data3;
-        _catidList4 = data4;
+        if (response.body.isEmpty) {
+          debugPrint("⚠️ Empty body for $number");
+          return [];
+        }
 
-        // Assign keys once for all properties
-        for (var p in [..._catidList1, ..._catidList2, ..._catidList3, ..._catidList4]) {
-          if (!_cardKeys.containsKey(p.id.toString())) {
-            _cardKeys[p.id.toString()] = GlobalKey();
+        dynamic decoded;
+        try {
+          decoded = json.decode(response.body);
+        } catch (e) {
+          debugPrint("❌ JSON decode error for $number: $e");
+          return [];
+        }
+
+        if (decoded is List) {
+          decoded.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
+          return decoded.map((data) => Catid.fromJson(data)).toList();
+        }
+
+        if (decoded is Map<String, dynamic>) {
+          final listData = decoded['data'] ?? decoded['Table'] ?? [];
+          if (listData is List) {
+            listData.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
+            return listData.map((data) => Catid.fromJson(data)).toList();
           }
         }
-      });
 
-      // Auto scroll if highlighted
-      Future.delayed(const Duration(milliseconds: 300), () {
-        _scrollToHighlightedVertical();
-      });
-    } catch (e) {
-      print("Error loading data: $e");
+        debugPrint("⚠️ Unexpected JSON structure for $number: $decoded");
+        return [];
+      } else {
+        debugPrint("❌ HTTP error for $number: ${response.statusCode} ${response.reasonPhrase}");
+        return [];
+      }
+    } catch (e, stack) {
+      debugPrint("❌ Exception for $number: $e");
+      debugPrint("$stack"); // full stacktrace
+      return [];
     }
   }
-  void _scrollToHighlightedVertical() {
-    if (_highlightedBuildingId == null) return;
 
-    final key = _cardKeys[_highlightedBuildingId];
+
+
+  void _scrollToHighlighted() {
+    if (_highlightedBuildingId == null) return;
+    final key = _cardKeys[_highlightedBuildingId!];
     if (key?.currentContext != null) {
       Scrollable.ensureVisible(
         key!.currentContext!,
@@ -439,183 +253,318 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         curve: Curves.easeInOut,
         alignment: 0.2,
       );
-      debugPrint("✅ Scrolled to $_highlightedBuildingId");
     } else {
-      debugPrint("⚠️ Widget not found yet for $_highlightedBuildingId");
-
-      Future.delayed(const Duration(milliseconds: 300), () {
-        _scrollToHighlightedVertical();
-      });
+      Future.delayed(const Duration(milliseconds: 300), _scrollToHighlighted);
     }
   }
 
-
-
-  @override
-  void dispose() {
-    _verticalController.dispose();
-    _horizontalController.dispose();
-    super.dispose();
-  }
-
-  List<Catid> _catidList1 = [];
-  List<Catid> _catidList2 = [];
-  List<Catid> _catidList3 = [];
-  List<Catid> _catidList4 = [];
-
-
-  bool _isDeleting = false;
-
-  //Delete api
-  Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
-    final response = await http.get(url);
-    // await Future.delayed(Duration(seconds: 1));
-    if (response.statusCode == 200) {
-      setState(() {
-        _isDeleting = false;
-        //ShowVehicleNumbers(id);
-        //showVehicleModel?.vehicleNo;
-      });
-      print(response.body.toString());
-      print('Item deleted successfully');
-    } else {
-      print('Error deleting item. Status code: ${response.statusCode}');
-      throw Exception('Failed to load data');
+  Future<List<Catid>> _fetchDataWithRetry(String number, {int retries = 3}) async {
+    for (int i = 0; i < retries; i++) {
+      final data = await _fetchDataByNumber(number);
+      if (data.isNotEmpty) return data;
+      await Future.delayed(const Duration(seconds: 1)); // wait 1 second before retry
     }
+    return []; // return empty if all retries fail
   }
-  String formatDate(String date) {
+
+  Future<void> _fetchAndUpdateData() async {
+    setState(() => _isLoading = true);
+
     try {
-      return DateFormat("dd/MMM/yyyy").format(DateTime.parse(date));
-    } catch (e) {
-      return date; // fallback if parsing fails
+      List<Catid> allProperties = [];
+      for (var fw in fieldWorkers) {
+        final props = await _fetchDataWithRetry(fw['id']!);
+        allProperties.addAll(props);
+      }
+
+      Map<String, List<Catid>> grouped = {};
+      for (var fw in fieldWorkers) {
+        final workerProperties = allProperties
+            .where((p) => (p.fieldWorkerNumber ?? '') == (fw['id'] ?? ''))
+            .toList();
+        grouped[fw['name'] ?? ''] = workerProperties;
+      }
+
+      setState(() {
+        _groupedData = grouped;
+      });
+
+      // ✅ Call _scrollToHighlighted here
+      if (_highlightedBuildingId == null && allProperties.isNotEmpty) {
+        _highlightedBuildingId = allProperties.first.id.toString();
+        WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
+      }
+
+    } finally {
+      setState(() => _isLoading = false);
     }
   }
 
-
-  Widget buildSection(String title, List<Catid> data, String seeAllId) {
-    // Assign a key for vertical scrolling
-    final sectionKey = _cardKeys.isNotEmpty && _cardKeys.containsKey(data.first.id.toString())
-        ? _cardKeys[data.first.id.toString()]
-        : GlobalKey();
-
-    // Store the key for future scrolls
-    _cardKeys[data.first.id.toString()] = sectionKey!;
-
+  Widget _buildChip(String text, Color color, bool isDarkMode) {
     return Container(
-      key: sectionKey,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(title,
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold))),
-              GestureDetector(
-                onTap: () {
-                  Navigator.of(context).push(MaterialPageRoute(
-                      builder: (_) =>
-                          SeeAll_FutureProperty(id: seeAllId)));
-                },
-                child: const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text('See All',
-                      style: TextStyle(fontSize: 16, color: Colors.red)),
-                ),
-              ),
-            ],
-          ),
-          buildHorizontalList(data),
-        ],
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(isDarkMode ? 0.3 : 0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color, width: 1),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }
+
+  Widget _buildMiniChip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      margin: const EdgeInsets.only(right: 4),
+      decoration: BoxDecoration(color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
+      child: Text(text, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery
-        .of(context)
-        .size;
+    final size = MediaQuery.of(context).size;
     return Scaffold(
-
-      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
-        surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
+          onTap: () => Navigator.pop(context),
+          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
+        ),
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: fieldWorkers.map((fw) {
+            final props = _groupedData[fw['name']] ?? [];
+            return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Field Worker Header
+        Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
+              Text(workerName,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              GestureDetector(
+                onTap: () => Navigator.of(context)
+                    .push(MaterialPageRoute(builder: (_) => SeeAll_FutureProperty(id: workerId))),
+                child: const Text("See All", style: TextStyle(fontSize: 16, color: Colors.red)),
               ),
             ],
           ),
         ),
-        // actions:  [
-        //   GestureDetector(
-        //     onTap: () {
-        //       //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Filter_Options()));
-        //       _showBottomSheet(context);
-        //     },
-        //     child: const Icon(
-        //       PhosphorIcons.faders,
-        //       color: Colors.white,
-        //       size: 30,
-        //     ),
-        //   ),
-        //   const SizedBox(
-        //     width: 20,
-        //   ),
-        // ],
-      ),
-      body: SingleChildScrollView(
-        controller: _verticalController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (_catidList1.isNotEmpty) buildHorizontalList(_catidList1),
-            if (_catidList2.isNotEmpty) buildHorizontalList(_catidList2),
-            if (_catidList3.isNotEmpty) buildHorizontalList(_catidList3),
-            if (_catidList4.isNotEmpty) buildHorizontalList(_catidList4),
-          ],
-        ),
-      ),
+
+        // 🔹 If no properties found, show card
+        if (data.isEmpty)
+          Container(
+            height: 150,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.grey[900] : Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: Colors.redAccent, width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Center(
+              child: Text(
+                "No Properties Found",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.redAccent,
+                ),
+              ),
+            ),
+          )
+        else
+        // Horizontal List of Properties
+          SizedBox(
+            height: 520,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final property = data[index];
+                final displayIndex = data.length - index;
+
+                final backgroundColor = isDarkMode ? Colors.grey[900] : Colors.white;
+                final textColor = isDarkMode ? Colors.white : Colors.black87;
+                final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
+                final greenColor = isDarkMode ? Colors.green[300]! : Colors.green;
+                final orangeColor = isDarkMode ? Colors.orange[300]! : Colors.orange;
+                final blueColor = isDarkMode ? Colors.blue[300]! : Colors.blue;
+                final purpleColor = isDarkMode ? Colors.purple[300]! : Colors.purple;
+
+                return Container(
+                  key: ValueKey("${workerId}_${property.id}"),
+                  width: 340,
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                        color: _highlightedBuildingId == property.id.toString() ? Colors.red : Colors.grey[300]!,
+                        width: 2),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.05),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  child: GestureDetector(
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Administater_Future_Property_details(idd: property.id.toString()),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Property Image
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                          child: CachedNetworkImage(
+                            imageUrl:
+                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images}",
+                            height: 220,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                                height: 220,
+                                color: Colors.grey[200],
+                                child: const Center(child: CircularProgressIndicator())),
+                            errorWidget: (context, url, error) => Container(
+                                height: 220,
+                                color: Colors.grey[100],
+                                child: Icon(Icons.broken_image, size: 60, color: Colors.grey[400])),
+                          ),
+                        ),
+
+                        // Property Details (unchanged)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  if (property.typeOfProperty != null)
+                                    _buildChip(property.typeOfProperty!, greenColor, isDarkMode),
+                                  if (property.totalFloor != null)
+                                    _buildChip("Total: ${property.totalFloor!}", orangeColor, isDarkMode),
+                                  if (property.buyRent != null)
+                                    _buildChip(property.buyRent!, blueColor, isDarkMode),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Text("Owner Information",
+                                  style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: secondaryTextColor)),
+                              const SizedBox(height: 6),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: Text(property.ownerName ?? "",
+                                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: textColor))),
+                                  if (property.ownerNumber != null)
+                                    InkWell(
+                                      onTap: () => FlutterPhoneDirectCaller.callNumber(property.ownerNumber!),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                        decoration: BoxDecoration(
+                                            color: blueColor.withOpacity(0.1),
+                                            borderRadius: BorderRadius.circular(12)),
+                                        child: Row(
+                                          children: [
+                                            Icon(Icons.phone, size: 16, color: blueColor),
+                                            const SizedBox(width: 4),
+                                            Text(property.ownerNumber!,
+                                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: blueColor)),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(Icons.location_on_outlined, size: 18, color: secondaryTextColor),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      property.propertyAddressForFieldworker ?? "Address not available",
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(color: textColor),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  if (property.place != null) _buildMiniChip(property.place!, blueColor),
+                                  if (property.currentDate != null) ...[
+                                    const SizedBox(width: 8),
+                                    _buildMiniChip(property.currentDate!, purpleColor),
+                                  ],
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: Text("Property No: $displayIndex",
+                                          style: TextStyle(fontSize: 13, color: secondaryTextColor))),
+                                  Text("ID: ${property.id}",
+                                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor)),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
     );
-
   }
-
-  void _loaduserdata() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _number = prefs.getString('number') ?? '';
-    });
-  }
-
-  void _launchDialer(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    if (await canLaunch(launchUri.toString())) {
-      await launch(launchUri.toString());
-    } else {
-      throw 'Could not launch $phoneNumber';
-    }
-  }
-
-
 }

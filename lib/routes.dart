@@ -27,7 +27,6 @@ class Routes {
       );
     },
 
-    // ✅ ADD this route
     administaterShowFutureProperty: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
 
@@ -35,9 +34,11 @@ class Routes {
       final buildingId = args?['buildingId'];
 
       return ADministaterShow_FutureProperty(
+        key: ValueKey(buildingId), // <-- Force rebuild if buildingId changes
         fromNotification: fromNotification,
         buildingId: buildingId,
       );
     },
+
   };
 }

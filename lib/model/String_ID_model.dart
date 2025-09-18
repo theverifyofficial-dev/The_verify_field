@@ -1,4 +1,4 @@
-class AgreementModel2 {
+class StringIdModel {
   final String id;
   final String ownerName;
   final String ownerRelation;
@@ -18,22 +18,17 @@ class AgreementModel2 {
   final String meter;
   final String shiftingDate;
   final String maintaince;
-  final String? ownerAadharFront;
-  final String? ownerAadharBack;
-  final String? tenantAadharFront;
-  final String? tenantAadharBack;
-  final String? agreementPdf;
-  final String? installmentSecurityAmount;
-  final String? customMeterUnit;
-  final String? customMaintenanceCharge;
-  final String currentDates;
-  final String fieldwarkarname;
-  final String fieldwarkarnumber;
-  final String? tenantImage;
-  final String propertyId;
-  final String parking;
+  final String ownerAadharFront;
+  final String ownerAadharBack;
+  final String tenantAadharFront;
+  final String tenantAadharBack;
+  final String agreementPdf;
+  final String installmentSecurityAmount;
+  final String customMeterUnit;
+  final String customMaintenanceCharge;
+  final String current_date;
 
-  AgreementModel2({
+  StringIdModel( {
     required this.id,
     required this.ownerName,
     required this.ownerRelation,
@@ -53,25 +48,21 @@ class AgreementModel2 {
     required this.meter,
     required this.shiftingDate,
     required this.maintaince,
-    this.ownerAadharFront,
-    this.ownerAadharBack,
-    this.tenantAadharFront,
-    this.tenantAadharBack,
-    this.agreementPdf,
-    this.installmentSecurityAmount,
-    this.customMeterUnit,
-    this.customMaintenanceCharge,
-    required this.currentDates,
-    required this.fieldwarkarname,
-    required this.fieldwarkarnumber,
-    this.tenantImage,
-    required this.propertyId,
-    required this.parking,
+    required this.ownerAadharFront,
+    required this.ownerAadharBack,
+    required this.tenantAadharFront,
+    required this.tenantAadharBack,
+    required this.agreementPdf,
+    required this.installmentSecurityAmount,
+    required this.customMeterUnit,
+    required this.customMaintenanceCharge,
+    required this. current_date,
   });
 
-  factory AgreementModel2.fromJson(Map<String, dynamic> json) {
-    return AgreementModel2(
-      id: json['id'] ?? '',
+  factory StringIdModel.fromJson(Map<String, dynamic> json) {
+    return StringIdModel(
+      current_date: json['current_dates'],
+      id: json['id'],
       ownerName: json['owner_name'] ?? '',
       ownerRelation: json['owner_relation'] ?? '',
       relationPersonNameOwner: json['relation_person_name_owner'] ?? '',
@@ -90,20 +81,14 @@ class AgreementModel2 {
       meter: json['meter'] ?? '',
       shiftingDate: json['shifting_date'] ?? '',
       maintaince: json['maintaince'] ?? '',
-      ownerAadharFront: json['owner_aadhar_front'],
-      ownerAadharBack: json['owner_aadhar_back'],
-      tenantAadharFront: json['tenant_aadhar_front'],
-      tenantAadharBack: json['tenant_aadhar_back'],
-      agreementPdf: json['agreement_pdf'],
-      installmentSecurityAmount: json['installment_security_amount'],
-      customMeterUnit: json['custom_meter_unit'],
-      customMaintenanceCharge: json['custom_maintenance_charge'],
-      currentDates: json['current_dates'] ?? '',
-      fieldwarkarname: json['Fieldwarkarname'] ?? '',
-      fieldwarkarnumber: json['Fieldwarkarnumber'] ?? '',
-      tenantImage: json['tenant_image'],
-      propertyId: json['property_id'] ?? '',
-      parking: json['parking'] ?? '',
+      ownerAadharFront: json['owner_aadhar_front'] ?? '',
+      ownerAadharBack: json['owner_aadhar_back'] ?? '',
+      tenantAadharFront: json['tenant_aadhar_front'] ?? '',
+      tenantAadharBack: json['tenant_aadhar_back'] ?? '',
+      agreementPdf: json['agreement_pdf'] ?? '',
+      installmentSecurityAmount: json['installment_security_amount'] ?? '',
+      customMeterUnit: json['custom_meter_unit'] ?? '',
+      customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
     );
   }
 }

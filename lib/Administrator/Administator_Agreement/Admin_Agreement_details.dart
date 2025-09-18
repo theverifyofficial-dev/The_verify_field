@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
-import 'Sub/PDF.dart';
 
 class AdminAgreementDetails extends StatefulWidget {
   final String agreementId;
@@ -25,15 +24,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   }
 
 
-  Future<void> _handleGeneratePdf() async {
-    if (agreement == null) return;
-
-    final file = await generateAgreementPdf(agreement!);
-
-    setState(() {
-      pdfFile = file;
-    });
-  }  Future<void> _fetchAgreementDetail() async {
+  Future<void> _fetchAgreementDetail() async {
 
     try {
       final response = await http.get(Uri.parse(
@@ -57,9 +48,15 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   Future<void> _updateAgreementStatus(String action) async {
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/admin_${action}_agreement.php?id=${widget.agreementId}");
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
 
-      final response = await http.post(url);
+      final response = await http.post(
+        url,
+        body: {
+          "id": widget.agreementId,   // pass agreement ID
+          "action": action,           // accept or deny
+        },
+      );
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
@@ -68,8 +65,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Agreement ${action.toUpperCase()}ED successfully")),
           );
-
-          Navigator.pop(context, true); // Go back & refresh parent list
+          Navigator.pop(context, true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(decoded["message"] ?? "Failed to update")),
@@ -235,35 +231,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
               _kvImage("Tenant Photo", agreement!["tenant_image"]),
             ]),
 
-            // const SizedBox(height: 30),
-            //
-            // // 📄 Generate PDF button
-            // const SizedBox(height: 20),
-            // ElevatedButton.icon(
-            //   onPressed: _handleGeneratePdf,
-            //   icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-            //   label: const Text("Generate PDF", style: TextStyle(color: Colors.white)),
-            //   style: ElevatedButton.styleFrom(
-            //     backgroundColor: Colors.blue,
-            //     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            //     padding: const EdgeInsets.symmetric(vertical: 14),
-            //   ),
-            // ),
-            //
-            // const SizedBox(height: 20),
-            //
-            // // 🔍 Inline PDF preview
-            // if (pdfFile != null)
-            //   SizedBox(
-            //     height: 500,
-            //     child: PdfViewPinch(
-            //       controller: PdfControllerPinch(
-            //         document: PdfDocument.openFile(pdfFile!.path),
-            //       ),
-            //     ),
-            //   ),
-
-
             const SizedBox(height: 30),
 
             Row(
@@ -277,9 +244,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () => _updateAgreementStatus("deny"),
+                    onPressed: () => _updateAgreementStatus("reject"),
                     icon: const Icon(Icons.close, color: Colors.white),
-                    label: const Text("Deny", style: TextStyle(color: Colors.white)),
+                    label: const Text("Reject", style: TextStyle(color: Colors.white)),
                   ),
                 ),
 
@@ -292,7 +259,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () => _updateAgreementStatus("accept"),
+                    onPressed: () => _updateAgreementStatus("Accept"),
                     icon: const Icon(Icons.check, color: Colors.white),
                     label: const Text("Accept", style: TextStyle(color: Colors.white)),
                   ),

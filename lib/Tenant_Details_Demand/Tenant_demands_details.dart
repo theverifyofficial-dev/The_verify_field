@@ -771,7 +771,7 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
                                                 crossAxisAlignment: CrossAxisAlignment.start,
                                                 children: [
                                                   SizedBox(
-                                                    width: 20,
+                                                    width: 10,
                                                   ),
                                                   Container(
                                                     padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
@@ -804,53 +804,39 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
                                                   ),
 
 
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-
-                                                  Container(
-                                                    padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius: BorderRadius.circular(5),
-                                                      border: Border.all(width: 1, color: Colors.purple),
-                                                      boxShadow: [
-                                                        BoxShadow(
-                                                            color: Colors.purple.withOpacity(0.5),
-                                                            blurRadius: 10,
-                                                            offset: Offset(0, 0),
-                                                            blurStyle: BlurStyle.outer
-                                                        ),
-                                                      ],
-                                                    ),
-                                                    child: Row(
-                                                      children: [
-                                                        // Icon(Iconsax.sort_copy,size: 15,),
-                                                        //w SizedBox(width: 10,),
-                                                        Text(""+abc.data![len].floor_option/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                          style: TextStyle(
-                                                              fontSize: 13,
-                                                              color: Colors.black,
-                                                              fontWeight: FontWeight.w500,
-                                                              letterSpacing: 0.5
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-
-                                                  SizedBox(
-                                                    width: 10,
-                                                  ),
-
-
-
-
-
                                                 ],
                                               ),
-                                              SizedBox(
-                                                height: 5,
+                                              Container(
+                                                margin: EdgeInsets.all(10),
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.purple),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.purple.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  children: [
+                                                    // Icon(Iconsax.sort_copy,size: 15,),
+                                                    //w SizedBox(width: 10,),
+                                                    Text(""+abc.data![len].floor_option/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
+                                              
                                               Row(
                                                 children: [
                                                   Icon(PhosphorIcons.car,size: 12,color: Colors.red,),
@@ -968,21 +954,18 @@ class _Tenant_Demands_detailsState extends State<Tenant_Demands_details> {
                                                             .w600
                                                     ),
                                                   ),
-                                                  SizedBox(
-                                                    width: 100,
-                                                    child: Text("" +
-                                                        abc.data![len].Family_Members +
-                                                        " Members",
-                                                      overflow: TextOverflow
-                                                          .ellipsis,
-                                                      maxLines: 2,
-                                                      style: TextStyle(
-                                                          fontSize: 12,
-                                                          color: Colors
-                                                              .black,
-                                                          fontWeight: FontWeight
-                                                              .w400
-                                                      ),
+                                                  Text("" +
+                                                      abc.data![len].Family_Members +
+                                                      " Members",
+                                                    overflow: TextOverflow
+                                                        .ellipsis,
+                                                    maxLines: 2,
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: Colors
+                                                            .black,
+                                                        fontWeight: FontWeight
+                                                            .w400
                                                     ),
                                                   ),
                                                 ],

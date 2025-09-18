@@ -128,6 +128,8 @@ class EditFlatState extends State<EditFlat> {
   }
 
   DateTime uploadDate = DateTime.now();
+  final dateFormatter = DateFormat('yyyy-MM-dd');
+
 
 
   Future<XFile?> pickAndCompressImage() async {
@@ -209,8 +211,11 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("parking", parking.toString()),
       MapEntry("field_warkar_name", _name),
       MapEntry("field_workar_number", _number),
-      MapEntry("current_dates", uploadDate.toIso8601String()),
-      MapEntry("available_date", _availableDate.toString()),
+      MapEntry("current_dates", dateFormatter.format(uploadDate)),
+      MapEntry(
+        "available_date",
+        _availableDate != null ? dateFormatter.format(_availableDate!) : '',
+      ),
       MapEntry("Longitude", _Longitude.text),
       MapEntry("Latitude", _Latitude.text),
       MapEntry("kitchen", kitchen.toString()),
@@ -464,6 +469,30 @@ class EditFlatState extends State<EditFlat> {
     super.dispose();
   }
 
+  DateTime? _parseApiDate(dynamic raw) {
+    if (raw == null) return null;
+    final str = raw.toString().trim();
+    if (str.isEmpty) return null;
+
+    // Try ISO first
+    final iso = DateTime.tryParse(str);
+    if (iso != null) return iso;
+
+    // Try dd-MM-yyyy
+    try {
+      return DateFormat("dd-MM-yyyy").parseStrict(str);
+    } catch (_) {}
+
+    // Try dd/MM/yyyy
+    try {
+      return DateFormat("dd/MM/yyyy").parseStrict(str);
+    } catch (_) {}
+
+    // Couldn’t parse
+    print("DEBUG: Unrecognized date format from API → $str");
+    return null;
+  }
+
   Future<List<Property1>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
     final responce = await http.get(url);
@@ -545,7 +574,11 @@ class EditFlatState extends State<EditFlat> {
         balcony = data.balcony;
         _sqft.text = data.squareFit;
         parking = data.parking;
-        _availableDate = data.availableDate;
+        final apiDate = data.availableDate;
+
+        _availableDate = _parseApiDate(apiDate);
+
+
         kitchen = data.kitchen;
         bathroom = data.bathroom;
         _lift = data.lift;
@@ -995,7 +1028,7 @@ class EditFlatState extends State<EditFlat> {
                                   child: Text(
                                     _availableDate != null
                                         ? DateFormat('dd MMMM yyyy').format(_availableDate!)
-                                        : 'Select Available Date',
+                                        : '', // 👈 empty string if null
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 ),

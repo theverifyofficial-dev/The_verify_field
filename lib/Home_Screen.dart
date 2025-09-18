@@ -19,6 +19,7 @@ import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
+import 'old agreement_details.dart';
 import 'ui_decoration_tools/constant.dart';
 import 'main.dart';
 
@@ -377,14 +378,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                           MaterialPageRoute(
                               builder: (_) => Show_New_Real_Estate())),
                     },
-                    // {
-                    //   "image": AppImages.rent_pro,
-                    //   "title": "Verification",
-                    //   "onTap": () => Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //           builder: (_) => ShowProperty())),
-                    // },
 
                     {
                       "image": AppImages.futureProperty,
@@ -399,32 +392,27 @@ class _Home_ScreenState extends State<Home_Screen> {
 
                       },
                     },
-
                     {
                       "image": AppImages.agreement,
                       "title": "Property Agreement",
                       "onTap": () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const AgreementDashboard(),
-                          ),
-                        );
+                        _AgreementURL();
 
                       },
                     },
+
+
                     {
                       "image": AppImages.agreement_details,
-                      "title": "Agreement\n Details",
+                      "title": "All\n Agreement",
                       "onTap": () => Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => AgreementDetails())),
+                              builder: (_) => AgreementDetails1())),
                     },
-
                       {
                       "image": AppImages.tenant,
-                      "title": "Tenant Demands",
+                      "title": "Tenant\n Demands",
                       "onTap": () {
                         uploadImageWithTitle();
                         Navigator.push(
@@ -433,6 +421,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                                 builder: (_) => const MainPage_TenandDemand()));
                       },
                     },
+
                     // {
                     //   "image": AppImages.police,
                     //   "title": "Registration",

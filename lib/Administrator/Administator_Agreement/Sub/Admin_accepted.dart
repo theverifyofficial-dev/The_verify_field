@@ -2,17 +2,17 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import '../../Administrator/imagepreviewscreen.dart';
-import '../../model/Agreement_model.dart';
-import '../../model/String_ID_model.dart';
-class AcceptAgreement extends StatefulWidget {
-  const AcceptAgreement({super.key});
+import '../../../model/String_ID_model.dart';
+import 'Accepted_details.dart';
+
+class AdminAccepted extends StatefulWidget {
+  const AdminAccepted({super.key});
 
   @override
-  State<AcceptAgreement> createState() => _AgreementDetailsState();
+  State<AdminAccepted> createState() => _AgreementDetailsState();
 }
 
-class _AgreementDetailsState extends State<AcceptAgreement> {
+class _AgreementDetailsState extends State<AdminAccepted> {
   List<StringIdModel> agreements = [];
   bool isLoading = true;
 
@@ -83,16 +83,14 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
                   style: const TextStyle(color: Colors.white70),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
-                // onTap: () {
-                //   Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //       builder: (_) => AllDataDetailsPage(agreementId: item.id.toString()),
-                //     ),
-                //   );
-                // },
-
-                // no navigation for field worker only for admin to generate pdf & upload to main agreement table.
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AcceptedDetails(agreementId: item.id),
+                    ),
+                  );
+                },
               ),
             );
           },

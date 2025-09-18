@@ -55,7 +55,7 @@ class _SplashState extends State<Splash> {
     init();
   }
   void init() async {
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(seconds: 1));
 
     SharedPreferences pref = await SharedPreferences.getInstance();
     String? loginNumber = pref.getString("number");

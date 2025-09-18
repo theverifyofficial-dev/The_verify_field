@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class SquareBackButton extends StatelessWidget {
   final VoidCallback? onPressed;
 
-  const SquareBackButton({super.key, this.onPressed});
+  const SquareBackButton({
+    super.key,
+    this.onPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -11,8 +14,7 @@ class SquareBackButton extends StatelessWidget {
       onTap: onPressed ?? () => Navigator.of(context).maybePop(),
       borderRadius: BorderRadius.circular(8),
       child: Container(
-        height: 44,
-        width: 44,
+        margin: EdgeInsets.all(5),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
               ? Colors.white
@@ -26,11 +28,12 @@ class SquareBackButton extends StatelessWidget {
             ),
           ],
         ),
-        child: Icon(
+        child:  Icon(
           Icons.arrow_back_ios_new,
+          size: 20, // fixed icon size
           color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.black
-              : Colors.white,
+            ? Colors.black
+            : Colors.white, // color adjusts below
         ),
       ),
     );

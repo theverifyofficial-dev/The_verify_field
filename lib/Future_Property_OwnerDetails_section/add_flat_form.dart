@@ -344,7 +344,12 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("field_warkar_name", _name),
       MapEntry("field_workar_number", _number),
       MapEntry("current_dates", currentDateTime),
-      MapEntry("available_date", availableDate),
+      MapEntry(
+        "available_date",
+        _availableDate != null
+            ? DateFormat('yyyy-MM-dd').format(_availableDate!)
+            : '', // empty if not selected
+      ),
       MapEntry("Longitude", _Longitude.text),
       MapEntry("Latitude", _Latitude.text),
       MapEntry("kitchen", kitchen.toString()),
@@ -572,115 +577,132 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) {
-        return Padding(
-          padding: MediaQuery.of(context).viewInsets, // ensures keyboard doesn't hide content
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Select Furniture',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.5, // Limit height
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: furnitureItems.map((item) {
-                            final isSelected = tempSelection.containsKey(item);
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height * 0.5, // ⬅️ Half screen
+              child: Column(
+                children: [
+                  // 🔹 Header with Save
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Select Furniture',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedFurniture = Map.fromEntries(
+                                tempSelection.entries
+                                    .where((e) => e.value > 0),
+                              );
+                            });
 
-                            return InkWell(
-                              onTap: () {
-                                setModalState(() {
-                                  if (isSelected) {
-                                    tempSelection.remove(item);
-                                  } else {
-                                    tempSelection[item] = 1;
-                                  }
-                                });
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
+                            _selectedFurniture.forEach((item, quantity) {
+                              print('$item: $quantity');
+                            });
+
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text(
+                            "Save",
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+
+                  // 🔹 Scrollable furniture list
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: furnitureItems.map((item) {
+                          final isSelected = tempSelection.containsKey(item);
+
+                          return InkWell(
+                            onTap: () {
+                              setModalState(() {
+                                if (isSelected) {
+                                  tempSelection.remove(item);
+                                } else {
+                                  tempSelection[item] = 1;
+                                }
+                              });
+                            },
+                            child: Padding(
+                              padding:
+                              const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        activeColor: Colors.blue,
+                                        value: isSelected,
+                                        onChanged: (checked) {
+                                          setModalState(() {
+                                            if (checked == true) {
+                                              tempSelection[item] = 1;
+                                            } else {
+                                              tempSelection.remove(item);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      Text(item,
+                                          style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  if (isSelected)
                                     Row(
                                       children: [
-                                        Checkbox(
-                                          activeColor: Colors.blue,
-                                          value: isSelected,
-                                          onChanged: (checked) {
+                                        IconButton(
+                                          icon: const Icon(Icons.remove_circle_outline),
+                                          onPressed: () {
                                             setModalState(() {
-                                              if (checked == true) {
-                                                tempSelection[item] = 1;
-                                              } else {
-                                                tempSelection.remove(item);
+                                              if (tempSelection[item]! > 1) {
+                                                tempSelection[item] =
+                                                    tempSelection[item]! - 1;
                                               }
                                             });
                                           },
                                         ),
-                                        Text(item, style: const TextStyle(fontSize: 16)),
+                                        Text('${tempSelection[item]}'),
+                                        IconButton(
+                                          icon: const Icon(Icons.add_circle_outline),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              tempSelection[item] =
+                                                  tempSelection[item]! + 1;
+                                            });
+                                          },
+                                        ),
                                       ],
                                     ),
-                                    if (isSelected)
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.remove_circle_outline),
-                                            onPressed: () {
-                                              setModalState(() {
-                                                if (tempSelection[item]! > 1) {
-                                                  tempSelection[item] = tempSelection[item]! - 1;
-                                                }
-                                              });
-                                            },
-                                          ),
-                                          Text('${tempSelection[item]}'),
-                                          IconButton(
-                                            icon: const Icon(Icons.add_circle_outline),
-                                            onPressed: () {
-                                              setModalState(() {
-                                                tempSelection[item] = tempSelection[item]! + 1;
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
+                                ],
                               ),
-                            );
-                          }).toList(),
-                        ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedFurniture = Map.fromEntries(
-                            tempSelection.entries.where((e) => e.value > 0),
-                          );
-                        });
-
-                        // Print all selected furniture and their quantities
-                        _selectedFurniture.forEach((item, quantity) {
-                          print('$item: $quantity');
-                        });
-
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text("Save Selection"),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  ),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -688,617 +710,241 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        centerTitle: true,
+    return SafeArea(
+      child: Scaffold(
         backgroundColor: Colors.black,
-        surfaceTintColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 10,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: Colors.black,
+          surfaceTintColor: Colors.black,
+          title: Image.asset(AppImages.verify, height: 75),
+          leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Row(
+              children: [
+                SizedBox(
+                  width: 10,
+                ),
+                Icon(
+                  PhosphorIcons.caret_left_bold,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ],
+            ),
           ),
+      
         ),
-
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-            children: <Widget>[
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Add Flat",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
-                ],
-              ),
-              SizedBox(height: 5,),
-              Container(
-                margin: EdgeInsets.only(left: 20),
-                child: Row(
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+              children: <Widget>[
+      
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                      onPressed: () async {
-                        XFile? pickedImage = await pickAndCompressImage(); // XFile returned
-                        if (pickedImage != null) {
-                          setState(() {
-                            _imageFile = File(pickedImage.path);
-                          });
-                        }
-                      },
-                      child: Text('Pick Image',style: TextStyle(color: Colors.white),),
-                    ),
-
-                    SizedBox(
-                      width: 80,
-                    ),
-
-                    Container(
-                      width: 100,
-                      height: 100,
-                      child: _imageFile != null
-                          ? Image.file(_imageFile!)
-                          : Center(child: Text('No image selected.',style: TextStyle(),)),
-                    ),
+                    Text("Add Flat",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
                   ],
                 ),
-              ),
-              SizedBox(height: 20),
-
-              _buildSectionCard(
-                title: 'Upload Multiple Images',
-                child: Container(
-                  width: double.infinity,
-                  child: Column(
+                SizedBox(height: 5,),
+                Container(
+                  margin: EdgeInsets.only(left: 20),
+                  child: Row(
                     children: [
-                      ElevatedButton.icon(
-                        icon: const Icon(Icons.collections, color: Colors.white),
-                        label: const Text('Pick Images', style: TextStyle(color: Colors.white)),
+                      ElevatedButton(
                         style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                        onPressed: pickMultipleImages,
+                        onPressed: () async {
+                          XFile? pickedImage = await pickAndCompressImage(); // XFile returned
+                          if (pickedImage != null) {
+                            setState(() {
+                              _imageFile = File(pickedImage.path);
+                            });
+                          }
+                        },
+                        child: Text('Pick Image',style: TextStyle(color: Colors.white),),
                       ),
-                      const SizedBox(height: 10),
-                      Text(
-                        'Images selected: ${_multipleImages.length}',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      
+                      SizedBox(
+                        width: 80,
                       ),
-                      const SizedBox(height: 10),
-                      _multipleImages.isNotEmpty
-                          ? SizedBox(
+      
+                      Container(
+                        width: 100,
                         height: 100,
-                        child: ListView.builder(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: _multipleImages.length,
-                          itemBuilder: (context, index) {
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 5),
-                              child: Stack(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      _multipleImages[index],
-                                      width: 100,
-                                      height: 100,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  ),
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          _multipleImages.removeAt(index);
-                                        });
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: Colors.black54,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: const Icon(Icons.close, size: 16, color: Colors.white),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                          : const Text('No images selected', style: TextStyle()),
+                        child: _imageFile != null
+                            ? Image.file(_imageFile!)
+                            : Center(child: Text('No image selected.',style: TextStyle(),)),
+                      ),
                     ],
                   ),
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 10,),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDropdownRow('Type of property',_typeofproperty, selectedPropertyType, (val) => setState(() => selectedPropertyType = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select a property type' : null,
+                SizedBox(height: 20),
+      
+                _buildSectionCard(
+                  title: 'Upload Multiple Images',
+                  child: Container(
+                    width: double.infinity,
+                    child: Column(
+                      children: [
+                        ElevatedButton.icon(
+                          icon: const Icon(Icons.collections, color: Colors.white),
+                          label: const Text('Pick Images', style: TextStyle(color: Colors.white)),
+                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
+                          onPressed: pickMultipleImages,
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child:
-                          _buildDropdownRow('Buy/Rent', buy_rent, _selectedItem1, (val) => setState(() => _selectedItem1 = val),
-                            validator: (val) => val == null || val.isEmpty ? 'Please select a Buy/Rent' : null,
+                        const SizedBox(height: 10),
+                        Text(
+                          'Images selected: ${_multipleImages.length}',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 10),
+                        _multipleImages.isNotEmpty
+                            ? SizedBox(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: _multipleImages.length,
+                            itemBuilder: (context, index) {
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 5),
+                                child: Stack(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        _multipleImages[index],
+                                        width: 100,
+                                        height: 100,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    Positioned(
+                                      right: 0,
+                                      top: 0,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            _multipleImages.removeAt(index);
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.black54,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(Icons.close, size: 16, color: Colors.white),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
                           ),
-                      ),
-                    ],
+                        )
+                            : const Text('No images selected', style: TextStyle()),
+                      ],
+                    ),
                   ),
-                  if (_selectedItem1 == "Buy") ...[
-                    const SizedBox(width: 16),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10,),
+      
                     Row(
                       children: [
                         Expanded(
-                          child: _blueDropdownRow(
-                            'Registry',
-                            registryOptions,
-                            _registry,
-                                (val) => setState(() => _registry = val),
-                            validator: (val) =>
-                            val == null || val.isEmpty
-                                ? 'Please select Register'
-                                : null,
+                          child: _buildDropdownRow('Type of property',_typeofproperty, selectedPropertyType, (val) => setState(() => selectedPropertyType = val),
+                            validator: (val) => val == null || val.isEmpty ? 'Please select a property type' : null,
                           ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
-                          child: _blueDropdownRow(
-                            'Loan',
-                            yesNoOptions,
-                            _loan,
-                                (val) => setState(() => _loan = val),
-                            validator: (val) =>
-                            val == null || val.isEmpty
-                                ? 'Please select Loan'
-                                : null,
-                          ),
+                          child:
+                            _buildDropdownRow('Buy/Rent', buy_rent, _selectedItem1, (val) => setState(() => _selectedItem1 = val),
+                              validator: (val) => val == null || val.isEmpty ? 'Please select a Buy/Rent' : null,
+                            ),
                         ),
                       ],
-                    )
-                  ],
-
-                  // const SizedBox(height: 10,),
-
-                  _buildSectionCard(
-                    child: DropdownButtonFormField<String>(
-                      value: _furnished,
-                      decoration: InputDecoration(
-                        labelText: "",
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        // ✅ Error text style
-                        errorStyle: const TextStyle(
-                          color: Colors.redAccent, // deep red text
-                          fontSize: 13,
-                          fontWeight: FontWeight.bold,
-                        ),
-
-                        // ✅ Error border (deep red)
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Colors.redAccent,
-                            width: 2,
-                          ),
-                        ),
-
-                        // ✅ Focused border when error
-                        focusedErrorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: const BorderSide(
-                            color: Colors.redAccent,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                      items: furnishingOptions.map((option) {
-                        return DropdownMenuItem(
-                          value: option,
-                          child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                          ),
-                        );
-                      }).toList(),
-                      onChanged: (val) {
-                        setState(() {
-                          _furnished = val;
-                          // Clear previously selected furniture if not furnished
-                          if (val == 'Unfurnished') {
-                            _selectedFurniture.clear();
-                          }
-                        });
-                      },
-
-                      validator: (val) =>
-                      val == null || val.isEmpty ? 'Please select furnishing' : null,
-                    ), title: 'Furnishing',
-                  ),
-                  if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
-                    _blueSectionCard(
-                      child: GestureDetector(
-                        onTap: () => _showFurnitureBottomSheet(context),
-                        child: AbsorbPointer(
-                          child: Padding(
-                            padding:  EdgeInsets.only(top: 16.0),
-                            child:
-                            TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Select Furniture Items",
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                filled: true, // ✅ enable background color
-                                fillColor: Colors.grey.shade800,
-                                contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                              ),
-                              controller: TextEditingController(
-                                text: _selectedFurniture.isEmpty
-                                    ? ''
-                                    : _selectedFurniture.entries
-                                    .map((e) => '${e.key} (${e.value})')
-                                    .join(', '),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ), title: 'Furniture Items',
                     ),
-                  const SizedBox(height: 10,),
-                  _buildDropdownRow(
-                    'Parking',
-                    _Parking_items,
-                    _selectedParking,
-                        (val) => setState(() => _selectedParking = val),
-                    validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
-                  ),
-                  const SizedBox(height: 10,),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                        _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
-                        ),
-                      ),
+                    if (_selectedItem1 == "Buy") ...[
                       const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10,),
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                        _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
-
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
-                      ),
-                        ],
-                  ),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                        _buildDropdownRow('Balcony', _balcony_items, balcony, (val) => setState(() => balcony = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 10,),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child:
-                        _buildSectionCard(
-                          title: 'Available Date',
-                          child: GestureDetector(
-                            onTap: () async {
-                              final DateTime? picked = await showDatePicker(
-                                context: context,
-                                initialDate: DateTime.now(),
-                                firstDate: DateTime(2020),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked != null) {
-                                setState(() {
-                                  _availableDate = picked;
-                                });
-                              }
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                              decoration: BoxDecoration(
-                                color: Colors.blue.shade600,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                _availableDate != null
-                                    ? DateFormat('dd MMMM yyyy').format(_availableDate!)
-                                    : 'Select Available Date',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child:              _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
-                          validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
-                        ),
-                      ),
-                    ],
-                  ),
-
-
-
-                  TextFormField(
-                    controller: _showPrice,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-
-
-                      labelText:"Show Price (₹)",
-
-                      suffix: _formattedPrice.isNotEmpty
-                          ? Padding(
-                        padding: EdgeInsets.only(right: 8),
-                        child: Text(
-                          _formattedPrice,
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      )
-                          : null,
-
-                      labelStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: BorderSide(
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.blue.shade200
-                                : Colors.blue.shade300,
-                            width: 2),
-                      ),
-                      errorStyle: const TextStyle(
-                        color: Colors.redAccent, // deeper red text
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                      ),
-
-                      // ✅ Error border (deep red)
-                      errorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Colors.redAccent, // deep red border
-                          width: 2,
-                        ),
-                      ),
-
-                      // ✅ Focused border when still error
-                      focusedErrorBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                        borderSide: const BorderSide(
-                          color: Colors.redAccent, // deep red border when focused
-                          width: 2,
-                        ),
-    ),
-                      contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                      filled: true,
-                      fillColor: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey.shade900
-                          : Colors.white,
-                    ),
-                    validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
-                  ),
-                  const SizedBox(height: 10,),
-                  TextFormField(
-                    controller: _lastPrice,
-                    keyboardType: TextInputType.number,
-                    decoration: _buildInputDecoration(
-                      context,
-                      "Last Price (₹) by owner",
-                    ).copyWith(
-                      suffix: Text(
-                        _formattedLastPrice,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-
-                      ),
-                    ),
-                    validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
-
-                  ),
-                  const SizedBox(height: 10,),
-                  TextFormField(
-                    controller: _askingPrice,
-                    keyboardType: TextInputType.number,
-                    decoration: _buildInputDecoration(
-                      context,
-                      "Asking Price (₹) by owner",
-                    ).copyWith(
-                      suffix: Padding(
-                        padding: const EdgeInsets.only(right: 8.0),
-                        child: Text(
-                          _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
-                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-
-                        ),
-                      ),
-                    ),
-                    validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
-                  ),
-                  const SizedBox(height: 10,),
-
-                  Row(
-                    children: [
-                      /// Maintenance dropdown field
-                      Expanded(
-                        child: _buildReadOnlyField(
-                          label: "Maintenance",
-                          controller: _maintenanceController,
-                          onTap: () => _showBottomSheet(
-                            options: ['Included', 'Custom'],
-                            onSelected: (val) {
-                              setState(() {
-                                _maintenance = val;
-                                _maintenanceController.text = val;
-                                if (val != 'Custom') _customMaintenance = null;
-                              });
-                            },
-                          ),
-                          validator: (val) =>
-                          val == null || val.isEmpty ? "Select maintenance" : null,
-                        ),
-                      ),
-
-                      if (_maintenance == 'Custom')
-
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 16.0),
-                            child: TextFormField(
-                              decoration: InputDecoration(
-                                labelText: "Enter Maintenance Fee",
-                                labelStyle: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
-                                ),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.grey.shade700
-                                        : Colors.grey.shade300,
-                                  ),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: BorderSide(
-                                    color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.blue.shade200
-                                        : Colors.blue.shade300,
-                                    width: 2,
-                                  ),
-                                ),
-                                contentPadding:
-                                const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                                filled: true,
-                                fillColor: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade900
-                                    : Colors.white,
-                              ),
-                              style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white
-                                    : Colors.black,
-                              ),
-                              keyboardType: TextInputType.number,
-                              onChanged: (val) => _customMaintenance = val,
-                              validator: (val) => _maintenance == 'Custom' &&
-                                  (val == null || val.isEmpty)
-                                  ? "Enter maintenance fee"
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _blueDropdownRow(
+                              'Registry',
+                              registryOptions,
+                              _registry,
+                                  (val) => setState(() => _registry = val),
+                              validator: (val) =>
+                              val == null || val.isEmpty
+                                  ? 'Please select Register'
                                   : null,
                             ),
                           ),
-                        ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: _blueDropdownRow(
+                              'Loan',
+                              yesNoOptions,
+                              _loan,
+                                  (val) => setState(() => _loan = val),
+                              validator: (val) =>
+                              val == null || val.isEmpty
+                                  ? 'Please select Loan'
+                                  : null,
+                            ),
+                          ),
+                        ],
+                      )
                     ],
-                  ),
-
-
-                  const SizedBox(height: 16,),
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Dropdown for House Meter Type
-                      DropdownButtonFormField<String>(
-                        value: (_houseMeter != null && _houseMeter != 'Custom')
-                            ? _houseMeter
-                            : (_meter.text.isNotEmpty ? 'Custom' : null),
-                        decoration: _buildInputDecoration(context, "House Meter Type"),
-                        items: ['Commercial', 'Govt', 'Custom'].map((option) {
-                          return DropdownMenuItem<String>(
+      
+                    // const SizedBox(height: 10,),
+      
+                    _buildSectionCard(
+                      child: DropdownButtonFormField<String>(
+                        value: _furnished,
+                        decoration: InputDecoration(
+                          labelText: "",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          // ✅ Error text style
+                          errorStyle: const TextStyle(
+                            color: Colors.redAccent, // deep red text
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                          ),
+      
+                          // ✅ Error border (deep red)
+                          errorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Colors.redAccent,
+                              width: 2,
+                            ),
+                          ),
+      
+                          // ✅ Focused border when error
+                          focusedErrorBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            borderSide: const BorderSide(
+                              color: Colors.redAccent,
+                              width: 2,
+                            ),
+                          ),
+                        ),
+                        items: furnishingOptions.map((option) {
+                          return DropdownMenuItem(
                             value: option,
                             child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                             ),
@@ -1306,98 +952,478 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                         }).toList(),
                         onChanged: (val) {
                           setState(() {
-                            _houseMeter = val;
-                            if (val != 'Custom') {
-                              _meter.text = val!; // assign predefined value
-                            } else {
-                              _meter.clear(); // clear for custom input
+                            _furnished = val;
+                            // Clear previously selected furniture if not furnished
+                            if (val == 'Unfurnished') {
+                              _selectedFurniture.clear();
                             }
                           });
                         },
-                        validator: (val) => (val == null || val.isEmpty)
-                            ? "Select house meter type"
-                            : null,
-
+      
+                        validator: (val) =>
+                        val == null || val.isEmpty ? 'Please select furnishing' : null,
+                      ), title: 'Furnishing',
+                    ),
+                    if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+                      _blueSectionCard(
+                        child: GestureDetector(
+                          onTap: () => _showFurnitureBottomSheet(context),
+                          child: AbsorbPointer(
+                            child: Padding(
+                              padding:  EdgeInsets.only(top: 16.0),
+                              child:
+                              TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: "Select Furniture Items",
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  filled: true, // ✅ enable background color
+                                  fillColor: Colors.grey.shade800,
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                ),
+                                controller: TextEditingController(
+                                  text: _selectedFurniture.isEmpty
+                                      ? ''
+                                      : _selectedFurniture.entries
+                                      .map((e) => '${e.key} (${e.value})')
+                                      .join(', '),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ), title: 'Furniture Items',
                       ),
-
-                      const SizedBox(height: 20),
-
-                      // Show custom input if 'Custom' is selected
-                      if (_houseMeter == 'Custom')
-                        _blueTextInput(
-                          'Enter Meter amount per Unit',
-                          _meter,
-                          keyboardType: TextInputType.number,
+                    const SizedBox(height: 10,),
+                    _buildDropdownRow(
+                      'Parking',
+                      _Parking_items,
+                      _selectedParking,
+                          (val) => setState(() => _selectedParking = val),
+                      validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
+                    ),
+                    const SizedBox(height: 10,),
+      
+                    Row(
+                      children: [
+                        Expanded(
+                          child:
+                          _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
+                            validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
+                          ),
                         ),
-                    ],
-                  ),
-                  buildTextInput('Video Link', _videoLink),
-                  buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
-                  buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
-                  buildTextInput('Owner Name (Optional)', _Ownername),
-                  buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
-
-                ],
-              ),
-              SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () async {
-                      _handleUpload();
-                    },
-                    child: Center(
-                      child: Container(
-                        height: 50,
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        decoration: BoxDecoration(
-                            borderRadius: const BorderRadius.only(
-                                topLeft: Radius.circular(40),
-                                topRight: Radius.circular(40),
-                                bottomRight: Radius.circular(40),
-                                bottomLeft: Radius.circular(40)),
-                            color: Colors.red),
-                        child: _isLoading
-                            ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            SizedBox(
-                              width: 18,
-                              height: 30,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              "Processing...",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
+                            validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10,),
+                    Row(
+                      children: [
+                        Expanded(
+                          child:
+                          _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
+      
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
+                        ),
                           ],
-                        )
-                            : const Center(
+                    ),
+      
+                    Row(
+                      children: [
+                        Expanded(
+                          child:
+                          _buildDropdownRow('Balcony', _balcony_items, balcony, (val) => setState(() => balcony = val),
+                            validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
+                            validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+      
+                    const SizedBox(height: 10,),
+      
+                    Row(
+                      children: [
+                        Expanded(
+                          child:
+                          _buildSectionCard(
+                            title: 'Available Date  ',
+                            child: GestureDetector(
+                                  onTap: () async {
+                                  final DateTime? picked = await showDatePicker(
+                                  context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2020),
+                                  lastDate: DateTime(2100),
+                                  );
+                                  if (picked != null) {
+                                  setState(() {
+                                  _availableDate = picked;
+                                  });
+                                  }
+                                  },
+                                  child: Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                                  decoration: BoxDecoration(
+                                  color: Colors.blue.shade600,
+                                  borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                  _availableDate != null
+                                  ? DateFormat('dd MMMM yyyy').format(_availableDate!)
+                                      : 'Select Available Date', // placeholder
+                                  style: const TextStyle(color: Colors.white),
+                                  ),
+                                  ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child:              _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
+                            validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
+                          ),
+                        ),
+                      ],
+                    ),
+      
+      
+      
+                    TextFormField(
+                      controller: _showPrice,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+      
+      
+                        labelText:"Show Price (₹)",
+      
+                        suffix: _formattedPrice.isNotEmpty
+                            ? Padding(
+                          padding: EdgeInsets.only(right: 8),
                           child: Text(
-                            "Add Flat",
+                            _formattedPrice,
                             style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'poppins',
-                                letterSpacing: 0.8,
-                                fontSize: 18),
+                              color: Colors.grey[600],
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                            : null,
+      
+                        labelStyle: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.black,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade700
+                                  : Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: BorderSide(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.blue.shade200
+                                  : Colors.blue.shade300,
+                              width: 2),
+                        ),
+                        errorStyle: const TextStyle(
+                          color: Colors.redAccent, // deeper red text
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+      
+                        // ✅ Error border (deep red)
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent, // deep red border
+                            width: 2,
+                          ),
+                        ),
+      
+                        // ✅ Focused border when still error
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                          borderSide: const BorderSide(
+                            color: Colors.redAccent, // deep red border when focused
+                            width: 2,
+                          ),
+      ),
+                        contentPadding:
+                        const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                        filled: true,
+                        fillColor: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade900
+                            : Colors.white,
+                      ),
+                      validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
+                    ),
+                    const SizedBox(height: 10,),
+                    TextFormField(
+                      controller: _lastPrice,
+                      keyboardType: TextInputType.number,
+                      decoration: _buildInputDecoration(
+                        context,
+                        "Last Price (₹) by owner",
+                      ).copyWith(
+                        suffix: Text(
+                          _formattedLastPrice,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+      
+                        ),
+                      ),
+                      validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
+      
+                    ),
+                    const SizedBox(height: 10,),
+                    TextFormField(
+                      controller: _askingPrice,
+                      keyboardType: TextInputType.number,
+                      decoration: _buildInputDecoration(
+                        context,
+                        "Asking Price (₹) by owner",
+                      ).copyWith(
+                        suffix: Padding(
+                          padding: const EdgeInsets.only(right: 8.0),
+                          child: Text(
+                            _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
+                            style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+      
+                          ),
+                        ),
+                      ),
+                      validator: (val) => val == null || val.isEmpty ? "Enter Amount" : null,
+                    ),
+                    const SizedBox(height: 10,),
+      
+                    Row(
+                      children: [
+                        /// Maintenance dropdown field
+                        Expanded(
+                          child: _buildReadOnlyField(
+                            label: "Maintenance",
+                            controller: _maintenanceController,
+                            onTap: () => _showBottomSheet(
+                              options: ['Included', 'Custom'],
+                              onSelected: (val) {
+                                setState(() {
+                                  _maintenance = val;
+                                  _maintenanceController.text = val;
+                                  if (val != 'Custom') _customMaintenance = null;
+                                });
+                              },
+                            ),
+                            validator: (val) =>
+                            val == null || val.isEmpty ? "Select maintenance" : null,
+                          ),
+                        ),
+      
+                        if (_maintenance == 'Custom')
+      
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(left: 16.0),
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  labelText: "Enter Maintenance Fee",
+                                  labelStyle: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 13,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.grey.shade700
+                                          : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: BorderSide(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.blue.shade200
+                                          : Colors.blue.shade300,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  contentPadding:
+                                  const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                                  filled: true,
+                                  fillColor: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade900
+                                      : Colors.white,
+                                ),
+                                style: TextStyle(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white
+                                      : Colors.black,
+                                ),
+                                keyboardType: TextInputType.number,
+                                onChanged: (val) => _customMaintenance = val,
+                                validator: (val) => _maintenance == 'Custom' &&
+                                    (val == null || val.isEmpty)
+                                    ? "Enter maintenance fee"
+                                    : null,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+      
+      
+                    const SizedBox(height: 16,),
+      
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Dropdown for House Meter Type
+                        DropdownButtonFormField<String>(
+                          value: (_houseMeter != null && _houseMeter != 'Custom')
+                              ? _houseMeter
+                              : (_meter.text.isNotEmpty ? 'Custom' : null),
+                          decoration: _buildInputDecoration(context, "House Meter Type"),
+                          items: ['Commercial', 'Govt', 'Custom'].map((option) {
+                            return DropdownMenuItem<String>(
+                              value: option,
+                              child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (val) {
+                            setState(() {
+                              _houseMeter = val;
+                              if (val != 'Custom') {
+                                _meter.text = val!; // assign predefined value
+                              } else {
+                                _meter.clear(); // clear for custom input
+                              }
+                            });
+                          },
+                          validator: (val) => (val == null || val.isEmpty)
+                              ? "Select house meter type"
+                              : null,
+      
+                        ),
+      
+                        const SizedBox(height: 20),
+      
+                        // Show custom input if 'Custom' is selected
+                        if (_houseMeter == 'Custom')
+                          _blueTextInput(
+                            'Enter Meter amount per Unit',
+                            _meter,
+                            keyboardType: TextInputType.number,
+                          ),
+                      ],
+                    ),
+                    buildTextInput('Video Link', _videoLink),
+                    buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
+                    buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone,validateLength: true),
+                    buildTextInput('Owner Name (Optional)', _Ownername),
+                    buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone,validateLength: true),
+      
+                  ],
+                ),
+                SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () async {
+                        _handleUpload();
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          decoration: BoxDecoration(
+                              borderRadius: const BorderRadius.only(
+                                  topLeft: Radius.circular(40),
+                                  topRight: Radius.circular(40),
+                                  bottomRight: Radius.circular(40),
+                                  bottomLeft: Radius.circular(40)),
+                              color: Colors.red),
+                          child: _isLoading
+                              ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              SizedBox(
+                                width: 18,
+                                height: 30,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                "Processing...",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                              : const Center(
+                            child: Text(
+                              "Add Flat",
+                              style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontFamily: 'poppins',
+                                  letterSpacing: 0.8,
+                                  fontSize: 18),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-            ],
+              ],
+            ),
           ),
         ),
-      ),
-    ));
+      )),
+    );
   }
+
+
   InputDecoration _buildInputDecoration(BuildContext context, String label) {
     final isDark = Theme
         .of(context)

@@ -2,49 +2,68 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../ui_decoration_tools/constant.dart';
 import '../model/Agreement_model.dart';
-import 'imagepreviewscreen.dart';
+import 'Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
+import 'Administrator/imagepreviewscreen.dart';
 
-class AgreementDetails extends StatefulWidget {
-  const AgreementDetails({super.key});
+class AgreementDetails1 extends StatefulWidget {
+  const AgreementDetails1({super.key});
 
   @override
-  State<AgreementDetails> createState() => _AgreementDetailsState();
+  State<AgreementDetails1> createState() => _AgreementDetailsState();
 }
 
-class _AgreementDetailsState extends State<AgreementDetails> {
-  List<AgreementModel> agreements = [];
+class _AgreementDetailsState extends State<AgreementDetails1> {
+  List<AdminAllAgreementModel> agreements = [];
   bool isLoading = true;
+  String? mobileNumber;
+
 
   @override
   void initState() {
     super.initState();
     fetchAgreements();
+    _loadMobileNumber();
   }
+
+  Future<void> _loadMobileNumber() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    mobileNumber = prefs.getString("number");
+    if (mobileNumber != null) {
+      fetchAgreements();
+    }
+  }
+
+
 
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/show_agreement_data'));
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber'));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded is List) {
-          setState(() {
-            agreements = decoded
-                .map((e) => AgreementModel.fromJson(e))
-                .toList()
-                .reversed
-                .toList();
-            isLoading = false;
+        if (decoded is Map && decoded['success'] == true) {
+          final data = decoded['data'];
+          if (data is List) {
+            setState(() {
+              agreements = data
+                  .map((e) => AdminAllAgreementModel.fromJson(e))
+                  .toList()
+                  .reversed
+                  .toList();
+              isLoading = false;
+            });
+          } else {
+            throw Exception('Data is not a list');
           }
-          );
         } else {
-          throw Exception('Invalid data format');
+          throw Exception('Invalid response format');
         }
       } else {
         throw Exception('Failed to load data');
@@ -54,6 +73,7 @@ class _AgreementDetailsState extends State<AgreementDetails> {
       setState(() => isLoading = false);
     }
   }
+
   _launchURL(String pdf_url) async {
     final Uri url = Uri.parse(pdf_url);
     if (!await launchUrl(url)) {
@@ -137,7 +157,8 @@ class _AgreementDetailsState extends State<AgreementDetails> {
     ),
   );
 
-  Widget _ownerCard(AgreementModel item) {
+  Widget _ownerCard(AdminAllAgreementModel item) {
+    print('${item.tenantAadharBack}');
     return Container(
       width: 300,
       child:
@@ -172,44 +193,43 @@ class _AgreementDetailsState extends State<AgreementDetails> {
   }
 
 // Tenant Card
-  Widget _tenantCard(AgreementModel item) {
-    print('dynamic path : ${item.tenantAadharFront}');
+  Widget _tenantCard(AdminAllAgreementModel item) {
     return Container(
-      width: 300,
-      height: 353,
-      child: Card(
-        color: Colors.grey[850],
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _text("👤 Tenant Name: ${item.tenantName}"),
-              _text("👨‍👦 Tenant Relation: ${item.tenantRelation} ${item.relationPersonNameTenant}"),
-              _text("📫 Tenant Address: ${item.permanentAddressTenant}"),
-              _text("📞 Tenant Mobile: ${item.tenantMobileNo}"),
-              const SizedBox(height: 10),
-              _text("🪪 Tenant Aadhaar: ${item.tenantAddharNo}"),
-              const SizedBox(height: 10),
-              _text("📄 Tenant Aadhaar (Front & Back):"),
-              const SizedBox(height: 20),
-              Row(
-                children: [
-                  _image('https://theverify.in/${item.tenantAadharFront}'),
-                  const SizedBox(width: 10),
-                  _image('https://theverify.in/${item.tenantAadharBack}'),
-                ],
-              ),
-            ],
+        width: 300,
+        height: 353,
+        child: Card(
+          color: Colors.grey[850],
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: SingleChildScrollView(child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _text("👤 Tenant Name: ${item.tenantName}"),
+                _text("👨‍👦 Tenant Relation: ${item.tenantRelation} ${item.relationPersonNameTenant}"),
+                _text("📫 Tenant Address: ${item.permanentAddressTenant}"),
+                _text("📞 Tenant Mobile: ${item.tenantMobileNo}"),
+                const SizedBox(height: 10),
+                _text("🪪 Tenant Aadhaar: ${item.tenantAddharNo}"),
+                const SizedBox(height: 10),
+                _text("📄 Tenant Aadhaar (Front & Back):"),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    _image('https://theverify.in/${item.tenantAadharFront}'),
+                    const SizedBox(width: 10),
+                    _image('https://theverify.in/${item.tenantAadharBack}'),
+                  ],
+                ),
+              ],
+            ),
+            ),
           ),
-        ),
-      ),
-    ));
+        ));
   }
 
 // Property Card with PDF Button
-  Widget _propertyCard(AgreementModel item) {
+  Widget _propertyCard(AdminAllAgreementModel item) {
     return Container(
       width: 300,
       child: Card(
@@ -242,10 +262,15 @@ class _AgreementDetailsState extends State<AgreementDetails> {
       ),
     );
   }
+
+
   String _formatDate(String rawDate) {
-    final timestamp = int.parse(rawDate.replaceAll(RegExp(r'[^0-9]'), ''));
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return "${date.year}-${_twoDigits(date.month)}-${_twoDigits(date.day)}";
+    try {
+      final date = DateTime.parse(rawDate); // ✅ works with "2025-09-17 00:00:00.000000"
+      return "${_twoDigits(date.day)}-${_twoDigits(date.month)}-${date.year}";
+    } catch (e) {
+      return rawDate; // fallback in case parsing fails
+    }
   }
 
   String _twoDigits(int n) => n.toString().padLeft(2, '0');

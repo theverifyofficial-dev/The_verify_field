@@ -255,7 +255,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                 final item = _filteredData[_filteredData.length - 1 - index];
                 return Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
+                      horizontal: 5, vertical: 5),
                   child: Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
@@ -266,7 +266,7 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.only(
-                                    top: 20, left: 10, right: 10, bottom: 10),
+                                    top: 10, left: 5, right: 5, bottom: 10),
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
@@ -855,23 +855,18 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                               SizedBox(
                                                 width: 2,
                                               ),
-                                              SizedBox(
-                                                width: 100,
-                                                child: Text(
-                                                  "Family Members = ",
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                  style: TextStyle(
-                                                      fontSize: 11,
-                                                      color: Colors.black,
-                                                      fontWeight:
-                                                          FontWeight.w600),
-                                                ),
+                                              Text(
+                                                "Family Members = ",
+                                                overflow:
+                                                    TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                style: TextStyle(
+                                                    fontSize: 11,
+                                                    color: Colors.black,
+                                                    fontWeight:
+                                                        FontWeight.w600),
                                               ),
-                                              SizedBox(
-                                                width: 10,
-                                              ),
+
                                               SizedBox(
                                                 width: 100,
                                                 child: Text(
@@ -1263,53 +1258,51 @@ class _Tenant_ALl_demandsState extends State<Tenant_ALl_demands> {
                                                   ],
                                                 ),
                                               ),
-                                              SizedBox(
-                                                width: 10,
-                                              ),
-                                              Container(
-                                                padding: EdgeInsets.only(
-                                                    left: 10,
-                                                    right: 10,
-                                                    top: 0,
-                                                    bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius:
-                                                      BorderRadius.circular(5),
-                                                  border: Border.all(
-                                                      width: 1,
-                                                      color: Colors
-                                                          .lightGreenAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors
-                                                            .lightGreenAccent
-                                                            .withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle:
-                                                            BlurStyle.outer),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //w SizedBox(width: 10,),
-                                                    Text(
-                                                      "" +
-                                                     item
-                                                              .Current_date
-                                                              .toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                      style: TextStyle(
-                                                          fontSize: 13,
-                                                          color: Colors.black,
-                                                          fontWeight:
-                                                              FontWeight.w500,
-                                                          letterSpacing: 0.5),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
                                             ],
+                                          ),
+                                          SizedBox(height: 10,),
+                                          Container(
+                                            padding: EdgeInsets.only(
+                                                left: 10,
+                                                right: 10,
+                                                top: 0,
+                                                bottom: 0),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                              BorderRadius.circular(5),
+                                              border: Border.all(
+                                                  width: 1,
+                                                  color: Colors
+                                                      .lightGreenAccent),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                    color: Colors
+                                                        .lightGreenAccent
+                                                        .withOpacity(0.5),
+                                                    blurRadius: 10,
+                                                    offset: Offset(0, 0),
+                                                    blurStyle:
+                                                    BlurStyle.outer),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                //w SizedBox(width: 10,),
+                                                Text(
+                                                  "" +
+                                                      item
+                                                          .Current_date
+                                                          .toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                  style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: Colors.black,
+                                                      fontWeight:
+                                                      FontWeight.w500,
+                                                      letterSpacing: 0.5),
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ],
                                       ),

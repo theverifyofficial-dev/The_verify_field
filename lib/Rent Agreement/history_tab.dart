@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/Deny_agreement.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/All_agreement.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/request_agreement.dart';
 
 import '../constant.dart';
@@ -68,7 +68,7 @@ class _parent_TenandDemandState extends State<HistoryTab> {
                 tabs: const [
                   Tab(text: 'Pending'),
                   Tab(text: 'Accepted'),
-                  Tab(text: 'Denied'),
+                  Tab(text: 'Agreement'),
                 ],
               ),
             ),
@@ -77,7 +77,7 @@ class _parent_TenandDemandState extends State<HistoryTab> {
               child: TabBarView(children: [
                 RequestAgreementsPage(),
                 AcceptAgreement(),
-                DenyAgreement(),
+                AllAgreement(),
               ]),
             )
           ],

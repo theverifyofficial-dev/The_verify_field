@@ -49,12 +49,18 @@ class _AdminPendingState extends State<AdminPending> {
   }
 
   Widget _buildAgreementCard(AgreementModel2 agreement) {
+    final screenWidth = MediaQuery.of(context).size.width;
+
+    // Scale factor based on device width (375 is base for reference)
+    double scale(double size) =>
+        size * (screenWidth / 375).clamp(0.85, 1.2);
+
     return Card(
       elevation: 4,
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(scale(14)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -62,71 +68,100 @@ class _AdminPendingState extends State<AdminPending> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Owner: ${agreement.ownerName}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                Expanded(
+                  child: Text(
+                    "Owner: ${agreement.ownerName}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: scale(16),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                Text(
-                  "Tenant: ${agreement.tenantName}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Tenant: ${agreement.tenantName}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: scale(16),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
 
-            // Address
+            SizedBox(height: scale(8)),
+
             Text(
               "Property Address: ${agreement.rentedAddress}",
-              style: const TextStyle(fontSize: 14),
+              style: TextStyle(fontSize: scale(14)),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 6),
+
+            SizedBox(height: scale(6)),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("💰 Rent: ₹${agreement.monthlyRent}",
-                    style: const TextStyle(fontSize: 14)),
-                Text("🔐 Security: ₹${agreement.securitys}",
-                    style: const TextStyle(fontSize: 14)),
+                Flexible(
+                  child: Text(
+                    "💰 Rent: ₹${agreement.monthlyRent}",
+                    style: TextStyle(fontSize: scale(14)),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Flexible(
+                  child: Text(
+                    "🔐 Security: ₹${agreement.securitys}",
+                    style: TextStyle(fontSize: scale(14)),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 6),
-
-            Text(
-              "Shifting Date: ${agreement.shiftingDate.toString().split('T')[0]}",
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 6),
-
-            Text("🛠 Maintenance: ${agreement.maintaince}",
-                style: const TextStyle(fontSize: 14)),
-
-            const SizedBox(height: 6),
+            
+            SizedBox(height: scale(12)),
 
             Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AdminAgreementDetails(
-                        agreementId: agreement.id,
-                      ),
+              alignment:
+              screenWidth < 400 ? Alignment.center : Alignment.centerRight,
+              child: SizedBox(
+                width: screenWidth < 400 ? double.infinity : null,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.visibility,
-                    size: 18, color: Colors.white),
-                label: const Text("View Details",
-                    style: TextStyle(color: Colors.white)),
+                    padding: EdgeInsets.symmetric(
+                      vertical: scale(12),
+                      horizontal: scale(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AdminAgreementDetails(
+                          agreementId: agreement.id,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: Icon(Icons.visibility, size: scale(18), color: Colors.white),
+                  label: Text(
+                    "View Details",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: scale(14),
+                    ),
+                  ),
+                ),
               ),
             ),
           ],

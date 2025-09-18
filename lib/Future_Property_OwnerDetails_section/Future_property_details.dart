@@ -3894,9 +3894,12 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                           content: Column(
                                             crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              _buildCompactTextRow("Property:", abc.data![0].propertyNameAddress),
+                                              _buildCompactTextRow("Property Address :", abc.data![0].propertyNameAddress),
                                               const SizedBox(height: 6),
-                                              _buildCompactTextRow("Field:", abc.data![0].propertyAddressForFieldworker),
+                                              _buildCompactTextRow("Field Worker Address: ", abc.data![0].propertyAddressForFieldworker),
+                                              const SizedBox(height: 6),
+                                              _buildCompactTextRow("Current Location: ", abc.data![0].yourAddress),
+
                                             ],
                                           ),
                                         ),
@@ -4114,100 +4117,103 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (BuildContext context, int len) {
                   print('apartment address: ${catidList[len].propertyNameAddress}');
-                  return ElevatedButton(
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+                  return Container(
+                    margin: EdgeInsets.only(bottom: 20),
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
 
-                    onPressed: () {
-                      final data = catidList[len];
-                      if (data.roadSize.isEmpty ||
-                          data.metroName.isEmpty ||
-                          data.metroDistance.isEmpty ||
-                          data.mainMarketDistance.isEmpty ||
-                          data.ageOfProperty.isEmpty ||
-                          data.lift.isEmpty ||
-                          data.parking.isEmpty) {
-                        // Show red snackbar warning
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "⚠ Please update property details before adding flats.",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                      onPressed: () {
+                        final data = catidList[len];
+                        if (data.roadSize.isEmpty ||
+                            data.metroName.isEmpty ||
+                            data.metroDistance.isEmpty ||
+                            data.mainMarketDistance.isEmpty ||
+                            data.ageOfProperty.isEmpty ||
+                            data.lift.isEmpty ||
+                            data.parking.isEmpty) {
+                          // Show red snackbar warning
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                "⚠ Please update property details before adding flats.",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                              duration: Duration(seconds: 10), // longer visibility
+                              backgroundColor: Colors.red,
+                              behavior: SnackBarBehavior.floating,
                             ),
-                            duration: Duration(seconds: 10), // longer visibility
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
+                          );
+                          return; // stop navigation
+                        }
+
+                        // ScaffoldMessenger.of(context).showSnackBar(
+                        //   const SnackBar(
+                        //     content: Text(
+                        //       "✔ ALL Building details are updated",
+                        //       style: TextStyle(
+                        //         color: Colors.white,
+                        //         fontWeight: FontWeight.bold,
+                        //       ),
+                        //     ),
+                        //     duration: Duration(seconds: 3), // longer visibility
+                        //     backgroundColor: Colors.green,
+                        //     behavior: SnackBarBehavior.floating,
+                        //   ),
+                        // );
+
+                        print('id: ${widget.idd}');
+                        print('Owner_name: ${data.ownerName}');
+                        print('Owner_num: ${data.ownerNumber}');
+                        print('Caretaker_name: ${data.caretakerName}');
+                        print('Caretaker_num: ${data.caretakerNumber}');
+                        print('market_dis: ${data.mainMarketDistance}');
+                        print('metro_name: ${data.metroName}');
+                        print('metro_dis: ${data.metroDistance}');
+                        print('road_size: ${data.roadSize}');
+                        print('age_property: ${data.ageOfProperty}');
+                        print('apartment_address: ${data.propertyNameAddress}');
+                        print('apartment_name: ${data.propertyNameAddress}');
+                        print('field_address: ${data.propertyAddressForFieldworker}');
+                        print('current_loc: ${data.currentDate}');
+                        print('place: ${data.place}');
+                        print('lift: ${data.lift}');
+                        print('totalFloor: ${data.totalFloor}');
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Add_Flatunder_futureproperty(
+                              id: widget.idd,
+                              Owner_name: data.ownerName,
+                              Owner_num: data.ownerNumber,
+                              Caretaker_name: data.caretakerName,
+                              Caretaker_num: data.caretakerNumber,
+                              market_dis: data.mainMarketDistance,
+                              metro_name: data.metroName,
+                              metro_dis: data.metroDistance,
+                              road_size: data.roadSize,
+                              age_property: data.ageOfProperty,
+                              apartment_address: data.propertyNameAddress,
+                              apartment_name: data.propertyNameAddress,
+                              field_address: data.propertyAddressForFieldworker,
+                              current_loc: data.currentDate,
+                              place: data.place,
+                              lift: data.lift,
+                              totalFloor: data.totalFloor,
+                              Residence_commercial: data.residenceCommercial,
+                              facility: data.facility,
+                              google_loc: data.currentLocation,
+                            ),
                           ),
                         );
-                        return; // stop navigation
-                      }
-
-                      // ScaffoldMessenger.of(context).showSnackBar(
-                      //   const SnackBar(
-                      //     content: Text(
-                      //       "✔ ALL Building details are updated",
-                      //       style: TextStyle(
-                      //         color: Colors.white,
-                      //         fontWeight: FontWeight.bold,
-                      //       ),
-                      //     ),
-                      //     duration: Duration(seconds: 3), // longer visibility
-                      //     backgroundColor: Colors.green,
-                      //     behavior: SnackBarBehavior.floating,
-                      //   ),
-                      // );
-
-                      print('id: ${widget.idd}');
-                      print('Owner_name: ${data.ownerName}');
-                      print('Owner_num: ${data.ownerNumber}');
-                      print('Caretaker_name: ${data.caretakerName}');
-                      print('Caretaker_num: ${data.caretakerNumber}');
-                      print('market_dis: ${data.mainMarketDistance}');
-                      print('metro_name: ${data.metroName}');
-                      print('metro_dis: ${data.metroDistance}');
-                      print('road_size: ${data.roadSize}');
-                      print('age_property: ${data.ageOfProperty}');
-                      print('apartment_address: ${data.propertyNameAddress}');
-                      print('apartment_name: ${data.propertyNameAddress}');
-                      print('field_address: ${data.propertyAddressForFieldworker}');
-                      print('current_loc: ${data.currentDate}');
-                      print('place: ${data.place}');
-                      print('lift: ${data.lift}');
-                      print('totalFloor: ${data.totalFloor}');
-
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Add_Flatunder_futureproperty(
-                            id: widget.idd,
-                            Owner_name: data.ownerName,
-                            Owner_num: data.ownerNumber,
-                            Caretaker_name: data.caretakerName,
-                            Caretaker_num: data.caretakerNumber,
-                            market_dis: data.mainMarketDistance,
-                            metro_name: data.metroName,
-                            metro_dis: data.metroDistance,
-                            road_size: data.roadSize,
-                            age_property: data.ageOfProperty,
-                            apartment_address: data.propertyNameAddress,
-                            apartment_name: data.propertyNameAddress,
-                            field_address: data.propertyAddressForFieldworker,
-                            current_loc: data.currentDate,
-                            place: data.place,
-                            lift: data.lift,
-                            totalFloor: data.totalFloor,
-                            Residence_commercial: data.residenceCommercial,
-                            facility: data.facility,
-                            google_loc: data.currentLocation,
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text(
-                      'Add Flats',
-                      style: TextStyle(fontSize: 15,color: Colors.white),
+                      },
+                      child: const Text(
+                        'Add Flats',
+                        style: TextStyle(fontSize: 15,color: Colors.white),
+                      ),
                     ),
                   );
                 },
@@ -4354,7 +4360,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   Widget _buildCompactTextRow(String label, String value) {
     return RichText(
       text: TextSpan(
-        style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyLarge?.color),
+        style: TextStyle(fontSize: 14, color: Theme.of(context).textTheme.bodyLarge?.color),
         children: [
           TextSpan(
             text: "$label ",
@@ -4362,7 +4368,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           ),
           TextSpan(
             text: value,
-            style: TextStyle(fontSize: 13),
+            style: TextStyle(fontSize: 16),
           ),
         ],
       ),

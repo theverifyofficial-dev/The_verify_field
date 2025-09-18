@@ -1,15 +1,18 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-
-
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widget/Custom_backbutton.dart';
-
+import 'package:http_parser/http_parser.dart';
 
 class RentalWizardPage extends StatefulWidget {
   const RentalWizardPage({super.key});
@@ -53,13 +56,66 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   final installmentAmount = TextEditingController();
   String meterInfo = 'As per Govt. Unit';
   final customUnitAmount = TextEditingController();
+  final propertyID = TextEditingController();
   DateTime? shiftingDate;
   String maintenance = 'Including';
+  String parking = 'Car';
+  final customMaintanceAmount = TextEditingController();
+
 
   final ImagePicker _picker = ImagePicker();
 
   // animations
   late final AnimationController _fabController;
+
+
+
+  String convertToWords(int number) {
+    if (number == 0) return 'Zero';
+
+    final ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    final teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    final tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    String twoDigits(int n) {
+      if (n < 10) return ones[n];
+      if (n < 20) return teens[n - 10];
+      return '${tens[n ~/ 10]} ${ones[n % 10]}'.trim();
+    }
+
+    String threeDigits(int n) {
+      int hundred = n ~/ 100;
+      int rest = n % 100;
+      String result = '';
+      if (hundred > 0) result += '${ones[hundred]} Hundred ';
+      if (rest > 0) result += twoDigits(rest);
+      return result.trim();
+    }
+
+    List<String> parts = [];
+
+    int lakh = number ~/ 100000;
+    number %= 100000;
+    if (lakh > 0) parts.add('${twoDigits(lakh)} Lakh');
+
+    int thousand = number ~/ 1000;
+    number %= 1000;
+    if (thousand > 0) parts.add('${twoDigits(thousand)} Thousand');
+
+    if (number > 0) parts.add(threeDigits(number));
+
+    return parts.join(' ').trim();
+  }
+
+
+  String rentAmountInWords = '';
+  String securityAmountInWords = '';
+  String installmentAmountInWords = '';
+  String customUnitAmountInWords = '';
+  String customMaintanceAmountInWords = '';
+  String _number = '';
+  String _name = '';
+  bool _userLoaded = false;
 
   @override
   void initState() {
@@ -106,6 +162,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           break;
         case 'tenantBack':
           tenantAadhaarBack = File(picked.path);
+          break;
+
+        case 'tenantImage':
+          tenantImage = File(picked.path);
           break;
       }
     });
@@ -189,41 +249,48 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     }
   }
 
-  Future<void> _submitAll() async {
-    if (!_ownerFormKey.currentState!.validate() ||
-        !_tenantFormKey.currentState!.validate() ||
-        !_propertyFormKey.currentState!.validate()) {
-      Fluttertoast.showToast(msg: 'Please complete all required fields.');
-      return;
-    }
-    if (ownerAadhaarFront == null || ownerAadhaarBack == null ||
-        tenantAadhaarFront == null || tenantAadhaarBack == null) {
-      Fluttertoast.showToast(msg: 'Upload all Aadhaar images before submitting');
-      return;
-    }
+  Future<void> _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    _name = prefs.getString('name') ?? '';
+    _number = prefs.getString('number') ?? '';
+  }
 
-    Fluttertoast.showToast(msg: 'Uploading...');
+
+
+  Future<void> _submitAll() async {
+    print("🔹 _submitAll called");
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    // Ensure user data is loaded
+    await _loaduserdata();
+    print("Loaded Name: $_name, Number: $_number");
 
     try {
-      var uri = Uri.parse("https://theverify.in/insert.php");
-      var request = http.MultipartRequest("POST", uri);
+      _showToast('Uploading...');
+      print("⏳ Uploading...");
 
-      // 📝 Text fields
-      request.fields.addAll({
+      final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement.php");
+      final request = http.MultipartRequest("POST", uri);
+
+      // 🔹 Prepare text fields as JSON
+      final Map<String, dynamic> textFields = {
         "owner_name": ownerName.text,
         "owner_relation": ownerRelation,
         "relation_person_name_owner": ownerRelationPerson.text,
         "parmanent_addresss_owner": ownerAddress.text,
         "owner_mobile_no": ownerMobile.text,
         "owner_addhar_no": ownerAadhaar.text,
-
         "tenant_name": tenantName.text,
         "tenant_relation": tenantRelation,
         "relation_person_name_tenant": tenantRelationPerson.text,
         "permanent_address_tenant": tenantAddress.text,
         "tenant_mobile_no": tenantMobile.text,
         "tenant_addhar_no": tenantAadhaar.text,
-
         "rented_address": bhkWithAddress.text,
         "monthly_rent": rentAmount.text,
         "securitys": securityAmount.text,
@@ -232,81 +299,124 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "custom_meter_unit": customUnitAmount.text,
         "shifting_date": shiftingDate?.toIso8601String() ?? "",
         "maintaince": maintenance,
-        "custom_maintenance_charge": "",
-
+        "custom_maintenance_charge": customMaintanceAmount.text,
+        "parking": parking,
         "current_dates": DateTime.now().toIso8601String(),
-        "Fieldwarkarname": "",         // 🔹 fill if available
-        "Fieldwarkarnumber": "",       // 🔹 fill if available
-        "property_id": "",             // 🔹 fill if available
+        "Fieldwarkarname": _name.isNotEmpty ? _name : '',
+        "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "property_id": propertyID.text,
+      };
+
+      textFields.forEach((key, value) {
+        request.fields[key] = value?.toString() ?? "";
       });
 
-      // 📎 File uploads (if available)
-      if (ownerAadhaarFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "owner_aadhar_front",
-          ownerAadhaarFront!.path,
-          filename: "owner_a_front.jpg",
-        ));
+      print("✅ JSON Fields added");
+
+      // 🔹 Add files (if they exist)
+      Future<void> addFileSafe(String key, File? file, {String? filename, MediaType? type}) async {
+        if (file != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+            key,
+            file.path,
+            contentType: type,
+            filename: filename ?? file.path.split("/").last,
+          ));
+          print("✅ File added: $key");
+        }
       }
 
-      if (ownerAadhaarBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "owner_aadhar_back",
-          ownerAadhaarBack!.path,
-          filename: "owner_a_back.jpg",
-        ));
-      }
+      await addFileSafe("owner_aadhar_front", ownerAadhaarFront, filename: "owner_aadhar_front.jpg");
+      await addFileSafe("owner_aadhar_back", ownerAadhaarBack, filename: "owner_aadhar_back.jpg");
+      await addFileSafe("tenant_aadhar_front", tenantAadhaarFront, filename: "tenant_aadhaar_front.jpg");
+      await addFileSafe("tenant_aadhar_back", tenantAadhaarBack, filename: "tenant_aadhaar_back.jpg");
+      await addFileSafe("agreement_pdf", agreementPdf, filename: "agreement.pdf", type: MediaType("application", "pdf"));
+      await addFileSafe("tenant_image", tenantImage, filename: "tenant_image.jpg");
 
+      print("📦 Fields ready: ${request.fields}");
+      print("📎 Files ready: ${request.files.map((f) => f.filename).toList()}");
 
-      if (tenantAadhaarFront != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "tenant_aadhar_front",
-          tenantAadhaarFront!.path,
-          filename: "tenant_a_front.jpg",
-        ));
-      }
+      // 🔹 Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
-      if (tenantAadhaarBack != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "tenant_aadhar_back",
-          tenantAadhaarBack!.path,
-          filename: "tenant_a_back.jpg",
-        ));
-      }
+      print("📩 Server responded with status: ${response.statusCode}");
+      print("📄 Response body: ${response.body}");
 
-      // Optional: tenant photo
-      if (tenantImage != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "tenant_image",
-          tenantImage!.path,
-          filename: "tenant_photo.jpg",
-        ));
-      }
-
-      // Optional: agreement pdf
-      if (agreementPdf != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "agreement_pdf",
-          agreementPdf!.path,
-          filename: "agreement.pdf",
-        ));
-      }
-
-      // Send request
-      var streamedResponse = await request.send();
-      var response = await http.Response.fromStream(streamedResponse);
-
-      if (response.statusCode == 200) {
-        Fluttertoast.showToast(msg: 'Submitted successfully!');
-        print("✅ Response: ${response.body}");
+      if (response.statusCode == 200 &&
+          response.body.toLowerCase().contains("success")) {
+        _showToast('Submitted successfully!');
+        print("✅ Submission successful");
+        Navigator.pop(context);
       } else {
-        Fluttertoast.showToast(msg: 'Submit failed (${response.statusCode})');
-        print("❌ Error: ${response.body}");
+        _showToast('Submit failed (${response.statusCode})');
+        print("❌ Submission failed");
       }
     } catch (e) {
-      Fluttertoast.showToast(msg: 'Submit error: $e');
-      print("⚠️ Exception: $e");
+      _showToast('Submit error: $e');
+      print("🔥 Exception during submit: $e");
+    } finally {
+      Navigator.pop(context); // remove loader
     }
+  }
+
+
+  Future<void> _addFile(
+      http.MultipartRequest request,
+      String field,
+      File? file, {
+        String? filename,
+        MediaType? type,
+      }) async {
+    if (file == null) return;
+
+    File? compressedFile = file;
+
+    // Compress only if image
+    final ext = p.extension(file.path).toLowerCase();
+    if ([".jpg", ".jpeg", ".png"].contains(ext)) {
+      final c = await _compressImage(file);
+      if (c != null) compressedFile = c;
+    }
+
+    request.files.add(await http.MultipartFile.fromPath(
+      field,
+      compressedFile.path,
+      filename: filename ?? p.basename(file.path),
+      contentType: type,
+    ));
+  }
+
+
+  Future<File?> _compressImage(File file) async {
+    final dir = await getTemporaryDirectory();
+    final targetPath = p.join(
+      dir.path,
+      "${DateTime.now().millisecondsSinceEpoch}.jpg",
+    );
+
+    final XFile? compressed = await FlutterImageCompress.compressAndGetFile(
+      file.absolute.path,
+      targetPath,
+      quality: 70, // adjust quality (0–100)
+    );
+
+    if (compressed == null) return null;
+
+    return File(compressed.path); // ✅ convert XFile → File
+  }
+
+
+// Centralized toast function with proper parameters
+  void _showToast(String message) {
+    Fluttertoast.showToast(
+      msg: message,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.black87,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
   }
 
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
@@ -338,29 +448,72 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
-  Widget _glowTextField({required TextEditingController controller, required String label, TextInputType? keyboard, String? Function(String?)? validator, void Function(String)? onFieldSubmitted,  List<TextInputFormatter>? inputFormatters, // ✅ Add this
+  Widget _glowTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboard,
+    String? Function(String?)? validator,
+    void Function(String)? onFieldSubmitted,
+    List<TextInputFormatter>? inputFormatters,
+    void Function(String)? onChanged,  // <- add this
+
+    bool showInWords = false, // ✅ define default here
   }) {
-    return Focus(
-      child: Builder(builder: (contextField) {
-        final hasFocus = Focus.of(contextField).hasPrimaryFocus;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            boxShadow: hasFocus ? [BoxShadow(color: Theme.of(context).colorScheme.primary.withOpacity(0.14), blurRadius: 14, spreadRadius: 1)] : null,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboard,
-            validator: validator,
-            onFieldSubmitted: onFieldSubmitted,
-            inputFormatters: inputFormatters,       // ✅ important
-            decoration: _fieldDecoration(label),
-          ),
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Focus(
+              child: Builder(builder: (contextField) {
+                final hasFocus = Focus.of(contextField).hasPrimaryFocus;
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  decoration: BoxDecoration(
+                    boxShadow: hasFocus
+                        ? [
+                      BoxShadow(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.14),
+                          blurRadius: 14,
+                          spreadRadius: 1)
+                    ]
+                        : null,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: TextFormField(
+                    controller: controller,
+                    keyboardType: keyboard,
+                    validator: validator,
+                    onFieldSubmitted: onFieldSubmitted,
+                    inputFormatters: inputFormatters,
+                    decoration: InputDecoration(labelText: label),
+                    onChanged: (v) {
+                      if (showInWords) setState(() {});
+                      if (onChanged != null) onChanged(v);  // forward to caller
+                    },
+
+                  ),
+                );
+              }),
+            ),
+            if (showInWords && controller.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, left: 8),
+                child: Text(
+                  convertToWords(
+                      int.tryParse(controller.text.replaceAll(',', '')) ?? 0),
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ),
+          ],
         );
-      }),
+      },
     );
   }
+
 
   // small image tile
   Widget _imageTile(File? f, String hint) {
@@ -585,36 +738,36 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             const SizedBox(height: 12),
             Row(children: [
               Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,       // only numbers
-                    LengthLimitingTextInputFormatter(10),         // max 10 digits
-                  ],
-                  validator: (v) {
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,       // only numbers
+                  LengthLimitingTextInputFormatter(10),         // max 10 digits
+                ],
+                validator: (v) {
 
-                    if (v == null || v.trim().isEmpty) return 'Required';
-                    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
+                  if (v == null || v.trim().isEmpty) return 'Required';
+                  if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
 
-                    return null;
-                  },
+                  return null;
+                },
 
-                  // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
               )
               ),
               const SizedBox(width: 12),
 
               Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                  inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,       // only numbers
-                    LengthLimitingTextInputFormatter(12),         // max 12 digits
-                  ],
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) return 'Required';
-                    if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                    return null;
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,       // only numbers
+                  LengthLimitingTextInputFormatter(12),         // max 12 digits
+                ],
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Required';
+                  if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
+                  return null;
 
-                  },
+                },
 
-                  // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
               )),
             ]),
             const SizedBox(height: 14),
@@ -623,7 +776,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(ownerAadhaarFront, 'Front'),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Upload Front')),
+                  ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
                 ],
               ),
 
@@ -632,7 +785,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(ownerAadhaarBack, 'Back'),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Upload Back')),
+                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
                 ],
               ),
             ]),
@@ -710,7 +863,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(tenantAadhaarFront, 'Front'),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantFront'), icon: const Icon(Icons.upload_file), label: const Text('Upload Front')),
+                  ElevatedButton.icon(onPressed: () => _pickImage('tenantFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
                 ],
               ),
 
@@ -719,7 +872,16 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(tenantAadhaarBack, 'Back'),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantBack'), icon: const Icon(Icons.upload_file), label: const Text('Upload Back')),
+                  ElevatedButton.icon(onPressed: () => _pickImage('tenantBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              Row(
+                children: [
+                  _imageTile(tenantImage, 'Tenant Photo'),
+                  const SizedBox(width: 12),
+                  ElevatedButton.icon(onPressed: () => _pickImage('tenantImage'), icon: const Icon(Icons.upload_file), label: const Text('Upload Photo')),
                 ],
               ),
             ]),
@@ -732,6 +894,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
+
   Widget _propertyStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -740,31 +903,76 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         Form(
           key: _propertyFormKey,
           child: Column(children: [
+            _glowTextField(controller: propertyID, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+
             _glowTextField(controller: bhkWithAddress, label: 'BHK with Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             Row(children: [
-              Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+              Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                  onChanged: (v) {
+                    setState(() {
+                      rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                    });
+                  },
+                  validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
               const SizedBox(width: 12),
-              Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)', keyboard: TextInputType.number, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+              Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)',        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                keyboard: TextInputType.number,  showInWords: true,onChanged: (v) {
+                  setState(() {
+                    securityAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
             ]),
             const SizedBox(height: 8),
             CheckboxListTile(value: securityInstallment, onChanged: (v) => setState(() => securityInstallment = v ?? false), title: const Text('Pay security in installments?')),
-            if (securityInstallment) _glowTextField(controller: installmentAmount, label: 'Installment Amount (INR)', keyboard: TextInputType.number, validator: (v) {
-              if (securityInstallment && (v == null || v.trim().isEmpty)) return 'Required';
-              return null;
-            }),
+            if (securityInstallment) _glowTextField(controller: installmentAmount, label: 'Installment Amount (INR)', keyboard: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                showInWords: true,onChanged: (v) {
+                  setState(() {
+                    installmentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                }, validator: (v) {
+                  if (securityInstallment && (v == null || v.trim().isEmpty)) return 'Required';
+                  return null;
+                }),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(value: meterInfo, items: const ['As per Govt. Unit', 'Custom Unit (Enter Amount)'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'), decoration: _fieldDecoration('Meter Info')),
-            if (meterInfo.startsWith('Custom')) _glowTextField(controller: customUnitAmount, label: 'Custom Unit Amount (INR)', keyboard: TextInputType.number, validator: (v) {
-              if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty)) return 'Required';
-              return null;
-            }),
+            if (meterInfo.startsWith('Custom')) _glowTextField(controller: customUnitAmount, label: 'Custom Unit Amount (INR)', keyboard: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                showInWords: true,onChanged: (v) {
+                  setState(() {
+                    customUnitAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                }, validator: (v) {
+                  if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty)) return 'Required';
+                  return null;
+                }),
             const SizedBox(height: 12),
             ListTile(contentPadding: EdgeInsets.zero, title: Text(shiftingDate == null ? 'Select Shifting Date' : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}'), trailing: const Icon(Icons.calendar_today), onTap: () async {
               final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
               if (picked != null) setState(() => shiftingDate = picked);
             }),
             const SizedBox(height: 12),
+            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
+
             DropdownButtonFormField<String>(value: maintenance, items: const ['Including', 'Excluding'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => maintenance = v ?? 'Including'), decoration: _fieldDecoration('Maintenance')),
+            if (maintenance.startsWith('Excluding'))
+              _glowTextField(
+                controller: customMaintanceAmount,
+                label: 'Custom Maintenance Amount (INR)',
+                keyboard: TextInputType.number,
+                showInWords: true,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                onChanged: (v) {
+                  setState(() {
+                    customMaintanceAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                },
+                validator: (v) {
+                  if (maintenance.startsWith('Excluding') && (v == null || v.trim().isEmpty)) return 'Required';
+                  return null;
+                },
+              ),
             const SizedBox(height: 12),
             const Text('Tip: These values will appear in the final agreement preview.'),
           ]
@@ -780,17 +988,25 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
           Row(children: [
-            IconButton(onPressed: () => _jumpToStep(0), icon: const Icon(Icons.edit)),
+            IconButton(onPressed: () {
+              // _jumpToStep(0); //Currently, not important!!
+            }, icon: const Icon(Icons.edit)),
           ])
         ]),
         const SizedBox(height: 12),
-        _sectionCard(title: 'Owner', children: [
+        _sectionCard(title: '*Owner', children: [
           _kv('Name', ownerName.text),
           _kv('Relation', ownerRelation),
           _kv('Relation Person', ownerRelationPerson.text),
           _kv('Mobile', ownerMobile.text),
           _kv('Aadhaar', ownerAadhaar.text),
           _kv('Address', ownerAddress.text),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Text('Aadhaar Images'),
+            ],
+          ),
           const SizedBox(height: 8),
           Row(children: [
             _imageTile(ownerAadhaarFront, 'Front'),
@@ -799,6 +1015,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             const Spacer(),
           ]),
           Row(
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               TextButton(onPressed: () => _jumpToStep(0), child: const Text('Edit')),
             ],
@@ -806,7 +1023,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
         ]),
         const SizedBox(height: 12),
-        _sectionCard(title: 'Tenant', children: [
+        _sectionCard(title: '*Tenant', children: [
           _kv('Name', tenantName.text),
           _kv('Relation', tenantRelation),
           _kv('Relation Person', tenantRelationPerson.text),
@@ -814,29 +1031,48 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           _kv('Aadhaar', tenantAadhaar.text),
           _kv('Address', tenantAddress.text),
           const SizedBox(height: 8),
-          Row(children: [
-            _imageTile(tenantAadhaarFront, 'Front'),
-            const SizedBox(width: 8),
-            _imageTile(tenantAadhaarBack, 'Back'),
-            const Spacer(),
-            TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit'))
-          ])
+
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Aadhaar Images'),
+              const SizedBox(height: 8),
+              Row(children: [
+                _imageTile(tenantAadhaarFront, 'Front'),
+                const SizedBox(width: 8),
+                _imageTile(tenantAadhaarBack, 'Back'),
+                const Spacer(),
+              ]),
+              const SizedBox(height: 8),
+              Text('Tenant Photo'),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  _imageTile(tenantImage, 'Tenant Photo'),
+                  const SizedBox(width: 100),
+                  TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit'))
+                ],
+              ),
+            ],
+          )
         ]),
         const SizedBox(height: 12),
-        _sectionCard(title: 'Property', children: [
+        _sectionCard(title: '*Property', children: [
           _kv('BHK & Address', bhkWithAddress.text),
-          _kv('Rent', rentAmount.text),
-          _kv('Security', securityAmount.text),
-          if (securityInstallment) _kv('Installment', installmentAmount.text),
+          _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
+          _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
+          if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),
           _kv('Meter Info', meterInfo),
-          if (meterInfo.startsWith('Custom')) _kv('Custom Unit', customUnitAmount.text),
+          if (meterInfo.startsWith('Custom')) _kv('Custom Unit', '${customUnitAmount.text} (${customUnitAmountInWords})'),
           _kv('Shifting', shiftingDate == null ? '' : shiftingDate!.toLocal().toString().split(' ')[0]),
           _kv('Maintenance', maintenance),
+          if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
+
           const SizedBox(height: 8),
           Row(children: [const Spacer(), TextButton(onPressed: () => _jumpToStep(2), child: const Text('Edit'))])
         ]),
         const SizedBox(height: 12),
-        const Text('When you tap Generate / Submit we send data + uploaded Aadhaar images to server. You will receive a PDF link once processed.'),
+        Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
       ]),
     );
   }

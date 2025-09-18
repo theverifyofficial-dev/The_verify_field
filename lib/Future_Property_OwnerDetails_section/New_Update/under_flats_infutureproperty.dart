@@ -2056,11 +2056,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
         bottomNavigationBar: Container(
           padding: const EdgeInsets.all(12),
-          height: 80,
+          height: 100,
           color: Theme.of(context).scaffoldBackgroundColor,
           child: SizedBox(
             width: double.infinity,
-            height: 60,
+            height: 100,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.blue,
@@ -2195,7 +2195,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
             ),
           ),
         ),
-
     );
   }
 }

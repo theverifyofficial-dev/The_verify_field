@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../../Rent Agreement/history_agreement/Accept_agreement.dart';
 import '../../constant.dart';
-import 'Sub/Admin_Denied.dart';
+import 'Sub/Admin_accepted.dart';
+import 'Sub/All_data.dart';
 import 'Sub/Admin_pending.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -67,7 +68,7 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
                 tabs: const [
                   Tab(text: 'Pending'),
                   Tab(text: 'Accepted'),
-                  Tab(text: 'Denied'),
+                  Tab(text: 'All Agreement'),
                 ],
               ),
             ),
@@ -75,8 +76,8 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
             Expanded(
               child: TabBarView(children: [
                 AdminPending(),
-                AcceptAgreement(), // Page for Admin & Field Worker.
-                AdminDenied(),
+                AdminAccepted(), // same Page for Admin & Field Worker.
+                AllData(),
               ]),
             )
           ],

@@ -3089,7 +3089,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Highway Distance': _highwayController.text,
       'Main Market Distance': _mainMarketController.text,
       'Meter Type': (_houseMeter == "Custom" ? _houseMeterController.text : _houseMeter),
-      'Flat Available Date': _flatAvailableDate?.toIso8601String(),
       'Kitchen': _kitchenType,
       'Bathroom': _bathroom,
       'Lift': _lift,

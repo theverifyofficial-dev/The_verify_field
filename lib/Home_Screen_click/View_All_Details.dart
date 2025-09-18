@@ -939,7 +939,7 @@ class _View_DetailsState extends State<View_Details> {
           Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImagePickerPage(propertyId: _id,)));
 
         }, onEdit: () {
-        Navigator.of(context).push(MaterialPageRoute(builder: (context)=> UpdateRealEstateProperty(propertyId: _id,)));
+        Navigator.of(context).push(MaterialPageRoute(builder: (context)=>  UpdateRealEstateProperty(propertyId: _id,)));
 
       },
       ),

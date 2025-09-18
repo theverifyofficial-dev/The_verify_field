@@ -1621,10 +1621,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                         },
                         decoration: _buildInputDecoration(
                             context, "Flat Available From"),
-                        validator: (val) =>
-                        val == null || val.isEmpty
-                            ? "Select availability date"
-                            : null,
+
                       ),
                     ),
 
@@ -2503,7 +2500,6 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       'Highway Distance': _highwayController.text,
       'Main Market Distance': _mainMarketController.text,
       'House Meter': _houseMeter == "Custom" ? _houseMeterController.text : _houseMeter,
-      'Flat Available Date': _flatAvailableDate?.toIso8601String(),
       'Kitchen Type': _kitchenType,
       'Bathroom': _bathroom,
       'Lift': _lift,

@@ -145,7 +145,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     {"name": "Sumit", "id": "9711775300"},
     {"name": "Ravi", "id": "9711275300"},
     {"name": "Faizan", "id": "9971172204"},
-    {"name": "avjit", "id": "11"},
   ];
 
   @override

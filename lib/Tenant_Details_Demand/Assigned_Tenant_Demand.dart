@@ -100,7 +100,7 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
   String _location = '';
 
   Future<void> insurtMaintable(FN,FNO,Name,Number,buyrent,Additional_Info,refrence,bhk,date,time) async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_assign_tenant_demand_?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=$_location&reference=$refrence&feedback=blank&looking_type=Pending&bhk=$bhk&dates=$date&times=$time'));
+    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_assign_tenant_demand_?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=sultanpur&reference=$refrence&feedback=blank&looking_type=Pending&bhk=$bhk&dates=$date&times=$time'));
     //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
@@ -112,7 +112,6 @@ class _Assignd_Tenant_detailsState extends State<Assignd_Tenant_details> {
     } else {
       print('Failed Registration${responce.statusCode}');
     }
-
   }
 
   String _num = '';

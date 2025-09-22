@@ -149,7 +149,6 @@ class _ADministaterShow_FuturePropertyState
     {"name": "Sumit", "id": "9711775300"},
     {"name": "Ravi", "id": "9711275300"},
     {"name": "Faizan", "id": "9971172204"},
-    {"name": "Avjit", "id": "11"},
   ];
 
   Map<String, List<Catid>> _groupedData = {};

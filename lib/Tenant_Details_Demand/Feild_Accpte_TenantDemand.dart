@@ -58,7 +58,7 @@ class Persnol_Assignd_Tenant_details extends StatefulWidget {
 class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_details> {
 
   Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=$_num&looking_type=Re_Demand&location_=sultanpur');
+    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_feild_num_looking_location_?fieldworkar_number=11&looking_type=Re_Demand&location_=sultanpur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
@@ -540,147 +540,38 @@ class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_
                                                   ],
                                                 ),
                                               ),
-
-                                              /*SizedBox(
+                                              SizedBox(
                                                 width: 10,
                                               ),
 
-                                              GestureDetector(
-                                                onTap: () async {
-
-                                                  *//*if (await canLaunchUrl(Uri.parse('${abc.data![len].demand_number}'))) {
-                                                  await launchUrl(Uri.parse('${abc.data![len].demand_number}'));
-                                                  } else {
-                                                  throw 'Could not launch ${abc.data![len].demand_number}';
-                                                  }*//*
-
-                                                  showDialog<bool>(
-                                                    context: context,
-                                                    builder: (context) => AlertDialog(
-                                                      title: Text("Contact "+abc.data![len].demand_name),
-                                                      content: Text('Do you really want to Contact? '+abc.data![len].demand_name ),
-                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                                                      actions: <Widget>[
-
-                                                        Row(
-                                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                          children: [
-                                                          ElevatedButton(
-                                                            onPressed: () async {
-
-                                                              if(Platform.isAndroid){
-                                                                String url = 'whatsapp://send?phone="+91${abc.data![len].demand_number}"&text="Hello"';
-                                                                await launchUrl(Uri.parse(url));
-                                                              }else {
-                                                                String url = 'https://wa.me/${abc.data![len].demand_number}';
-                                                                await launchUrl(Uri.parse(url));
-                                                              }
-
-                                                            },
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: Colors.grey.shade800,
-                                                            ),
-                                                            child: Container(
-                                                              padding: EdgeInsets.only(top: 15,bottom: 15),
-                                                              child: ClipRRect(
-                                                                borderRadius:
-                                                                const BorderRadius.all(Radius.circular(10)),
-                                                                child: Container(
-                                                                  height: 60,
-                                                                  width: 60,
-                                                                  child: CachedNetworkImage(
-                                                                    imageUrl:
-                                                                    AppImages.whatsaap,
-                                                                    fit: BoxFit.cover,
-                                                                    placeholder: (context, url) => Image.asset(
-                                                                      AppImages.whatsaap,
-                                                                      fit: BoxFit.cover,
-                                                                    ),
-                                                                    errorWidget: (context, error, stack) =>
-                                                                        Image.asset(
-                                                                          AppImages.whatsaap,
-                                                                          fit: BoxFit.cover,
-                                                                        ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          ElevatedButton(
-                                                            onPressed: () async {
-                                                              *//*if (await canLaunchUrl(Uri.parse('tel:${abc.data![len].demand_number}'))) {
-                                                                await launchUrl(Uri.parse('tel:${abc.data![len].demand_number}'));
-                                                              } else {
-                                                                throw 'Could not launch ${abc.data![len].demand_number}';
-                                                              }*//*
-                                                              FlutterPhoneDirectCaller.callNumber('${abc.data![len].demand_number}');
-                                                            },
-                                                            style: ElevatedButton.styleFrom(
-                                                              backgroundColor: Colors.grey.shade800,
-                                                            ),
-                                                            child: Container(
-                                                              padding: EdgeInsets.only(top: 15,bottom: 15),
-                                                              child: ClipRRect(
-                                                                borderRadius:
-                                                                const BorderRadius.all(Radius.circular(10)),
-                                                                child: Container(
-                                                                  height: 60,
-                                                                  width: 60,
-                                                                  child: CachedNetworkImage(
-                                                                    imageUrl:
-                                                                    AppImages.call,
-                                                                    fit: BoxFit.cover,
-                                                                    placeholder: (context, url) => Image.asset(
-                                                                      AppImages.call,
-                                                                      fit: BoxFit.cover,
-                                                                    ),
-                                                                    errorWidget: (context, error, stack) =>
-                                                                        Image.asset(
-                                                                          AppImages.call,
-                                                                          fit: BoxFit.cover,
-                                                                        ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],),
-
-
-                                                      ],
+                                              Container(
+                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(5),
+                                                  border: Border.all(width: 1, color: Colors.blueAccent),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                        color: Colors.blueAccent.withOpacity(0.5),
+                                                        blurRadius: 10,
+                                                        offset: Offset(0, 0),
+                                                        blurStyle: BlurStyle.outer
                                                     ),
-                                                  ) ?? false;
-                                                },
-                                                child: Container(
-                                                  padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                  decoration: BoxDecoration(
-                                                    borderRadius: BorderRadius.circular(5),
-                                                    border: Border.all(width: 1, color: Colors.pinkAccent),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                          color: Colors.pinkAccent.withOpacity(0.5),
-                                                          blurRadius: 10,
-                                                          offset: Offset(0, 0),
-                                                          blurStyle: BlurStyle.outer
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: Row(
-                                                    children: [
-                                                      Icon(Iconsax.call,size: 15,color: Colors.red,),
-                                                      SizedBox(width: 4,),
-                                                      Text(""+abc.data![len].demand_number*//*+abc.data![len].Building_Name.toUpperCase()*//*,
-                                                        style: TextStyle(
-                                                            fontSize: 14,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w500,
-                                                            letterSpacing: 0.5
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
+                                                  ],
                                                 ),
-                                              ),*/
+                                                child: Row(
+                                                  children: [
+                                                    Text(""+abc.data![len].demand_number/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                      style: TextStyle(
+                                                          fontSize: 15,
+                                                          color: Colors.black,
+                                                          fontWeight: FontWeight.w500,
+                                                          letterSpacing: 0.5
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+
                                             ],
                                           ),
 
@@ -1115,7 +1006,7 @@ class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_
                                                 width: 10,
                                               ),
 
-                                             /* GestureDetector(
+                                             GestureDetector(
                                                 onTap: () async {
 
                                                   if (await canLaunchUrl(Uri.parse('${abc.data![len].demand_number}'))) {
@@ -1239,7 +1130,7 @@ class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_
                                                     children: [
                                                       Icon(Iconsax.call,size: 15,color: Colors.red,),
                                                       SizedBox(width: 4,),
-                                                      Text(""+abc.data![len].demand_number+abc.data![len].Building_Name.toUpperCase(),
+                                                      Text(""+abc.data![len].demand_number,
                                                         style: TextStyle(
                                                             fontSize: 14,
                                                             color: Colors.black,
@@ -1250,7 +1141,7 @@ class _Persnol_Assignd_Tenant_detailsState extends State<Persnol_Assignd_Tenant_
                                                     ],
                                                   ),
                                                 ),
-                                              ),*/
+                                              ),
                                             ],
                                           ),
 

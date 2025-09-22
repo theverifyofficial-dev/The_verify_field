@@ -76,6 +76,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     return Container(
       width: double.infinity,
+
       padding: padding ?? const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isDark
@@ -371,135 +372,155 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Owner Section
-            _sectionCard(title: "Owner Details", children: [
-              _kv("Owner Name", agreement?["owner_name"]),
-              _kv(
-                  "Relation",
-                  "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}"),
-              _kv("Address", agreement?["parmanent_addresss_owner"]),
-              _kv("Mobile", agreement?["owner_mobile_no"]),
-              _kv("Aadhar", agreement?["owner_addhar_no"]),
-            ]),
+            // 🔹 First Horizontal Row (Owner / Tenant / Agreement / Field Worker)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
 
-            // 🔹 Tenant Section
-            _sectionCard(title: "Tenant Details", children: [
-              _kv("Tenant Name", agreement?["tenant_name"]),
-              _kv(
-                  "Relation",
-                  "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}"),
-              _kv("Address", agreement?["permanent_address_tenant"]),
-              _kv("Mobile", agreement?["tenant_mobile_no"]),
-              _kv("Aadhar", agreement?["tenant_addhar_no"]),
-            ]),
+                  _buildCard(
+                    title: "Agreement Details",
+                    children: [
+                      _kv("Rented Address", agreement?["rented_address"]),
+                      _kv("Monthly Rent", agreement?["monthly_rent"] != null ? "₹${agreement?["monthly_rent"]}" : ""),
+                      _kv("Security", agreement?["securitys"] != null ? "₹${agreement?["securitys"]}" : ""),
+                      _kv("Installment Security", agreement?["installment_security_amount"] != null ? "₹${agreement?["installment_security_amount"]}" : ""),
+                      _kv("Meter", agreement?["meter"]),
+                      _kv("Custom Unit", agreement?["custom_meter_unit"]),
+                      _kv("Maintenance", agreement?["maintaince"]),
+                      _kv("Parking", agreement?["parking"]),
+                      _kv("Shifting Date", _formatDate(agreement?["shifting_date"]) ?? ""),
+                    ],
+                  ),
 
-            // 🔹 Agreement Info
-            _sectionCard(title: "Agreement Details", children: [
-              _kv("Rented Address", agreement?["rented_address"]),
-              _kv("Monthly Rent", agreement?["monthly_rent"] != null
-                  ? "₹${agreement?["monthly_rent"]}"
-                  : ""),
-              _kv("Security", agreement?["securitys"] != null
-                  ? "₹${agreement?["securitys"]}"
-                  : ""),
-              _kv("Installment Security",
-                  agreement?["installment_security_amount"] != null
-                      ? "₹${agreement?["installment_security_amount"]}"
-                      : ""),
-              _kv("Meter", agreement?["meter"]),
-              _kv("Custom Unit", agreement?["custom_meter_unit"]),
-              _kv("Maintenance", agreement?["maintaince"]),
-              _kv("Parking", agreement?["parking"]),
-              _kv("Shifting Date",
-                  _formatDate(agreement?["shifting_date"]) ?? ""),
-            ]),
+                  Column(
+                    children: [
+                      _buildCard(
+                        title: "Owner Details",
+                        children: [
+                          _kv("Owner Name", agreement?["owner_name"]),
+                          _kv("Relation", "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}"),
+                          _kv("Address", agreement?["parmanent_addresss_owner"]),
+                          _kv("Mobile", agreement?["owner_mobile_no"]),
+                          _kv("Aadhar", agreement?["owner_addhar_no"]),
+                          Row(
+                            children: [
+                              _docImage(agreement?["owner_aadhar_front"]),
+                              _docImage(agreement?["owner_aadhar_back"]),
+                            ],
+                          )
+                        ],
+                      ),
 
-            // 🔹 Fieldworker
-            _sectionCard(title: "Field Worker", children: [
-              _kv("Name", agreement?["Fieldwarkarname"]),
-              _kv("Number", agreement?["Fieldwarkarnumber"]),
-            ]),
+                  ]
+                  ),
 
-            // 🔹 Documents
-            _sectionCard(title: "Documents", children: [
-              _kvImage(
-                  "Owner Aadhaar Front", agreement?["owner_aadhar_front"]),
-              _kvImage(
-                  "Owner Aadhaar Back", agreement?["owner_aadhar_back"]),
-              _kvImage("Tenant Aadhaar Front",
-                  agreement?["tenant_aadhar_front"]),
-              _kvImage("Tenant Aadhaar Back",
-                  agreement?["tenant_aadhar_back"]),
-              _kvImage("Tenant Photo", agreement?["tenant_image"]),
-            ]),
+                  Column(
+                      children: [
+                        _buildCard(
+                          title: "Tenant Details",
+                          children: [
+                            _kv("Tenant Name", agreement?["tenant_name"]),
+                            _kv("Relation", "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}"),
+                            _kv("Address", agreement?["permanent_address_tenant"]),
+                            _kv("Mobile", agreement?["tenant_mobile_no"]),
+                            _kv("Aadhar", agreement?["tenant_addhar_no"]),
+
+                            Row(
+                              children: [
+                                _docImage(agreement?["tenant_aadhar_front"]),
+                                _docImage(agreement?["tenant_aadhar_back"]),
+                              ],
+                            ),
+                            Row(
+                              children: [
+                                _docImage(agreement?["tenant_image"]),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ]
+                  ),
+
+                ],
+              ),
+            ),
+
+            _buildCard(
+              title: "Field Worker",
+              children: [
+                _kv("Name", agreement?["Fieldwarkarname"]),
+                _kv("Number", agreement?["Fieldwarkarnumber"]),
+              ],
+            ),
 
             const SizedBox(height: 30),
 
-            // 🔹 Action Buttons Row
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-            //         child: ElevatedButton.icon(
-            //           onPressed: () {
-            //             // TODO: Handle Action 1
-            //           },
-            //           icon: const Icon(Icons.visibility, color: Colors.white),
-            //           label: const Text(
-            //             "Preview",
-            //             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            //           ),
-            //           style: ElevatedButton.styleFrom(
-            //             backgroundColor: Colors.orange, // First color
-            //             padding: const EdgeInsets.symmetric(vertical: 14),
-            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-            //         child: ElevatedButton.icon(
-            //           onPressed: () {
-            //             // TODO: Handle Action 2
-            //           },
-            //           icon: const Icon(Icons.edit, color: Colors.white),
-            //           label: const Text(
-            //             "Edit",
-            //             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            //           ),
-            //           style: ElevatedButton.styleFrom(
-            //             backgroundColor: Colors.blue, // Second color
-            //             padding: const EdgeInsets.symmetric(vertical: 14),
-            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //     Expanded(
-            //       child: Container(
-            //         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-            //         child: ElevatedButton.icon(
-            //           onPressed: () {
-            //             // TODO: Handle Action 3
-            //           },
-            //           icon: const Icon(Icons.delete, color: Colors.white),
-            //           label: const Text(
-            //             "Delete",
-            //             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            //           ),
-            //           style: ElevatedButton.styleFrom(
-            //             backgroundColor: Colors.red, // Third color
-            //             padding: const EdgeInsets.symmetric(vertical: 14),
-            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //   ],
-            // ),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                    child: ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
+                      label: const Text(
+                        "P. Verification",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange, // First color
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
+                // Expanded(
+                //   child: Container(
+                //     margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                //     child: ElevatedButton.icon(
+                //       onPressed: () {
+                //         // TODO: Handle Action 2
+                //       },
+                //       icon: const Icon(Icons.edit, color: Colors.white),
+                //       label: const Text(
+                //         "Edit",
+                //         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                //       ),
+                //       style: ElevatedButton.styleFrom(
+                //         backgroundColor: Colors.blue, // Second color
+                //         padding: const EdgeInsets.symmetric(vertical: 14),
+                //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                //       ),
+                //     ),
+                //   ),
+                // ),
+                Expanded(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // TODO: Handle Action 3
+                      },
+                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
+                      label: const Text(
+                        "Notary",
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Third color
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 30),
 
             if (pdfFile != null)
               _glassContainer(
@@ -521,6 +542,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                   },
                 ),
               ),
+
 
 
             const SizedBox(height: 20),
@@ -570,6 +592,75 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       ),
     );
   }
+
+  Widget _docLabel(String text) {
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.only(right: 12),
+      child: Text(
+        text,
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+    );
+  }
+
+  Widget _docImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        width: 160,
+        height: 120,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(Icons.broken_image, color: Colors.red, size: 40),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImagePreviewScreen(
+              imageUrl:
+              'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 120,
+        height: 120,
+        margin: const EdgeInsets.only(right: 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.network(
+            "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
+            width: 160,   // force same as container
+            height: 120,  // force same as container
+            fit: BoxFit.cover, // ensures full fill
+            errorBuilder: (context, error, stackTrace) => Container(
+              color: Colors.grey[300],
+              child: const Icon(Icons.broken_image, color: Colors.red, size: 40),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildCard({required String title, required List<Widget> children}) {
+    return Container(
+      width: 300,
+      margin: const EdgeInsets.only(right: 20),
+      child: _sectionCard(title: title, children: children),
+    );
+  }
+
 }
 
 class ElevatedGradientButton extends StatelessWidget {

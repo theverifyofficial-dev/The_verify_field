@@ -96,7 +96,7 @@ class _MyAppState extends State<MyApp> {
     // ✅ Dynamic Links
     _initDynamicLinks();
   }
-
+//by pawan.
   /// Handle Notification Navigation
   void _handleNotificationNavigation(RemoteMessage message, {bool fromTerminated = false}) {
     try {

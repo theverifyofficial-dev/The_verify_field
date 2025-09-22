@@ -148,7 +148,7 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
     try {
       Response response = await dio.post(uploadUrl, data: formData);
       if (response.statusCode == 200) {
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Administater_Future_Property_details(idd: '${widget.id}',),), (route) => route.isFirst);
+        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Administater_Future_Property_details(buildingId: '${widget.id}',),), (route) => route.isFirst);
 
         setState(() {
           _isLoading = false;

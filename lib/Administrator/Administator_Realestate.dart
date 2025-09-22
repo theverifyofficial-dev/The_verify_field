@@ -333,7 +333,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         throw Exception("Server error: ${response.statusCode}");
       }
     } catch (e) {
-      print("fetchData2 error: $e");
+      print("av error: $e");
       throw Exception("Failed to fetch data: $e");
     }
   }
@@ -607,8 +607,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       body: Form(
         key: GlobalKey<FormState>(),
         child: CustomScrollView(
-          controller: _scrollController, // ✅ attach controller
-
+          controller: _scrollController,
           slivers: [
             SliverList(
               delegate: SliverChildBuilderDelegate(
@@ -1202,7 +1201,130 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 childCount: 1,
               ),
             ),
-
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                  return FutureBuilder<List<Catid>>(
+                    future: av(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        _apiRajpurLoaded = true;
+                        _tryScrollToHighlighted();
+                      }
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: Lottie.asset(AppImages.loadingHand, height: 400),
+                        );
+                      } else if (snapshot.hasError) {
+                        return Center(
+                          child: Text(
+                            'Failed to load properties',
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                              fontFamily: "Poppins",
+                            ),
+                          ),
+                        );
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.home_work_outlined, size: 48, color: Colors.grey[400]),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No properties available',
+                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: Colors.grey[600],
+                                  fontFamily: "Poppins",
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else {
+                        final data = snapshot.data!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Avjit',
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => See_All_Realestate(id: '11'),
+                                        ),
+                                      );
+                                    },
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            'View All',
+                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              color: Colors.blue[700],
+                                              fontWeight: FontWeight.w600,
+                                              fontFamily: "Poppins",
+                                            ),
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.blue[700]),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 440,
+                              child: ListView.builder(
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                itemBuilder: (context, index) {
+                                  final property = data[index];
+                                  return PropertyCard(
+                                    key: _cardKeys.putIfAbsent(property.id.toString(), () => GlobalKey()),
+                                    property: property,
+                                    displayIndex: data.length - index,
+                                    isHighlighted: property.id.toString() == _highlightedFlatId,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => Administater_View_Details(idd: property.id.toString()),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      }
+                    },
+                  );
+                },
+                childCount: 1,
+              ),
+            ),
           ],
         ),
       ),
@@ -1263,8 +1385,8 @@ class PropertyCard extends StatelessWidget {
   final Catid property;
   final int displayIndex;
   final VoidCallback onTap;
-  final bool isHighlighted; // ✅ NEW
-  final Key? cardKey;       // ✅ for scrolling/highlight
+  final bool isHighlighted;
+  final Key? cardKey;
 
   const PropertyCard({
     super.key,
@@ -1278,14 +1400,14 @@ class PropertyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final imageHeight = screenWidth * 0.45; // proportional height (adjust ratio)
+    final imageHeight = screenWidth * 0.45;
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         key: cardKey,
         duration: const Duration(milliseconds: 400),
-        width: screenWidth * 0.75, // responsive width
+        width: screenWidth * 0.75,
         margin: const EdgeInsets.only(right: 16, bottom: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark

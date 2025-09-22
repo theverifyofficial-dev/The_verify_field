@@ -377,11 +377,17 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             {
                               'image': AppImages.propertysale,
                               'title': "Future Property",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) =>
-                                          ADministaterShow_FutureProperty())),
+                              'onTap': () {
+                                // Pass the buildingId you want to highlight
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ADministaterShow_FutureProperty(),
+                                  ),
+                                );
+                              },
                             },
+
                             {
                               'image': AppImages.tenant,
                               'title': "Tenant Demands",

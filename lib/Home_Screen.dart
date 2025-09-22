@@ -265,7 +265,7 @@ class _Home_ScreenState extends State<Home_Screen> {
     return Scaffold(
       // backgroundColor: Colors.black,
       appBar: AppBar(
-        surfaceTintColor: Colors.black        ,
+        surfaceTintColor: Colors.black,
         centerTitle: true,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),

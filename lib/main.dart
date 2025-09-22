@@ -64,54 +64,41 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
 
-    // Print FCM Token
+    // ✅ Print FCM Token
     FirebaseMessaging.instance.getToken().then((token) {
       print("🔑 FCM Token: $token");
     });
 
-    // Foreground messages
+    // ✅ Foreground notification (app open, just show or log, not navigate)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("📩 Foreground: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
       print("Payload: ${message.data}");
-    });
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
-        _openNotificationPage(message, fromTerminated: true);
-      }
+      // You can show local notification here if needed
     });
 
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      _openNotificationPage(message);
-    });
-    // Tapped notification
-    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationNavigation);
-
-    // App opened via notification when terminated
-    FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) _handleNotificationNavigation(message);
-    });
-    // Tapped notification → navigation
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _handleNotificationNavigation(message);
+        _openNotificationPage(message); // 👈 use your old function
       });
     });
 
-    // Dynamic links
+    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+      if (message != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          _openNotificationPage(message); // 👈 use your old function
+        });
+      }
+    });
+
+    // ✅ Dynamic Links
     _initDynamicLinks();
   }
 
-  String? extractBuildingIdFromBody(String? body) {
-    if (body == null) return null;
-    final regExp = RegExp(r'Building ID:\s*(\d+)');
-    final match = regExp.firstMatch(body);
-    if (match != null) return match.group(1);
-    return null;
-  }
-
-  void _handleNotificationNavigation(RemoteMessage message) {
+  /// Handle Notification Navigation
+  void _handleNotificationNavigation(RemoteMessage message, {bool fromTerminated = false}) {
     try {
       final data = message.data;
 
@@ -119,7 +106,7 @@ class _MyAppState extends State<MyApp> {
       String? flatId = data['flat_id']?.toString();
       String? buildingId = data['building_id']?.toString();
 
-      // Handle nested payload safely
+      // ✅ Parse nested payload if exists
       final nestedPayload = data['payload'];
       if (nestedPayload != null) {
         try {
@@ -129,21 +116,24 @@ class _MyAppState extends State<MyApp> {
           } else if (nestedPayload is Map) {
             payloadMap = Map<String, dynamic>.from(nestedPayload);
           }
-
-          buildingId ??= payloadMap['building_id']?.toString() ?? payloadMap['buildingId']?.toString();
-          flatId ??= payloadMap['flat_id']?.toString() ?? payloadMap['flatId']?.toString();
+          buildingId ??= payloadMap['building_id']?.toString() ??
+              payloadMap['buildingId']?.toString();
+          flatId ??= payloadMap['flat_id']?.toString() ??
+              payloadMap['flatId']?.toString();
         } catch (e) {
           print("❌ Error parsing nested payload: $e");
         }
       }
 
-      // Extract buildingId from body if missing
-      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && (buildingId == null || buildingId.isEmpty)) {
+      // ✅ Extract from body if still null
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") &&
+          (buildingId == null || buildingId.isEmpty)) {
         buildingId = extractBuildingIdFromBody(message.notification?.body);
       }
 
-      // Navigate: Building notifications
-      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && buildingId != null) {
+      // 🔹 Navigate → Building pages
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") &&
+          buildingId != null) {
         navigatorKey.currentState?.pushNamedAndRemoveUntil(
           Routes.administaterShowFutureProperty,
               (route) => false,
@@ -152,11 +142,36 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-      // Navigate: Flat notifications
+      // 🔹 Navigate → Flat details page
+      if (type == "NEW_FLAT" && buildingId != null && flatId != null) {
+        if (fromTerminated) {
+          // Make sure home screen loads first
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            AdministratorHome_Screen.route,
+                (route) => false,
+          );
+        }
+        navigatorKey.currentState?.pushNamed(
+          Routes.administaterFuturePropertyDetails,
+          arguments: {
+            "fromNotification": true,
+            "buildingId": buildingId,
+            "flatId": flatId,
+          },
+        );
+        return;
+      }
+
+      // 🔹 Navigate → Real estate page
       if (flatId != null && flatId.isNotEmpty) {
-        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        if (fromTerminated) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            AdministratorHome_Screen.route,
+                (route) => false,
+          );
+        }
+        navigatorKey.currentState?.pushNamed(
           Routes.administaterShowRealEstate,
-              (route) => false,
           arguments: {"fromNotification": true, "flatId": flatId},
         );
       } else {
@@ -167,7 +182,16 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-// Unified notification handler
+  /// Extract buildingId from body
+  String? extractBuildingIdFromBody(String? body) {
+    if (body == null) return null;
+    final regExp = RegExp(r'Building ID:\s*(\d+)');
+    final match = regExp.firstMatch(body);
+    return match?.group(1);
+  }
+
+
+
   void _openNotificationPage(RemoteMessage message, {bool fromTerminated = false}) {
     try {
       final data = message.data;
@@ -210,6 +234,28 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
+      // 🔹 Handle NEW_FLAT notification → Administater_Future_Property_details
+      if (type == "NEW_FLAT" ||type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (fromTerminated) {
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              AdministratorHome_Screen.route,
+                  (route) => false,
+            );
+          }
+          navigatorKey.currentState?.pushNamed(
+            Routes.administaterFuturePropertyDetails,
+            arguments: {
+              "fromNotification": true,
+              "buildingId": buildingId,
+              "flatId": flatId,
+            },
+          );
+        });
+        return;
+      }
+
       // 🔹 Handle flat notifications → ADministaterShow_realestete
       if (flatId != null && flatId.isNotEmpty) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -235,10 +281,6 @@ class _MyAppState extends State<MyApp> {
       print("❌ Navigation error: $e");
     }
   }
-
-
-
-  // 🔹 Setup dynamic links
   void _initDynamicLinks() async {
     final PendingDynamicLinkData? initialLink =
     await FirebaseDynamicLinks.instance.getInitialLink();
@@ -259,12 +301,30 @@ class _MyAppState extends State<MyApp> {
       if (type == "BUILDING_UPDATE" && buildingId != null) {
         navigatorKey.currentState?.pushNamed(
           Routes.administaterShowFutureProperty,
-          arguments: {"fromNotification": true, "buildingId": buildingId},
+          arguments: {
+            "fromNotification": true,
+            "buildingId": buildingId,
+          },
         );
-      } else if (flatId != null) {
+      }
+      // ✅ Handle NEW_FLAT → Administater_Future_Property_details
+      else if (type == "NEW_FLAT"|| type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
+        navigatorKey.currentState?.pushNamed(
+          Routes.administaterFuturePropertyDetails,
+          arguments: {
+            "fromNotification": true,
+            "buildingId": buildingId,
+            "flatId": flatId,
+          },
+        );
+      }
+      else if (flatId != null) {
         navigatorKey.currentState?.pushNamed(
           Routes.administaterShowRealEstate,
-          arguments: {"fromNotification": true, "flatId": flatId},
+          arguments: {
+            "fromNotification": true,
+            "flatId": flatId,
+          },
         );
       }
     }

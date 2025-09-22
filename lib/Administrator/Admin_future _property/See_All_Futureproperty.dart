@@ -207,7 +207,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                       MaterialPageRoute(
                         builder: (context) =>
                             Administater_Future_Property_details(
-                               idd: item.id.toString() ?? '',
+                              buildingId: item.id.toString() ?? '',
                             ),
                       ),
                     );

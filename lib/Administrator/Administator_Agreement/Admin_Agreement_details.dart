@@ -62,10 +62,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         final decoded = json.decode(response.body);
 
         if (decoded["status"] == "success") {
+          Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Agreement ${action.toUpperCase()}ED successfully")),
           );
-          Navigator.pop(context, true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(decoded["message"] ?? "Failed to update")),

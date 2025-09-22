@@ -329,6 +329,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     }
   }
   bool _isLoading = false; // Add this state variable
+  Property? property;
 
   Future<void> _handleMenuItemClick(String value) async {
     // Handle the menu item click
@@ -350,7 +351,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     print(widget.id);
 
   }
-  Property?property;
   Future<List<Property>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
     final responce = await http.get(url);
@@ -455,8 +455,15 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   void initState() {
     super.initState();
     _loadLastTapCount();
-
+    _loadProperty();
     _loadAllData();
+  }
+
+  Future<void> _loadProperty() async {
+    final list = await fetchData();
+    setState(() {
+      property = list.first; // since only 1 record by id
+    });
   }
 
   Future<void> _loadLastTapCount() async {
@@ -2063,7 +2070,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
             height: 100,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.blue,
+                backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.grey,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -2187,7 +2194,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                   : Text(
                 tapCount % 2 == 0 ? 'Live to RealEstate' : 'UnLive',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),

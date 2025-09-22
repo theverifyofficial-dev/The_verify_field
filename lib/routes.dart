@@ -6,6 +6,7 @@ import 'Administrator/Admin_future _property/Administater_Future_Property.dart';
 import 'Administrator/Admin_future _property/Future_Property_Details.dart';
 import 'Administrator/Administator_Realestate.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
+
 class Routes {
   static const String administaterShowRealEstate = '/administater_show_realestate';
   static const String administaterShowFutureProperty = '/administaterShowFutureProperty';

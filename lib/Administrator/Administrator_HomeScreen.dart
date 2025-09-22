@@ -297,12 +297,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                       ),
                                     ),
                                   ),
-                                  Icon(
-                                    Icons.arrow_forward_ios_rounded,
-                                    color: isDarkMode ? Colors.white : Colors
-                                        .grey.shade700,
-                                    size: 20,
-                                  ),
                                 ],
                               ),
                             ),
@@ -350,22 +344,22 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 3,
+                        itemCount: 4,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
-                            // {
-                            //   "image": AppImages.agreement,
-                            //   "title": "Property Agreement",
-                            //   "onTap": () async {
-                            //     Navigator.push(
-                            //       context,
-                            //       MaterialPageRoute(
-                            //         builder: (_) => const AdminDashboard(),
-                            //       ),
-                            //     );
-                            //
-                            //   },
-                            // },
+                            {
+                              "image": AppImages.agreement,
+                              "title": "Property Agreement",
+                              "onTap": () async {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const AdminDashboard(),
+                                  ),
+                                );
+
+                              },
+                            },
                             {
                               'image': AppImages.agreement_details,
                               'title': "Agreement Details",

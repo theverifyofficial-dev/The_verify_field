@@ -19,7 +19,6 @@ import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
-import 'old agreement_details.dart';
 import 'ui_decoration_tools/constant.dart';
 import 'main.dart';
 
@@ -380,8 +379,16 @@ class _Home_ScreenState extends State<Home_Screen> {
                     },
 
                     {
+                      "image": AppImages.documents,
+                      "title": "Verification",
+                      "onTap": () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ShowProperty())),
+                    },
+                    {
                       "image": AppImages.futureProperty,
-                      "title": "Future Property",
+                      "title": "Future\n Property",
                       "onTap": () async {
                         Navigator.push(
                           context,
@@ -396,20 +403,17 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "image": AppImages.agreement,
                       "title": "Property Agreement",
                       "onTap": () async {
-                        _AgreementURL();
-
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AgreementDashboard(),
+                          ),
+                        );
                       },
                     },
 
 
-                    {
-                      "image": AppImages.agreement_details,
-                      "title": "All\n Agreement",
-                      "onTap": () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => AgreementDetails1())),
-                    },
+
                       {
                       "image": AppImages.tenant,
                       "title": "Tenant\n Demands",
@@ -421,7 +425,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                                 builder: (_) => const MainPage_TenandDemand()));
                       },
                     },
-
                     // {
                     //   "image": AppImages.police,
                     //   "title": "Registration",

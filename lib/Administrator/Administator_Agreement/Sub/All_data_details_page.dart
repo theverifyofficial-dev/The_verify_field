@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 
@@ -43,14 +42,22 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     }
     return "";
   }
-
   Future<void> _fetchAgreementDetail() async {
     try {
       final response = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));
 
+      print(widget.agreementId);
+
+      // Print raw response body
+      print("API Response: ${response.body}");
+
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
+
+        // Print decoded JSON
+        print("Decoded JSON: $decoded");
+
         if (decoded["success"] == true &&
             decoded["data"] != null &&
             decoded["data"].isNotEmpty) {
@@ -61,6 +68,9 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         } else {
           setState(() => isLoading = false);
         }
+      } else {
+        print("Error: Status code ${response.statusCode}");
+        setState(() => isLoading = false);
       }
     } catch (e) {
       print("Error: $e");
@@ -112,9 +122,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   }
 
   Widget _kv(String k, dynamic v) {
-    if (v == null) return const SizedBox.shrink();
     final value = v.toString().trim();
-    if (value.isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -122,9 +130,12 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-              width: 140,
-              child: Text('$k:',
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
+            width: 140,
+            child: Text(
+              '$k:',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
           Expanded(child: Text(value)),
         ],
       ),

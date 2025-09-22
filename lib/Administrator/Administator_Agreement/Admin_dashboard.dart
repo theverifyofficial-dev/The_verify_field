@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import '../../Rent Agreement/history_agreement/Accept_agreement.dart';
 import '../../constant.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';

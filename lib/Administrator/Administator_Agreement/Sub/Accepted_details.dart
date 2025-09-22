@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:pdfx/pdfx.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 import 'PDF.dart';
+import 'package:open_filex/open_filex.dart';
 
 class AcceptedDetails extends StatefulWidget {
 
@@ -179,13 +179,168 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
+  // for display in new file
+  // Future<void> _handleGeneratePdf() async {
+  //   if (agreement == null) return;
+  //
+  //   File file;
+  //
+  //   if (pdfFile == null) {
+  //     // Generate only if not already done
+  //     file = await generateAgreementPdf(agreement!);
+  //     setState(() {
+  //       pdfFile = file;
+  //       pdfGenerated = true;
+  //     });
+  //   } else {
+  //     file = pdfFile!;
+  //   }
+  //
+  //   // Open PDF in new screen
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(
+  //       builder: (context) => Scaffold(
+  //         appBar: AppBar(title: const Text("Agreement PDF")),
+  //         body: PdfViewPinch(
+  //           controller: PdfControllerPinch(
+  //             document: PdfDocument.openFile(file.path),
+  //           ),
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  Future<void> _submitAll() async {
+    print("🔹 _submitAll called");
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final uri = Uri.parse("https://theverify.in/insert.php");
+      final request = http.MultipartRequest("POST", uri);
+
+      // 🔹 Fields
+      final Map<String, dynamic> textFields = {
+        "id" : widget.agreementId,
+        "owner_name": agreement?["owner_name"] ?? "",
+        "owner_relation": agreement?["owner_relation"] ?? "",
+        "relation_person_name_owner": agreement?["relation_person_name_owner"] ?? "",
+        "parmanent_addresss_owner": agreement?["parmanent_addresss_owner"] ?? "",
+        "owner_mobile_no": agreement?["owner_mobile_no"] ?? "",
+        "owner_addhar_no": agreement?["owner_addhar_no"] ?? "",
+        "tenant_name": agreement?["tenant_name"] ?? "",
+        "tenant_relation": agreement?["tenant_relation"] ?? "",
+        "relation_person_name_tenant": agreement?["relation_person_name_tenant"] ?? "",
+        "permanent_address_tenant": agreement?["permanent_address_tenant"] ?? "",
+        "tenant_mobile_no": agreement?["tenant_mobile_no"] ?? "",
+        "tenant_addhar_no": agreement?["tenant_addhar_no"] ?? "",
+        "rented_address": agreement?["rented_address"] ?? "",
+        "monthly_rent": agreement?["monthly_rent"] ?? "",
+        "securitys": agreement?["securitys"] ?? "",
+        "installment_security_amount": agreement?["installment_security_amount"] ?? "",
+        "meter": agreement?["meter"] ?? "",
+        "custom_meter_unit": agreement?["custom_meter_unit"] ?? "",
+        "shifting_date": agreement?["shifting_date"] != null
+            ? (agreement!["shifting_date"] is DateTime
+            ? (agreement!["shifting_date"] as DateTime).toIso8601String()
+            : agreement!["shifting_date"].toString())
+            : "",
+        "maintaince": agreement?["maintaince"] ?? "",
+        "custom_maintenance_charge": agreement?["custom_maintenance_charge"] ?? "",
+        "parking": agreement?["parking"] ?? "",
+        "current_dates": DateTime.now().toIso8601String(),
+        "Fieldwarkarname": agreement?["Fieldwarkarname"] ?? "",
+        "Fieldwarkarnumber": agreement?["Fieldwarkarnumber"] ?? "",
+        "property_id": agreement?["property_id"] ?? "",
+      };
+
+      // 🔹 Print all fields for debugging
+      print("📌 Fields to be sent:");
+      textFields.forEach((k, v) => print("   $k -> $v"));
+
+      textFields.forEach((key, value) {
+        request.fields[key] = value.toString();
+      }
+      );
+
+      // 🔹 Files
+      Future<void> addFileFromUrl(String key, String? relativeUrl, {String? filename}) async {
+        if (relativeUrl != null && relativeUrl.isNotEmpty) {
+          final fullUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$relativeUrl";
+          print("📌 Fetching file for $key from $fullUrl");
+          final response = await http.get(Uri.parse(fullUrl));
+          if (response.statusCode == 200) {
+            final tempFile = File("${Directory.systemTemp.path}/$filename");
+            await tempFile.writeAsBytes(response.bodyBytes);
+            request.files.add(await http.MultipartFile.fromPath(key, tempFile.path, filename: filename));
+            print("✅ File attached: $key at ${tempFile.path}");
+          } else {
+            print("❌ Failed to fetch file for $key. Status: ${response.statusCode}");
+          }
+        } else {
+          print("⚠️ No file URL provided for $key");
+        }
+      }
+
+      await addFileFromUrl("owner_aadhar_front", agreement?["owner_aadhar_front"], filename: "owner_aadhar_front.jpg");
+      await addFileFromUrl("owner_aadhar_back", agreement?["owner_aadhar_back"], filename: "owner_aadhar_back.jpg");
+      await addFileFromUrl("tenant_aadhar_front", agreement?["tenant_aadhar_front"], filename: "tenant_aadhar_front.jpg");
+      await addFileFromUrl("tenant_aadhar_back", agreement?["tenant_aadhar_back"], filename: "tenant_aadhar_back.jpg");
+      await addFileFromUrl("tenant_image", agreement?["tenant_image"], filename: "tenant_image.jpg");
+
+      if (pdfFile != null) {
+        print("📌 Attaching PDF at ${pdfFile!.path}");
+        request.files.add(await http.MultipartFile.fromPath(
+          "agreement_pdf",
+          pdfFile!.path,
+          // contentType: MediaType("application", "pdf"),
+          filename: "agreement.pdf",
+        ));
+      } else {
+        print("⚠️ No PDF file found, skipping agreement_pdf");
+      }
+
+
+      // 🔹 Send request
+      print("📌 Sending request to API...");
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print("📩 Server responded with status: ${response.statusCode}");
+      print("📄 Response body: ${response.body}");
+
+      if (response.statusCode == 200 && response.body.toLowerCase().contains("success")) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Submitted successfully! ✅")),
+        );
+        Navigator.pop(context, true);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Submit failed (${response.statusCode})")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+      print("🔥 Exception during submit: $e");
+    } finally {
+      Navigator.pop(context);
+    }
+  }
+
   Future<void> _handleGeneratePdf() async {
     if (agreement == null) return;
 
     File file;
 
     if (pdfFile == null) {
-      // Generate only if not already done
       file = await generateAgreementPdf(agreement!);
       setState(() {
         pdfFile = file;
@@ -194,56 +349,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     } else {
       file = pdfFile!;
     }
-
-    // Open PDF in new screen
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => Scaffold(
-          appBar: AppBar(title: const Text("Agreement PDF")),
-          body: PdfViewPinch(
-            controller: PdfControllerPinch(
-              document: PdfDocument.openFile(file.path),
-            ),
-          ),
-        ),
-      ),
-    );
+    setState(() {
+      pdfFile = file;
+      pdfGenerated = true;
+    });
   }
-
-
-  Future<void> _handleDone() async {
-    try {
-      final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/final_accept_api.php"),
-        body: {
-          "id": widget.agreementId,
-          "status": "accepted", // adjust field name as your backend expects
-        },
-      );
-
-      if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Agreement marked as done ✅")),
-        );
-        Navigator.pop(context); // go back after success
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Failed to update. Try again.")),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
-      );
-    }
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
-    print(agreement?["owner_aadhar_back"]);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Agreement Details'),
@@ -320,8 +433,95 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
               _kvImage("Tenant Photo", agreement?["tenant_image"]),
             ]),
 
-
             const SizedBox(height: 30),
+
+            // 🔹 Action Buttons Row
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            //         child: ElevatedButton.icon(
+            //           onPressed: () {
+            //             // TODO: Handle Action 1
+            //           },
+            //           icon: const Icon(Icons.visibility, color: Colors.white),
+            //           label: const Text(
+            //             "Preview",
+            //             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            //           ),
+            //           style: ElevatedButton.styleFrom(
+            //             backgroundColor: Colors.orange, // First color
+            //             padding: const EdgeInsets.symmetric(vertical: 14),
+            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            //         child: ElevatedButton.icon(
+            //           onPressed: () {
+            //             // TODO: Handle Action 2
+            //           },
+            //           icon: const Icon(Icons.edit, color: Colors.white),
+            //           label: const Text(
+            //             "Edit",
+            //             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            //           ),
+            //           style: ElevatedButton.styleFrom(
+            //             backgroundColor: Colors.blue, // Second color
+            //             padding: const EdgeInsets.symmetric(vertical: 14),
+            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //     Expanded(
+            //       child: Container(
+            //         margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+            //         child: ElevatedButton.icon(
+            //           onPressed: () {
+            //             // TODO: Handle Action 3
+            //           },
+            //           icon: const Icon(Icons.delete, color: Colors.white),
+            //           label: const Text(
+            //             "Delete",
+            //             style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            //           ),
+            //           style: ElevatedButton.styleFrom(
+            //             backgroundColor: Colors.red, // Third color
+            //             padding: const EdgeInsets.symmetric(vertical: 14),
+            //             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ],
+            // ),
+
+            if (pdfFile != null)
+              _glassContainer(
+                child: ListTile(
+                  leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                  title: Text(pdfFile!.path.split('/').last),
+                  subtitle: const Text("Tap to open in browser"),
+                  onTap: () async {
+                    final uri = Uri.file(pdfFile!.path);
+                    // inside onTap
+                    if (pdfFile != null) {
+                      await OpenFilex.open(pdfFile!.path);
+                    }
+                    else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Could not open PDF")),
+                      );
+                    }
+                  },
+                ),
+              ),
+
 
             const SizedBox(height: 20),
 
@@ -331,11 +531,11 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
               width: double.infinity, // make it full width
               child: ElevatedButton.icon(
                 onPressed: (){
-                  //_handleGeneratePdf
+                  _handleGeneratePdf();
                 },
                 icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
                 label: const Text(
-                  "Preview PDF",
+                  "Generate Agreement",
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -350,7 +550,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: pdfGenerated ? _handleDone : null, // disabled if not generated
+                onPressed: pdfGenerated ? _submitAll : null, // disabled if not generated
                 icon: const Icon(Icons.check, color: Colors.white),
                 label: const Text(
                   "Done",
@@ -363,9 +563,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                 ),
               ),
             ),
-
-
-
 
             const SizedBox(height: 30),
           ],

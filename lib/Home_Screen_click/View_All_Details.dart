@@ -514,7 +514,6 @@ class _View_DetailsState extends State<View_Details> {
                                   bottomRight: Radius.circular(20),
                                 ),
                                 child: CachedNetworkImage(
-
                                   imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
@@ -543,7 +542,6 @@ class _View_DetailsState extends State<View_Details> {
                         ),
                       ],
                     ),
-
                     // Property Details Section
                     Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -615,12 +613,6 @@ class _View_DetailsState extends State<View_Details> {
                               // ),
                             ],
                           ),
-
-
-
-
-
-
                           _DetailRow(
                             icon: Icons.home_repair_service,
                             title: "Maintenance",

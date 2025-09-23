@@ -749,7 +749,147 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
               Center(
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleUpload,
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                    // ✅ Validate form before starting countdown
+                    if (!_formKey.currentState!.validate()) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text(
+                            "Form Incomplete",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          content: const Text(
+                            "Please fill all the required fields before submitting.",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("OK"),
+                            )
+                          ],
+                        ),
+                      );
+                      return; // Stop here if any field is empty
+                    }
+
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    int countdown = 3;
+
+                    // Show countdown dialog
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return StatefulBuilder(
+                          builder: (context, setStateDialog) {
+                            // Countdown logic
+                            Future.delayed(const Duration(seconds: 1), () async {
+                              if (countdown > 1) {
+                                setStateDialog(() {
+                                  countdown--;
+                                });
+                              } else {
+                                // ✅ Countdown finished, show verified icon
+                                setStateDialog(() {
+                                  countdown = 0;
+                                });
+
+                                await Future.delayed(const Duration(seconds: 1));
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop(); // close dialog
+                                }
+
+                                // Run your upload logic
+                                await _handleUpload();
+
+                                if (!mounted) return;
+
+                                // Show success message
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("✅ Submitted Successfully!"),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+
+                                // Optionally: go back after a short delay
+                                await Future.delayed(const Duration(seconds: 1));
+                                if (mounted) Navigator.of(context).pop();
+                              }
+                            });
+
+                            return AlertDialog(
+                              backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              title: const Text(
+                                "Submitting...",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 500),
+                                    transitionBuilder: (child, animation) =>
+                                        ScaleTransition(scale: animation, child: child),
+                                    child: countdown > 0
+                                        ? Text(
+                                      "$countdown",
+                                      key: ValueKey<int>(countdown),
+                                      style: TextStyle(
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                            ? Colors.red[300]
+                                            : Colors.red,
+                                      ),
+                                    )
+                                        : const Icon(
+                                      Icons.verified_rounded,
+                                      key: ValueKey<String>("verified"),
+                                      color: Colors.green,
+                                      size: 60,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    countdown > 0 ? "Please wait..." : "Verified!",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue.shade700,
                     padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -778,7 +918,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                       ),
                     ],
                   )
-                      : const Text("Submit", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      : const Text(
+                    "Submit",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 50),

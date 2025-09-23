@@ -168,6 +168,8 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       _fieldWorkerNumberController.text = savedNumber;
     });
   }
+  int _countdown = 0; // countdown state
+
   bool _hasError = false; // ✅ add this
   @override
   void initState() {
@@ -2423,41 +2425,186 @@ class _RegisterPropertyState extends State<RegisterProperty> {
                 ),
                 const SizedBox(height: 24),
                 // Submit Button
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: (_isSubmitting || _isButtonDisabled) ? null : () {
-                      _checkFormAndSubmit();
-                      setState(() {
-                        _isButtonDisabled = true; // disable after click
-                      });
-                      Future.delayed(const Duration(seconds: 5), () {
-                        if (mounted) {
-                          setState(() {
-                            _isButtonDisabled = false; // enable again after 5 sec
-                          });
-                        }
-                      });
-                    },
+                    onPressed: (_isSubmitting || _isButtonDisabled)
+                        ? null
+                        : () async {
+                            // 🔹 Validate form before countdown
+                            if (!_formKey.currentState!.validate()) {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text(
+                                    "Form Incomplete",
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  content: const Text(
+                                    "Please fill all the required fields before submitting.",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: const Text("OK"),
+                                    )
+                                  ],
+                                ),
+                              );
+                              return; // ❌ stop here, don't show countdown
+                            }
+
+                            // ✅ If form is valid → show countdown
+                            setState(() {
+                              _isButtonDisabled = true;
+                            });
+
+                            int countdown = 3;
+
+                            // Show dialog
+                            await showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) {
+                                return StatefulBuilder(
+                                  builder: (context, setStateDialog) {
+                                    // Start countdown
+                                    Future.delayed(const Duration(seconds: 1),
+                                        () async {
+                                      if (countdown > 1) {
+                                        setStateDialog(() {
+                                          countdown--;
+                                        });
+                                      } else {
+                                        // ✅ When countdown finishes
+                                        setStateDialog(() {
+                                          countdown = 0;
+                                        });
+
+                                        await Future.delayed(
+                                            const Duration(seconds: 1));
+                                        if (Navigator.of(context).canPop()) {
+                                          Navigator.of(context)
+                                              .pop(); // close dialog
+                                        }
+
+                                        // Run submit after countdown ends
+                                        await _checkFormAndSubmit();
+
+                                        if (!mounted) return;
+
+                                        // Show success message
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                "✅ Submitted Successfully!"),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
+
+                                        // Navigate back after short delay
+                                        await Future.delayed(
+                                            const Duration(seconds: 1));
+                                        if (mounted)
+                                          Navigator.of(context).pop();
+                                      }
+                                    });
+
+                                    return AlertDialog(
+                                      backgroundColor:
+                                          Theme.of(context).brightness ==
+                                                  Brightness.dark
+                                              ? Colors.grey[900]
+                                              : Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      title: const Text(
+                                        "Submitting...",
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      content: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          AnimatedSwitcher(
+                                            duration: const Duration(
+                                                milliseconds: 500),
+                                            transitionBuilder: (child,
+                                                    animation) =>
+                                                ScaleTransition(
+                                                    scale: animation,
+                                                    child: child),
+                                            child: countdown > 0
+                                                ? Text(
+                                                    "$countdown",
+                                                    key: ValueKey<int>(
+                                                        countdown),
+                                                    style: TextStyle(
+                                                      fontSize: 40,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Theme.of(context)
+                                                                  .brightness ==
+                                                              Brightness.dark
+                                                          ? Colors.red[300]
+                                                          : Colors.red,
+                                                    ),
+                                                  )
+                                                : const Icon(
+                                                    Icons.verified_rounded,
+                                                    key: ValueKey<String>(
+                                                        "verified"),
+                                                    color: Colors.green,
+                                                    size: 60,
+                                                  ),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            countdown > 0
+                                                ? "Please wait..."
+                                                : "Verified!",
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            );
+
+                            // Reset state
+                            if (mounted) {
+                              setState(() {
+                                _isButtonDisabled = false;
+                              });
+                            }
+                          },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      backgroundColor: Colors.red, // always red
+                      backgroundColor: Colors.green,
                       foregroundColor: Colors.white,
                       disabledBackgroundColor: Colors.grey.shade300,
                     ),
-                    child: _isSubmitting
-                        ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      ),
-                    )
-                        : const Text(
+                    child: const Text(
                       "Submit",
                       style: TextStyle(
                         fontSize: 16,
@@ -2476,7 +2623,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       ),
     );
   }
-  void _checkFormAndSubmit() {
+  Future<void> _checkFormAndSubmit() async {
     final Map<String, dynamic> fields = {
       'Location': _location,
       'Flat Number': _flatNumberController.text,
@@ -2767,7 +2914,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       request.fields['available_date'] = _flatAvailableDate?.toIso8601String() ?? '';
       request.fields['kitchen'] = _kitchenType ?? '';
       request.fields['bathroom'] = _bathroom ?? '';
-      request.fields['live_unlive'] = 'Flat';
+      request.fields['live_unlive'] = 'Live';
       request.fields['lift'] = _lift ?? '';
       request.fields['Facility'] = _facilityController.text;
 // Map UI value -> backend value (change to 'Semi Furnished' / 'Fully Furnished' if your API wants full labels)

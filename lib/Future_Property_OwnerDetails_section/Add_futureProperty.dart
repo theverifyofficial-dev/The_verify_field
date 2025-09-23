@@ -671,7 +671,141 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
               Center(
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleUpload,
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                    // 🔹 Validate form first
+                    if (!_formKey.currentState!.validate()) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text(
+                            "Form Incomplete",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          content: const Text(
+                            "Please fill all the required fields before submitting.",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("OK"),
+                            )
+                          ],
+                        ),
+                      );
+                      return; // ❌ Stop here if empty fields
+                    }
+
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    int countdown = 3;
+
+                    // Show dialog
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return StatefulBuilder(
+                          builder: (context, setStateDialog) {
+                            Future.delayed(const Duration(seconds: 1), () async {
+                              if (countdown > 1) {
+                                setStateDialog(() {
+                                  countdown--;
+                                });
+                              } else {
+                                // ✅ When countdown ends, show verified
+                                setStateDialog(() {
+                                  countdown = 0;
+                                });
+
+                                await Future.delayed(const Duration(seconds: 1));
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop(); // close dialog
+                                }
+
+                                // Run your upload logic
+                                await _handleUpload();
+
+                                if (!mounted) return;
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("✅ Submitted Successfully!"),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            });
+
+                            return AlertDialog(
+                              backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              title: const Text(
+                                "Submitting...",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 500),
+                                    transitionBuilder: (child, animation) =>
+                                        ScaleTransition(scale: animation, child: child),
+                                    child: countdown > 0
+                                        ? Text(
+                                      "$countdown",
+                                      key: ValueKey<int>(countdown),
+                                      style: TextStyle(
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                            ? Colors.red[300]
+                                            : Colors.red,
+                                      ),
+                                    )
+                                        : const Icon(
+                                      Icons.verified_rounded,
+                                      key: ValueKey<String>("verified"),
+                                      color: Colors.green,
+                                      size: 60,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    countdown > 0 ? "Please wait..." : "Verified!",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.red.shade700,
                     padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
@@ -700,7 +834,14 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       ),
                     ],
                   )
-                      : const Text("Submit", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+                      : const Text(
+                    "Submit",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 50),

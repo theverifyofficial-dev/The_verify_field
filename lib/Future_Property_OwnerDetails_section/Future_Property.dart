@@ -300,286 +300,289 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
   bool get _isSearchActive {
     return _searchController.text.trim().isNotEmpty || selectedLabel.isNotEmpty;
   }
-
+  Future<void> _refreshProperties() async {
+    await _fetchAndFilterProperties();
+  }
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      body: _isLoading
-          ?  Center(child: Lottie.asset(AppImages.loadingHand, height: 400),)
-          : Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return RefreshIndicator(
+      onRefresh: _refreshProperties,
+      child: Scaffold(
+        appBar: AppBar(
+          centerTitle: true,
+          surfaceTintColor: Colors.black,
+          backgroundColor: Colors.black,
+          title: Image.asset(AppImages.verify, height: 75),
+          leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Row(
               children: [
-                Material(
-                  elevation: 4,
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      gradient: LinearGradient(
-                        colors: [Colors.grey[100]!, Colors.grey[50]!],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      style: const TextStyle(
-                        color: Colors.black87,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      decoration: InputDecoration(
-                        hintText: 'Search properties...',
-                        hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                        prefixIcon: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Icon(Icons.search_rounded, color: Colors.grey.shade700, size: 24),
-                        ),
-                        suffixIcon: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: _searchController.text.isNotEmpty
-                              ? IconButton(
-                            key: const ValueKey('clear'),
-                            icon: Icon(Icons.close_rounded, color: Colors.grey.shade700, size: 22),
-                            onPressed: () {
-                              _searchController.clear();
-                              selectedLabel = '';
-                              _filteredProperties = _allProperties;
-                              propertyCount = 0;
-                              FocusScope.of(context).unfocus();
-                              setState(() {});
-                            },
-                          )
-                              : const SizedBox(key: ValueKey('empty')),
-                        ),
-                        filled: true,
-                        fillColor: Colors.transparent,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blueGrey.withOpacity(0.3), width: 1),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.8), width: 1.5),
-                        ),
-                      ),
-                      onChanged: (value) {
-                        _onSearchChanged();
-                        setState(() {});
-                      },
-                    ),
-                  ),
+                SizedBox(
+                  width: 3,
                 ),
-
-                const SizedBox(height: 12),
-
-                // Buttons
-                Row(
-                  children: ['Rent', 'Sell', 'Commercial'].map((label) {
-                    final isSelected = label == selectedLabel;
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              selectedLabel = label;
-                              _searchController.text = label;
-                              _onSearchChanged();
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: Text(
-                            label,
-                            style: TextStyle(
-                              color: isSelected ? Colors.white : Colors.black87,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 10,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                Icon(
+                  PhosphorIcons.caret_left_bold,
+                  color: Colors.white,
+                  size: 30,
                 ),
-
-                const SizedBox(height: 10),
-
-                if (propertyCount > 0 && _isSearchActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
-                        const SizedBox(width: 6),
-                        Text(
-                          "$propertyCount properties found",
-                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                        ),
-                        const SizedBox(width: 6),
-                        GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              _searchController.clear();
-                              selectedLabel = '';
-                              _filteredProperties = _allProperties;
-                              propertyCount = 0;
-                            });
-                          },
-                          child: const Icon(Icons.close, size: 18, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
               ],
             ),
           ),
-          // No results message
-          if (_filteredProperties.isEmpty)
-            Expanded(
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-                    const SizedBox(height: 16),
-                    Text(
-                      "No properties found",
-                      style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.grey[600],
-                        fontWeight: FontWeight.w500,
+        ),
+
+        body: _isLoading
+            ?  Center(child: Lottie.asset(AppImages.loadingHand, height: 400),)
+            : Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(12),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      curve: Curves.easeInOut,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: LinearGradient(
+                          colors: [Colors.grey[100]!, Colors.grey[50]!],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.2),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: TextField(
+                        controller: _searchController,
+                        style: const TextStyle(
+                          color: Colors.black87,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        decoration: InputDecoration(
+                          hintText: 'Search properties...',
+                          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                          prefixIcon: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Icon(Icons.search_rounded, color: Colors.grey.shade700, size: 24),
+                          ),
+                          suffixIcon: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: _searchController.text.isNotEmpty
+                                ? IconButton(
+                              key: const ValueKey('clear'),
+                              icon: Icon(Icons.close_rounded, color: Colors.grey.shade700, size: 22),
+                              onPressed: () {
+                                _searchController.clear();
+                                selectedLabel = '';
+                                _filteredProperties = _allProperties;
+                                propertyCount = 0;
+                                FocusScope.of(context).unfocus();
+                                setState(() {});
+                              },
+                            )
+                                : const SizedBox(key: ValueKey('empty')),
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blueGrey.withOpacity(0.3), width: 1),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.8), width: 1.5),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          _onSearchChanged();
+                          setState(() {});
+                        },
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      "Try a different search term",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[500],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                itemCount: _filteredProperties.length,
-                itemBuilder: (context, index) {
-                  final property = _filteredProperties[index];
-                  final displayIndex = _filteredProperties.length - index; // ✅ reverse order
-                  String loggValue = "Loading...";
-                  return FutureBuilder<Map<String, dynamic>>(
-                    future: fetchPropertyStatus(property.id),  // ✅ use combined future
-                    builder: (context, snapshot) {
-                      String logg1 = "Loading...";
-                      String logg2 = "Loading...";
-                      Color statusColor = Colors.grey;
+                  ),
 
-                      if (snapshot.hasData) {
-                        logg1 = snapshot.data!['loggValue1'];
-                        logg2 = snapshot.data!['loggValue2'];
-                        statusColor = snapshot.data!['statusColor'];
-                      } else if (snapshot.hasError) {
-                        logg1 = "Error";
-                        logg2 = "Error";
-                        statusColor = Colors.grey;
-                      }
+                  const SizedBox(height: 12),
 
-                      return
-                        PropertyCard(
-                        displayIndex: displayIndex,   // ✅ pass here
-                        property: property,
-                        statusText: logg2,     // ✅ pass status text
-                        statusColor: statusColor,
-                          Live_Unlive: logg1,
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Future_Property_details(
-                                idd: property.id.toString(),
+                  // Buttons
+                  Row(
+                    children: ['Rent', 'Sell', 'Commercial'].map((label) {
+                      final isSelected = label == selectedLabel;
+                      return Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedLabel = label;
+                                _searchController.text = label;
+                                _onSearchChanged();
+                              });
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: Text(
+                              label,
+                              style: TextStyle(
+                                color: isSelected ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 10,
                               ),
                             ),
-                          );
-                        },
+                          ),
+                        ),
                       );
-                    },
-                  );
-                },
+                    }).toList(),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  if (propertyCount > 0 && _isSearchActive)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
+                          const SizedBox(width: 6),
+                          Text(
+                            "$propertyCount properties found",
+                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                          ),
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _searchController.clear();
+                                selectedLabel = '';
+                                _filteredProperties = _allProperties;
+                                propertyCount = 0;
+                              });
+                            },
+                            child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ),
-        ],
-      ),
+            // No results message
+            if (_filteredProperties.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+                      const SizedBox(height: 16),
+                      Text(
+                        "No properties found",
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Try a different search term",
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: _filteredProperties.length,
+                  itemBuilder: (context, index) {
+                    final property = _filteredProperties[index];
+                    final displayIndex = _filteredProperties.length - index; // ✅ reverse order
+                    String loggValue = "Loading...";
+                    return FutureBuilder<Map<String, dynamic>>(
+                      future: fetchPropertyStatus(property.id),  // ✅ use combined future
+                      builder: (context, snapshot) {
+                        String logg1 = "Loading...";
+                        String logg2 = "Loading...";
+                        Color statusColor = Colors.grey;
 
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => Add_FutureProperty()),
-          );
-        },
-        icon: const Icon(Icons.add),
-        label: const Text("Add Building"),
-        backgroundColor: Colors.blue, // Or your primary color
-        elevation: 4,
-      ),
+                        if (snapshot.hasData) {
+                          logg1 = snapshot.data!['loggValue1'];
+                          logg2 = snapshot.data!['loggValue2'];
+                          statusColor = snapshot.data!['statusColor'];
+                        } else if (snapshot.hasError) {
+                          logg1 = "Error";
+                          logg2 = "Error";
+                          statusColor = Colors.grey;
+                        }
 
+                        return
+                          PropertyCard(
+                          displayIndex: displayIndex,   // ✅ pass here
+                          property: property,
+                          statusText: logg2,     // ✅ pass status text
+                          statusColor: statusColor,
+                            Live_Unlive: logg1,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Future_Property_details(
+                                  idd: property.id.toString(),
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Add_FutureProperty()),
+            );
+          },
+          icon: const Icon(Icons.add),
+          label: const Text("Add Building"),
+          backgroundColor: Colors.blue, // Or your primary color
+          elevation: 4,
+        ),
+      ),
     );
   }
 
@@ -627,8 +630,7 @@ class PropertyCard extends StatelessWidget {
       "Place": property.place,
       "Buy/Rent": property.buyRent,
       "Property Name/Address": property.propertyNameAddress,
-      "Property Address (Fieldworker)":
-      property.propertyAddressForFieldworker,
+      "Property Address (Fieldworker)": property.propertyAddressForFieldworker,
       "Owner Vehicle Number": property.ownerVehicleNumber,
       "Your Address": property.yourAddress,
       "Field Worker Name": property.fieldWorkerName,
@@ -706,23 +708,47 @@ class PropertyCard extends StatelessWidget {
                 Positioned(
                   top: 16,
                   right: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: (int.tryParse(Live_Unlive) ?? 0) > 0
-                          ? Colors.green.withOpacity(0.8)
-                          : Colors.red.withOpacity(0.8),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      (int.tryParse(Live_Unlive) ?? 0) > 0 ? "Live $Live_Unlive" : "Unlive $Live_Unlive",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  child: FutureBuilder(
+                    future: http.get(Uri.parse(
+                        'https://verifyserve.social/WebService4.asmx/count_api_for_live_unlive_flat_under_building?subid=${property.id}')),
+                    builder: (context, snapshot) {
+                      int liveCount = 0;
+                      int unliveCount = 0;
+
+                      if (snapshot.hasData) {
+                        final data = jsonDecode(snapshot.data!.body);
+
+                        for (var item in data) {
+                          if (item['live_unlive'] == 'Live') {
+                            liveCount += (item['logs'] as num).toInt();
+                          } else if (item['live_unlive'] == 'Book') {
+                            unliveCount = 0; // Book always shows unlive: 0
+                          } else {
+                            unliveCount += (item['logs'] as num).toInt();
+                          }
+                        }
+                      }
+
+                      // Decide which to show
+                      bool isLive = liveCount > 0;
+
+                      return Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isLive ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          isLive ? "Live: $liveCount" : "Unlive: $unliveCount",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                ),
+                )
 
               ],
             ),
@@ -805,7 +831,7 @@ class PropertyCard extends StatelessWidget {
                     crossAxisSpacing: 8,
                     mainAxisSpacing: 8,
                     children: [
-                      _buildCompactDetailItem( "🏠 Building ID.","${property.id}",context),
+                      _buildCompactDetailItem( "🏠 Building ID ","${property.id}",context),
                       _buildCompactDetailItem( "  +  Total Flat ",statusText,context),
                     ],
                   ),
@@ -840,7 +866,7 @@ class PropertyCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          "Count No.: $displayIndex",
+                          "Count No : $displayIndex",
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,

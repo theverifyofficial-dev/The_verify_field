@@ -326,22 +326,18 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   }
   DateTime? _lastContinuePressTime;
 
-  void _checkAndSubmitContinue() {
-    final now = DateTime.now();
+  bool _hasSubmitted = false;
+  Future<void> _checkAndSubmitContinue() async {
+    if (_hasSubmitted) return; // prevent multiple API calls
+    _hasSubmitted = true;
 
-    if (_lastContinuePressTime != null &&
-        now.difference(_lastContinuePressTime!).inSeconds < 5) {
-      Fluttertoast.showToast(
-        msg: "Please wait 5 seconds before trying again",
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-      );
-      return;
-    }
+    // Call your API
+    await _submitForm();
 
-    _lastContinuePressTime = now;
-    _submitForm();
+    // Reset flag so button works again after page reload or next usage
+    _hasSubmitted = false;
   }
+
 
   @override
   void initState() {
@@ -2780,12 +2776,142 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: _isSubmitting ? null : _checkAndSubmitContinue,
+                    onPressed: _isSubmitting
+                        ? null
+                        : () async {
+                      final pageContext = context;
+
+                      // ✅ Validate form first
+                      if (!_formKey.currentState!.validate()) {
+                        showDialog(
+                          context: pageContext,
+                          builder: (_) => AlertDialog(
+                            title: const Text(
+                              "Form Incomplete",
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            content: const Text(
+                              "Please fill all required fields before continuing.",
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(pageContext).pop(),
+                                child: const Text("OK"),
+                              ),
+                            ],
+                          ),
+                        );
+                        return; // Stop here if fields are empty
+                      }
+
+                      setState(() => _isSubmitting = true);
+                      int countdown = 3;
+
+                      // ✅ Show countdown dialog
+                      await showDialog(
+                        context: pageContext,
+                        barrierDismissible: false,
+                        builder: (_) {
+                          return StatefulBuilder(
+                            builder: (context, setStateDialog) {
+                              bool isDialogActive = true;
+
+                              Future(() async {
+                                // Countdown loop
+                                for (int i = countdown; i > 0; i--) {
+                                  if (!mounted || !isDialogActive) return;
+                                  setStateDialog(() => countdown = i);
+                                  await Future.delayed(const Duration(seconds: 1));
+                                }
+
+                                if (!mounted || !isDialogActive) return;
+
+                                // Show verified icon
+                                setStateDialog(() => countdown = 0);
+
+                                // Wait a short moment to allow icon animation
+                                await Future.delayed(const Duration(milliseconds: 800));
+
+                                if (!mounted || !isDialogActive) return;
+
+                                // Close dialog safely
+                                if (Navigator.of(pageContext).canPop()) {
+                                  isDialogActive = false;
+                                  Navigator.of(pageContext).pop();
+                                }
+
+                                // Call API after icon shown
+                                await _checkAndSubmitContinue();
+
+                                // Navigate back safely after short delay
+                                await Future.delayed(const Duration(seconds: 1));
+                                if (mounted && Navigator.of(pageContext).canPop()) {
+                                  Navigator.of(pageContext).pop();
+                                }
+                              });
+
+                              return AlertDialog(
+                                backgroundColor: Theme.of(pageContext).brightness == Brightness.dark
+                                    ? Colors.grey[900]
+                                    : Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                title: const Text(
+                                  "Submitting...",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    AnimatedSwitcher(
+                                      duration: const Duration(milliseconds: 500),
+                                      transitionBuilder: (child, animation) =>
+                                          ScaleTransition(scale: animation, child: child),
+                                      child: countdown > 0
+                                          ? Text(
+                                        "$countdown",
+                                        key: ValueKey<int>(countdown),
+                                        style: TextStyle(
+                                          fontSize: 40,
+                                          fontWeight: FontWeight.bold,
+                                          color: Theme.of(pageContext).brightness ==
+                                              Brightness.dark
+                                              ? Colors.red[300]
+                                              : Colors.red,
+                                        ),
+                                      )
+                                          : const Icon(
+                                        Icons.verified_rounded,
+                                        key: ValueKey<String>("verified"),
+                                        color: Colors.green,
+                                        size: 60,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      countdown > 0 ? "Please wait..." : "Verified!",
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                        color: Theme.of(pageContext).brightness == Brightness.dark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      );
+                      setState(() => _isSubmitting = false);
+                    },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       backgroundColor: Colors.blueAccent,
                     ),
                     child: _isSubmitting
@@ -2808,7 +2934,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                     ),
                   ),
                 ),
-                      const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
               ],
             ),
@@ -3059,7 +3185,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   bool _isSubmitting = false;
 
-  void _submitForm() async {
+  Future<void> _submitForm() async {
     if (_isSubmitting) return;
 
     final prefs = await SharedPreferences.getInstance();
@@ -3235,14 +3361,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         throw Exception("Failed to upload data.");
       }
     } catch (e) {
-      Fluttertoast.showToast(
-        msg: "Error: ${e.toString()}",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.SNACKBAR,
-        backgroundColor: Colors.red,
-        textColor: Colors.white,
-        fontSize: 16.0,
-      );
+      // Fluttertoast.showToast(
+      //   msg: "Error: ${e.toString()}",
+      //   toastLength: Toast.LENGTH_SHORT,
+      //   gravity: ToastGravity.SNACKBAR,
+      //   backgroundColor: Colors.red,
+      //   textColor: Colors.white,
+      //   fontSize: 16.0,
+      // );
     } finally {
       if (mounted) {
         setState(() {

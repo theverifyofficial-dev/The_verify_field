@@ -330,6 +330,26 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   }
   bool _isLoading = false; // Add this state variable
   Property? property;
+  String? _status; // value from liveUnlive key
+  Map<int, String> _statusMap = {}; // holds status for all IDs
+
+  Future<void> _fetchData1() async {
+    try {
+      final result = await fetchData(); // returns List<Property>
+
+      final property = result.firstWhere(
+            (item) => item.subid == widget.Subid,
+        orElse: () => result.first,
+      );
+
+      setState(() {
+        _status = property.liveUnlive;
+      });
+    } catch (e) {
+      debugPrint("Error fetching data: $e");
+    }
+  }
+
 
   Future<void> _handleMenuItemClick(String value) async {
     // Handle the menu item click
@@ -457,6 +477,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     _loadLastTapCount();
     _loadProperty();
     _loadAllData();
+    _fetchData1(); // fetch API once
+
   }
 
   Future<void> _loadProperty() async {
@@ -625,7 +647,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 );
                                               },
                                             ),
-                                                 SizedBox(height: 10,),
+                                            SizedBox(height: 10,),
 
                                             Row(
                                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -1107,14 +1129,14 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                     ],
                                                   ),
                                                   child:
-                                                      Text(""+abc.data![len].careTakerName/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                        style: TextStyle(
-                                                            fontSize: 14,
-                                                            color: Colors.black,
-                                                            fontWeight: FontWeight.w500,
-                                                            letterSpacing: 0.5
-                                                        ),
-                                                      ),
+                                                  Text(""+abc.data![len].careTakerName/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                    style: TextStyle(
+                                                        fontSize: 14,
+                                                        color: Colors.black,
+                                                        fontWeight: FontWeight.w500,
+                                                        letterSpacing: 0.5
+                                                    ),
+                                                  ),
                                                 ),
 
                                                 SizedBox(
@@ -2046,10 +2068,10 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                 },
                 child:  Row(
                   children: [
-                     Icon(Icons.add_circle,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,),
+                    Icon(Icons.add_circle,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,),
                     const SizedBox(width: 5,),
                     Text("Add Tenant",style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        ),
+                    ),
                   ],
                 ),),
             ],
@@ -2061,147 +2083,113 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
 // In bottomNavigationBar
 
-        bottomNavigationBar: Container(
-          padding: const EdgeInsets.all(12),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(12),
+        height: 100,
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: SizedBox(
+          width: double.infinity,
           height: 100,
-          color: Theme.of(context).scaffoldBackgroundColor,
-          child: SizedBox(
-            width: double.infinity,
-            height: 100,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: tapCount % 2 == 0 ? Colors.green : Colors.grey,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: const EdgeInsets.symmetric(vertical: 20),
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _isLoading ? Colors.grey : Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
               ),
-              onPressed: _isLoading
-                  ? null
-                  : () async {
-                setState(() => _isLoading = true);
+              padding: const EdgeInsets.symmetric(vertical: 20),
+            ),
+            onPressed: _isLoading || _status == null
+                ? null
+                : () async {
+              setState(() => _isLoading = true);
 
-                try {
-                  if (tapCount % 2 == 0) {
-                    // ---------- Update & Move ----------
-                    print("Move to RealEstate tapped: ${widget.id}");
-
-                    // 1. Update first
-                    final updateResponse = await http.post(
-                      Uri.parse(
-                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                      body: {'action': 'update', 'P_id': widget.id.toString()},
-                    ).timeout(const Duration(seconds: 10));
-
-                    print("Update API Status Code: ${updateResponse.statusCode}");
-                    print("Update API Response Body: ${updateResponse.body}");
-
-                    // 2. Then Move (copy)
-                    final moveResponse = await http.post(
-                      Uri.parse(
-                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                      body: {'action': 'copy', 'P_id': widget.id.toString()},
-                    ).timeout(const Duration(seconds: 10));
-
-                    print("Move API Status Code: ${moveResponse.statusCode}");
-                    print("Move API Response Body: ${moveResponse.body}");
-
-                    if (updateResponse.statusCode == 200 && moveResponse.statusCode == 200) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Property updated & moved successfully!',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.green,
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    }
-                  } else {
-                    // ---------- UnLive (Delete) ----------
-                    print("UnLive tapped. Sending Subid: ${widget.Subid}");
-
-                    // 1. Update first
-                    final updateResponse = await http.post(
-                      Uri.parse(
-                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                      body: {'action': 'reupdate', 'P_id': widget.id.toString()},
-                    ).timeout(const Duration(seconds: 10));
-
-                    print("Update API Status Code: ${updateResponse.statusCode}");
-                    print("Update API Response Body: ${updateResponse.body}");
-
-                    final deleteResponse = await http.post(
-                      Uri.parse(
-                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php'),
-                      body: {'action': 'delete', 'subid': widget.Subid.toString()},
-                    ).timeout(const Duration(seconds: 10));
-
-                    print("Delete API Status Code: ${deleteResponse.statusCode}");
-                    print("Delete API Response Body: ${deleteResponse.body}");
-
-                    if (deleteResponse.statusCode == 200) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Property UnLived successfully!',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                          backgroundColor: Colors.blue,
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    }
-                  }
-
-                  setState(() => tapCount++); // toggle action
-                  await _saveLastTapCount();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Error: $e'),
-                      backgroundColor: Colors.red,
-                    ),
+              try {
+                if (_status == "Book") {
+                  // Update + Copy
+                  final updateResponse = await http.post(
+                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                    body: {"action": "update", "P_id": widget.id.toString()},
                   );
-                } finally {
-                  setState(() => _isLoading = false);
+
+                  final moveResponse = await http.post(
+                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                    body: {"action": "copy", "P_id": widget.id.toString()},
+                  );
+
+                  if (updateResponse.statusCode == 200 &&
+                      moveResponse.statusCode == 200) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Property updated & moved successfully!",
+                            style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    setState(() => _status = "Live"); // flip after success
+                  }
+                } else if (_status == "Live") {
+                  // Reupdate + Delete
+                  final updateResponse = await http.post(
+                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                    body: {"action": "reupdate", "P_id": widget.id.toString()},
+                  );
+
+                  final deleteResponse = await http.post(
+                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                    body: {"action": "delete", "subid": widget.Subid.toString()},
+                  );
+
+                  if (deleteResponse.statusCode == 200) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Property UnLived successfully!",
+                            style: TextStyle(color: Colors.white)),
+                        backgroundColor: Colors.blue,
+                      ),
+                    );
+                    setState(() => _status = "Book"); // flip after success
+                  }
                 }
-              },
-              child: _isLoading
-                  ? Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  SizedBox(
-                    width: 18,
-                    height: 30,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    "Processing...",
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              )
-                  : Text(
-                tapCount % 2 == 0 ? 'Live to RealEstate' : 'UnLive',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              } catch (e) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text("Error: $e"),
+                      backgroundColor: Colors.red),
+                );
+              } finally {
+                setState(() => _isLoading = false);
+              }
+            },
+            child: _isLoading
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                SizedBox(
+                  width: 18,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2),
                 ),
+                SizedBox(width: 12),
+                Text("Processing...",
+                    style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white)),
+              ],
+            )
+                : Text(
+              _status ?? "Loading...",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
           ),
         ),
+      ),
+
     );
   }
 }
+

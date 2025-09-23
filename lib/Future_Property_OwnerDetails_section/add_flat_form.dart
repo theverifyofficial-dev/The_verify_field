@@ -354,7 +354,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("Latitude", _Latitude.text),
       MapEntry("kitchen", kitchen.toString()),
       MapEntry("bathroom", bathroom.toString()),
-      MapEntry("live_unlive", "Flat"), // <-- Static value sent to API
+      MapEntry("live_unlive", "Book"), // <-- Static value sent to API
       MapEntry("lift", widget.lift),
       MapEntry("Facility", widget.facility),
       MapEntry("furnished_unfurnished", _furnished.toString()),
@@ -1363,58 +1363,188 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                   ],
                 ),
                 SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: () async {
-                        _handleUpload();
-                      },
-                      child: Center(
-                        child: Container(
-                          height: 50,
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
-                          decoration: BoxDecoration(
-                              borderRadius: const BorderRadius.only(
-                                  topLeft: Radius.circular(40),
-                                  topRight: Radius.circular(40),
-                                  bottomRight: Radius.circular(40),
-                                  bottomLeft: Radius.circular(40)),
-                              color: Colors.red),
-                          child: _isLoading
-                              ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              SizedBox(
-                                width: 18,
-                                height: 30,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
+                GestureDetector(
+                  onTap: _isLoading
+                      ? null
+                      : () async {
+                    // ✅ Validate form before starting countdown
+                    if (!_formKey.currentState!.validate()) {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text(
+                            "Form Incomplete",
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          content: const Text(
+                            "Please fill all the required fields before submitting.",
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text("OK"),
+                            )
+                          ],
+                        ),
+                      );
+                      return; // Stop here if any field is empty
+                    }
+
+                    setState(() {
+                      _isLoading = true;
+                    });
+
+                    int countdown = 3;
+
+                    // Show countdown dialog
+                    await showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return StatefulBuilder(
+                          builder: (context, setStateDialog) {
+                            Future.delayed(const Duration(seconds: 1), () async {
+                              if (countdown > 1) {
+                                setStateDialog(() {
+                                  countdown--;
+                                });
+                              } else {
+                                setStateDialog(() {
+                                  countdown = 0;
+                                });
+
+                                await Future.delayed(const Duration(seconds: 1));
+                                if (Navigator.of(context).canPop()) {
+                                  Navigator.of(context).pop(); // close dialog
+                                }
+
+                                // Run your upload logic
+                                await _handleUpload();
+
+                                if (!mounted) return;
+
+                                // Show success message
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text("✅ Submitted Successfully!"),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              }
+                            });
+
+                            return AlertDialog(
+                              backgroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              SizedBox(width: 12),
-                              Text(
-                                "Processing...",
+                              title: const Text(
+                                "Submitting...",
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.white,
                                 ),
                               ),
-                            ],
-                          )
-                              : const Center(
-                            child: Text(
-                              "Add Flat",
-                              style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontFamily: 'poppins',
-                                  letterSpacing: 0.8,
-                                  fontSize: 18),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  AnimatedSwitcher(
+                                    duration: const Duration(milliseconds: 500),
+                                    transitionBuilder: (child, animation) =>
+                                        ScaleTransition(scale: animation, child: child),
+                                    child: countdown > 0
+                                        ? Text(
+                                      "$countdown",
+                                      key: ValueKey<int>(countdown),
+                                      style: TextStyle(
+                                        fontSize: 40,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(context).brightness ==
+                                            Brightness.dark
+                                            ? Colors.red[300]
+                                            : Colors.red,
+                                      ),
+                                    )
+                                        : const Icon(
+                                      Icons.verified_rounded,
+                                      key: ValueKey<String>("verified"),
+                                      color: Colors.green,
+                                      size: 60,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    countdown > 0 ? "Please wait..." : "Verified!",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  },
+                  child: Center(
+                    child: Container(
+                      height: 50,
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(40),
+                        color: Colors.red,
+                      ),
+                      child: _isLoading
+                          ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          SizedBox(
+                            width: 18,
+                            height: 30,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
                             ),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            "Processing...",
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ],
+                      )
+                          : const Center(
+                        child: Text(
+                          "Add Flat",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontFamily: 'Poppins',
+                            letterSpacing: 0.8,
+                            fontSize: 18,
                           ),
                         ),
                       ),
                     ),
+                  ),
+                )
               ],
             ),
           ),

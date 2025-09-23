@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import '../../model/agrement_model.dart';
+import '../Agreement_Form.dart';
 import '../details_agreement.dart';
 
 class RequestAgreementsPage extends StatefulWidget {
@@ -59,7 +60,6 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
       setState(() => isLoading = false);
     }
   }
-
   Widget _buildAgreementCard(AgreementData agreement) {
     return Card(
       elevation: 4,
@@ -76,11 +76,13 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
               children: [
                 Text(
                   "Owner: ${agreement.ownerName}",
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   "Tenant: ${agreement.tenantName}",
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold, fontSize: 16),
                 ),
               ],
             ),
@@ -93,27 +95,72 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
             ),
             const SizedBox(height: 6),
 
-            // Rent & Security
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("💰 Rent: ₹${agreement.monthlyRent}",
-                    style: const TextStyle(fontSize: 14)),
-                Text("🔐 Security: ₹${agreement.securitys}",
-                    style: const TextStyle(fontSize: 14)),
-              ],
-            ),
-            const SizedBox(height: 6),
-
+            // Shifting date
             Text(
               "Shifting Date: ${agreement.shiftingDate.toLocal().toString().split(' ')[0]}",
               style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 6),
-            Text("🛠 Maintenance: ${agreement.maintaince}",
-                    style: const TextStyle(fontSize: 14)),
 
-            const SizedBox(height: 6),
+            // ✅ Status + message info
+            if (agreement.status != null)
+              Row(
+                children: [
+                  Text(
+                    "Status: ",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  Text(
+                    agreement.status!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: agreement.status!.toLowerCase() == "rejected"
+                          ? Colors.red
+                          : Colors.green,
+                    ),
+                  ),
+                  if (agreement.messages != null &&
+                      agreement.messages!.isNotEmpty) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Message"),
+                            content: Text(agreement.messages!),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => RentalWizardPage(
+                                        agreementId: agreement.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: const Text("Edit"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Close"),
+                              )
+                            ],
+                          ),
+                        );
+                      },
+                      child:
+                      const Icon(Icons.info_outline, color: Colors.blue),
+                    ),
+                  ],
+                ],
+              ),
+
+            const SizedBox(height: 10),
 
             Align(
               alignment: Alignment.centerRight,
@@ -124,10 +171,19 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                       borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => AgreementDetailPage(agreementId: agreement.id,)));
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AgreementDetailPage(
+                        agreementId: agreement.id,
+                      ),
+                    ),
+                  );
                 },
-                icon: const Icon(Icons.visibility, size: 18, color: Colors.white),
-                label: const Text("View Details", style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.visibility,
+                    size: 18, color: Colors.white),
+                label: const Text("View Details",
+                    style: TextStyle(color: Colors.white)),
               ),
             ),
           ],

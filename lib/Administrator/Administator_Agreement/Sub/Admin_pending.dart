@@ -58,9 +58,7 @@ class _AdminPendingState extends State<AdminPending> {
   Widget _buildAgreementCard(AgreementModel2 agreement) {
     final screenWidth = MediaQuery.of(context).size.width;
 
-    // Scale factor based on device width (375 is base for reference)
-    double scale(double size) =>
-        size * (screenWidth / 375).clamp(0.85, 1.2);
+    double scale(double size) => size * (screenWidth / 375).clamp(0.85, 1.2);
 
     return Card(
       elevation: 4,
@@ -111,27 +109,58 @@ class _AdminPendingState extends State<AdminPending> {
 
             SizedBox(height: scale(6)),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Flexible(
-                  child: Text(
-                    "💰 Rent: ₹${agreement.monthlyRent}",
-                    style: TextStyle(fontSize: scale(14)),
-                    overflow: TextOverflow.ellipsis,
+            if (agreement.status != null)
+              Row(
+                children: [
+                  Text(
+                    "Status: ",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: scale(14),
+                    ),
                   ),
-                ),
-                Flexible(
-                  child: Text(
-                    "🔐 Security: ₹${agreement.securitys}",
-                    style: TextStyle(fontSize: scale(14)),
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
+                  Text(
+                    agreement.status!,
+                    style: TextStyle(
+                      fontSize: scale(14),
+                      color: agreement.status!.toLowerCase() == 'rejected'
+                          ? Colors.red
+                          : Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            
+                  if (agreement.messages != null) ...[
+                    const SizedBox(width: 8),
+                    GestureDetector(
+                      onTap: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text("Message"),
+                            content: Text(agreement.messages!),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text("Close"),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: const Icon(Icons.info_outline, color: Colors.blue),
+                    ),
+                  ],
+                  SizedBox(width: scale(100)),
+                  Flexible(
+                    child: Text(
+                      "By ${agreement.fieldwarkarname}",
+                      style: TextStyle(fontSize: scale(14)),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+
             SizedBox(height: scale(12)),
 
             Align(
@@ -160,7 +189,8 @@ class _AdminPendingState extends State<AdminPending> {
                       ),
                     );
                   },
-                  icon: Icon(Icons.visibility, size: scale(18), color: Colors.white),
+                  icon:
+                  Icon(Icons.visibility, size: scale(18), color: Colors.white),
                   label: Text(
                     "View Details",
                     style: TextStyle(

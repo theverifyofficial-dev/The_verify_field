@@ -66,6 +66,9 @@ class AgreementData {
   final String? tenantImage;
   final String propertyId;
   final String parking;
+  final String? status;    // ✅ new field
+  final String? messages;  // ✅ new field
+
 
   AgreementData({
     required this.id,
@@ -101,6 +104,8 @@ class AgreementData {
     this.tenantImage,
     required this.propertyId,
     required this.parking,
+    this.status,    // ✅ new field
+    this.messages,  // ✅ new field
   });
 
   factory AgreementData.fromJson(Map<String, dynamic> json) {
@@ -138,6 +143,8 @@ class AgreementData {
       tenantImage: json['tenant_image'],
       propertyId: json['property_id'] ?? "",
       parking: json['parking'] ?? "",
+      status: json['status'],       // ✅ map from JSON
+      messages: json['messages'],   // ✅ map from JSON
     );
   }
 
@@ -176,6 +183,8 @@ class AgreementData {
       'tenant_image': tenantImage,
       'property_id': propertyId,
       'parking': parking,
+      'status': status,
+      'messages': messages,
     };
   }
 }

@@ -15,7 +15,8 @@ import '../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
 class RentalWizardPage extends StatefulWidget {
-  const RentalWizardPage({super.key});
+  final String? agreementId;
+  const RentalWizardPage({Key? key, this.agreementId}) : super(key: key);
 
   @override
   State<RentalWizardPage> createState() => _RentalWizardPageState();
@@ -117,11 +118,82 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   String _name = '';
   bool _userLoaded = false;
 
+  String? ownerAadharFrontUrl;
+  String? ownerAadharBackUrl;
+  String? tenantAadharFrontUrl;
+  String? tenantAadharBackUrl;
+  String? tenantPhotoUrl;
+
   @override
   void initState() {
     super.initState();
     _fabController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    if (widget.agreementId != null) {
+      _fetchAgreementDetails(widget.agreementId!);
+    }
   }
+
+
+  Future<void> _fetchAgreementDetails(String id) async {
+    final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
+
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
+        final data = decoded["data"][0]; // 👈 Get first record
+
+        debugPrint("✅ Parsed Agreement Data: $data");
+
+        setState(() {
+          // 🔹 Owner
+          ownerName.text = data["owner_name"] ?? "";
+          ownerRelation = data["owner_relation"] ?? "S/O";
+          ownerRelationPerson.text = data["relation_person_name_owner"] ?? "";
+          ownerAddress.text = data["parmanent_addresss_owner"] ?? "";
+          ownerMobile.text = data["owner_mobile_no"] ?? "";
+          ownerAadhaar.text = data["owner_addhar_no"] ?? "";
+
+          // 🔹 Tenant
+          tenantName.text = data["tenant_name"] ?? "";
+          tenantRelation = data["tenant_relation"] ?? "S/O";
+          tenantRelationPerson.text = data["relation_person_name_tenant"] ?? "";
+          tenantAddress.text = data["permanent_address_tenant"] ?? "";
+          tenantMobile.text = data["tenant_mobile_no"] ?? "";
+          tenantAadhaar.text = data["tenant_addhar_no"] ?? "";
+
+          // 🔹 Agreement
+          bhkWithAddress.text = data["rented_address"] ?? "";
+          rentAmount.text = data["monthly_rent"]?.toString() ?? "";
+          securityAmount.text = data["securitys"]?.toString() ?? "";
+          installmentAmount.text = data["installment_security_amount"]?.toString() ?? "";
+
+          meterInfo = data["meter"] ?? "As per Govt. Unit";
+          customUnitAmount.text = data["custom_meter_unit"] ?? "";
+          maintenance = data["maintaince"] ?? "Including";
+          parking = data["parking"] ?? "Car";
+
+          shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
+              ? DateTime.tryParse(data["shifting_date"])
+              : null;
+
+          // 🔹 Documents
+          ownerAadharFrontUrl = data["owner_aadhar_front"] ?? "";
+          ownerAadharBackUrl  = data["owner_aadhar_back"] ?? "";
+          tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
+          tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
+          tenantPhotoUrl       = data["tenant_image"] ?? "";
+        });
+      } else {
+        debugPrint("⚠️ No agreement data found");
+      }
+    } else {
+      debugPrint("❌ Failed to load agreement details: ${response.body}");
+    }
+  }
+
 
   @override
   void dispose() {
@@ -206,16 +278,27 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   // ---------- Navigation ----------
   void _goNext() {
     bool valid = false;
+
     if (_currentStep == 0) {
-      valid = _ownerFormKey.currentState?.validate() == true && ownerAadhaarFront != null && ownerAadhaarBack != null;
-      if (!valid && (ownerAadhaarFront == null || ownerAadhaarBack == null)) {
+      // Owner step: either file OR URL must exist
+      valid = _ownerFormKey.currentState?.validate() == true &&
+          ((ownerAadhaarFront != null || ownerAadharFrontUrl != null) &&
+              (ownerAadhaarBack != null || ownerAadharBackUrl != null));
+
+      if (!valid) {
         Fluttertoast.showToast(msg: 'Please upload Owner Aadhaar images');
       }
+
     } else if (_currentStep == 1) {
-      valid = _tenantFormKey.currentState?.validate() == true && tenantAadhaarFront != null && tenantAadhaarBack != null;
-      if (!valid && (tenantAadhaarFront == null || tenantAadhaarBack == null)) {
+      // Tenant step: either file OR URL must exist
+      valid = _tenantFormKey.currentState?.validate() == true &&
+          ((tenantAadhaarFront != null || tenantAadharFrontUrl != null) &&
+              (tenantAadhaarBack != null || tenantAadharBackUrl != null));
+
+      if (!valid) {
         Fluttertoast.showToast(msg: 'Please upload Tenant Aadhaar images');
       }
+
     } else if (_currentStep == 2) {
       valid = _propertyFormKey.currentState?.validate() == true && shiftingDate != null;
       if (!valid && shiftingDate == null) Fluttertoast.showToast(msg: 'Please select shifting date');
@@ -517,16 +600,29 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
 
   // small image tile
-  Widget _imageTile(File? f, String hint) {
+  Widget _imageTile({File? file, String? url, required String hint}) {
     return Container(
       width: 120,
       height: 72,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), color: Colors.grey.shade200),
-      child: f == null
-          ? Center(child: Text(hint, style: const TextStyle(fontSize: 12)))
-          : ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.file(f, fit: BoxFit.cover)),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.shade200,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: file != null
+            ? Image.file(file, fit: BoxFit.cover)
+            : (url != null && url.isNotEmpty)
+            ? Image.network(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url",
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => Center(child: Text('Error', style: TextStyle(fontSize: 12))),
+        )
+            : Center(child: Text(hint, style: const TextStyle(fontSize: 12))),
+      ),
     );
   }
+
 
   // ---------- Build UI ----------
   @override
@@ -775,7 +871,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             Column(children: [
               Row(
                 children: [
-                  _imageTile(ownerAadhaarFront, 'Front'),
+                  _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
                 ],
@@ -784,7 +880,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               const SizedBox(height: 16),
               Row(
                 children: [
-                  _imageTile(ownerAadhaarBack, 'Back'),
+                  _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
                 ],
@@ -862,7 +958,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             Column(children: [
               Row(
                 children: [
-                  _imageTile(tenantAadhaarFront, 'Front'),
+                  _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('tenantFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
                 ],
@@ -871,7 +967,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               const SizedBox(height: 16),
               Row(
                 children: [
-                  _imageTile(tenantAadhaarBack, 'Back'),
+                  _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('tenantBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
                 ],
@@ -880,7 +976,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
               Row(
                 children: [
-                  _imageTile(tenantImage, 'Tenant Photo'),
+                  _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('tenantImage'), icon: const Icon(Icons.upload_file), label: const Text('Upload Photo')),
                 ],
@@ -1010,9 +1106,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           ),
           const SizedBox(height: 8),
           Row(children: [
-            _imageTile(ownerAadhaarFront, 'Front'),
+            _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
             const SizedBox(width: 8),
-            _imageTile(ownerAadhaarBack, 'Back'),
+            _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
             const Spacer(),
           ]),
           Row(
@@ -1039,9 +1135,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               Text('Aadhaar Images'),
               const SizedBox(height: 8),
               Row(children: [
-                _imageTile(tenantAadhaarFront, 'Front'),
+                _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
                 const SizedBox(width: 8),
-                _imageTile(tenantAadhaarBack, 'Back'),
+                _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
                 const Spacer(),
               ]),
               const SizedBox(height: 8),
@@ -1049,7 +1145,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _imageTile(tenantImage, 'Tenant Photo'),
+                  _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
                   const SizedBox(width: 100),
                   TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit'))
                 ],

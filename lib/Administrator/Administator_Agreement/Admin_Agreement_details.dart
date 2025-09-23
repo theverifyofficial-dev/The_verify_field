@@ -54,7 +54,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
         url,
         body: {
           "id": widget.agreementId,   // pass agreement ID
-          "action": action,           // accept or deny
+          "action": action,
         },
       );
 
@@ -63,6 +63,42 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
         if (decoded["status"] == "success") {
           Navigator.pop(context);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Agreement ${action.toUpperCase()}ED successfully")),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(decoded["message"] ?? "Failed to update")),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Server error, try again later")),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
+  }
+
+  Future<void> _updateAgreementStatusWithMessage(String action, String message) async {
+    try {
+      final url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"
+      );
+
+      final response = await http.post(url, body: {
+        "id": widget.agreementId,
+        "action": action,
+        "messages": message, // send message to API
+      });
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded["status"] == "success") {
+          Navigator.pop(context); // optionally go back
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Agreement ${action.toUpperCase()}ED successfully")),
           );
@@ -169,6 +205,60 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
+  void _showRejectDialog() {
+    TextEditingController messageController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Reject Agreement"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text("Please enter a reason for rejection:"),
+              const SizedBox(height: 12),
+              TextField(
+                controller: messageController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8), // square-ish
+                  ),
+                  hintText: "Enter your message",
+                  contentPadding: const EdgeInsets.all(12),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final message = messageController.text.trim();
+                if (message.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Message cannot be empty")),
+                  );
+                  return;
+                }
+
+                Navigator.pop(context); // close dialog
+
+                // Send reject action with message
+                await _updateAgreementStatusWithMessage("reject", message);
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -244,8 +334,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
-                    onPressed: () => _updateAgreementStatus("reject"),
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    onPressed: () =>   _showRejectDialog(),
+
+          icon: const Icon(Icons.close, color: Colors.white),
                     label: const Text("Reject", style: TextStyle(color: Colors.white)),
                   ),
                 ),

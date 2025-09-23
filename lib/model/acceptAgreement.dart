@@ -32,6 +32,8 @@ class AgreementModel2 {
   final String? tenantImage;
   final String propertyId;
   final String parking;
+  final String? status;    // ✅ new field
+  final String? messages;  // ✅ new field
 
   AgreementModel2({
     required this.id,
@@ -67,6 +69,8 @@ class AgreementModel2 {
     this.tenantImage,
     required this.propertyId,
     required this.parking,
+    this.status,    // ✅ new field
+    this.messages,  // ✅ new field
   });
 
   factory AgreementModel2.fromJson(Map<String, dynamic> json) {
@@ -104,6 +108,8 @@ class AgreementModel2 {
       tenantImage: json['tenant_image'],
       propertyId: json['property_id'] ?? '',
       parking: json['parking'] ?? '',
+      status: json['status'],       // ✅ map from JSON
+      messages: json['messages'],   // ✅ map from JSON
     );
   }
 }

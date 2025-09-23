@@ -186,18 +186,6 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
               _kvImage("Tenant Aadhaar Back", agreement!["tenant_aadhar_back"]),
               _kvImage("Tenant Photo", agreement!["tenant_image"]),
             ]),
-
-
-            // const SizedBox(height: 20),
-            // Center(
-            //   child: ElevatedGradientButton(
-            //     text: "Download Agreement",
-            //     icon: Icons.picture_as_pdf,
-            //     onPressed: () {
-            //       // TODO: Handle PDF download
-            //     },
-            //   ),
-            // ),
             const SizedBox(height: 30),
           ],
         ),

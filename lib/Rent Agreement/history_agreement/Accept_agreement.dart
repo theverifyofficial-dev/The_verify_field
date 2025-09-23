@@ -63,9 +63,16 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
-            : ListView.builder(
+        body:isLoading
+            ? const Center(
+          child: CircularProgressIndicator(color: Colors.white),
+        )
+            : agreements.isEmpty
+            ? const Center(
+          child: Text("No agreements found",
+              style: TextStyle(color: Colors.white70)),
+        )
+            :  ListView.builder(
           itemCount: agreements.length,
           padding: const EdgeInsets.all(10),
           itemBuilder: (context, index) {

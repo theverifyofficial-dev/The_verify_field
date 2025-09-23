@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 import 'PDF.dart';
@@ -21,6 +23,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   bool isLoading = true;
   File? pdfFile;
   bool pdfGenerated = false;
+  File? policeVerificationFile;
+  File? notaryImageFile;
 
 
   @override
@@ -295,6 +299,28 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
       await addFileFromUrl("tenant_aadhar_back", agreement?["tenant_aadhar_back"], filename: "tenant_aadhar_back.jpg");
       await addFileFromUrl("tenant_image", agreement?["tenant_image"], filename: "tenant_image.jpg");
 
+      if (policeVerificationFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          "police_verification_pdf",
+          policeVerificationFile!.path,
+          filename: "police_verification.pdf", // or .jpg if image
+        ));
+        print("✅ Police Verification file attached");
+      } else {
+        print("⚠️ No Police Verification file selected");
+      }
+
+      if (notaryImageFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          "notry_img",
+          notaryImageFile!.path,
+          filename: "notary.jpg",
+        ));
+        print("✅ Notary Image attached");
+      } else {
+        print("⚠️ No Notary image selected");
+      }
+
       if (pdfFile != null) {
         print("📌 Attaching PDF at ${pdfFile!.path}");
         request.files.add(await http.MultipartFile.fromPath(
@@ -433,10 +459,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                                 _docImage(agreement?["tenant_aadhar_back"]),
                               ],
                             ),
-                            Row(
-                              children: [
-                                _docImage(agreement?["tenant_image"]),
-                              ],
+                            SizedBox(height: 10,),
+                            Container(
+                              margin: EdgeInsets.only(top: 10.0),
+                              child: Row(
+                                children: [
+                                  _docImage(agreement?["tenant_image"]),
+                                ],
+                              ),
                             ),
                           ],
                         ),
@@ -463,8 +493,17 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                     child: ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
+                      onPressed: () async {
+                        final result = await FilePicker.platform.pickFiles(type: FileType.any);
+                        if (result != null && result.files.single.path != null) {
+                          setState(() {
+                            policeVerificationFile = File(result.files.single.path!);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Police Verification file selected ✅")),
+                          );
+                        }
+                      },                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
                       label: const Text(
                         "P. Verification",
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
@@ -477,32 +516,20 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                     ),
                   ),
                 ),
-                // Expanded(
-                //   child: Container(
-                //     margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
-                //     child: ElevatedButton.icon(
-                //       onPressed: () {
-                //         // TODO: Handle Action 2
-                //       },
-                //       icon: const Icon(Icons.edit, color: Colors.white),
-                //       label: const Text(
-                //         "Edit",
-                //         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-                //       ),
-                //       style: ElevatedButton.styleFrom(
-                //         backgroundColor: Colors.blue, // Second color
-                //         padding: const EdgeInsets.symmetric(vertical: 14),
-                //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                //       ),
-                //     ),
-                //   ),
-                // ),
                 Expanded(
                   child: Container(
                     margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                     child: ElevatedButton.icon(
-                      onPressed: () {
-                        // TODO: Handle Action 3
+                      onPressed: () async {
+                        final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
+                        if (picked != null) {
+                          setState(() {
+                            notaryImageFile = File(picked.path);
+                          });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("Notary image selected ✅")),
+                          );
+                        }
                       },
                       icon: const Icon(Icons.upload_sharp, color: Colors.white),
                       label: const Text(
@@ -519,8 +546,42 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                 ),
               ],
             ),
-
             const SizedBox(height: 30),
+            if (policeVerificationFile != null)
+              _glassContainer(
+                child: ListTile(
+                  leading: const Icon(Icons.picture_as_pdf, color: Colors.orange),
+                  title: Text(policeVerificationFile!.path.split('/').last),
+                  subtitle: const Text("Police Verification File"),
+                  onTap: () async {
+                    await OpenFilex.open(policeVerificationFile!.path);
+                  },
+                ),
+              ),
+            const SizedBox(height: 20),
+// Notary Image Preview
+            if (notaryImageFile != null)
+              _glassContainer(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: Image.file(
+                        notaryImageFile!,
+                        height: 160,
+                        width: 160,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text("Notary Image",
+                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+                  ],
+                ),
+              ),
+
+            const SizedBox(height: 20),
 
             if (pdfFile != null)
               _glassContainer(

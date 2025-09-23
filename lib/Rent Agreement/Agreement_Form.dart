@@ -486,6 +486,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   child: TextFormField(
                     controller: controller,
                     keyboardType: keyboard,
+                    textCapitalization: TextCapitalization.characters, // <-- make all letters uppercase
                     validator: validator,
                     onFieldSubmitted: onFieldSubmitted,
                     inputFormatters: inputFormatters,
@@ -953,7 +954,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               if (picked != null) setState(() => shiftingDate = picked);
             }),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
+            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike','No'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
 
             DropdownButtonFormField<String>(value: maintenance, items: const ['Including', 'Excluding'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => maintenance = v ?? 'Including'), decoration: _fieldDecoration('Maintenance')),
             if (maintenance.startsWith('Excluding'))

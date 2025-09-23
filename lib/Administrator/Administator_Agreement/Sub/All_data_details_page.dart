@@ -42,10 +42,12 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     }
     return "";
   }
+
   Future<void> _fetchAgreementDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget
+              .agreementId}"));
 
       print(widget.agreementId);
 
@@ -79,7 +81,9 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   }
 
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
@@ -142,7 +146,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
-  Widget _kvImage(String k, dynamic url) {
+  Widget
+  _kvImage(String k, dynamic url) {
     if (url == null) return const SizedBox.shrink();
     final imageUrl = url.toString().trim();
     if (imageUrl.isEmpty) return const SizedBox.shrink();
@@ -177,7 +182,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                   height: 150,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.broken_image, color: Colors.red),
+                  const SizedBox.shrink(), // Hide if image fails to load
                 ),
               ),
             ),
@@ -203,73 +208,144 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Owner Section
-            _sectionCard(title: "Owner Details", children: [
-              _kv("Owner Name", agreement?["owner_name"]),
-              _kv(
-                  "Relation",
-                  "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}"),
-              _kv("Address", agreement?["parmanent_addresss_owner"]),
-              _kv("Mobile", agreement?["owner_mobile_no"]),
-              _kv("Aadhar", agreement?["owner_addhar_no"]),
-            ]),
 
-            // 🔹 Tenant Section
-            _sectionCard(title: "Tenant Details", children: [
-              _kv("Tenant Name", agreement?["tenant_name"]),
-              _kv(
-                  "Relation",
-                  "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}"),
-              _kv("Address", agreement?["permanent_address_tenant"]),
-              _kv("Mobile", agreement?["tenant_mobile_no"]),
-              _kv("Aadhar", agreement?["tenant_addhar_no"]),
-            ]),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Row(
+                children: [
 
-            // 🔹 Agreement Info
-            _sectionCard(title: "Agreement Details", children: [
-              _kv("Rented Address", agreement?["rented_address"]),
-              _kv("Monthly Rent", agreement?["monthly_rent"] != null
-                  ? "₹${agreement?["monthly_rent"]}"
-                  : ""),
-              _kv("Security", agreement?["securitys"] != null
-                  ? "₹${agreement?["securitys"]}"
-                  : ""),
-              _kv("Installment Security",
-                  agreement?["installment_security_amount"] != null
-                      ? "₹${agreement?["installment_security_amount"]}"
-                      : ""),
-              _kv("Meter", agreement?["meter"]),
-              _kv("Custom Unit", agreement?["custom_meter_unit"]),
-              _kv("Maintenance", agreement?["maintaince"]),
-              _kv("Parking", agreement?["parking"]),
-              _kv("Shifting Date",
-                  _formatDate(agreement?["shifting_date"]) ?? ""),
-            ]),
+                  _buildCard(
+                    title: "Agreement Details",
+                    children: [
+                      _kv("Rented Address", agreement?["rented_address"]),
+                      _kv("Monthly Rent", agreement?["monthly_rent"] != null
+                          ? "₹${agreement?["monthly_rent"]}"
+                          : ""),
+                      _kv("Security", agreement?["securitys"] != null
+                          ? "₹${agreement?["securitys"]}"
+                          : ""),
+                      _kv("Installment Security",
+                          agreement?["installment_security_amount"] != null
+                              ? "₹${agreement?["installment_security_amount"]}"
+                              : ""),
+                      _kv("Meter", agreement?["meter"]),
+                      _kv("Custom Unit", agreement?["custom_meter_unit"]),
+                      _kv("Maintenance", agreement?["maintaince"]),
+                      _kv("Parking", agreement?["parking"]),
+                      _kv("Shifting Date",
+                          _formatDate(agreement?["shifting_date"]) ?? ""),
+                    ],
+                  ),
 
-            // 🔹 Fieldworker
-            _sectionCard(title: "Field Worker", children: [
-              _kv("Name", agreement?["Fieldwarkarname"]),
-              _kv("Number", agreement?["Fieldwarkarnumber"]),
-            ]),
+                  Column(
+                      children: [
+                        _buildCard(
+                          title: "Owner Details",
+                          children: [
+                            _kv("Owner Name", agreement?["owner_name"]),
+                            _kv("Relation", "${agreement?["owner_relation"] ??
+                                ""} ${agreement?["relation_person_name_owner"] ??
+                                ""}"),
+                            _kv("Address",
+                                agreement?["parmanent_addresss_owner"]),
+                            _kv("Mobile", agreement?["owner_mobile_no"]),
+                            _kv("Aadhar", agreement?["owner_addhar_no"]),
+                            Row(
+                              children: [
+                                _docImage(agreement?["owner_aadhar_front"]),
+                                _docImage(agreement?["owner_aadhar_back"]),
+                              ],
+                            )
+                          ],
+                        ),
 
-            // 🔹 Documents
-            _sectionCard(title: "Documents", children: [
-              _kvImage(
-                  "Owner Aadhaar Front", agreement?["owner_aadhar_front"]),
-              _kvImage(
-                  "Owner Aadhaar Back", agreement?["owner_aadhar_back"]),
-              _kvImage("Tenant Aadhaar Front",
-                  agreement?["tenant_aadhar_front"]),
-              _kvImage("Tenant Aadhaar Back",
-                  agreement?["tenant_aadhar_back"]),
-              _kvImage("Tenant Photo", agreement?["tenant_image"]),
-            ]),
+                      ]
+                  ),
+
+                  Column(
+                      children: [
+                        _buildCard(
+                          title: "Tenant Details",
+                          children: [
+                            _kv("Tenant Name", agreement?["tenant_name"]),
+                            _kv("Relation", "${agreement?["tenant_relation"] ??
+                                ""} ${agreement?["relation_person_name_tenant"] ??
+                                ""}"),
+                            _kv("Address",
+                                agreement?["permanent_address_tenant"]),
+                            _kv("Mobile", agreement?["tenant_mobile_no"]),
+                            _kv("Aadhar", agreement?["tenant_addhar_no"]),
+
+                            Row(
+                              children: [
+                                _docImage(agreement?["tenant_aadhar_front"]),
+                                _docImage(agreement?["tenant_aadhar_back"]),
+                              ],
+                            ),
+                            SizedBox(height: 10,),
+                            Container(
+                              margin: EdgeInsets.only(top: 10.0),
+                              child: Row(
+                                children: [
+                                  _docImage(agreement?["tenant_image"]),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ]
+                  ),
+
+                ],
+              ),
+            ),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                ElevatedButton(
+                  onPressed: () =>
+                      _launchURL(
+                          'https://theverify.in/${agreement?["police_verification_pdf"]}'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow,
+                      foregroundColor: Colors.black),
+                  child: const Text('View P. Verification '),
+                ),
+
+                ElevatedButton(
+                  onPressed: () =>
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ImagePreviewScreen(
+                                  imageUrl: 'https://theverify.in/${agreement?["notry_img"]}'),
+                        ),
+                      ),
+
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.black),
+                  child: const Text('View Notary'),
+                ),
+              ],
+            ),
 
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () => _launchURL('https://theverify.in/${agreement?["agreement_pdf"]}'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blue,foregroundColor: Colors.black),
-              child: const Text('View Agreement PDF'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: () =>
+                      _launchURL(
+                      'https://theverify.in/${agreement?["agreement_pdf"]}'),
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue, foregroundColor: Colors.black),
+                  child: const Text('View Agreement PDF'),
+                ),
+              ],
             ),
             const SizedBox(height: 30),
           ],
@@ -277,11 +353,57 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       ),
     );
   }
-}
-_launchURL(String pdf_url) async {
-  final Uri url = Uri.parse(pdf_url);
-  if (!await launchUrl(url)) {
-    throw Exception('Could not launch $url');
+
+  Widget _buildCard({required String title, required List<Widget> children}) {
+    return Container(
+      width: 300,
+      margin: const EdgeInsets.only(right: 20),
+      child: _sectionCard(title: title, children: children),
+    );
+  }
+
+  Widget _docImage(String? imageUrl) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ImagePreviewScreen(
+              imageUrl:
+              'https://theverify.in/$imageUrl',
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 120,
+        height: 120,
+        margin: const EdgeInsets.only(right: 12),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: Image.network(
+            "https://theverify.in/$imageUrl",
+            width: 160,   // force same as container
+            height: 120,  // force same as container
+            fit: BoxFit.cover, // ensures full fill
+            errorBuilder: (context, error, stackTrace) =>
+            const SizedBox.shrink(), // Hide if image fails to load
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  _launchURL(String pdf_url) async {
+    final Uri url = Uri.parse(pdf_url);
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
   }
 }
 

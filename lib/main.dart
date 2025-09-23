@@ -63,8 +63,6 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-
-    // ✅ Print FCM Token
     FirebaseMessaging.instance.getToken().then((token) {
       print("🔑 FCM Token: $token");
     });

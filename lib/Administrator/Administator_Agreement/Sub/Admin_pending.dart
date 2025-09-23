@@ -42,11 +42,18 @@ class _AdminPendingState extends State<AdminPending> {
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => AgreementModel2.fromJson(e)).toList();
+
+      // 🔹 Reverse the mapped list
+      return data
+          .map((e) => AgreementModel2.fromJson(e))
+          .toList()
+          .reversed
+          .toList();
     } else {
       throw Exception('Failed to load agreements');
     }
   }
+
 
   Widget _buildAgreementCard(AgreementModel2 agreement) {
     final screenWidth = MediaQuery.of(context).size.width;

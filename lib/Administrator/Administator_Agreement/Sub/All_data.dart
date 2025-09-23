@@ -63,10 +63,11 @@ class _AgreementDetailsState extends State<AllData> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.black,
-        body: isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
-            : ListView.builder(
+        body:  isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : agreements.isEmpty
+            ? const Center(child: Text("No agreements found"))
+            :ListView.builder(
           itemCount: agreements.length,
           padding: const EdgeInsets.all(10),
           itemBuilder: (context, index) {

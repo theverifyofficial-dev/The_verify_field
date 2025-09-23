@@ -43,9 +43,11 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         if (decoded["status"] == "success") {
           final model = AgreementResponse.fromJson(decoded);
           setState(() {
-            agreements = model.data;
+            //agreements = model.data;
+            agreements = model.data.reversed.toList();
             isLoading = false;
-          });
+          }
+          );
         } else {
           setState(() => isLoading = false);
         }

@@ -314,7 +314,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   Future<List<Catid>> av() async {
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=11&live_unlive=Flat",
+        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=11&live_unlive=Live",
       );
 
       final response = await http.get(url);
@@ -340,7 +340,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   Future<List<Catid>> fetchData() async {
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=9711775300&live_unlive=Flat",
+        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=9711775300&live_unlive=Live",
       );
 
       final response = await http.get(url);
@@ -367,7 +367,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     try {
       final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-            "?field_workar_number=9711275300&live_unlive=Flat",
+            "?field_workar_number=9711275300&live_unlive=Live",
       );
 
       final response = await http.get(url);
@@ -394,7 +394,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     try {
       final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-            "?field_workar_number=9971172204&live_unlive=Flat",
+            "?field_workar_number=9971172204&live_unlive=Live",
       );
 
       final response = await http.get(url);
@@ -421,7 +421,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     try {
       final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-            "?field_workar_number=9818306096&live_unlive=Flat",
+            "?field_workar_number=9818306096&live_unlive=Live",
       );
 
       final response = await http.get(url);

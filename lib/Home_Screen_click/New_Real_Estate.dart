@@ -227,7 +227,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     var url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=$number&live_unlive=Flat",
+      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=$number&live_unlive=Live",
     );
 
     final response = await http.get(url);

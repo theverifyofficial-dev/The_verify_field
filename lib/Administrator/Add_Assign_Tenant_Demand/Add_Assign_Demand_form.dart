@@ -76,13 +76,13 @@ class _assign_demand_formState extends State<assign_demand_form> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
+        surfaceTintColor: Colors.black,
         centerTitle: true,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
           onTap: () {
             Navigator.pop(context, true);
-
           },
           child: const Row(
             children: [

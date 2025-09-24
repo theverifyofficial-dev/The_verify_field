@@ -2145,10 +2145,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 TextFormField(
                   controller: _ownerNameController,
                   decoration: _buildInputDecoration(context, "Owner Name"),
-                  validator: (val) =>
-                  val == null || val.isEmpty
-                      ? "Enter owner name"
-                      : null,
                 ),
                 const SizedBox(height: 16),
 
@@ -2163,13 +2159,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                     LengthLimitingTextInputFormatter(10), // max 10 chars
                     FilteringTextInputFormatter.digitsOnly, // digits only
                   ],
-
-                  validator: (val) {
-                    if (val == null || val.length != 10) {
-                      return "Enter valid 10-digit contact number";
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 16),
                 _buildSectionCard(

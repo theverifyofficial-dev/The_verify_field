@@ -138,15 +138,25 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 
   String selectedLabel = '';
   int propertyCount = 0;
-
+  int? totalFlats;
+  bool isLoading = true;
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+
     _loaduserdata().then((_) {
-      _fetchAndFilterProperties();
+      _fetchAndFilterProperties().then((_) {
+        setState(() {
+          fetchFlatsStatus();
+          fetchTotalFlats();
+          _filteredProperties = _allProperties;
+          propertyCount = _allProperties.length; // ✅ set count after data is ready
+        });
+      });
     });
   }
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -166,39 +176,69 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       if (query.isEmpty) {
         filtered = List.from(_allProperties);
         selectedLabel = ''; // optional reset
+      } else if (query == "Missing Field") {
+        // ✅ Show items if ANY field is null or empty (except ignored fields)
+        filtered = _allProperties.where((item) {
+          return (item.images == null || item.images!.trim().isEmpty) ||
+              (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
+              (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
+              (item.caretakerName == null || item.caretakerName!.trim().isEmpty) ||
+              (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
+              (item.place == null || item.place!.trim().isEmpty) ||
+              (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
+              // ❌ removed typeOfProperty, selectBhk, floorNumber, squareFeet, buildingInformationFacilities
+              (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
+              (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
+              (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
+              (item.yourAddress == null || item.yourAddress!.trim().isEmpty) ||
+              (item.fieldWorkerName == null || item.fieldWorkerName!.trim().isEmpty) ||
+              (item.fieldWorkerNumber == null || item.fieldWorkerNumber!.trim().isEmpty) ||
+              (item.currentDate == null || item.currentDate!.trim().isEmpty) ||
+              (item.longitude == null || item.longitude!.trim().isEmpty) ||
+              (item.latitude == null || item.latitude!.trim().isEmpty) ||
+              (item.roadSize == null || item.roadSize!.trim().isEmpty) ||
+              (item.metroDistance == null || item.metroDistance!.trim().isEmpty) ||
+              (item.metroName == null || item.metroName!.trim().isEmpty) ||
+              (item.mainMarketDistance == null || item.mainMarketDistance!.trim().isEmpty) ||
+              (item.ageOfProperty == null || item.ageOfProperty!.trim().isEmpty) ||
+              (item.lift == null || item.lift!.trim().isEmpty) ||
+              (item.parking == null || item.parking!.trim().isEmpty) ||
+              (item.totalFloor == null || item.totalFloor!.trim().isEmpty) ||
+              (item.residenceCommercial == null || item.residenceCommercial!.trim().isEmpty) ||
+              (item.facility == null || item.facility!.trim().isEmpty);
+        }).toList();
       } else {
+        // 🔍 Normal search
         filtered = _allProperties.where((item) {
           return (item.id.toString()).toLowerCase().contains(query) ||
               (item.ownerName ?? '').toLowerCase().contains(query) ||
               (item.caretakerName ?? '').toLowerCase().contains(query) ||
-              // (item.caretakerNumber ?? '').toLowerCase().contains(query) ||
               (item.place ?? '').toLowerCase().contains(query) ||
               (item.buyRent ?? '').toLowerCase().contains(query) ||
-              // (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
-              // (item.selectBhk ?? '').toLowerCase().contains(query) ||
-              // (item.floorNumber ?? '').toLowerCase().contains(query) ||
-              // (item.squareFeet ?? '').toLowerCase().contains(query) ||
+              (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
+              (item.selectBhk ?? '').toLowerCase().contains(query) ||
+              (item.floorNumber ?? '').toLowerCase().contains(query) ||
+              (item.squareFeet ?? '').toLowerCase().contains(query) ||
               (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
-              // (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
+              (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
               (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
-              (item.residenceCommercial ?? '').toLowerCase().contains(query);
-
-          // (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
-              // (item.yourAddress ?? '').toLowerCase().contains(query) ||
-              // (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
-              // (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
-              // (item.currentDate ?? '').toLowerCase().contains(query) ||
-              // (item.longitude ?? '').toLowerCase().contains(query) ||
-              // (item.latitude ?? '').toLowerCase().contains(query) ||
-              // (item.roadSize ?? '').toLowerCase().contains(query) ||
-              // (item.metroDistance ?? '').toLowerCase().contains(query) ||
-              // (item.metroName ?? '').toLowerCase().contains(query) ||
-              // (item.mainMarketDistance ?? '').toLowerCase().contains(query) ||
-              // (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
-              // (item.lift ?? '').toLowerCase().contains(query) ||
-              // (item.parking ?? '').toLowerCase().contains(query) ||
-              // (item.totalFloor ?? '').toLowerCase().contains(query) ||
-              // (item.facility ?? '').toLowerCase().contains(query);
+              (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
+              (item.yourAddress ?? '').toLowerCase().contains(query) ||
+              (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
+              (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
+              (item.currentDate ?? '').toLowerCase().contains(query) ||
+              (item.longitude ?? '').toLowerCase().contains(query) ||
+              (item.latitude ?? '').toLowerCase().contains(query) ||
+              (item.roadSize ?? '').toLowerCase().contains(query) ||
+              (item.metroDistance ?? '').toLowerCase().contains(query) ||
+              (item.metroName ?? '').toLowerCase().contains(query) ||
+              (item.mainMarketDistance ?? '').toLowerCase().contains(query) ||
+              (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
+              (item.lift ?? '').toLowerCase().contains(query) ||
+              (item.parking ?? '').toLowerCase().contains(query) ||
+              (item.totalFloor ?? '').toLowerCase().contains(query) ||
+              (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
+              (item.facility ?? '').toLowerCase().contains(query);
         }).toList();
       }
 
@@ -255,8 +295,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     }
   }
 
-
-
   Future<void> _fetchAndFilterProperties() async {
     setState(() {
       _isLoading = true;
@@ -302,6 +340,85 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
   }
   Future<void> _refreshProperties() async {
     await _fetchAndFilterProperties();
+    await fetchTotalFlats();
+    await fetchFlatsStatus();
+  }
+  int bookFlats = 0;
+  int liveFlats = 0;
+
+  Future<void> fetchFlatsStatus() async {
+    try {
+      final url = Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${_number}',
+      );
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as List<dynamic>;
+
+        int book = 0;
+        int live = 0;
+
+        for (var item in data) {
+          if (item['live_unlive'] == "Book") {
+            book = item['subid'] ?? 0;
+          } else if (item['live_unlive'] == "Live") {
+            live = item['subid'] ?? 0;
+          }
+        }
+
+        setState(() {
+          bookFlats = book;
+          liveFlats = live;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          bookFlats = 0;
+          liveFlats = 0;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error fetching flats status: $e");
+      setState(() {
+        bookFlats = 0;
+        liveFlats = 0;
+        isLoading = false;
+      });
+    }
+  }
+
+
+  Future<void> fetchTotalFlats() async {
+    try {
+      final url = Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=${_number}',
+      );
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        // API returns a list, take the first element's subid
+        final subid = data.isNotEmpty ? data[0]['subid'] : 0;
+
+        setState(() {
+          totalFlats = subid;
+          isLoading = false;
+        });
+      } else {
+        setState(() {
+          totalFlats = 0;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        totalFlats = 0;
+        isLoading = false;
+      });
+      print("Error fetching total flats: $e");
+    }
   }
   @override
   Widget build(BuildContext context) {
@@ -422,71 +539,198 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                   const SizedBox(height: 12),
 
                   // Buttons
-                  Row(
-                    children: ['Rent', 'Sell', 'Commercial'].map((label) {
-                      final isSelected = label == selectedLabel;
-                      return Expanded(
-                        child: Padding(
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: ['Rent', 'Sell', 'Commercial', 'Missing Field'].map((label) {
+                        final isSelected = label == selectedLabel;
+                        return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: ElevatedButton(
                             onPressed: () {
                               setState(() {
                                 selectedLabel = label;
-                                _searchController.text = label;
-                                _onSearchChanged();
+
+                                if (label == 'Missing Field') {
+                                  // Don’t set text, just trigger filter directly
+                                  _searchController.clear();
+                                  _onSearchChanged(); // will run with query.isEmpty, but you can call your missing field filter directly too
+                                  _debounce?.cancel();
+                                  // run missing field filter manually
+                                  final filtered = _allProperties.where((item) {
+                                    return (item.images == null || item.images!.trim().isEmpty) ||
+                                        (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
+                                        (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
+                                        (item.caretakerName == null || item.caretakerName!.trim().isEmpty) ||
+                                        (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
+                                        (item.place == null || item.place!.trim().isEmpty) ||
+                                        (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
+                                        (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
+                                        (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
+                                        (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
+                                        (item.yourAddress == null || item.yourAddress!.trim().isEmpty) ||
+                                        (item.fieldWorkerName == null || item.fieldWorkerName!.trim().isEmpty) ||
+                                        (item.fieldWorkerNumber == null || item.fieldWorkerNumber!.trim().isEmpty) ||
+                                        (item.currentDate == null || item.currentDate!.trim().isEmpty) ||
+                                        (item.longitude == null || item.longitude!.trim().isEmpty) ||
+                                        (item.latitude == null || item.latitude!.trim().isEmpty) ||
+                                        (item.roadSize == null || item.roadSize!.trim().isEmpty) ||
+                                        (item.metroDistance == null || item.metroDistance!.trim().isEmpty) ||
+                                        (item.metroName == null || item.metroName!.trim().isEmpty) ||
+                                        (item.mainMarketDistance == null || item.mainMarketDistance!.trim().isEmpty) ||
+                                        (item.ageOfProperty == null || item.ageOfProperty!.trim().isEmpty) ||
+                                        (item.lift == null || item.lift!.trim().isEmpty) ||
+                                        (item.parking == null || item.parking!.trim().isEmpty) ||
+                                        (item.totalFloor == null || item.totalFloor!.trim().isEmpty) ||
+                                        (item.residenceCommercial == null || item.residenceCommercial!.trim().isEmpty) ||
+                                        (item.facility == null || item.facility!.trim().isEmpty);
+                                  }).toList();
+
+                                  _filteredProperties = filtered;
+                                  propertyCount = filtered.length;
+                                } else {
+                                  // Normal behavior → put label in search box
+                                  _searchController.text = label;
+                                  _onSearchChanged();
+                                }
                               });
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
                             child: Text(
                               label,
                               style: TextStyle(
                                 color: isSelected ? Colors.white : Colors.black87,
                                 fontWeight: FontWeight.w800,
-                                fontSize: 10,
+                                fontSize: 12,
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    }).toList(),
+                        );
+                      }).toList(),
+                    ),
                   ),
-
                   const SizedBox(height: 10),
 
-                  if (propertyCount > 0 && _isSearchActive)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
+                  if (propertyCount > 0) // ✅ remove `_isSearchActive` condition
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
-                          const SizedBox(width: 6),
-                          Text(
-                            "$propertyCount properties found",
-                            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                          ),
-                          const SizedBox(width: 6),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _searchController.clear();
-                                selectedLabel = '';
-                                _filteredProperties = _allProperties;
-                                propertyCount = 0;
-                              });
-                            },
-                            child: const Icon(Icons.close, size: 18, color: Colors.grey),
-                          ),
-                        ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
+                            const SizedBox(width: 6),
+                            Text(
+                              "$propertyCount building found",
+                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  selectedLabel = '';
+                                  _filteredProperties = _allProperties;
+                                  propertyCount = _allProperties.length; // ✅ reset to total
+                                });
+                              },
+                              child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                            ),
+                          ],
+                        ),
                       ),
+                          const SizedBox(width: 6),
+                            isLoading
+                            ? Text("")
+                            : Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+
+                                    Text(
+                                      "Total Flats: ${totalFlats ?? 0}",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          const SizedBox(width: 6),
+
+                          isLoading
+                          ? Text("")
+                          : Row(
+                              mainAxisAlignment:
+                                  MainAxisAlignment.spaceEvenly,
+                              children: [
+                                // Live Flats Container
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius:
+                                    BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "Live Flats: $liveFlats",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                // Book Flats Container
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withOpacity(0.1),
+                                    borderRadius:
+                                        BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        "Rent Out: $bookFlats",
+                                        style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                              ],
+                            ),
+                        ],
+                            ),
                     ),
+
                 ],
               ),
             ),

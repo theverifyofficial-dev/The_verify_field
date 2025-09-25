@@ -70,19 +70,30 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Owner & Tenant Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Owner: ${agreement.ownerName}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                Expanded(
+                  child: Text(
+                    "Owner: ${agreement.ownerName}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                Text(
-                  "Tenant: ${agreement.tenantName}",
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold, fontSize: 16),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    "Tenant: ${agreement.tenantName}",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.right,
+                  ),
                 ),
               ],
             ),
@@ -154,7 +165,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                         );
                       },
                       child:
-                      const Icon(Icons.info_outline, color: Colors.blue),
+                      const Icon(Icons.message_rounded, color: Colors.blue),
                     ),
                   ],
                 ],

@@ -27,6 +27,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
+        debugPrint("🔹 API Response: $decoded");  // <-- add this
         if (decoded["status"] == "success" && decoded["count"] > 0) {
           setState(() {
             agreement = decoded["data"][0];
@@ -144,48 +145,77 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
           children: [
             // 🔹 Owner Section
             _sectionCard(title: "Owner Details", children: [
-              _kv("Owner Name", agreement!["owner_name"]),
-              _kv("Relation", "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
-              _kv("Address", agreement!["parmanent_addresss_owner"]),
-              _kv("Mobile", agreement!["owner_mobile_no"]),
-              _kv("Aadhar", agreement!["owner_addhar_no"]),
+              DetailRow(label: "Owner Name", value: agreement?["owner_name"] ?? ""),
+              DetailRow(
+                label: "Relation",
+                value:
+                "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}",
+              ),
+              DetailRow(label: "Address", value: agreement?["parmanent_addresss_owner"] ?? ""),
+              DetailRow(label: "Mobile", value: agreement?["owner_mobile_no"] ?? ""),
+              DetailRow(label: "Aadhar", value: agreement?["owner_addhar_no"] ?? ""),
             ]),
 
             // 🔹 Tenant Section
             _sectionCard(title: "Tenant Details", children: [
-              _kv("Tenant Name", agreement!["tenant_name"]),
-              _kv("Relation", "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
-              _kv("Address", agreement!["permanent_address_tenant"]),
-              _kv("Mobile", agreement!["tenant_mobile_no"]),
-              _kv("Aadhar", agreement!["tenant_addhar_no"]),
+              DetailRow(label: "Tenant Name", value: agreement?["tenant_name"] ?? ""),
+              DetailRow(
+                label: "Relation",
+                value:
+                "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}",
+              ),
+              DetailRow(label: "Address", value: agreement?["permanent_address_tenant"] ?? ""),
+              DetailRow(label: "Mobile", value: agreement?["tenant_mobile_no"] ?? ""),
+              DetailRow(label: "Aadhar", value: agreement?["tenant_addhar_no"] ?? ""),
             ]),
 
             // 🔹 Agreement Info
             _sectionCard(title: "Agreement Details", children: [
-              _kv("Rented Address", agreement!["rented_address"]),
-              _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
-              _kv("Security", "₹${agreement!["securitys"]}"),
-              _kv("Installment Security", "₹${agreement!["installment_security_amount"]}"),
-              _kv("Meter", agreement!["meter"]),
-              _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
-              _kv("Maintenance", agreement!["maintaince"]),
-              _kv("Parking", agreement!["parking"]),
-              _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
+              DetailRow(label: "Rented Address", value: agreement?["rented_address"] ?? ""),
+              DetailRow(label: "Monthly Rent", value: "₹${agreement?["monthly_rent"] ?? ""}"),
+              DetailRow(label: "Security", value: "₹${agreement?["securitys"] ?? ""}"),
+              DetailRow(label: "Installment Security", value: "₹${agreement?["installment_security_amount"] ?? ""}"),
+              DetailRow(label: "Meter", value: agreement?["meter"] ?? ""),
+              DetailRow(label: "Custom Unit", value: agreement?["custom_meter_unit"] ?? ""),
+              DetailRow(label: "Maintenance", value: agreement?["maintaince"] ?? ""),
+              DetailRow(label: "Parking", value: agreement?["parking"] ?? ""),
+              DetailRow(
+                label: "Shifting Date",
+                value: agreement?["shifting_date"]?.toString().split("T")[0] ?? "",
+              ),
             ]),
 
             // 🔹 Fieldworker
             _sectionCard(title: "Field Worker", children: [
-              _kv("Name", agreement!["Fieldwarkarname"]),
-              _kv("Number", agreement!["Fieldwarkarnumber"]),
+              DetailRow(label: "Name", value: agreement?["Fieldwarkarname"] ?? ""),
+              DetailRow(label: "Number", value: agreement?["Fieldwarkarnumber"] ?? ""),
             ]),
 
+            // 🔹 Documents
             _sectionCard(title: "Documents", children: [
-              _kvImage("Owner Aadhaar Front", agreement!["owner_aadhar_front"]),
-              _kvImage("Owner Aadhaar Back", agreement!["owner_aadhar_back"]),
-              _kvImage("Tenant Aadhaar Front", agreement!["tenant_aadhar_front"]),
-              _kvImage("Tenant Aadhaar Back", agreement!["tenant_aadhar_back"]),
-              _kvImage("Tenant Photo", agreement!["tenant_image"]),
-            ]),
+              DetailRow(label: "Owner Aadhaar Front", value: agreement?["owner_aadhar_front"] ?? "", isImage: true),
+              DetailRow(label: "Owner Aadhaar Back", value: agreement?["owner_aadhar_back"] ?? "", isImage: true),
+              DetailRow(label: "Tenant Aadhaar Front", value: agreement?["tenant_aadhar_front"] ?? "", isImage: true),
+              DetailRow(label: "Tenant Aadhaar Back", value: agreement?["tenant_aadhar_back"] ?? "", isImage: true),
+              DetailRow(label: "Tenant Photo", value: agreement?["tenant_image"] ?? "", isImage: true),
+            ]
+            ),
+
+            if (agreement?["status"] != null)
+              _sectionCard(title: "Agreement Status", children: [
+              Container(
+                decoration: BoxDecoration(color: Colors.red,borderRadius: BorderRadius.circular(10)),
+                  child:Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                                    children: [
+                                    DetailRow(label: "Status", value: agreement?["status"] ?? "",),
+                                    DetailRow(label: "Reason", value: agreement?["messages"] ?? "",),
+                                  ],),
+                  )
+    ),
+              ]),
+
             const SizedBox(height: 30),
           ],
         ),
@@ -229,4 +259,54 @@ class ElevatedGradientButton extends StatelessWidget {
       ),
     );
   }
+
 }
+
+class DetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final bool isImage;
+
+  const DetailRow({
+    super.key,
+    required this.label,
+    required this.value,
+    this.isImage = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (value.trim().isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              "$label:",
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Expanded(
+            child: isImage
+                ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$value",
+                height: 150,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                const Icon(Icons.broken_image, color: Colors.red),
+              ),
+            )
+                : Text(value),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

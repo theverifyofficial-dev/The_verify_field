@@ -22,6 +22,17 @@ class _AgreementDetailsState extends State<AdminAccepted> {
     fetchAgreements();
   }
 
+  Future<void> _refreshAgreements() async {
+    try {
+      setState(() => isLoading = true);
+      await fetchAgreements();
+    } catch (e) {
+      print("❌ Error refreshing agreements: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(Uri.parse(
@@ -84,13 +95,16 @@ class _AgreementDetailsState extends State<AdminAccepted> {
                   style: const TextStyle(color: Colors.white70),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
-                onTap: () {
-                  Navigator.push(
+                onTap: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => AcceptedDetails(agreementId: item.id),
                     ),
                   );
+
+                  _refreshAgreements();
+
                 },
               ),
             );

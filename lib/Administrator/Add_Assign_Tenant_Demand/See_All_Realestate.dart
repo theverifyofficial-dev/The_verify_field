@@ -230,7 +230,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   Future<List<Catid>> fetchData() async {
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=${widget.id}&live_unlive=Flat",
+        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=${widget.id}&live_unlive=Live",
       );
 
       final response = await http.get(url);

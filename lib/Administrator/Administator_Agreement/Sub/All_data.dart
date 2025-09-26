@@ -23,6 +23,18 @@ class _AgreementDetailsState extends State<AllData> {
     fetchAgreements();
   }
 
+  Future<void> _refreshAgreements() async {
+    try {
+      setState(() => isLoading = true);
+      await fetchAgreements();
+    } catch (e) {
+      print("❌ Error refreshing agreements: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(Uri.parse(
@@ -85,14 +97,20 @@ class _AgreementDetailsState extends State<AllData> {
                   style: const TextStyle(color: Colors.white70),
                 ),
                 trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
-                onTap: () {
-                  Navigator.push(
+
+                onTap: () async {
+                  await Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (_) => AllDataDetailsPage(agreementId: item.id.toString()),
                     ),
                   );
+
+                  _refreshAgreements();
+
+
                 },
+
               ),
             );
           },
@@ -107,39 +125,7 @@ class _AgreementDetailsState extends State<AllData> {
     return 'https://theverify.in/uploads/$path';
   }
 
-  Widget _text(String text) => Padding(
-    padding: const EdgeInsets.only(bottom: 6.0),
-    child: Text(
-      text,
-      style: const TextStyle(color: Colors.white),
-    ),
-  );
 
-  Widget _image(String url) => GestureDetector(
-    onTap: () {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ImagePreviewScreen(imageUrl: url),
-        ),
-      );
-    },
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: Image.network(
-        url,
-        width: 100,
-        height: 100,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => Container(
-          color: Colors.grey,
-          width: 100,
-          height: 100,
-          child: const Icon(Icons.error, color: Colors.red),
-        ),
-      ),
-    ),
-  );
 
   String _formatDate(String rawDate) {
     final timestamp = int.parse(rawDate.replaceAll(RegExp(r'[^0-9]'), ''));

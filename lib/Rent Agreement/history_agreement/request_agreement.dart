@@ -33,6 +33,17 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
     }
   }
 
+  Future<void> _refreshAgreements() async {
+    try {
+      setState(() => isLoading = true);
+      await _fetchRentalAgreements();
+    } catch (e) {
+      print("❌ Error refreshing agreements: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
   Future<void> _fetchRentalAgreements() async {
     try {
       final response = await http.get(Uri.parse(
@@ -132,7 +143,8 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                           : Colors.green,
                     ),
                   ),
-                  if (agreement.messages != null &&
+                  if (agreement.status!.toLowerCase() == "rejected" &&
+                      agreement.messages != null &&
                       agreement.messages!.isNotEmpty) ...[
                     const SizedBox(width: 8),
                     GestureDetector(
@@ -144,8 +156,11 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                             content: Text(agreement.messages!),
                             actions: [
                               TextButton(
-                                onPressed: () {
-                                  Navigator.push(
+                                onPressed: () async {
+                                  Navigator.pop(context); // Close the dialog first
+
+                                  // Navigate and wait until the user comes back
+                                  await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (_) => RentalWizardPage(
@@ -153,6 +168,8 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                                       ),
                                     ),
                                   );
+
+                                  _refreshAgreements();
                                 },
                                 child: const Text("Edit"),
                               ),
@@ -164,8 +181,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                           ),
                         );
                       },
-                      child:
-                      const Icon(Icons.message_rounded, color: Colors.blue),
+                      child: const Icon(Icons.message_rounded, color: Colors.blue),
                     ),
                   ],
                 ],

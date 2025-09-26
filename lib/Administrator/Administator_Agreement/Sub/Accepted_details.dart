@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -8,6 +9,9 @@ import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 import 'PDF.dart';
 import 'package:open_filex/open_filex.dart';
+import 'package:mime/mime.dart';
+import 'package:http_parser/http_parser.dart';
+
 
 class AcceptedDetails extends StatefulWidget {
 
@@ -31,6 +35,13 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   void initState() {
     super.initState();
     _fetchAgreementDetail();
+  }
+
+
+  MediaType _mediaTypeFromPath(String path) {
+    final mime = lookupMimeType(path) ?? 'application/octet-stream';
+    final parts = mime.split('/');
+    return MediaType(parts.first, parts.length > 1 ? parts.last : 'octet-stream');
   }
 
   String? _formatDate(dynamic shiftingDate) {
@@ -217,8 +228,24 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   //   );
   // }
 
+  MediaType _mediaTypeFromHeader(String? ct, {String fallback = 'application/octet-stream'}) {
+    final v = (ct ?? fallback).split(';').first.trim();
+    final parts = v.split('/');
+    if (parts.length == 2) return MediaType(parts[0], parts[1]);
+    return MediaType('application', 'octet-stream');
+  }
+
+  String _filenameFromUrl(String url, {required String defaultBase, required String defaultExt}) {
+    try {
+      final p = Uri.parse(url).pathSegments;
+      if (p.isNotEmpty && p.last.contains('.')) return p.last;
+    } catch (_) {}
+    final rand = math.Random().nextInt(1 << 32);
+    return '${defaultBase}_$rand.$defaultExt';
+  }
+
   Future<void> _submitAll() async {
-    print("🔹 _submitAll called");
+    if (agreement == null) return;
 
     showDialog(
       context: context,
@@ -228,11 +255,12 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     try {
       final uri = Uri.parse("https://theverify.in/insert.php");
-      final request = http.MultipartRequest("POST", uri);
+      final request = http.MultipartRequest('POST', uri);
+      request.headers['Accept'] = 'application/json';
 
-      // 🔹 Fields
-      final Map<String, dynamic> textFields = {
-        "id" : widget.agreementId,
+      // Only include non-empty fields, drop id for insert
+      final Map<String, String> fields = {
+        "accept_delete_id": widget.agreementId ?? "",
         "owner_name": agreement?["owner_name"] ?? "",
         "owner_relation": agreement?["owner_relation"] ?? "",
         "relation_person_name_owner": agreement?["relation_person_name_owner"] ?? "",
@@ -265,100 +293,102 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "property_id": agreement?["property_id"] ?? "",
       };
 
-      // 🔹 Print all fields for debugging
-      print("📌 Fields to be sent:");
-      textFields.forEach((k, v) => print("   $k -> $v"));
+      fields.forEach((k, v) {
+        final trimmed = v.trim();
+        if (trimmed.isNotEmpty) request.fields[k] = trimmed;
+      });
 
-      textFields.forEach((key, value) {
-        request.fields[key] = value.toString();
-      }
-      );
+      final attached = <String>{};
 
-      // 🔹 Files
-      Future<void> addFileFromUrl(String key, String? relativeUrl, {String? filename}) async {
-        if (relativeUrl != null && relativeUrl.isNotEmpty) {
-          final fullUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$relativeUrl";
-          print("📌 Fetching file for $key from $fullUrl");
-          final response = await http.get(Uri.parse(fullUrl));
-          if (response.statusCode == 200) {
-            final tempFile = File("${Directory.systemTemp.path}/$filename");
-            await tempFile.writeAsBytes(response.bodyBytes);
-            request.files.add(await http.MultipartFile.fromPath(key, tempFile.path, filename: filename));
-            print("✅ File attached: $key at ${tempFile.path}");
-          } else {
-            print("❌ Failed to fetch file for $key. Status: ${response.statusCode}");
-          }
-        } else {
-          print("⚠️ No file URL provided for $key");
+      Future<void> attachFile(String key, File? file) async {
+        if (file == null) {
+          print("⚠️ No file for $key");
+          return;
         }
-      }
-
-      await addFileFromUrl("owner_aadhar_front", agreement?["owner_aadhar_front"], filename: "owner_aadhar_front.jpg");
-      await addFileFromUrl("owner_aadhar_back", agreement?["owner_aadhar_back"], filename: "owner_aadhar_back.jpg");
-      await addFileFromUrl("tenant_aadhar_front", agreement?["tenant_aadhar_front"], filename: "tenant_aadhar_front.jpg");
-      await addFileFromUrl("tenant_aadhar_back", agreement?["tenant_aadhar_back"], filename: "tenant_aadhar_back.jpg");
-      await addFileFromUrl("tenant_image", agreement?["tenant_image"], filename: "tenant_image.jpg");
-
-      if (policeVerificationFile != null) {
         request.files.add(await http.MultipartFile.fromPath(
-          "police_verification_pdf",
-          policeVerificationFile!.path,
-          filename: "police_verification.pdf", // or .jpg if image
+          key,
+          file.path,
+          contentType: _mediaTypeFromPath(file.path),
         ));
-        print("✅ Police Verification file attached");
-      } else {
-        print("⚠️ No Police Verification file selected");
+        attached.add(key);
+        print("✅ Attached $key: ${file.path}");
       }
 
-      if (notaryImageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          "notry_img",
-          notaryImageFile!.path,
-          filename: "notary.jpg",
+      Future<void> attachFileFromUrl(String key, String? relativeUrl,
+          {required String basePrefix}) async {
+        if (attached.contains(key)) {
+          print("↩️ Skipping $key from URL because local file already attached");
+          return;
+        }
+        if (relativeUrl == null || relativeUrl.isEmpty) {
+          print("⚠️ No URL for $key");
+          return;
+        }
+
+        final fullUrl = '$basePrefix$relativeUrl';
+        final resp = await http.get(Uri.parse(fullUrl));
+        if (resp.statusCode != 200 || resp.bodyBytes.isEmpty) {
+          print("❌ Failed to fetch $key from URL ($fullUrl) -> ${resp.statusCode}");
+          return;
+        }
+
+        final mt = _mediaTypeFromHeader(resp.headers['content-type']);
+
+        String ext;
+        if (mt.type == 'application' && mt.subtype == 'pdf') ext = 'pdf';
+        else if (mt.type == 'image' && (mt.subtype == 'jpeg' || mt.subtype == 'jpg')) ext = 'jpg';
+        else if (mt.type == 'image' && mt.subtype == 'png') ext = 'png';
+        else if (mt.type == 'image' && mt.subtype == 'webp') ext = 'webp';
+        else ext = 'bin';
+
+        final filename = _filenameFromUrl(fullUrl, defaultBase: key, defaultExt: ext);
+
+        request.files.add(http.MultipartFile.fromBytes(
+          key,
+          resp.bodyBytes,
+          filename: filename,
+          contentType: mt,
         ));
-        print("✅ Notary Image attached");
-      } else {
-        print("⚠️ No Notary image selected");
+        attached.add(key);
+        print("✅ Attached $key from URL ($filename, ${resp.headers['content-type']})");
       }
 
-      if (pdfFile != null) {
-        print("📌 Attaching PDF at ${pdfFile!.path}");
-        request.files.add(await http.MultipartFile.fromPath(
-          "agreement_pdf",
-          pdfFile!.path,
-          // contentType: MediaType("application", "pdf"),
-          filename: "agreement.pdf",
-        ));
-      } else {
-        print("⚠️ No PDF file found, skipping agreement_pdf");
-      }
+      // Attach local files first
+      await attachFile("police_verification_pdf", policeVerificationFile);
+      await attachFile("notry_img", notaryImageFile);
+      await attachFile("agreement_pdf", pdfFile);
 
+      // Then attach URL files if no local file
+      const basePrefix =
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
+      await attachFileFromUrl("owner_aadhar_front", agreement?["owner_aadhar_front"], basePrefix: basePrefix);
+      await attachFileFromUrl("owner_aadhar_back", agreement?["owner_aadhar_back"], basePrefix: basePrefix);
+      await attachFileFromUrl("tenant_aadhar_front", agreement?["tenant_aadhar_front"], basePrefix: basePrefix);
+      await attachFileFromUrl("tenant_aadhar_back", agreement?["tenant_aadhar_back"], basePrefix: basePrefix);
+      await attachFileFromUrl("tenant_image", agreement?["tenant_image"], basePrefix: basePrefix);
 
-      // 🔹 Send request
-      print("📌 Sending request to API...");
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      final streamed = await request.send().timeout(const Duration(seconds: 90));
+      final response = await http.Response.fromStream(streamed);
 
-      print("📩 Server responded with status: ${response.statusCode}");
-      print("📄 Response body: ${response.body}");
-
-      if (response.statusCode == 200 && response.body.toLowerCase().contains("success")) {
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        print("✅ Upload successful: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Submitted successfully! ✅")),
         );
-        Navigator.pop(context, true);
+        Navigator.pop(context, true); // close loader
       } else {
+        print("❌ Upload failed ${response.statusCode}: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Submit failed (${response.statusCode})")),
         );
       }
     } catch (e) {
+      print("🔥 Exception during submit: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
-      print("🔥 Exception during submit: $e");
     } finally {
-      Navigator.pop(context);
+      Navigator.pop(context); // ensure loader closes
     }
   }
 
@@ -499,9 +529,9 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                           setState(() {
                             policeVerificationFile = File(result.files.single.path!);
                           });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Police Verification file selected ✅")),
-                          );
+                          // ScaffoldMessenger.of(context).showSnackBar(
+                          //   const SnackBar(content: Text("Police Verification file selected ✅")),
+                          // );
                         }
                       },                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
                       label: const Text(
@@ -526,9 +556,9 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                           setState(() {
                             notaryImageFile = File(picked.path);
                           });
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Notary image selected ✅")),
-                          );
+                          // ScaffoldMessenger.of(context).showSnackBar(
+                          //   const SnackBar(content: Text("Notary image selected ✅")),
+                          // );
                         }
                       },
                       icon: const Icon(Icons.upload_sharp, color: Colors.white),

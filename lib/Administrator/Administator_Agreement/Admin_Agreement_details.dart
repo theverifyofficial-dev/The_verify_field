@@ -157,8 +157,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-  Widget _kv(String k, String v) {
-    if (v.trim().isEmpty) return const SizedBox.shrink();
+  Widget _kv(String k, String? v) {
+    if (v == null || v.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -173,8 +173,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       ),
     );
   }
-  Widget _kvImage(String k, String url) {
-    if (url.trim().isEmpty) return const SizedBox.shrink();
+
+  Widget _kvImage(String k, String? url) {
+    if (url == null || url.trim().isEmpty) return const SizedBox.shrink();
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -192,7 +193,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${url}",
+                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url",
                 height: 150,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) =>

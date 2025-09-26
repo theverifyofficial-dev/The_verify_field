@@ -127,7 +127,6 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -143,78 +142,94 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Owner Section
-            _sectionCard(title: "Owner Details", children: [
-              DetailRow(label: "Owner Name", value: agreement?["owner_name"] ?? ""),
-              DetailRow(
-                label: "Relation",
-                value:
-                "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}",
-              ),
-              DetailRow(label: "Address", value: agreement?["parmanent_addresss_owner"] ?? ""),
-              DetailRow(label: "Mobile", value: agreement?["owner_mobile_no"] ?? ""),
-              DetailRow(label: "Aadhar", value: agreement?["owner_addhar_no"] ?? ""),
-            ]),
 
-            // 🔹 Tenant Section
-            _sectionCard(title: "Tenant Details", children: [
-              DetailRow(label: "Tenant Name", value: agreement?["tenant_name"] ?? ""),
-              DetailRow(
-                label: "Relation",
-                value:
-                "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}",
-              ),
-              DetailRow(label: "Address", value: agreement?["permanent_address_tenant"] ?? ""),
-              DetailRow(label: "Mobile", value: agreement?["tenant_mobile_no"] ?? ""),
-              DetailRow(label: "Aadhar", value: agreement?["tenant_addhar_no"] ?? ""),
-            ]),
+            // 🔹 First three sections in a horizontal scroll
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  SizedBox(width: 300, child: _sectionCard(title: "Owner Details", children: [
+                    DetailRow(label: "Owner Name", value: agreement?["owner_name"] ?? ""),
+                    DetailRow(
+                      label: "Relation",
+                      value: "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}",
+                    ),
+                    DetailRow(label: "Address", value: agreement?["parmanent_addresss_owner"] ?? ""),
+                    DetailRow(label: "Mobile", value: agreement?["owner_mobile_no"] ?? ""),
+                    DetailRow(label: "Aadhar", value: agreement?["owner_addhar_no"] ?? ""),
+                  ])),
 
-            // 🔹 Agreement Info
-            _sectionCard(title: "Agreement Details", children: [
-              DetailRow(label: "Rented Address", value: agreement?["rented_address"] ?? ""),
-              DetailRow(label: "Monthly Rent", value: "₹${agreement?["monthly_rent"] ?? ""}"),
-              DetailRow(label: "Security", value: "₹${agreement?["securitys"] ?? ""}"),
-              DetailRow(label: "Installment Security", value: "₹${agreement?["installment_security_amount"] ?? ""}"),
-              DetailRow(label: "Meter", value: agreement?["meter"] ?? ""),
-              DetailRow(label: "Custom Unit", value: agreement?["custom_meter_unit"] ?? ""),
-              DetailRow(label: "Maintenance", value: agreement?["maintaince"] ?? ""),
-              DetailRow(label: "Parking", value: agreement?["parking"] ?? ""),
-              DetailRow(
-                label: "Shifting Date",
-                value: agreement?["shifting_date"]?.toString().split("T")[0] ?? "",
-              ),
-            ]),
+                  const SizedBox(width: 12),
 
-            // 🔹 Fieldworker
+                  SizedBox(width: 300, child: _sectionCard(title: "Tenant Details", children: [
+                    DetailRow(label: "Tenant Name", value: agreement?["tenant_name"] ?? ""),
+                    DetailRow(
+                      label: "Relation",
+                      value: "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}",
+                    ),
+                    DetailRow(label: "Address", value: agreement?["permanent_address_tenant"] ?? ""),
+                    DetailRow(label: "Mobile", value: agreement?["tenant_mobile_no"] ?? ""),
+                    DetailRow(label: "Aadhar", value: agreement?["tenant_addhar_no"] ?? ""),
+                  ])),
+
+                  const SizedBox(width: 12),
+
+                  SizedBox(width: 300, child: _sectionCard(title: "Agreement Details", children: [
+                    DetailRow(label: "Rented Address", value: agreement?["rented_address"] ?? ""),
+                    DetailRow(label: "Monthly Rent", value: "₹${agreement?["monthly_rent"] ?? ""}"),
+                    DetailRow(label: "Security", value: "₹${agreement?["securitys"] ?? ""}"),
+                    DetailRow(label: "Installment Security", value: "₹${agreement?["installment_security_amount"] ?? ""}"),
+                    DetailRow(label: "Meter", value: agreement?["meter"] ?? ""),
+                    DetailRow(label: "Custom Unit", value: agreement?["custom_meter_unit"] ?? ""),
+                    DetailRow(label: "Maintenance", value: agreement?["maintaince"] ?? ""),
+                    DetailRow(label: "Parking", value: agreement?["parking"] ?? ""),
+                    DetailRow(label: "Shifting Date", value: agreement?["shifting_date"]?.toString().split("T")[0] ?? ""),
+                  ])),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // 🔹 Remaining sections vertically
             _sectionCard(title: "Field Worker", children: [
               DetailRow(label: "Name", value: agreement?["Fieldwarkarname"] ?? ""),
               DetailRow(label: "Number", value: agreement?["Fieldwarkarnumber"] ?? ""),
             ]),
 
-            // 🔹 Documents
             _sectionCard(title: "Documents", children: [
               DetailRow(label: "Owner Aadhaar Front", value: agreement?["owner_aadhar_front"] ?? "", isImage: true),
               DetailRow(label: "Owner Aadhaar Back", value: agreement?["owner_aadhar_back"] ?? "", isImage: true),
               DetailRow(label: "Tenant Aadhaar Front", value: agreement?["tenant_aadhar_front"] ?? "", isImage: true),
               DetailRow(label: "Tenant Aadhaar Back", value: agreement?["tenant_aadhar_back"] ?? "", isImage: true),
               DetailRow(label: "Tenant Photo", value: agreement?["tenant_image"] ?? "", isImage: true),
-            ]
-            ),
+            ]),
 
             if (agreement?["status"] != null)
-              _sectionCard(title: "Agreement Status", children: [
-              Container(
-                decoration: BoxDecoration(color: Colors.red,borderRadius: BorderRadius.circular(10)),
-                  child:Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                                    children: [
-                                    DetailRow(label: "Status", value: agreement?["status"] ?? "",),
-                                    DetailRow(label: "Reason", value: agreement?["messages"] ?? "",),
-                                  ],),
-                  )
-    ),
-              ]),
+              _sectionCard(
+                title: "Agreement Status",
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: (agreement?["status"]?.toString().toLowerCase() == "rejected")
+                          ? Colors.red
+                          : (agreement?["status"]?.toString().toLowerCase() == "Resubmit")
+                          ? Colors.green
+                          : Colors.grey, // fallback color for other statuses
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          DetailRow(label: "Status", value: agreement?["status"] ?? ""),
+                          DetailRow(label: "Reason", value: agreement?["messages"] ?? ""),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
             const SizedBox(height: 30),
           ],
@@ -222,6 +237,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
       ),
     );
   }
+
 }
 
 class ElevatedGradientButton extends StatelessWidget {

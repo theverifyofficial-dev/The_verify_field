@@ -34,6 +34,16 @@ class _AgreementDetailsState extends State<AllAgreement> {
       setState(() => isLoading = false);
     }
   }
+  Future<void> _refreshAgreements() async {
+    try {
+      setState(() => isLoading = true);
+      await fetchAgreements();
+    } catch (e) {
+      print("❌ Error refreshing agreements: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
 
   Future<void> fetchAgreements() async {
     try {
@@ -122,6 +132,7 @@ class _AgreementDetailsState extends State<AllAgreement> {
                           agreementId: item.id.toString()),
                     ),
                   );
+                  _refreshAgreements();
                 },
               ),
             );

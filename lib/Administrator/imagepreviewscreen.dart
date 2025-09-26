@@ -19,7 +19,13 @@ class ImagePreviewScreen extends StatelessWidget {
           child: Image.network(
             imageUrl,
             fit: BoxFit.contain,
-            errorBuilder: (context, error, stackTrace) => const Icon(Icons.error, color: Colors.red),
+            errorBuilder: (context, error, stackTrace) => Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, color: Colors.red),
+                const Text('Not Available',style: TextStyle(color: Colors.red),)
+              ],
+            ),
           ),
         ),
       ),

@@ -89,7 +89,7 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
                   "Tenant: ${item.tenantName}\n💰 Rent: ₹${item.monthlyRent}\n📆 Date: ${_formatDate(item.shiftingDate)}",
                   style: const TextStyle(color: Colors.white70),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                trailing: const Text('by Admin',)
                 // onTap: () {
                 //   Navigator.push(
                 //     context,

@@ -14,6 +14,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
+import 'Dashboard_screen.dart';
+
 class RentalWizardPage extends StatefulWidget {
   final String? agreementId;
   const RentalWizardPage({Key? key, this.agreementId}) : super(key: key);
@@ -261,73 +263,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       }
     });
   }
-  Future<void> _fetchOwnerData() async {
-    String query;
-    String paramKey;
 
-    if (ownerAadhaar.text.trim().isNotEmpty) {
-      query = ownerAadhaar.text.trim();
-      paramKey = "owner_addhar_no";
-    } else if (ownerMobile.text.trim().isNotEmpty) {
-      query = ownerMobile.text.trim();
-      paramKey = "owner_mobile_no";
-    } else {
-      _showToast("Enter Aadhaar or Mobile to fetch owner data");
-      return;
-    }
 
-    try {
-      final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php",
-      );
-
-      final response = await http.post(uri, body: {paramKey: query});
-
-      print("📩 API Response: ${response.body}");
-
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-
-        if (decoded['status'] == 'success' && decoded['data'] != null) {
-          final rawData = decoded['data'];
-          if (rawData is List && rawData.isNotEmpty) {
-            final data = rawData[0]; // ✅ first record
-            setState(() {
-              ownerName.text = data['owner_name'] ?? '';
-              ownerRelation = data['owner_relation'] ?? 'S/O';
-              ownerRelationPerson.text = data['relation_person_name_owner'] ?? '';
-              ownerAddress.text = data['parmanent_addresss_owner'] ?? '';
-              ownerMobile.text = data['owner_mobile_no'] ?? '';
-              ownerAadhaar.text = data['owner_addhar_no'] ?? '';
-
-              const baseUrl = "https://theverify.in/";
-
-              ownerAadharFrontUrl = data['owner_aadhar_front'] != null
-                  ? baseUrl + data['owner_aadhar_front']
-                  : null;
-              ownerAadharBackUrl = data['owner_aadhar_back'] != null
-                  ? baseUrl + data['owner_aadhar_back']
-                  : null;
-            });
-
-            print("✅ Owner data loaded, image: $ownerAadharFrontUrl");
-          } else {
-            _showToast("No owner found for this query");
-          }
-        }
-        else {
-          _showToast("Unexpected response format");
-        }
-      }
-      else {
-        _showToast("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("🔥 Exception while fetching owner: $e");
-      _showToast("Error: $e");
-    }
-  }
-  // ---------- Navigation ----------
   void _goNext() {
     bool valid = false;
 
@@ -390,49 +327,121 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     _number = prefs.getString('number') ?? '';
   }
 
+  /// Helper to build full URL or return null if empty
+  String? _buildUrl(String? path) {
+    if (path?.isNotEmpty ?? false) return "https://theverify.in/$path";
+    return null;
+  }
 
-  Future<void> _fetchTenantByAadhaar(String aadhaar) async {
+  /// Generic fetch for owner/tenant
+  Future<void> _fetchUserData({
+    required bool isOwner,                // true for owner, false for tenant
+    required String? aadhaar,             // value in the Aadhaar field
+    required String? mobile,              // value in the mobile field
+  }) async {
+    String query;
+    String paramKey;
+    bool searchedByAadhaar;
+
+    // Determine which field to search by
+    if (aadhaar?.trim().isNotEmpty ?? false) {
+      query = aadhaar!.trim();
+      paramKey = isOwner ? "owner_addhar_no" : "tenant_addhar_no";
+      searchedByAadhaar = true;
+    } else if (mobile?.trim().isNotEmpty ?? false) {
+      query = mobile!.trim();
+      paramKey = isOwner ? "owner_mobile_no" : "tenant_mobile_no";
+      searchedByAadhaar = false;
+    } else {
+      _showToast("Enter Aadhaar or Mobile to fetch ${isOwner ? 'owner' : 'tenant'} data");
+      return;
+    }
+
     try {
       final uri = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/fetch_tenant.php",
+        isOwner
+            ? "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php"
+            : "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_tenant_addhar_number.php",
       );
 
-      final response = await http.post(uri, body: {"aadhaar": aadhaar});
-
+      final response = await http.post(uri, body: {paramKey: query});
       print("📩 API Response: ${response.body}");
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(response.body);
-
-        if (decoded['status'] == 'success' && decoded['data'] != null) {
-          final data = decoded['data'];
-
-          setState(() {
-            tenantName.text = data['tenant_name'] ?? '';
-            tenantRelation = data['tenant_relation'] ?? 'S/O';
-            tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
-            tenantAddress.text = data['permanent_address_tenant'] ?? '';
-            tenantMobile.text = data['tenant_mobile_no'] ?? '';
-
-            tenantAadharFrontUrl = data['tenant_aadhar_front'];
-            tenantAadharBackUrl = data['tenant_aadhar_back'];
-            tenantPhotoUrl = data['tenant_image'];
-          });
-
-          print("✅ Tenant data loaded into text fields");
-        } else if (decoded['status'] == 'not_found') {
-          _showToast("No tenant found for this Aadhaar");
-        } else {
-          _showToast("Unexpected response format");
-        }
-      } else {
-        _showToast("Server error: ${response.statusCode}");
+      if (response.statusCode != 200) {
+        return _showToast("Server error: ${response.statusCode}");
       }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded['status'] != 'success' || decoded['data'] == null) {
+        return _showToast("No data found");
+      }
+
+      final rawData = decoded['data'];
+      if (rawData is! List || rawData.isEmpty) {
+        return _showToast("No data found");
+      }
+
+      final data = rawData[0];
+
+      setState(() {
+        if (isOwner) {
+          ownerName.text = data['owner_name'] ?? '';
+          ownerRelation = data['owner_relation'] ?? 'S/O';
+          ownerRelationPerson.text = data['relation_person_name_owner'] ?? '';
+          ownerAddress.text = data['parmanent_addresss_owner'] ?? '';
+
+          // Only update opposite field
+          if (searchedByAadhaar) {
+            ownerMobile.text = data['owner_mobile_no'] ?? '';
+          } else {
+            ownerAadhaar.text = data['owner_addhar_no'] ?? '';
+          }
+
+          ownerAadharFrontUrl = _buildUrl(data['owner_aadhar_front']);
+          ownerAadharBackUrl = _buildUrl(data['owner_aadhar_back']);
+        } else {
+          tenantName.text = data['tenant_name'] ?? '';
+          tenantRelation = data['tenant_relation'] ?? 'S/O';
+          tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
+          tenantAddress.text = data['permanent_address_tenant'] ?? '';
+
+          // Only update opposite field
+          if (searchedByAadhaar) {
+            tenantMobile.text = data['tenant_mobile_no'] ?? '';
+          } else {
+            tenantAadhaar.text = data['tenant_addhar_no'] ?? '';
+          }
+
+          tenantAadharFrontUrl = _buildUrl(data['tenant_aadhar_front']);
+          tenantAadharBackUrl = _buildUrl(data['tenant_aadhar_back']);
+          tenantPhotoUrl = _buildUrl(data['tenant_image']);
+        }
+      });
+
+      print("✅ ${isOwner ? 'Owner' : 'Tenant'} data loaded successfully");
     } catch (e) {
-      print("🔥 Exception while fetching tenant: $e");
+      print("🔥 Exception while fetching ${isOwner ? 'owner' : 'tenant'}: $e");
       _showToast("Error: $e");
     }
   }
+
+  /// Wrappers for owner/tenant
+  _fetchOwnerData() {
+    _fetchUserData(
+      isOwner: true,
+      aadhaar: ownerAadhaar.text,
+      mobile: ownerMobile.text,
+    );
+  }
+
+  _fetchTenantData() {
+    _fetchUserData(
+      isOwner: false,
+      aadhaar: tenantAadhaar.text,
+      mobile: tenantMobile.text,
+    );
+  }
+
 
 
   Future<void> _submitAll() async {
@@ -444,7 +453,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
-    // Load user data
     await _loaduserdata();
     print("Loaded Name: $_name, Number: $_number");
 
@@ -453,19 +461,20 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       print("⏳ Uploading...");
 
       final uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement.php");
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement.php",
+      );
       final request = http.MultipartRequest("POST", uri);
 
-      // 🔹 Prepare text fields
+      // 🔹 Prepare text fields (safe null handling)
       final Map<String, dynamic> textFields = {
         "owner_name": ownerName.text,
-        "owner_relation": ownerRelation,
+        "owner_relation": ownerRelation ?? '',
         "relation_person_name_owner": ownerRelationPerson.text,
         "parmanent_addresss_owner": ownerAddress.text,
         "owner_mobile_no": ownerMobile.text,
-        "owner_addhar_no": ownerAadhaar.text,
+        "owner_addhar_no": ownerAadhaar.text, // confirm spelling with backend
         "tenant_name": tenantName.text,
-        "tenant_relation": tenantRelation,
+        "tenant_relation": tenantRelation ?? '',
         "relation_person_name_tenant": tenantRelationPerson.text,
         "permanent_address_tenant": tenantAddress.text,
         "tenant_mobile_no": tenantMobile.text,
@@ -474,21 +483,23 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "monthly_rent": rentAmount.text,
         "securitys": securityAmount.text,
         "installment_security_amount": installmentAmount.text,
-        "meter": meterInfo,
+        "meter": meterInfo ?? '',
         "custom_meter_unit": customUnitAmount.text,
-        "shifting_date": shiftingDate?.toIso8601String() ?? "",
-        "maintaince": maintenance,
+        "shifting_date": shiftingDate?.toIso8601String() ?? '',
+        "maintaince": maintenance ?? '',
         "custom_maintenance_charge": customMaintanceAmount.text,
-        "parking": parking,
+        "parking": parking ?? '',
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
       };
 
-      request.fields.addAll(textFields.map((k, v) => MapEntry(k, v.toString())));
+      request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
       print("✅ Text fields added");
+      print("🔎 Final Fields: ${request.fields}");
 
+      // 🔹 Helper to attach files or preserve existing URLs
       Future<void> attachFileOrUrl(
           String key,
           File? file,
@@ -503,20 +514,18 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             contentType: type,
             filename: filename ?? file.path.split("/").last,
           ));
-          print("✅ File added: $key");
+          print("✅ File added: $key (${file.path})");
         } else if (existingUrl != null && existingUrl.isNotEmpty) {
-          // Always send only relative path to API
           final relativePath = existingUrl.replaceAll(
             RegExp(r"^https?:\/\/(theverify\.in|verifyserve\.social)\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
             "",
           );
-
           request.fields[key] = relativePath;
-          print("🔄 Preserved existing $key: $relativePath");
+          print("🔄 Preserved existing $key: $relativePath (from $existingUrl)");
         }
       }
 
-      // 🔹 Attach all files or preserve existing URLs
+      // 🔹 Attach files or preserve URLs
       await attachFileOrUrl("owner_aadhar_front", ownerAadhaarFront, ownerAadharFrontUrl,
           filename: "owner_aadhar_front.jpg");
       await attachFileOrUrl("owner_aadhar_back", ownerAadhaarBack, ownerAadharBackUrl,
@@ -530,7 +539,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       await attachFileOrUrl("agreement_pdf", agreementPdf, null,
           filename: "agreement.pdf", type: MediaType("application", "pdf"));
 
-      print("📦 All files ready: ${request.files.map((f) => f.filename).toList()}");
+      print("📦 Files ready: ${request.files.map((f) => f.filename).toList()}");
 
       // 🔹 Send request
       final streamedResponse = await request.send();
@@ -540,20 +549,147 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       print("📄 Response body: ${response.body}");
 
       if (response.statusCode == 200 && response.body.toLowerCase().contains("success")) {
+
         _showToast('Submitted successfully!');
         print("✅ Submission successful");
-        Navigator.pop(context); // Remove loader
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => AgreementDashboard()),
+        );
       } else {
         _showToast('Submit failed (${response.statusCode})');
-        print("❌ Submission failed");
-        Navigator.pop(context);
+        print("❌ Submission failed: ${response.body}");
       }
     } catch (e) {
       _showToast('Submit error: $e');
       print("🔥 Exception during submit: $e");
-      Navigator.pop(context);
+    } finally {
+      Navigator.pop(context); // Always close loader
     }
   }
+
+  Future<void> _updateAll() async {
+    print("🔹 _updateAll called");
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    await _loaduserdata();
+    print("Loaded Name: $_name, Number: $_number");
+
+    try {
+      _showToast('Updating...');
+      print("⏳ Updating...");
+
+      final uri = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_update.php",
+      );
+      final request = http.MultipartRequest("POST", uri);
+
+      final Map<String, dynamic> textFields = {
+        "id": widget.agreementId,
+        "owner_name": ownerName.text,
+        "owner_relation": ownerRelation ?? '',
+        "relation_person_name_owner": ownerRelationPerson.text,
+        "parmanent_addresss_owner": ownerAddress.text,
+        "owner_mobile_no": ownerMobile.text,
+        "owner_addhar_no": ownerAadhaar.text, // confirm spelling with backend
+        "tenant_name": tenantName.text,
+        "tenant_relation": tenantRelation ?? '',
+        "relation_person_name_tenant": tenantRelationPerson.text,
+        "permanent_address_tenant": tenantAddress.text,
+        "tenant_mobile_no": tenantMobile.text,
+        "tenant_addhar_no": tenantAadhaar.text,
+        "rented_address": bhkWithAddress.text,
+        "monthly_rent": rentAmount.text,
+        "securitys": securityAmount.text,
+        "installment_security_amount": installmentAmount.text,
+        "meter": meterInfo ?? '',
+        "custom_meter_unit": customUnitAmount.text,
+        "shifting_date": shiftingDate?.toIso8601String() ?? '',
+        "maintaince": maintenance ?? '',
+        "custom_maintenance_charge": customMaintanceAmount.text,
+        "parking": parking ?? '',
+        "current_dates": DateTime.now().toIso8601String(),
+        "Fieldwarkarname": _name.isNotEmpty ? _name : '',
+        "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "property_id": propertyID.text,
+      };
+
+      request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
+      print("✅ Text fields added");
+      print("🔎 Final Fields: ${request.fields}");
+
+      // 🔹 Helper to attach files or preserve existing URLs
+      Future<void> attachFileOrUrl(
+          String key,
+          File? file,
+          String? existingUrl, {
+            String? filename,
+            MediaType? type,
+          }) async {
+        if (file != null) {
+          request.files.add(await http.MultipartFile.fromPath(
+            key,
+            file.path,
+            contentType: type,
+            filename: filename ?? file.path.split("/").last,
+          ));
+          print("✅ File added: $key (${file.path})");
+        } else if (existingUrl != null && existingUrl.isNotEmpty) {
+          final relativePath = existingUrl.replaceAll(
+            RegExp(r"^https?:\/\/(theverify\.in|verifyserve\.social)\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
+            "",
+          );
+          request.fields[key] = relativePath;
+          print("🔄 Preserved existing $key: $relativePath (from $existingUrl)");
+        }
+      }
+
+      // 🔹 Attach files or preserve URLs
+      await attachFileOrUrl("owner_aadhar_front", ownerAadhaarFront, ownerAadharFrontUrl,
+          filename: "owner_aadhar_front.jpg");
+      await attachFileOrUrl("owner_aadhar_back", ownerAadhaarBack, ownerAadharBackUrl,
+          filename: "owner_aadhar_back.jpg");
+      await attachFileOrUrl("tenant_aadhar_front", tenantAadhaarFront, tenantAadharFrontUrl,
+          filename: "tenant_aadhaar_front.jpg");
+      await attachFileOrUrl("tenant_aadhar_back", tenantAadhaarBack, tenantAadharBackUrl,
+          filename: "tenant_aadhaar_back.jpg");
+      await attachFileOrUrl("tenant_image", tenantImage, tenantPhotoUrl,
+          filename: "tenant_image.jpg");
+      await attachFileOrUrl("agreement_pdf", agreementPdf, null,
+          filename: "agreement.pdf", type: MediaType("application", "pdf"));
+
+      print("📦 Files ready: ${request.files.map((f) => f.filename).toList()}");
+
+      // 🔹 Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print("📩 Server responded with status: ${response.statusCode}");
+      print("📄 Response body: ${response.body}");
+
+      if (response.statusCode == 200 && response.body.toLowerCase().contains("success")) {
+        Navigator.push(context, MaterialPageRoute(builder: (context)
+        => AgreementDashboard(),
+        ));
+        _showToast('Resubmitted successfully!');
+        print("✅ Resubmission successful");
+      } else {
+        _showToast('Submit failed (${response.statusCode})');
+        print("❌ Resubmission failed: ${response.body}");
+      }
+    } catch (e) {
+      _showToast('Submit error: $e');
+      print("🔥 Exception during submit: $e");
+    } finally {
+      Navigator.pop(context); // Always close loader
+    }
+  }
+
 
 
   Future<void> _addFile(
@@ -743,6 +879,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    print('Agreement ID  : ${widget.agreementId}');
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -807,13 +944,21 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                         ),
                       const Spacer(),
                       ElevatedGradientButton(
-                        text: _currentStep == 3 ? 'Submit' : 'Next',
-                        icon: _currentStep == 3 ? Icons.cloud_upload : Icons.arrow_forward,
-                        onPressed:
-                        _currentStep == 3 ?
-
-
-                        _submitAll : _goNext,
+                        text: _currentStep == 3
+                            ? (widget.agreementId != null ? 'Update' : 'Submit')
+                            : 'Next',
+                        icon: _currentStep == 3
+                            ? Icons.cloud_upload
+                            : Icons.arrow_forward,
+                        onPressed: _currentStep == 3
+                            ? () {
+                          if (widget.agreementId != null) {
+                            _updateAll(); // ✅ Update mode
+                          } else {
+                            _submitAll(); // ✅ New submission
+                          }
+                        }
+                            : _goNext,
                       ),
                     ],
                   ),
@@ -974,7 +1119,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: ownerRelation,
-                  items: const ['S/O', 'D/O', 'W/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
                   decoration: _fieldDecoration('Relation'),
                 ),
@@ -1068,7 +1213,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: tenantRelation,
-                  items: const ['S/O', 'D/O', 'W/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => tenantRelation = v ?? 'S/O'),
                   decoration: _fieldDecoration('Relation'),
                 ),
@@ -1112,13 +1257,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             Align(
               alignment: Alignment.centerRight,
               child: TextButton.icon(
-                onPressed: () {
-                  if (tenantAadhaar.text.trim().isNotEmpty) {
-                    _fetchTenantByAadhaar(tenantAadhaar.text.trim());
-                  } else {
-                    _showToast("Enter Aadhaar to fetch tenant data");
-                  }
-                },
+                onPressed: () => _fetchTenantData(),
                 icon: const Icon(Icons.search),
                 label: const Text('Auto fetch'),
               ),

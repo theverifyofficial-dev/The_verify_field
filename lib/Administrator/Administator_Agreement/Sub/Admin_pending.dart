@@ -34,6 +34,18 @@ class _AdminPendingState extends State<AdminPending> {
     }
   }
 
+  Future<void> _refreshAgreements() async {
+    try {
+      setState(() => isLoading = true);
+      await fetchAgreements();
+    } catch (e) {
+      print("❌ Error refreshing agreements: $e");
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+
   Future<List<AgreementModel2>> fetchAgreements() async {
     final url = Uri.parse(
         'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_data_for_admin.php');
@@ -179,8 +191,8 @@ class _AdminPendingState extends State<AdminPending> {
                       horizontal: scale(16),
                     ),
                   ),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => AdminAgreementDetails(
@@ -188,7 +200,10 @@ class _AdminPendingState extends State<AdminPending> {
                         ),
                       ),
                     );
+
+                    _refreshAgreements();
                   },
+
                   icon:
                   Icon(Icons.visibility, size: scale(18), color: Colors.white),
                   label: Text(

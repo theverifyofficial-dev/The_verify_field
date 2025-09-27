@@ -780,7 +780,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
             onPressed: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
               // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
-
             },
             icon: const Icon(Icons.add, color: Colors.white),
             label: const Text(
@@ -805,8 +804,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
           ),
         ),
       ),
-
-
     );
   }
 

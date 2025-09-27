@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Model.dart';
 import 'package:verify_feild_worker/property_preview.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../ui_decoration_tools/constant.dart';
 import '../model/realestateSlider.dart';
@@ -189,6 +190,7 @@ class Catid {
 
 
 class View_Details extends StatefulWidget {
+
   final int id;
 
   const View_Details({super.key, required this.id});
@@ -472,76 +474,83 @@ class _View_DetailsState extends State<View_Details> {
               return SingleChildScrollView(
                 child: Column(
                   children: [
-                    // Main Property Image with Gallery Indicator
-                    Stack(
-                      alignment: Alignment.bottomCenter,
+                    Column(
                       children: [
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => PropertyPreview(
-                                  ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
-                                ),
+                        Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(20),
+                                bottomRight: Radius.circular(20),
                               ),
-                            );
-                          },
-                          child: Hero(
-                            tag: "property-${property.id}",
-                            child: Container(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              height: MediaQuery.of(context).size.height * 0.25,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20),
-
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(isDarkMode ? 0.4 : 0.2),
-                                    blurRadius: 10,
-                                    offset: Offset(0, 6),
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.only(
-                                  bottomLeft: Radius.circular(20),
-                                  bottomRight: Radius.circular(20),
-                                ),
+                              child: (property.videoLink != null && property.videoLink!.isNotEmpty)
+                                  ? LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return AspectRatio(
+                                    aspectRatio: 16 / 9, // standard YouTube aspect ratio
+                                    child: VideoPlayerWidget(videoUrl: property.videoLink!),
+                                  );
+                                },
+                              )
+                                  : GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PropertyPreview(
+                                        ImageUrl:
+                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                      ),
+                                    ),
+                                  );
+                                },
                                 child: CachedNetworkImage(
-                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                  imageUrl:
+                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                  height: MediaQuery.of(context).size.height * 0.25,
+                                  width: double.infinity,
                                   fit: BoxFit.cover,
                                   placeholder: (context, url) => Container(
                                     color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
                                     child: Center(
-                                      child: Image.asset(
-                                        AppImages.loader,
-                                        height: 70,
-                                        fit: BoxFit.contain,
-                                      ),
+                                      child: Image.asset(AppImages.loader, height: 70, fit: BoxFit.contain),
                                     ),
                                   ),
                                   errorWidget: (context, url, error) => Container(
                                     color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
                                     child: Center(
-                                      child: Image.asset(
-                                        AppImages.imageNotFound,
-                                        fit: BoxFit.cover,
-                                      ),
+                                      child: Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
+                            )
+                          ],
                         ),
+
+                        // ➕ Show button if no video
+                        if (property.videoLink == null || property.videoLink!.isEmpty) ...[
+                          SizedBox(height: 10),
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.video_call, size: 20),
+                            label: Text("Add Video"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 3,
+                              backgroundColor: Theme.of(context).colorScheme.primary,   // primary color
+                              foregroundColor: Theme.of(context).colorScheme.onPrimary, // text & icon color
+                            ),
+                            onPressed: () => _showAddVideoSheet(context, property.id),
+                          ),
+
+                        ],
                       ],
                     ),
-                    // Property Details Section
+
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -937,6 +946,164 @@ class _View_DetailsState extends State<View_Details> {
     );
   }
 
+  // Place this inside your _View_DetailsState class
+  void _showAddVideoSheet(BuildContext context, int propertyId) {
+    final TextEditingController _videoController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        bool isLoading = false;
+
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> _submit() async {
+              final link = _videoController.text.trim();
+
+              if (link.isEmpty) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  SnackBar(content: Text("Please enter a video link.")),
+                );
+                return;
+              }
+
+              final uri = Uri.tryParse(link);
+              if (uri == null ||
+                  !(uri.hasScheme &&
+                      (uri.scheme == 'http' || uri.scheme == 'https'))) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  SnackBar(content: Text("Please enter a valid http/https URL.")),
+                );
+                return;
+              }
+
+              setModalState(() => isLoading = true);
+
+              try {
+                final apiUrl = Uri.parse(
+                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_video_in_main_realetstae.php");
+                final response = await http.post(apiUrl, body: {
+                  "P_id": propertyId.toString(),
+                  "video_link": link,
+                });
+
+                if (response.statusCode == 200) {
+                  Navigator.of(sheetContext).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text("Video added successfully.")),
+                  );
+
+                  setState(() {
+                    _propertyFuture = fetchData(propertyId);
+                  });
+                } else {
+                  ScaffoldMessenger.of(sheetContext).showSnackBar(
+                    SnackBar(
+                        content: Text(
+                            "Failed to add video. (${response.statusCode})")),
+                  );
+                }
+              } catch (e) {
+                ScaffoldMessenger.of(sheetContext).showSnackBar(
+                  SnackBar(content: Text("Error: $e")),
+                );
+              } finally {
+                setModalState(() => isLoading = false);
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 16,
+                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Drag handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    margin: EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).dividerColor.withOpacity(0.6),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+
+                  Text(
+                    "Add Video Link",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+
+                  TextField(
+                    controller: _videoController,
+                    keyboardType: TextInputType.url,
+                    decoration: InputDecoration(
+                      hintText: "Paste YouTube or video URL",
+                      prefixIcon: Icon(Icons.video_library_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 20),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => Navigator.of(sheetContext).pop(),
+                        style: TextButton.styleFrom(
+                          foregroundColor:
+                          Theme.of(context).colorScheme.secondary,
+                        ),
+                        child: Text("Cancel"),
+                      ),
+                      SizedBox(width: 12),
+                      ElevatedButton(
+                        onPressed: isLoading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          padding:
+                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: isLoading
+                            ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                            AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                            : Text("Submit"),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 
   Future<bool> _checkCallPermission() async {
 
@@ -1530,6 +1697,79 @@ Widget infoSection({
     ),
   );
 }
+
+class VideoPlayerWidget extends StatefulWidget {
+  final String videoUrl;
+
+  VideoPlayerWidget({required this.videoUrl});
+
+  @override
+  _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
+}
+
+class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
+  late YoutubePlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl) ?? '';
+    _controller = YoutubePlayerController(
+      initialVideoId: videoId,
+      flags: YoutubePlayerFlags(
+        autoPlay: false,
+        mute: false,
+        enableCaption: true,
+        isLive: false,
+        forceHD: false,
+        disableDragSeek: false,
+        hideControls: false,
+        hideThumbnail: false,
+        loop: false,
+        showLiveFullscreenButton: false, // remove live fullscreen button
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return YoutubePlayerBuilder(
+      player: YoutubePlayer(
+        controller: _controller,
+        showVideoProgressIndicator: true,
+        progressIndicatorColor: Colors.redAccent,
+        onReady: () {
+          print("Player is ready.");
+        },
+      ),
+      builder: (context, player) {
+
+        return  ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            height: MediaQuery.of(context).size.height * 0.25,
+            width: double.infinity,
+            child: YoutubePlayerBuilder(
+              player: YoutubePlayer(
+                controller: _controller,
+                showVideoProgressIndicator: true,
+                progressIndicatorColor: Colors.redAccent,
+              ),
+              builder: (context, player) => player, // inline only
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 
 
 

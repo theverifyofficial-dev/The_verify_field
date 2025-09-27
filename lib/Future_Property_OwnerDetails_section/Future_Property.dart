@@ -622,99 +622,118 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
-                            const SizedBox(width: 6),
-                            Text(
-                              "$propertyCount building found",
-                              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            const SizedBox(width: 6),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  _searchController.clear();
-                                  selectedLabel = '';
-                                  _filteredProperties = _allProperties;
-                                  propertyCount = _allProperties.length; // ✅ reset to total
-                                });
-                              },
-                              child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
+                                const SizedBox(width: 6),
+                                Text(
+                                  "$propertyCount building found",
+                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                                ),
+                                const SizedBox(width: 6),
+                                GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _searchController.clear();
+                                      selectedLabel = '';
+                                      _filteredProperties = _allProperties;
+                                      propertyCount = _allProperties.length; // ✅ reset to total
+                                    });
+                                  },
+                                  child: const Icon(Icons.close, size: 18, color: Colors.grey),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
                           const SizedBox(width: 6),
-                            isLoading
-                        ˙
+                          isLoading
+                              ? Text("")
+                              : Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+
+                                Text(
+                                  "Total Flats: ${totalFlats ?? 0}",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(width: 6),
 
                           isLoading
-                          ? Text("")
-                          : Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceEvenly,
-                              children: [
-                                // Live Flats Container
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius:
-                                    BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Live Flats: $liveFlats",
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
+                              ? Text("")
+                              : Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceEvenly,
+                            children: [
+                              // Live Flats Container
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius:
+                                  BorderRadius.circular(20),
                                 ),
-                                const SizedBox(width: 6),
-                                // Book Flats Container
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withOpacity(0.1),
-                                    borderRadius:
-                                        BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Text(
-                                        "Rent Out: $bookFlats",
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14),
-                                      ),
-                                    ],
-                                  ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      "Live Flats: $liveFlats",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                              const SizedBox(width: 6),
+                              // Book Flats Container
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.1),
+                                  borderRadius:
+                                  BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Text(
+                                      "Rent Out: $bookFlats",
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
 
-                              ],
-                            ),
+                            ],
+                          ),
                         ],
-                            ),
+                      ),
                     ),
 
                 ],
               ),
-            ),
-            // No results message
+            ),            // No results message
             if (_filteredProperties.isEmpty)
               Expanded(
                 child: Center(

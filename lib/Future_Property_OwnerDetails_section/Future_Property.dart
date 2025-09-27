@@ -654,27 +654,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                       ),
                           const SizedBox(width: 6),
                             isLoading
-                            ? Text("")
-                            : Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-
-                                    Text(
-                                      "Total Flats: ${totalFlats ?? 0}",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ),
+                        ˙
                           const SizedBox(width: 6),
 
                           isLoading

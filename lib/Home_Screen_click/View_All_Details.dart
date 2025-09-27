@@ -199,14 +199,12 @@ class View_Details extends StatefulWidget {
 
 class _View_DetailsState extends State<View_Details> {
   Future<void> Book_property() async{
+
     final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
     if(responce.statusCode == 200){
       print(responce.body);
       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Show_Real_Estate(),), (route) => route.isFirst);
-      //SharedPreferences prefs = await SharedPreferences.getInstance();
-
     } else {
       print('Failed Registration');
     }
@@ -242,6 +240,7 @@ class _View_DetailsState extends State<View_Details> {
   }
 
   Future<List<Catid>> fetchData(int id) async {
+    print(id);
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id");
     final response = await http.get(url);
 

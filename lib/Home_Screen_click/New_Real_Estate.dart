@@ -165,14 +165,14 @@ class Show_New_Real_Estate extends StatefulWidget {
 
 class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
-  String _number = '';
-  String _SUbid = '';
-  int propertyCount = 0;
-
   List<NewRealEstateShowDateModel> _allProperties = [];
   List<NewRealEstateShowDateModel> _filteredProperties = [];
-  bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
+
+  bool _isLoading = true;
+  String _number = '';
+  int propertyCount = 0;
+  String? selectedLabel;
   Timer? _debounce;
 
   @override
@@ -258,6 +258,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       _fetchInitialData(); // Call your API after loading user data
     });
   }
+
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
     _number = prefs.getString('number') ?? '';
@@ -296,9 +297,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   }
 
 
-  bool _isDeleting = false;
 
-  String? selectedLabel;
 
   void _setSearchText(String label, String text) {
     setState(() {
@@ -319,29 +318,9 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   }
 
 
-  //Delete api
-  Future<void> DeletePropertyById(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
-    final response = await http.get(url);
-    // await Future.delayed(Duration(seconds: 1));
-    if (response.statusCode == 200) {
-      setState(() {
-        _isDeleting = false;
-        //ShowVehicleNumbers(id);
-        //showVehicleModel?.vehicleNo;
-      });
-      print(response.body.toString());
-      print('Item deleted successfully');
-    } else {
-      print('Error deleting item. Status code: ${response.statusCode}');
-      throw Exception('Failed to load data');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
         elevation: 0, // Make sure there's no shadow
@@ -830,6 +809,8 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
     );
   }
+
+
   Color _getPropertyTypeColor(String? type) {
     switch (type?.toLowerCase()) {
       case 'rent':
@@ -907,6 +888,5 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       ),
     );
   }
-
 
 }

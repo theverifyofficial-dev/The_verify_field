@@ -301,6 +301,13 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
               ),
             ),
 
+            _sectionCard(title: "Field Worker", children: [
+              _kv("Name", agreement!["Fieldwarkarname"]),
+              _kv("Number", agreement!["Fieldwarkarnumber"]),
+            ]),
+
+            SizedBox(height: 20,),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

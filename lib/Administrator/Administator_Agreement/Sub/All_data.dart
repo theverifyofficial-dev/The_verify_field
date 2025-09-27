@@ -93,10 +93,15 @@ class _AgreementDetailsState extends State<AllData> {
                   style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  "Tenant: ${item.tenantName}\n💰 Rent: ₹${item.monthlyRent}\n📆 Date: ${_formatDate(item.shiftingDate)}",
+                  "Tenant: ${item.tenantName}\n Rent: ₹${item.monthlyRent}\n Shifting Date: ${_formatDate(item.shiftingDate)}\n Agreement ID: ${item.id}",
                   style: const TextStyle(color: Colors.white70),
                 ),
-                trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                trailing: Column(
+                  children: [
+                    const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                    // Text('by ${item.}')
+                  ],
+                ),
 
                 onTap: () async {
                   await Navigator.push(
@@ -107,7 +112,6 @@ class _AgreementDetailsState extends State<AllData> {
                   );
 
                   _refreshAgreements();
-
 
                 },
 

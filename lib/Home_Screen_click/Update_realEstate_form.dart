@@ -353,17 +353,14 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       _loadSavedFieldWorkerData();
     });
 
-    // ✅ Initialize once and keep listener
     _priceController = TextEditingController(text: _price ?? '');
     _priceController.addListener(() {
       final input = _priceController.text.replaceAll(',', '').trim();
       final number = int.tryParse(input);
-
       setState(() {
         _formattedPrice = number != null ? formatPrice(number) : '';
       });
     });
-    // ✅ Initialize once and keep listener
     _askingPriceController = TextEditingController(text: _price ?? '');
     _askingPriceController.addListener(() {
       final input = _askingPriceController.text.replaceAll(',', '').trim();
@@ -673,7 +670,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   void dispose() {
     _apartmentAddressController.dispose();
     _priceController.dispose();
-
+    _askingPriceController.dispose();
+    _lastPriceController.dispose();
     _locationController.dispose();
     _propertyTypeController.dispose();
     _bhkController.dispose();
@@ -1372,8 +1370,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   ),
                   validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
                 ),
-
-                      const SizedBox(height: 16),
+                const SizedBox(height: 16),
                 // Asking Price
                 TextFormField(
                   controller: _askingPriceController,

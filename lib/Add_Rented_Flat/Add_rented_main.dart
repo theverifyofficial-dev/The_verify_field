@@ -11,11 +11,12 @@ class _AddRentedMainState extends State<AddRentedMain> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text("AddRentedMain")
+          Center(child: Text("Add Rented Main"))
         ],
       ),
     );

@@ -151,7 +151,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
           fetchFlatsStatus();
           fetchTotalFlats();
           _filteredProperties = _allProperties;
-          propertyCount = _allProperties.length; // ✅ set count after data is ready
+          propertyCount = _allProperties.length;
         });
       });
     });
@@ -186,7 +186,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
               (item.place == null || item.place!.trim().isEmpty) ||
               (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
-              // ❌ removed typeOfProperty, selectBhk, floorNumber, squareFeet, buildingInformationFacilities
               (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
               (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
               (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
@@ -220,6 +219,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               (item.floorNumber ?? '').toLowerCase().contains(query) ||
               (item.squareFeet ?? '').toLowerCase().contains(query) ||
               (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
+              (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
               (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
               (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
               (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
@@ -338,10 +338,12 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
   bool get _isSearchActive {
     return _searchController.text.trim().isNotEmpty || selectedLabel.isNotEmpty;
   }
+
   Future<void> _refreshProperties() async {
     await _fetchAndFilterProperties();
     await fetchTotalFlats();
     await fetchFlatsStatus();
+
   }
   int bookFlats = 0;
   int liveFlats = 0;
@@ -389,6 +391,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     }
   }
 
+  List<Catid> filtered = [];
 
   Future<void> fetchTotalFlats() async {
     try {
@@ -505,8 +508,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                                 _searchController.clear();
                                 selectedLabel = '';
                                 _filteredProperties = _allProperties;
-                                propertyCount = 0;
-                                FocusScope.of(context).unfocus();
+                                propertyCount = _allProperties.length;
                                 setState(() {});
                               },
                             )
@@ -528,9 +530,62 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                             borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.8), width: 1.5),
                           ),
                         ),
-                        onChanged: (value) {
-                          _onSearchChanged();
-                          setState(() {});
+                        onChanged: (value) async {
+                          String query = value.toLowerCase();
+
+                          List<Catid> filtered = _allProperties.where((item) {
+                            return (item.propertyNameAddress?.toLowerCase().contains(query) ?? false) ||
+                                (item.place?.toLowerCase().contains(query) ?? false) ||
+                                (item.buyRent?.toLowerCase().contains(query) ?? false) ||
+                                (item.ownerName?.toLowerCase().contains(query) ?? false) ||
+                                (item.fieldWorkerName?.toLowerCase().contains(query) ?? false);
+                          }).toList();
+
+                          // Apply button filters if any
+                          if (selectedLabel == 'Missing Field') {
+                            filtered = filtered.where((item) {
+                              return (item.images == null || item.images!.trim().isEmpty) ||
+                                  (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
+                                  (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
+                                  (item.caretakerName == null || item.caretakerName!.trim().isEmpty);
+                            }).toList();
+                          } else if (selectedLabel == 'Live' || selectedLabel == 'Unlive') {
+                            List<Catid> temp = [];
+                            for (var item in filtered) {
+                              try {
+                                final res = await http.get(Uri.parse(
+                                  'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${item.id}',
+                                ));
+                                if (res.statusCode == 200) {
+                                  final data = jsonDecode(res.body);
+                                  bool anyLive = false;
+                                  if (data is List && data.isNotEmpty) {
+                                    for (var d in data) {
+                                      if (d['live_unlive'] == 'Live' && (d['logs'] as num) > 0) {
+                                        anyLive = true;
+                                        break;
+                                      }
+                                    }
+                                  }
+                                  if ((selectedLabel == 'Live' && anyLive) || (selectedLabel == 'Unlive' && !anyLive)) {
+                                    temp.add(item);
+                                  }
+                                }
+                              } catch (e) {
+                                debugPrint('Live/Unlive fetch error: $e');
+                              }
+                            }
+                            filtered = temp;
+                          } else if (selectedLabel == 'Rent' || selectedLabel == 'Sell' || selectedLabel == 'Commercial') {
+                            filtered = filtered.where((item) {
+                              return item.buyRent?.toLowerCase() == selectedLabel.toLowerCase();
+                            }).toList();
+                          }
+
+                          setState(() {
+                            _filteredProperties = filtered;
+                            propertyCount = filtered.length;
+                          });
                         },
                       ),
                     ),
@@ -543,57 +598,100 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: ['Rent', 'Sell', 'Commercial', 'Missing Field'].map((label) {
+                      children: ['Rent', 'Buy', 'Commercial', 'Missing Field', 'Live', 'Unlive']
+                          .map((label) {
                         final isSelected = label == selectedLabel;
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: ElevatedButton(
-                            onPressed: () {
+                            onPressed: () async {
                               setState(() {
                                 selectedLabel = label;
+                              });
 
-                                if (label == 'Missing Field') {
-                                  // Don’t set text, just trigger filter directly
-                                  _searchController.clear();
-                                  _onSearchChanged(); // will run with query.isEmpty, but you can call your missing field filter directly too
-                                  _debounce?.cancel();
-                                  // run missing field filter manually
-                                  final filtered = _allProperties.where((item) {
-                                    return (item.images == null || item.images!.trim().isEmpty) ||
-                                        (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
-                                        (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
-                                        (item.caretakerName == null || item.caretakerName!.trim().isEmpty) ||
-                                        (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
-                                        (item.place == null || item.place!.trim().isEmpty) ||
-                                        (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
-                                        (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
-                                        (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
-                                        (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
-                                        (item.yourAddress == null || item.yourAddress!.trim().isEmpty) ||
-                                        (item.fieldWorkerName == null || item.fieldWorkerName!.trim().isEmpty) ||
-                                        (item.fieldWorkerNumber == null || item.fieldWorkerNumber!.trim().isEmpty) ||
-                                        (item.currentDate == null || item.currentDate!.trim().isEmpty) ||
-                                        (item.longitude == null || item.longitude!.trim().isEmpty) ||
-                                        (item.latitude == null || item.latitude!.trim().isEmpty) ||
-                                        (item.roadSize == null || item.roadSize!.trim().isEmpty) ||
-                                        (item.metroDistance == null || item.metroDistance!.trim().isEmpty) ||
-                                        (item.metroName == null || item.metroName!.trim().isEmpty) ||
-                                        (item.mainMarketDistance == null || item.mainMarketDistance!.trim().isEmpty) ||
-                                        (item.ageOfProperty == null || item.ageOfProperty!.trim().isEmpty) ||
-                                        (item.lift == null || item.lift!.trim().isEmpty) ||
-                                        (item.parking == null || item.parking!.trim().isEmpty) ||
-                                        (item.totalFloor == null || item.totalFloor!.trim().isEmpty) ||
-                                        (item.residenceCommercial == null || item.residenceCommercial!.trim().isEmpty) ||
-                                        (item.facility == null || item.facility!.trim().isEmpty);
-                                  }).toList();
+                              _searchController.clear(); // clear search when button tapped
+                              _debounce?.cancel();       // cancel any ongoing debounce
 
-                                  _filteredProperties = filtered;
-                                  propertyCount = filtered.length;
-                                } else {
-                                  // Normal behavior → put label in search box
-                                  _searchController.text = label;
-                                  _onSearchChanged();
-                                }
+                              List<Catid> filtered = [];
+
+                              if (label == 'Missing Field') {
+                                // ✅ Missing field logic
+                                filtered = _allProperties.where((item) {
+                                  return (item.images == null || item.images!.trim().isEmpty) ||
+                                      (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
+                                      (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
+                                      (item.caretakerName == null || item.caretakerName!.trim().isEmpty) ||
+                                      (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
+                                      (item.place == null || item.place!.trim().isEmpty) ||
+                                      (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
+                                      (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
+                                      (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
+                                      (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
+                                      (item.yourAddress == null || item.yourAddress!.trim().isEmpty) ||
+                                      (item.fieldWorkerName == null || item.fieldWorkerName!.trim().isEmpty) ||
+                                      (item.fieldWorkerNumber == null || item.fieldWorkerNumber!.trim().isEmpty) ||
+                                      (item.currentDate == null || item.currentDate!.trim().isEmpty) ||
+                                      (item.longitude == null || item.longitude!.trim().isEmpty) ||
+                                      (item.latitude == null || item.latitude!.trim().isEmpty) ||
+                                      (item.roadSize == null || item.roadSize!.trim().isEmpty) ||
+                                      (item.metroDistance == null || item.metroDistance!.trim().isEmpty) ||
+                                      (item.metroName == null || item.metroName!.trim().isEmpty) ||
+                                      (item.mainMarketDistance == null || item.mainMarketDistance!.trim().isEmpty) ||
+                                      (item.ageOfProperty == null || item.ageOfProperty!.trim().isEmpty) ||
+                                      (item.lift == null || item.lift!.trim().isEmpty) ||
+                                      (item.parking == null || item.parking!.trim().isEmpty) ||
+                                      (item.totalFloor == null || item.totalFloor!.trim().isEmpty) ||
+                                      (item.residenceCommercial == null || item.residenceCommercial!.trim().isEmpty) ||
+                                      (item.facility == null || item.facility!.trim().isEmpty);
+                                }).toList();
+                              }
+                              else if (label == 'Rent' || label == 'Buy' || label == 'Commercial') {
+                                // ✅ Filter by buyRent or Residence_commercial
+                                filtered = _allProperties.where((item) {
+                                  if (label == 'Commercial') {
+                                    final value = (item.residenceCommercial ?? '').toLowerCase();
+                                    return value == 'commercial';
+                                  } else {
+                                    final value = (item.buyRent ?? '').toLowerCase();
+                                    return value == label.toLowerCase();
+                                  }
+                                }).toList();
+                              }
+                              else if (label == 'Live' || label == 'Unlive') {
+                                // ✅ Parallel API requests for speed
+                                final futures = _allProperties.map((item) async {
+                                  try {
+                                    final res = await http.get(Uri.parse(
+                                      'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${item.id}',
+                                    ));
+                                    if (res.statusCode == 200) {
+                                      final data = jsonDecode(res.body);
+                                      bool anyLive = false;
+                                      if (data is List && data.isNotEmpty) {
+                                        for (var d in data) {
+                                          if (d['live_unlive'] == 'Live' && (d['logs'] as num) > 0) {
+                                            anyLive = true;
+                                            break;
+                                          }
+                                        }
+                                      }
+                                      if ((label == 'Live' && anyLive) || (label == 'Unlive' && !anyLive)) {
+                                        return item;
+                                      }
+                                    }
+                                  } catch (e) {
+                                    debugPrint('Live/Unlive fetch error: $e');
+                                  }
+                                  return null;
+                                }).toList();
+
+                                final results = await Future.wait(futures);
+                                filtered = results.whereType<Catid>().toList();
+                              }
+
+                              setState(() {
+                                _filteredProperties = filtered;
+                                propertyCount = filtered.length;
                               });
                             },
                             style: ElevatedButton.styleFrom(
@@ -858,6 +956,7 @@ class PropertyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    Map<String, dynamic>? _cachedData; // store first loaded data
 
     // Utility check
     bool _isNullOrEmpty(String? value) =>
@@ -947,42 +1046,54 @@ class PropertyCard extends StatelessWidget {
                     ),
                   ),
                 ),
-
                 Positioned(
                   top: 16,
                   right: 16,
                   child: FutureBuilder(
                     future: http.get(Uri.parse(
-                        'https://verifyserve.social/WebService4.asmx/count_api_for_live_unlive_flat_under_building?subid=${property.id}')),
+                        'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${property.id}')),
                     builder: (context, snapshot) {
-                      int liveCount = 0;
-                      int unliveCount = 0;
+                      String label = "Unlive: 0"; // default text
+                      Color color = Colors.red.withOpacity(0.8); // default color
 
-                      if (snapshot.hasData) {
+                      if (snapshot.connectionState == ConnectionState.done &&
+                          snapshot.hasData &&
+                          !snapshot.hasError) {
                         final data = jsonDecode(snapshot.data!.body);
 
-                        for (var item in data) {
-                          if (item['live_unlive'] == 'Live') {
-                            liveCount += (item['logs'] as num).toInt();
-                          } else if (item['live_unlive'] == 'Book') {
-                            unliveCount = 0; // Book always shows unlive: 0
-                          } else {
-                            unliveCount += (item['logs'] as num).toInt();
+                        bool anyLive = false;
+                        if (data is List && data.isNotEmpty) {
+                          for (var item in data) {
+                            if (item['live_unlive'] == 'Live' && (item['logs'] as num) > 0) {
+                              anyLive = true;
+                              break; // any single live is enough
+                            }
                           }
                         }
-                      }
 
-                      // Decide which to show
-                      bool isLive = liveCount > 0;
+                        if (anyLive) {
+                          // If any flat is live, show live logs
+                          final liveItem = data.firstWhere(
+                                (item) => item['live_unlive'] == 'Live',
+                            orElse: () => null,
+                          );
+                          label = "Live: ${liveItem?['logs'] ?? 0}";
+                          color = Colors.green.withOpacity(0.8);
+                        } else {
+                          // If no flat is live, always show Unlive: 0
+                          label = "Unlive: 0";
+                          color = Colors.red.withOpacity(0.8);
+                        }
+                      }
 
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: isLive ? Colors.green.withOpacity(0.8) : Colors.red.withOpacity(0.8),
+                          color: color,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          isLive ? "Live: $liveCount" : "Unlive: $unliveCount",
+                          label,
                           style: const TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -992,7 +1103,6 @@ class PropertyCard extends StatelessWidget {
                     },
                   ),
                 )
-
               ],
             ),
 

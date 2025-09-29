@@ -2084,7 +2084,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 // In bottomNavigationBar
 
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.only(left: 12,right: 12,top: 10,bottom: 25),
         height: 100,
         color: Theme.of(context).scaffoldBackgroundColor,
         child: SizedBox(
@@ -2092,7 +2092,13 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
           height: 100,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: _isLoading ? Colors.grey : Colors.green,
+              backgroundColor: _isLoading
+                  ? Colors.grey
+                  : (_status == "Live"
+                  ? Colors.grey // Live → Grey
+                  : _status == "Book"
+                  ? Colors.red // Book → Red
+                  : Colors.green),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -2178,7 +2184,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
               ],
             )
                 : Text(
-              _status ?? "Loading...",
+              _status == "Live"
+                  ? "Rent out / Book" // Live → text
+                  : _status == "Book"
+                  ? "Move to live" // Book → text
+                  : "Loading...",
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

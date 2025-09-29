@@ -584,7 +584,6 @@ class _View_DetailsState extends State<View_Details> {
                           ),
                           SizedBox(height: 10
                           ),
-                          // Property Title and Basic Info
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -600,19 +599,8 @@ class _View_DetailsState extends State<View_Details> {
                                       fontFamily: "PoppinsBold",
                                     ),
                                   ),
-                              // Text(
-                              //   '${property.videoLink ?? ""}',
-                              //   style: theme.textTheme.headlineSmall?.copyWith(
-                              //         fontWeight: FontWeight.bold,
-                              //         fontFamily: "PoppinsBold",
-                              //       ),
-                              //     ),
                                 ],
                               ),
-
-
-
-
                               // _InfoChip(
                               //   icon: Icons.star,
                               //   value: property.id.toString(),
@@ -1717,16 +1705,16 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     _controller = YoutubePlayerController(
       initialVideoId: videoId,
       flags: YoutubePlayerFlags(
-        autoPlay: false,
+        autoPlay: true,
         mute: false,
         enableCaption: true,
         isLive: false,
         forceHD: false,
         disableDragSeek: false,
-        hideControls: false,
+        hideControls: true,
         hideThumbnail: false,
         loop: false,
-        showLiveFullscreenButton: false, // remove live fullscreen button
+        showLiveFullscreenButton: false,
       ),
     );
   }

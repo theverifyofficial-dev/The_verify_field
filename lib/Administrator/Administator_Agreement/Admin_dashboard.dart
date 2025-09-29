@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../constant.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';
@@ -15,6 +16,14 @@ class AdminDashboard extends StatefulWidget {
 class _parent_TenandDemandState extends State<AdminDashboard> {
 
 
+  _launchURL() async {
+    final Uri url = Uri.parse('https://theverify.in/example.html');
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -25,7 +34,6 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
         leading: InkWell(
           onTap: () {
             Navigator.pop(context, true);
-
           },
           child: const Row(
             children: [
@@ -40,6 +48,26 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
             ],
           ),
         ),
+
+        actions:  [
+          GestureDetector(
+            onTap: () {
+              _launchURL();
+            },
+            child: Row(
+              children: [
+                const Icon(
+                  PhosphorIcons.share,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+        ],
       ),
       body: DefaultTabController(
         length: 3,

@@ -549,13 +549,23 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       print("📄 Response body: ${response.body}");
 
       if (response.statusCode == 200 && response.body.toLowerCase().contains("success")) {
-
-        _showToast('Submitted successfully!');
         print("✅ Submission successful");
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => AgreementDashboard()),
-        );
+
+        // Close loader
+        Navigator.of(context, rootNavigator: true).pop();
+
+        // Show short SnackBar, then navigate
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Submitted successfully!"),
+            duration: const Duration(seconds: 1), // short duration
+          ),
+        ).closed.then((_) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => AgreementDashboard()),
+          );
+        });
+
       } else {
         _showToast('Submit failed (${response.statusCode})');
         print("❌ Submission failed: ${response.body}");
@@ -673,12 +683,27 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       print("📄 Response body: ${response.body}");
 
       if (response.statusCode == 200 && response.body.toLowerCase().contains("success")) {
-        Navigator.push(context, MaterialPageRoute(builder: (context)
-        => AgreementDashboard(),
-        ));
-        _showToast('Resubmitted successfully!');
-        print("✅ Resubmission successful");
-      } else {
+
+        print("✅ Submission successful");
+
+        // Close loader
+        Navigator.of(context, rootNavigator: true).pop();
+
+        // Show short SnackBar, then navigate
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Updated successfully!"),
+            duration: const Duration(seconds: 1),
+          ),
+        ).closed.then((_) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => AgreementDashboard()),
+          );
+        }
+        );
+            }
+
+      else {
         _showToast('Submit failed (${response.statusCode})');
         print("❌ Resubmission failed: ${response.body}");
       }
@@ -1071,7 +1096,31 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _ownerStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _fetchOwnerData(),
+                icon: const Icon(Icons.search, color: Colors.white),
+                label: const Text(
+                  'Auto fetch',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  backgroundColor: Colors.purple.shade900, // needed for gradient
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         Form(
           key: _ownerFormKey,
@@ -1149,14 +1198,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               ),
             ]),
             const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => _fetchOwnerData(),
-                icon: const Icon(Icons.search),
-                label: const Text('Auto fetch'),
-              ),
-            ),
           ]),
         ),
       ]),
@@ -1166,7 +1207,31 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _tenantStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _fetchTenantData(),
+                icon: const Icon(Icons.search, color: Colors.white),
+                label: const Text(
+                  'Auto fetch',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  backgroundColor: Colors.purple.shade900, // needed for gradient
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         Form(
           key: _tenantFormKey,
@@ -1254,14 +1319,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             ]),
 
             const SizedBox(height: 12),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton.icon(
-                onPressed: () => _fetchTenantData(),
-                icon: const Icon(Icons.search),
-                label: const Text('Auto fetch'),
-              ),
-            ),
           ]),
         ),
       ]),

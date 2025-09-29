@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
+import 'Admin_dashboard.dart';
 
 class AdminAgreementDetails extends StatefulWidget {
   final String agreementId;
@@ -45,79 +46,143 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     }
   }
 
+
   Future<void> _updateAgreementStatus(String action) async {
+    print("Updating agreement status: $action"); // debug
     try {
       final url = Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
 
+      print("Sending POST request to $url with id=${widget.agreementId}");
       final response = await http.post(
         url,
         body: {
-          "id": widget.agreementId,   // pass agreement ID
+          "id": widget.agreementId,
           "action": action,
         },
       );
 
+      print("Response status code: ${response.statusCode}");
+      print("Response body: ${response.body}");
+
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
+        print("Decoded response: $decoded");
 
-        if (decoded["status"] == "success") {
-          Navigator.pop(context);
+        if (decoded["success"] == true) {
+
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Agreement ${action.toUpperCase()}ED successfully")),
+            SnackBar(
+              content: Text("Agreement Accepted successfully"),
+              duration: const Duration(seconds: 1),
+            ),
           );
-        } else {
+
+          // Wait 1 second, then navigate
+          await Future.delayed(const Duration(seconds: 1));
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboard()),
+                (route) => false,
+          );
+
+        }
+
+        else {
+          print("Action failed: ${decoded["message"]}");
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(decoded["message"] ?? "Failed to update")),
+            SnackBar(
+              content: Text(decoded["message"] ?? "Failed to update"),
+              duration: const Duration(seconds: 1),
+            ),
           );
         }
       } else {
+        print("Server error");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Server error, try again later")),
+          const SnackBar(
+            content: Text("Server error, try again later"),
+            duration: Duration(seconds: 1),
+          ),
         );
       }
     } catch (e) {
+      print("Exception caught: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(
+          content: Text("Error: $e"),
+          duration: const Duration(seconds: 1),
+        ),
       );
     }
   }
 
   Future<void> _updateAgreementStatusWithMessage(String action, String message) async {
+    print("Updating agreement status with message: $action, message: $message");
     try {
       final url = Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php"
       );
 
+      print("Sending POST request to $url with id=${widget.agreementId} and message=$message");
       final response = await http.post(url, body: {
         "id": widget.agreementId,
         "action": action,
-        "messages": message, // send message to API
+        "messages": message,
       });
+
+      print("Response status code: ${response.statusCode}");
+      print("Response body: ${response.body}");
 
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
-        if (decoded["status"] == "success") {
-          Navigator.pop(context); // optionally go back
+        print("Decoded response: $decoded");
+
+        if (decoded["success"] == true) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Agreement ${action.toUpperCase()}ED successfully")),
+            SnackBar(
+              content: Text("Agreement Rejected Successfully"),
+              duration: const Duration(seconds: 1),
+            ),
+          );
+
+          // Wait 1 second, then navigate
+          await Future.delayed(const Duration(seconds: 1));
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const AdminDashboard()),
+                (route) => false,
           );
         } else {
+          print("Action with message failed: ${decoded["message"]}");
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(decoded["message"] ?? "Failed to update")),
+            SnackBar(
+              content: Text(decoded["message"] ?? "Failed to update"),
+              duration: const Duration(seconds: 1),
+            ),
           );
         }
       } else {
+        print("Server error");
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Server error, try again later")),
+          const SnackBar(
+            content: Text("Server error, try again later"),
+            duration: Duration(seconds: 1),
+          ),
         );
       }
     } catch (e) {
+      print("Exception caught: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: $e")),
+        SnackBar(
+          content: Text("Error: $e"),
+          duration: const Duration(seconds: 1),
+        ),
       );
     }
   }
+
+
 
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

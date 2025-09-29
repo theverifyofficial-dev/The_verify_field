@@ -57,34 +57,44 @@ String numberToWords(int number) {
     return units[h] + ' HUNDRED' + (rem != 0 ? ' ' + twoDigit(rem) : '');
   }
 
-  String words = '';
+  // Use a local copy so we don't mutate the parameter
+  int n = number;
+  final parts = <String>[];
 
-  if (number >= 10000000) {
-    final cr = number ~/ 10000000;
-    words += threeDigit(cr) + ' CRORE ';
-    number %= 10000000;
-  }
-  if (number >= 100000) {
-    final lk = number ~/ 100000;
-    words += threeDigit(lk) + ' LAKH ';
-    number %= 100000;
-  }
-  if (number >= 1000) {
-    final th = number ~/ 1000;
-    words += threeDigit(th) + ' THOUSAND ';
-    number %= 1000;
-  }
-  if (number > 0) {
-    words += threeDigit(number);
+  // Crores (1 crore = 1,00,00,000 = 10,000,000)
+  if (n >= 10000000) {
+    final cr = n ~/ 10000000;
+    parts.add(threeDigit(cr) + ' CRORE');
+    n = n % 10000000;
   }
 
-  return words.trim();
+  // Lakhs (1 lakh = 1,00,000)
+  if (n >= 100000) {
+    final lk = n ~/ 100000;
+    parts.add(threeDigit(lk) + ' LAKH');
+    n = n % 100000;
+  }
+
+  // Thousands
+  if (n >= 1000) {
+    final th = n ~/ 1000;
+    parts.add(threeDigit(th) + ' THOUSAND');
+    n = n % 1000;
+  }
+
+  // Remaining hundreds and tens
+  if (n > 0) {
+    parts.add(threeDigit(n));
+  }
+
+  return parts.where((s) => s.trim().isNotEmpty).join(' ').trim();
 }
 
 /// Format amount as in your template: "Rs. 8000 /- (EIGHT THOUSAND RUPEES)"
 String formatAmount(String? amount) {
-  if (amount == null || amount.toString().trim().isEmpty) return 'Rs. 0 /- ( ZERO RUPEES ) (static)';
-  // remove commas, spaces
+  if (amount == null || amount.toString().trim().isEmpty) {
+    return 'Rs. 0 /- ( ZERO RUPEES ) (static)';
+  }
   final cleaned = amount.toString().replaceAll(',', '').trim();
   final intVal = int.tryParse(cleaned) ?? 0;
   final words = numberToWords(intVal);
@@ -116,11 +126,23 @@ String formatDateStr(dynamic dateVal, String fallback) {
     final yy = dt.year.toString();
     return '$dd/$mm/$yy';
   } catch (e) {
-    // if it's already in a dd/mm/yyyy-like string, return it
     final s = dateVal.toString();
     if (RegExp(r'\d{1,2}\/\d{1,2}\/\d{4}').hasMatch(s)) return s;
     return '$fallback (static)';
   }
+}
+
+/// Add months safely (keeps day as close as possible; handles month overflow)
+DateTime addMonthsSafely(DateTime from, int monthsToAdd) {
+  final targetMonth = from.month + monthsToAdd;
+  final yearOffset = (targetMonth - 1) ~/ 12;
+  final newYear = from.year + yearOffset;
+  final newMonth = ((targetMonth - 1) % 12) + 1;
+
+  // clamp day to the last day of the new month
+  final lastDayOfNewMonth = DateTime(newYear, newMonth + 1, 0).day;
+  final newDay = from.day <= lastDayOfNewMonth ? from.day : lastDayOfNewMonth;
+  return DateTime(newYear, newMonth, newDay);
 }
 
 Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
@@ -131,16 +153,17 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final ownerRelation = safeString(data, 'owner_relation', 'S/O');
   final ownerRelationPerson = safeString(data, 'relation_person_name_owner', 'QWERTY');
   final ownerAddress = safeString(data, 'parmanent_addresss_owner', 'DEMO ADDRESS');
-  final ownerAadhar = safeString(data, 'owner_addhar_no', '297374997337');
+  final ownerAadhaar = safeString(data, 'owner_addhar_no', '297374997337');
 
   final tenantName = safeString(data, 'tenant_name', 'DEMO TENANT');
   final tenantRelation = safeString(data, 'tenant_relation', 'S/O');
   final tenantRelationPerson = safeString(data, 'relation_person_name_tenant', 'PAWAN');
   final tenantPermAddress = safeString(data, 'permanent_address_tenant', 'DEMO TENANT ADDRESS');
   final tenantMobile = safeString(data, 'tenant_mobile_no', '0000000000');
-  final tenantAadhar = safeString(data, 'tenant_addhar_no', '100288377394');
+  final tenantAadhaar = safeString(data, 'tenant_addhar_no', '100288377394');
 
   final rentedAddress = safeString(data, 'rented_address', '2 BHK 18 ACCHANAK');
+  final meter_unit = data['securitys']?.toString() ?? '';
 
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
   final maintenanceRaw = data['maintaince']?.toString() ?? '';
@@ -148,7 +171,45 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final installmentSecurityRaw = data['installment_security_amount']?.toString() ?? '';
 
   final shiftingDateStr = formatDateStr(data['shifting_date'], '23/09/2025');
-  // compute end date by parsing shifting date when possible
+
+  pw.TextSpan getMeterClause(Map<String, dynamic>? data) {
+    final customMeterUnit = data?["custom_meter_unit"];
+    final meterRate = data?["meter"];
+    final meterValue = (customMeterUnit != null && customMeterUnit.toString().isNotEmpty)
+        ? customMeterUnit.toString()
+        : (meterRate != null && meterRate.toString().isNotEmpty)
+        ? meterRate.toString()
+        : null;
+
+    if (meterValue != null) {
+      return pw.TextSpan(
+        children: [
+          pw.TextSpan(
+            text: "The rate per unit is INR ",
+            style: pw.TextStyle(fontSize: 11),
+          ),
+          pw.TextSpan(
+            text: meterValue,
+            style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.TextSpan(
+            text:
+            " per unit and water charges as per actual usage. These payments are separate from the monthly rent.",
+            style: pw.TextStyle(fontSize: 11),
+          ),
+        ],
+      );
+    } else {
+      return pw.TextSpan(
+        text:
+        "The rate per unit will be billed separately from the monthly rent as per applicable rates.",
+        style: pw.TextStyle(fontSize: 11),
+      );
+    }
+  }
+
+
+  // compute shiftingDate robustly
   DateTime shiftingDate;
   try {
     if (data['shifting_date'] is Map && data['shifting_date']['date'] != null) {
@@ -159,29 +220,44 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   } catch (_) {
     shiftingDate = DateTime(2025, 9, 23); // fallback static
   }
-  final endDate = DateTime(shiftingDate.year, shiftingDate.month + 11, shiftingDate.day);
+
+  final endDate = addMonthsSafely(shiftingDate, 11);
   final shiftingDateFormatted = '${shiftingDate.day.toString().padLeft(2, '0')}/${shiftingDate.month.toString().padLeft(2, '0')}/${shiftingDate.year}';
   final endDateFormatted = '${endDate.day.toString().padLeft(2, '0')}/${endDate.month.toString().padLeft(2, '0')}/${endDate.year}';
 
-  // Page styles
   final baseStyle = pw.TextStyle(fontSize: 11);
   final boldStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
   final titleStyle = pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold);
 
   // helper to create clause lines with optional bold span(s)
   pw.Widget clauseLine(String numberAndTitle, String body, {List<pw.TextSpan>? boldSpans}) {
-    // Build rich text: numberAndTitle bold, body normal but allow inline bold spans if provided
     final List<pw.TextSpan> spans = [];
     spans.add(pw.TextSpan(text: '$numberAndTitle', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)));
     spans.add(pw.TextSpan(text: body, style: baseStyle));
-    // If boldSpans provided, we will inject them (simple approach: append after body)
     if (boldSpans != null && boldSpans.isNotEmpty) {
       spans.addAll(boldSpans);
     }
     return pw.RichText(text: pw.TextSpan(children: spans));
   }
 
-  // Build the PDF with exact page breaks and spacing similar to images
+  pw.Widget clause(String heading, String body){
+    return pw.RichText(
+      text: pw.TextSpan(
+        children: [
+          pw.TextSpan(
+            text: '$heading ',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+          ),
+          pw.TextSpan(
+            text: body,
+            style: pw.TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Build the PDF with the same page layout as original (kept unchanged)
   pdf.addPage(
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
@@ -217,7 +293,21 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.SizedBox(height: 15),
 
         // Clauses 1 - 5 (page 1)
-        pw.Text('1. That the tenancy in respect of the above said premises has been granted by the first party to the second party for a period of 11 months commencing from $shiftingDateFormatted to $endDateFormatted.', style: baseStyle),
+
+        pw.RichText(
+          text: pw.TextSpan(
+            children: [
+              pw.TextSpan(text: '1. That the tenancy in respect of the above said premises has been granted by the First Party to the Second Party for a period of ', style: baseStyle),
+              pw.TextSpan(text: '11 months', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.TextSpan(text: ' commencing ', style: baseStyle),
+
+              pw.TextSpan(text: '$shiftingDateFormatted', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.TextSpan(text: ' to ', style: baseStyle),
+              pw.TextSpan(text: '$endDateFormatted', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.TextSpan(text: '.', style: baseStyle),
+            ],
+          ),
+        ),
         pw.SizedBox(height: 10),
 
         // Clause 2 with amounts bolded
@@ -233,7 +323,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               pw.TextSpan(text: '. The monthly rent shall be ', style: baseStyle),
               pw.TextSpan(text: formatAmount(monthlyRentRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
               pw.TextSpan(text: ' and is payable in advance on or before the 7th day of each calendar month. ', style: baseStyle),
-              pw.TextSpan(text: 'Rs. ${maintenanceRaw.isNotEmpty ? maintenanceRaw : '0'} /- ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+              pw.TextSpan(text: 'Rs. ${maintenanceRaw.isNotEmpty ? maintenanceRaw : '0'} ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
               pw.TextSpan(text: '( ' + (maintenanceRaw.isNotEmpty ? numberToWords(int.tryParse(maintenanceRaw.replaceAll(',', '')) ?? 0) + ' RUPEES )' : 'ZERO RUPEES )'), style: baseStyle),
               pw.TextSpan(text: ' maintenance charge to be charged extra and water and electricity charges to be charged as actual.', style: baseStyle),
             ],
@@ -246,27 +336,43 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.TextSpan(text: '3. Security Deposit: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: 'A security deposit of ', style: baseStyle),
             pw.TextSpan(text: formatAmount(securityRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            pw.TextSpan(text: ' is paid by the Second Party to the First Party in two installments: ', style: baseStyle),
-            pw.TextSpan(text: formatAmount(installmentSecurityRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            pw.TextSpan(text: ' in this month and the remaining amount in the second month. This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Rent Agreement after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges.', style: baseStyle),
+            pw.TextSpan(text: ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Rent Agreement after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges.', style: baseStyle),
           ]),
         ),
         pw.SizedBox(height: 10),
-        pw.Text('4. Usage: The rented premises shall be used for residential purposes only.', style: baseStyle),
+        pw.RichText(
+          text: pw.TextSpan(
+            children: [
+              pw.TextSpan(text: '4. Usage: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.TextSpan(text: 'The rented premises shall be used for '),
+              pw.TextSpan(text: 'residential', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              pw.TextSpan(text: ' purposes only.'),
+            ],
+            style: baseStyle,
+          ),
+        ),
         pw.SizedBox(height: 10),
-        pw.Text('5. Electricity Charges: The Second Party/Tenant shall be responsible for paying electricity charges based on actual consumption. The rate per unit is INR 2 (TWO RUPEES) per unit and will be billed separately from the monthly rent.', style: baseStyle),
-        pw.SizedBox(height: 10),
-        pw.Text('6. Extension and Alterations: The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.', style: baseStyle),
-        pw.SizedBox(height: 10),
-        pw.Text('7. Damage and Handover: The Tenant must use the premises properly and not cause any damage; if damage occurs, the Tenant will be liable for the cost of repairs. Should the Tenant fail to hand over the premises by the due date, they will be responsible for damages and any legal consequences.', style: baseStyle),
-        pw.SizedBox(height: 10),
-        pw.Text('8. Inspection: The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively.', style: baseStyle),
-        pw.SizedBox(height: 10),
-        pw.Text('9. Taxes and Landlord\'s Liability: The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.', style: baseStyle),
-        pw.SizedBox(height: 10),
-        pw.Text('10. Vacating & Termination: The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing.', style: baseStyle),
 
-        // Force page break at end of this page only if content spills - but we'll continue and use NewPage manually before page 3
+        pw.RichText(
+          text: pw.TextSpan(
+            children: [
+              pw.TextSpan(text: '5. Electricity & Water Charges: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+              getMeterClause(data),
+            ],
+            style: baseStyle,
+          ),
+        ),
+        pw.SizedBox(height: 10),
+        clause('6. Hybrid Work and Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement.'),
+        pw.SizedBox(height: 10),
+        clause('7. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.'),
+        pw.SizedBox(height: 10),
+        clause('8. Damage and Handover:', 'The Tenant shall keep the premises in good condition. Any damage, other than normal wear and tear, must be repaired at the Tenant\'s cost. At the end of tenancy, the Tenant must vacate and return the premises as received. Delay or failure to hand over possession will make the Tenant liable for damages and legal action.'),
+        pw.SizedBox(height: 10),
+        clause('9. Inspection:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively.'),
+        pw.SizedBox(height: 10),
+        clause('10. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
+        pw.SizedBox(height: 10),
       ],
     ),
   );
@@ -277,30 +383,33 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [
-        pw.SizedBox(height: 60),
-        pw.Text('11. Tenant Information: The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the 11-month term ends.', style: baseStyle),
+
+        clause('11. Vacating & Termination:', 'The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing.'),
         pw.SizedBox(height: 15),
-        pw.Text('12. Electricity & Water Charges: That the tenant shall pay the water and electricity charges as per actual consumption and this above payments will be excluding the monthly rent.', style: baseStyle),
+        clause('12. Termination on Grounds of Misconduct:', 'If the Tenant engages in any unlawful, improper, or socially unacceptable activity, or causes trouble in the society or locality such as fighting or disturbing peace, the Landlord shall have the right to terminate this tenancy by giving one month\'s written notice. After the notice period ends, the Tenant must vacate the premises without objection.'),
         pw.SizedBox(height: 15),
-        pw.Text('13. Lock-in Period: The Second Party shall not terminate the lease within the first six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one months\' notice to vacate, and the First Party must give the same notice to repossess the premises.', style: baseStyle),
+        clause('13. Tenant Information:', 'The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the term ends.'),
         pw.SizedBox(height: 15),
-        pw.Text('14. Prohibited Activities: That the Second Party shall not do any illegal or unlawful activities in-the above said premises; if he does the same then the First Party will not be liable and responsible for the same. The Second Party shall not keep any unauthorized inflammable and explosive things in the said premises in any manner.', style: baseStyle),
+        clause('14. Lock-in Period:', 'The Second Party shall not terminate the lease within the first Six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.'),
         pw.SizedBox(height: 15),
-        pw.Text('15. Loan & Credit Application: That the Second Party will not apply for any loan, credit card at the above said address. If any loan will be pending against the Second Party, the First Party will not be liable and responsible for the same.', style: baseStyle),
+        clause('15. Prohibited Activities:', 'The Second Party shall not engage in illegal or unlawful activities in the premises. The Second Party shall not keep any unauthorized inflammable or explosive items in the premises.'),
         pw.SizedBox(height: 15),
-        pw.Text('16. Restriction on GST Registration: The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. Furthermore, if the Owner receives any legal notice in this regard, the Owner and the Property shall not be held liable or obligated to make any payments or compliance on behalf of the Tenant.', style: baseStyle),
+        clause('16. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same.'),
         pw.SizedBox(height: 15),
-        pw.Text('17. Repair and Cleanliness: The Tenant is responsible for minor, day-to-day repairs like fuses, tube lights, and water taps at their own expense. They must return the premises in the same condition as received. Additionally, the Tenant will keep the premises clean and hygienic, ensuring no nuisance is caused to others.', style: baseStyle),
+        clause('17. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use.'),
         pw.SizedBox(height: 15),
-        pw.Text('18. Liability for Death or Suicide: In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.', style: baseStyle),
+        clause('18. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic.'),
         pw.SizedBox(height: 15),
-        pw.Text('19. Unauthorized Occupants: No person other than the Second Party/Tenant shall occupy the premises without prior written consent from the First Party/Landlord. Unauthorized occupants will be considered a violation of this agreement and may result in termination.', style: baseStyle),
+        clause('19. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
         pw.SizedBox(height: 15),
-        pw.Text('20. Non-Payment of Rent: If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises.', style: baseStyle),
+        clause('20. Unauthorized Occupants:', 'No person other than the Second Party/Tenant shall occupy the premises without prior written consent from the First Party/Landlord. Unauthorized occupants will be considered a violation of this agreement and may result in termination.'),
         pw.SizedBox(height: 15),
-        pw.Text('21. Living Relationships: The Second Party/Tenant shall not enter into or maintain a live-in relationship within the premises without notifying the First Party/Landlord. Any legal issues arising from such arrangements shall be the sole responsibility of the Second Party/Tenant, and the First Party/Landlord shall not be held liable.', style: baseStyle),
+        clause('21. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises.'),
         pw.SizedBox(height: 15),
-        pw.Text('22. Disputes: This clause establishes that any legal disagreements stemming from this agreement must exclusively be resolved by the courts located within Delhi or New Delhi. This ensures clarity regarding the specific legal forum and jurisdiction for dispute resolution, preventing litigation elsewhere.', style: baseStyle),
+        clause('22. Living Relationships:', 'The Second Party/Tenant shall not enter into or maintain a live-in relationship within the premises without notifying the First Party/Landlord. Any legal issues arising from such arrangements shall be the sole responsibility of the Second Party/Tenant, and the First Party/Landlord shall not be held liable.'),
+        pw.SizedBox(height: 15),
+        clause('23. Disputes:', 'Any legal disagreements stemming from this agreement must exclusively be resolved by the courts located within Delhi or New Delhi.'),
+        pw.SizedBox(height: 15),
       ],
     ),
   );
@@ -311,11 +420,11 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [
-        pw.SizedBox(height: 12),
 
-        pw.Text('23. Legal Issues or Police Cases: If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising from such matters.', style: baseStyle),
+        pw.SizedBox(height: 15),
+        clause('24. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
         pw.SizedBox(height: 6),
-        pw.Text('24. Mediator: Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.', style: baseStyle),
+        clause('25. Mediator:', 'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.'),
 
         pw.SizedBox(height: 18),
         pw.Text('IN WITNESS WHEREOF, both the parties have signed this Deed of Agreement on the day, month and year first above written. That both the parties have read and understood the contents of this Agreement and have signed the same without any force or pressure from any side.', style: baseStyle),
@@ -331,7 +440,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
                 pw.Text('FIRST PARTY / LANDLORD', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                 pw.SizedBox(height: 6),
                 pw.Text('Name: $ownerName', style: baseStyle),
-                pw.Text('Aadhar No: $ownerAadhar', style: baseStyle),
+                pw.Text('Aadhaar No: $ownerAadhaar', style: baseStyle),
                 pw.SizedBox(height: 18),
                 pw.Text('Signature: ____________________________', style: baseStyle),
               ],
@@ -342,7 +451,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
                 pw.Text('SECOND PARTY / TENANT', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                 pw.SizedBox(height: 6),
                 pw.Text('Name: $tenantName', style: baseStyle),
-                pw.Text('Aadhar No: $tenantAadhar', style: baseStyle),
+                pw.Text('Aadhaar No: $tenantAadhaar', style: baseStyle),
                 pw.SizedBox(height: 18),
                 pw.Text('Signature: ____________________________', style: baseStyle),
               ],
@@ -410,7 +519,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.Text('Sincerely,', style: baseStyle),
         pw.SizedBox(height: 6),
         pw.Text('Name: $tenantName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-        pw.Text('Aadhar No: $tenantAadhar', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+        pw.Text('Aadhaar No: $tenantAadhaar', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
       ],
     ),
   );

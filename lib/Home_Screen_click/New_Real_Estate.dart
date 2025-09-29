@@ -62,6 +62,7 @@ class NewRealEstateShowDateModel {
   final String? fieldWorkerCurrentLocation;
   final String? careTakerName;
   final String? careTakerNumber;
+  final String? video;
 
   NewRealEstateShowDateModel({
     this.pId,
@@ -106,6 +107,7 @@ class NewRealEstateShowDateModel {
     this.fieldWorkerCurrentLocation,
     this.careTakerName,
     this.careTakerNumber,
+    this.video,
   });
 
   factory NewRealEstateShowDateModel.fromJson(Map<String, dynamic> json) {
@@ -152,6 +154,7 @@ class NewRealEstateShowDateModel {
       fieldWorkerCurrentLocation: json['field_worker_current_location'],
       careTakerName: json['care_taker_name'],
       careTakerNumber: json['care_taker_number'],
+      video: json['video_link'],
     );
   }
 }
@@ -563,6 +566,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                         "Total Floor": property.totalFloor,
                         "Residence/Commercial": property.typeOfProperty,
                         "Facility": property.facility,
+                        "Video": property.video,
                       };
 
                       final missingFields = fields.entries

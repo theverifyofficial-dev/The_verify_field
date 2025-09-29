@@ -388,6 +388,8 @@ class _Home_ScreenState extends State<Home_Screen> {
                           MaterialPageRoute(
                               builder: (_) => ShowProperty())),
                     },
+
+
                     {
                       "image": AppImages.agreement,
                       "title": "Property Agreement",
@@ -407,6 +409,18 @@ class _Home_ScreenState extends State<Home_Screen> {
                     //           builder: (context) =>
                     //               AgreementDetails())),
                     // },
+
+                    {
+                      "image": AppImages.police,
+                      "title": "All Rented \nFlat",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddRentedMain()));
+                      },
+                    },
 
                     {
                       "image": AppImages.futureProperty,
@@ -430,17 +444,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                             context,
                             MaterialPageRoute(
                                 builder: (_) => const MainPage_TenandDemand()));
-                      },
-                    },
-                    {
-                      "image": AppImages.police,
-                      "title": "All Rented \nFlat",
-                      "onTap": () {
-                        uploadImageWithTitle();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AddRentedMain()));
                       },
                     },
                   ];

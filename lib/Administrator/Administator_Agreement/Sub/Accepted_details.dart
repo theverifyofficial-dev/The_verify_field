@@ -63,6 +63,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   }
 
   Future<void> _fetchAgreementDetail() async {
+    print(widget.agreementId);
     try {
       final response = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/details_api_for_accect_agreement.php?id=${widget.agreementId}"));

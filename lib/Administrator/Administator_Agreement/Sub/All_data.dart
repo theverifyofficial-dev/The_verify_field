@@ -176,7 +176,7 @@ class _AgreementDetailsState extends State<AllData> {
                             : Colors.blue,
                         radius: 15,
                         child: Text(
-                          '${index + 1}', // Item count starting from 1
+                          '${filteredAgreements.length - index}', // Reverse numbering
                           style: TextStyle(
                             color: Theme.of(context).brightness == Brightness.dark
                                 ? Colors.black

@@ -125,13 +125,13 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
             const SizedBox(height: 6),
 
             // ✅ Status + message info
-            if (agreement.status != null)
+            // ✅ Status + message info
+            if (agreement.status != null) ...[
               Row(
                 children: [
-                  Text(
+                  const Text(
                     "Status: ",
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold, fontSize: 14),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                   Text(
                     agreement.status!,
@@ -143,49 +143,49 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                           : Colors.green,
                     ),
                   ),
-                  if (agreement.status!.toLowerCase() == "rejected" &&
-                      agreement.messages != null &&
-                      agreement.messages!.isNotEmpty) ...[
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text("Message"),
-                            content: Text(agreement.messages!),
-                            actions: [
-                              TextButton(
-                                onPressed: () async {
-                                  Navigator.pop(context); // Close the dialog first
-
-                                  // Navigate and wait until the user comes back
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => RentalWizardPage(
-                                        agreementId: agreement.id,
-                                      ),
-                                    ),
-                                  );
-
-                                  _refreshAgreements();
-                                },
-                                child: const Text("Edit"),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text("Close"),
-                              )
-                            ],
-                          ),
-                        );
-                      },
-                      child: const Icon(Icons.message_rounded, color: Colors.blue),
+                  SizedBox(width: 20,),
+                  Expanded(
+                    child: Text(
+                      "Message: ${agreement.messages!}",
+                      style: const TextStyle(fontSize: 14,),
                     ),
-                  ],
+                  ),
+
                 ],
               ),
+
+              // Show message + Edit button (only for rejected with message)
+              if (agreement.status!.toLowerCase() == "rejected" &&
+                  agreement.messages != null &&
+                  agreement.messages!.isNotEmpty) ...[
+
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => RentalWizardPage(
+                            agreementId: agreement.id,
+                          ),
+                        ),
+                      );
+                      _refreshAgreements();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Edit", style: TextStyle(color: Colors.white)),
+                  ),
+                ),
+              ],
+            ],
+
 
             const SizedBox(height: 10),
 

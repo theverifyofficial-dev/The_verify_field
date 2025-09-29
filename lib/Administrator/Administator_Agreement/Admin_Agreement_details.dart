@@ -281,6 +281,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
           title: const Text("Reject Agreement"),
           content: Column(
             mainAxisSize: MainAxisSize.min,
+
             children: [
               Text("Please enter a reason for rejection:"),
               const SizedBox(height: 12),

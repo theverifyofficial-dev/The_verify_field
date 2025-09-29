@@ -573,8 +573,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     } catch (e) {
       _showToast('Submit error: $e');
       print("🔥 Exception during submit: $e");
-    } finally {
-      Navigator.pop(context); // Always close loader
     }
   }
 
@@ -710,8 +708,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     } catch (e) {
       _showToast('Submit error: $e');
       print("🔥 Exception during submit: $e");
-    } finally {
-      Navigator.pop(context); // Always close loader
     }
   }
 

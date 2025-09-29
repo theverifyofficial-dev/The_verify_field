@@ -220,6 +220,9 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               (item.squareFeet ?? '').toLowerCase().contains(query) ||
               (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
               (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
+              (item.ownerNumber ?? '').toLowerCase().contains(query) ||
+              (item.ownerName ?? '').toLowerCase().contains(query) ||
+              (item.ownerVehicleNumber?? '').toLowerCase().contains(query) ||
               (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
               (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
               (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
@@ -598,7 +601,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
-                      children: ['Rent', 'Buy', 'Commercial', 'Missing Field', 'Live', 'Unlive']
+                      children: ['Rent', 'Buy', 'Commercial', 'Missing Field', 'Live', 'Unlive', 'Empty Building',]
                           .map((label) {
                         final isSelected = label == selectedLabel;
                         return Padding(
@@ -645,6 +648,25 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                                       (item.facility == null || item.facility!.trim().isEmpty);
                                 }).toList();
                               }
+                              else if (label == 'Empty Building') {
+                                // ✅ Parallel API calls to fetch status for all properties
+                                final futures = _allProperties.map((item) async {
+                                  try {
+                                    final status = await fetchPropertyStatus(item.id);
+
+                                    if (status["loggValue2"] == "0") {
+                                      return item;
+                                    }
+                                  } catch (e) {
+                                    debugPrint("Flat 0 fetch error for ${item.id}: $e");
+                                  }
+                                  return null;
+                                }).toList();
+
+                                final results = await Future.wait(futures);
+                                filtered = results.whereType<Catid>().toList();
+                              }
+
                               else if (label == 'Rent' || label == 'Buy' || label == 'Commercial') {
                                 // ✅ Filter by buyRent or Residence_commercial
                                 filtered = _allProperties.where((item) {
@@ -723,7 +745,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withOpacity(0.1),
+                              // border: Border.all(color: Colors.grey,width: 1.5),
+                              color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Row(
@@ -733,7 +756,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                                 const SizedBox(width: 6),
                                 Text(
                                   "$propertyCount building found",
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14,color: Colors.black),
                                 ),
                                 const SizedBox(width: 6),
                                 GestureDetector(
@@ -870,7 +893,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                     final displayIndex = _filteredProperties.length - index; // ✅ reverse order
                     String loggValue = "Loading...";
                     return FutureBuilder<Map<String, dynamic>>(
-                      future: fetchPropertyStatus(property.id),  // ✅ use combined future
+                      future: fetchPropertyStatus(property.id),
                       builder: (context, snapshot) {
                         String logg1 = "Loading...";
                         String logg2 = "Loading...";

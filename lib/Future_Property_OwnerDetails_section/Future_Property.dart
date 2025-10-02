@@ -745,7 +745,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              // border: Border.all(color: Colors.grey,width: 1.5),
+                              border: Border.all(color: Theme.of(context).brightness==Brightness.dark?Colors.transparent: Colors.grey,width: 1.5),
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(20),
                             ),
@@ -941,8 +941,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               MaterialPageRoute(builder: (context) => Add_FutureProperty()),
             );
           },
-          icon: const Icon(Icons.add),
-          label: const Text("Add Building"),
+          icon: const Icon(Icons.add,color: Colors.white,),
+          label: const Text("Add Building",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w600),),
           backgroundColor: Colors.blue, // Or your primary color
           elevation: 4,
         ),

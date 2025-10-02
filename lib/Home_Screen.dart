@@ -367,7 +367,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(5  , (index) {
+                children: List.generate(6  , (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -410,17 +410,17 @@ class _Home_ScreenState extends State<Home_Screen> {
                     //               AgreementDetails())),
                     // },
 
-                    // {
-                    //   "image": AppImages.police,
-                    //   "title": "All Rented \nFlat",
-                    //   "onTap": () {
-                    //     uploadImageWithTitle();
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (_) => const AddRentedMain()));
-                    //   },
-                    // },
+                    {
+                      "image": AppImages.police,
+                      "title": "All Rented \nFlat",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddRentedMain()));
+                      },
+                    },
 
                     {
                       "image": AppImages.futureProperty,

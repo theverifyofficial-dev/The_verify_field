@@ -220,7 +220,6 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("Latitude", _Latitude.text),
       MapEntry("kitchen", kitchen.toString()),
       MapEntry("bathroom", bathroom.toString()),
-      MapEntry("live_unlive", "Flat"),
       MapEntry("lift", _lift.toString()),
       MapEntry("Facility", _facilityController.text),
       MapEntry("furnished_unfurnished", _furnished.toString()),

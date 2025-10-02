@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../Administrator/imagepreviewscreen.dart';
-import '../../model/Agreement_model.dart';
 import '../../model/String_ID_model.dart';
+
 class AcceptAgreement extends StatefulWidget {
   const AcceptAgreement({super.key});
 
@@ -15,11 +15,24 @@ class AcceptAgreement extends StatefulWidget {
 class _AgreementDetailsState extends State<AcceptAgreement> {
   List<StringIdModel> agreements = [];
   bool isLoading = true;
+  String? mobileNumber;
 
   @override
   void initState() {
     super.initState();
     fetchAgreements();
+    _loadMobileNumber();
+  }
+
+  Future<void> _loadMobileNumber() async {
+    final prefs = await SharedPreferences.getInstance();
+    mobileNumber = prefs.getString("number");
+
+    if (mobileNumber != null && mobileNumber!.isNotEmpty) {
+      await fetchAgreements();
+    } else {
+      setState(() => isLoading = false);
+    }
   }
 
   Future<void> fetchAgreements() async {
@@ -107,6 +120,7 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
       ),
     );
   }
+
   String getFullImageUrl(String path) {
     path = path.replaceFirst(RegExp(r'^/?uploads/'), '');
     return 'https://theverify.in/uploads/$path';

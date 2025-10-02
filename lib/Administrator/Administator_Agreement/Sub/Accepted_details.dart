@@ -196,39 +196,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
-  // for display in new file
-  // Future<void> _handleGeneratePdf() async {
-  //   if (agreement == null) return;
-  //
-  //   File file;
-  //
-  //   if (pdfFile == null) {
-  //     // Generate only if not already done
-  //     file = await generateAgreementPdf(agreement!);
-  //     setState(() {
-  //       pdfFile = file;
-  //       pdfGenerated = true;
-  //     });
-  //   } else {
-  //     file = pdfFile!;
-  //   }
-  //
-  //   // Open PDF in new screen
-  //   Navigator.push(
-  //     context,
-  //     MaterialPageRoute(
-  //       builder: (context) => Scaffold(
-  //         appBar: AppBar(title: const Text("Agreement PDF")),
-  //         body: PdfViewPinch(
-  //           controller: PdfControllerPinch(
-  //             document: PdfDocument.openFile(file.path),
-  //           ),
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
-
   MediaType _mediaTypeFromHeader(String? ct, {String fallback = 'application/octet-stream'}) {
     final v = (ct ?? fallback).split(';').first.trim();
     final parts = v.split('/');

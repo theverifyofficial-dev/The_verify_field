@@ -192,7 +192,7 @@ class _SignUp_pageState extends State<AccountRegisteration> {
                     hint: "Select Post",
                     icon: Iconsax.user_tag,
                     value: _selectedPost,
-                    items: ["Administrator", "Sub Administrator", "Field Worker"],
+                    items: ["Administrator", "Sub Administrator", "FieldWorkar"],
                     onChanged: (val) {
                       setState(() {
                         _selectedPost = val;

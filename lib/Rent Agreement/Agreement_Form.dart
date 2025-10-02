@@ -49,6 +49,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   File? tenantAadhaarFront;
   File? tenantAadhaarBack;
   File? tenantImage;
+  Map<String, dynamic>? fetchedData;
+
 
   final _propertyFormKey = GlobalKey<FormState>();
   final bhkWithAddress = TextEditingController();
@@ -368,7 +370,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       print("📩 API Response: ${response.body}");
 
       if (response.statusCode != 200) {
-        return _showToast("Server error: ${response.statusCode}");
+        return _showToast("${response.statusCode} Not Found");
       }
 
       final decoded = jsonDecode(response.body);
@@ -472,7 +474,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "relation_person_name_owner": ownerRelationPerson.text,
         "parmanent_addresss_owner": ownerAddress.text,
         "owner_mobile_no": ownerMobile.text,
-        "owner_addhar_no": ownerAadhaar.text, // confirm spelling with backend
+        "owner_addhar_no": ownerAadhaar.text,
         "tenant_name": tenantName.text,
         "tenant_relation": tenantRelation ?? '',
         "relation_person_name_tenant": tenantRelationPerson.text,
@@ -992,6 +994,151 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
+  Widget _propertyCard(Map<String, dynamic> data) {
+    final String imageUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 20),
+      shadowColor: Colors.black.withOpacity(0.15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Property Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.network(
+              imageUrl,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  alignment: Alignment.center,
+                  child: const Text("No Image",
+                      style: TextStyle(color: Colors.black54)),
+                );
+              },
+            ),
+          ),
+
+          // Details
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BHK + Floor
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "₹${data['show_Price'] ?? "--"}",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+
+                    Text(
+                      data['Bhk'] ?? "",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      data['Floor_'] ?? "--",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Price + Meter
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "Name: ${data['field_warkar_name'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Location: ${data['locations'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // // Availability
+                // Text(
+                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
+                //   style: const TextStyle(
+                //     fontSize: 15,
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
+                // const SizedBox(height: 6),
+
+                // Parking
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Meter: ${data['meter'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Parking: ${data['parking'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Maintenance
+                Text(
+                  "Maintenance: ${data['maintance'] ?? "--"}",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[100],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildBackground(bool isDark) {
     return Container(
       decoration: BoxDecoration(
@@ -1006,6 +1153,55 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         // faint grid or pattern could be added here
       ]),
     );
+  }
+
+  Future<void> fetchPropertyDetails() async {
+    final propertyId = propertyID.text.trim();  // propertyID is your controller
+    if (propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter Property ID first")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            fetchedData = data;
+            bhkWithAddress.text = '${data['Bhk']} ${data['Floor_']} ${data['Apartment_Address']}' ?? "";
+            rentAmount.text = data['show_Price'] ?? "";
+            meterInfo = data['meter'] == "Govt" ? "As per Govt. Unit" : "Custom Unit (Enter Amount)";
+            parking = (data['parking'].toString().toLowerCase().contains("bike"))
+                ? "Bike"
+                : (data['parking'].toString().toLowerCase().contains("car"))
+                ? "Car"
+                : "No";
+            maintenance = (data['maintance'].toString().toLowerCase().contains("include"))
+                ? "Including"
+                : "Excluding";
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
   }
 
   Widget _glowCircle(double size, Color color) {
@@ -1325,12 +1521,38 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _propertyStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Rented Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+
+        if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
+        Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton.icon(
+            onPressed: () => fetchPropertyDetails(),
+            icon: const Icon(Icons.search, color: Colors.white),
+            label: const Text(
+              'Auto fetch',
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 4,
+              backgroundColor: Colors.purple.shade900, // needed for gradient
+            ),
+          ),
+        ),
+          ],
+        ),
         const SizedBox(height: 12),
         Form(
           key: _propertyFormKey,
           child: Column(children: [
-            _glowTextField(controller: propertyID, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
 
             _glowTextField(controller: bhkWithAddress, label: 'BHK with Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             Row(children: [

@@ -192,7 +192,7 @@ class _AgreementDetailsState extends State<AllAgreement> {
                             : Colors.blue,
                         radius: 15,
                         child: Text(
-                          '${filteredAgreements.length - index}', // Reverse numbering
+                          '${filteredAgreements.length - index}',
                           style: TextStyle(
                             color: Theme.of(context).brightness == Brightness.dark
                                 ? Colors.black

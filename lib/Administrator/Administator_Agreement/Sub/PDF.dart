@@ -221,6 +221,20 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     shiftingDate = DateTime(2025, 9, 23); // fallback static
   }
 
+  String getDayWithSuffix(int day) {
+    if (day >= 11 && day <= 13) return '${day}th'; // 11th, 12th, 13th special case
+    switch (day % 10) {
+      case 1:
+        return '${day}st';
+      case 2:
+        return '${day}nd';
+      case 3:
+        return '${day}rd';
+      default:
+        return '${day}th';
+    }
+  }
+
   final endDate = addMonthsSafely(shiftingDate, 11);
   final shiftingDateFormatted = '${shiftingDate.day.toString().padLeft(2, '0')}/${shiftingDate.month.toString().padLeft(2, '0')}/${shiftingDate.year}';
   final endDateFormatted = '${endDate.day.toString().padLeft(2, '0')}/${endDate.month.toString().padLeft(2, '0')}/${endDate.year}';
@@ -228,6 +242,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final baseStyle = pw.TextStyle(fontSize: 11);
   final boldStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold);
   final titleStyle = pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold);
+  final rentDueDay = getDayWithSuffix(shiftingDate.day);
+
 
   // helper to create clause lines with optional bold span(s)
   pw.Widget clauseLine(String numberAndTitle, String body, {List<pw.TextSpan>? boldSpans}) {
@@ -309,26 +325,57 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
           ),
         ),
         pw.SizedBox(height: 10),
-
         // Clause 2 with amounts bolded
-        pw.RichText(
-          text: pw.TextSpan(
+            pw.RichText(
+            text: pw.TextSpan(
             children: [
-              pw.TextSpan(text: '2. Rent: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-              pw.TextSpan(
-                text: 'The Second Party has paid an advance rent of ',
-                style: baseStyle,
-              ),
-              pw.TextSpan(text: formatAmount(monthlyRentRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-              pw.TextSpan(text: '. The monthly rent shall be ', style: baseStyle),
-              pw.TextSpan(text: formatAmount(monthlyRentRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-              pw.TextSpan(text: ' and is payable in advance on or before the 7th day of each calendar month. ', style: baseStyle),
-              pw.TextSpan(text: 'Rs. ${maintenanceRaw.isNotEmpty ? maintenanceRaw : '0'} ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-              pw.TextSpan(text: '( ' + (maintenanceRaw.isNotEmpty ? numberToWords(int.tryParse(maintenanceRaw.replaceAll(',', '')) ?? 0) + ' RUPEES )' : 'ZERO RUPEES )'), style: baseStyle),
-              pw.TextSpan(text: ' maintenance charge to be charged extra and water and electricity charges to be charged as actual.', style: baseStyle),
+            pw.TextSpan(
+            text: '2. Rent: ',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+            ),
+            pw.TextSpan(
+            text: 'The Second Party has paid an advance rent of ',
+            style: baseStyle,
+            ),
+            pw.TextSpan(
+            text: formatAmount(monthlyRentRaw),
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+            ),
+            pw.TextSpan(text: '. The monthly rent shall be ', style: baseStyle),
+            pw.TextSpan(
+            text: formatAmount(monthlyRentRaw),
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+            ),
+            pw.TextSpan(
+            text: ' and is payable in advance on or before the ',
+            style: baseStyle,
+            ),
+            pw.TextSpan( // 🔥 BOLD rentDueDay
+            text: '$rentDueDay day',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+            ),
+            pw.TextSpan(
+            text: ' of each calendar month. ',
+            style: baseStyle,
+            ),
+            pw.TextSpan(
+            text: 'Rs. ${maintenanceRaw.isNotEmpty ? maintenanceRaw : '0'} ',
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+            ),
+            pw.TextSpan(
+            text: '( ' +
+            (maintenanceRaw.isNotEmpty
+            ? numberToWords(
+            int.tryParse(maintenanceRaw.replaceAll(',', '')) ??
+            0) +
+            ' RUPEES )'
+                : 'ZERO RUPEES )'),
+            style: baseStyle,
+            ),
+            pw.TextSpan(text: ' maintenance charge ', style: baseStyle),
             ],
-          ),
-        ),
+            ),
+            ),
         pw.SizedBox(height: 10),
         // Clause 3 with amounts
         pw.RichText(

@@ -484,7 +484,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
   final List<String>_balcony_items = ['Front Side Balcony', 'Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',];
 
-  final List<String> _Parking_items = ['Car','Bike','Both'];
+  final List<String> _Parking_items = ['Car','Bike','Both','No Parking',];
 
   final List<String> _kitchen_items = ['Western Style','Indian Style','No'];
 

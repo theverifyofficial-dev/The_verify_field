@@ -13,7 +13,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/profile.dart';
-import 'Add_Rented_Flat/Add_rented_main.dart';
+import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
+import 'Add_Rented_Flat/Field_Worker_Target.dart';
 import 'Administrator/agreement_details.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
@@ -418,7 +419,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const AddRentedMain()));
+                                builder: (_) => const AddRentedFlatTabbar()));
                       },
                     },
 

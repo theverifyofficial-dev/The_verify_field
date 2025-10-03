@@ -19,6 +19,7 @@ import 'package:verify_feild_worker/Model.dart';
 import 'package:verify_feild_worker/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
+import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
 import '../ui_decoration_tools/constant.dart';
 import '../model/realestateSlider.dart';
 import 'Add_image_under_property.dart';
@@ -243,12 +244,19 @@ class _View_DetailsState extends State<View_Details> {
 
   Future<List<Catid>> fetchData(int id) async {
     print(id);
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id");
+    var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
       List<dynamic> listResponse = json.decode(response.body);
-      return listResponse.map((data) => Catid.fromJson(data)).toList();
+      final properties =
+      listResponse.map((data) => Catid.fromJson(data)).toList();
+
+      if (properties.isNotEmpty) {
+        firstProperty = properties.first; // store first property
+      }
+      return properties;
     } else {
       throw Exception('Unexpected error occurred!');
     }
@@ -292,6 +300,7 @@ class _View_DetailsState extends State<View_Details> {
       await _loaduserdata();
       if (_id != 0) {
         setState(() {
+
           _propertyFuture = fetchData(widget.id);
           _galleryFuture = fetchCarouselData(_id); // pass _id here
         });
@@ -332,6 +341,7 @@ class _View_DetailsState extends State<View_Details> {
     });
   }
   String data = 'Initial Data';
+  Catid? firstProperty; // ✅ store first property here
 
 
 //  final result = await profile();
@@ -341,72 +351,39 @@ class _View_DetailsState extends State<View_Details> {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(onPressed: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context){
-              return ReverseInFutureProperty(id: widget.id,);
-            }));
-          }, icon: Icon(Icons.menu,color: Colors.white,))
-
-          // PopupMenuButton<String>(
-          //   icon: Icon(Icons.how_to_reg
-          //     ,color: Colors.white,size: 30,),
-          //   onSelected: (value) {
-          //     if (value == 'Book Property') {
-          //       showDialog<bool>(
-          //         context: context,
-          //         builder: (context) => AlertDialog(
-          //           title: Text('Book Property'),
-          //           content: Text('Do you really want to book this property?'),
-          //           shape: RoundedRectangleBorder(
-          //             borderRadius: BorderRadius.circular(12),
-          //           ),
-          //           backgroundColor: Theme.of(context).dialogBackgroundColor,
-          //           titleTextStyle: TextStyle(
-          //             color: Theme.of(context).textTheme.titleLarge?.color,
-          //             fontSize: MediaQuery.of(context).size.width * 0.05,
-          //             fontWeight: FontWeight.bold,
-          //           ),
-          //           contentTextStyle: TextStyle(
-          //             color: Theme.of(context).textTheme.bodyMedium?.color,
-          //           ),
-          //           actions: [
-          //             TextButton(
-          //               onPressed: () => Navigator.pop(context, false),
-          //               child: Text(
-          //                 'CANCEL',
-          //                 style: TextStyle(
-          //                   color: Theme.of(context).colorScheme.error,
-          //                 ),
-          //               ),
-          //             ),
-          //             ElevatedButton(
-          //               style: ElevatedButton.styleFrom(
-          //                 backgroundColor: Theme.of(context).colorScheme.tertiary,
-          //               ),
-          //               onPressed: () async {
-          //                 await Book_property();
-          //                 Navigator.pop(context, true);
-          //               },
-          //               child: Text(
-          //                 'CONFIRM',
-          //                 style: TextStyle(
-          //                   color: Theme.of(context).colorScheme.onTertiary,
-          //                 ),
-          //               ),
-          //             ),
-          //           ],
-          //         ),
-          //       );
-          //     }
-          //   },
-          //   itemBuilder: (context) => [
-          //     PopupMenuItem(
-          //       value: 'Book Property',
-          //       child: Text('Book Property'),
-          //     ),
-          //   ],
-          // ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onSelected: (value) {
+              if (value == "reverse") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ReverseInFutureProperty(id: widget.id),
+                  ),
+                );
+              } else if (value == "rented") {
+                if (firstProperty != null) {
+                  print('P_id : '+firstProperty!.id.toString(),);
+                  print('Subid : '+firstProperty!.subid.toString(),);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RentedPropertyPage(
+                        id: firstProperty!.id.toString(),
+                        subid: firstProperty!.subid.toString(),
+                      ),
+                    ),
+                  );
+                }
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
+              const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
+            ],
+          ),
         ],
+
         centerTitle: true,
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,

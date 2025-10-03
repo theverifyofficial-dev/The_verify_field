@@ -353,7 +353,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
                                 borderRadius: BorderRadius.circular(10)
                             ),
                             child: Center(
-                              child: Text(tempArray.contains(name[index].toString()) ? 'Remove' : 'Add'),
+                              child: Text(tempArray.contains(name[index].toString()) ? 'Remove' : 'Add',style: TextStyle(color: Colors.white,fontSize: 14,fontWeight: FontWeight.w600,fontFamily: "Poppins"),),
                             ),
                           ),
                         ),
@@ -395,10 +395,10 @@ class _assign_demand_formState extends State<assign_demand_form> {
                   height: 50,
                   width: 200,
                   margin: const EdgeInsets.symmetric(horizontal: 50),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(15)),
-                      color: Colors.red.withOpacity(0.8)
-                  ),
+                  // decoration: BoxDecoration(
+                  //     borderRadius: BorderRadius.all(Radius.circular(15)),
+                  //     color: Colors.red.withOpacity(0.8)
+                  // ),
 
 
 

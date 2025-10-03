@@ -241,7 +241,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String? apiImageUrl;
 
 
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor',''];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada',''];
 
   String? _selectedItem1;
   final List<String> _items1 = ['Buy','Rent',''];

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class AddRentedMain extends StatefulWidget {
-  const AddRentedMain({super.key});
+class FieldWorkerTarget extends StatefulWidget {
+  const FieldWorkerTarget({super.key});
 
   @override
-  State<AddRentedMain> createState() => _AddRentedMainState();
+  State<FieldWorkerTarget> createState() => _FieldWorkerTargetState();
 }
 
-class _AddRentedMainState extends State<AddRentedMain>
+class _FieldWorkerTargetState extends State<FieldWorkerTarget>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 

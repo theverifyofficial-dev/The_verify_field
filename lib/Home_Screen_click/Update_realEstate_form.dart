@@ -254,9 +254,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String full_address = '';
   File? _imageFile;
   String? _networkImageUrl;
-  String? apiImageUrl; // This should be assigned from your API data
+  String? apiImageUrl;
   File? _imageFile2;
-  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri','Dwarka Mor',''];
+  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada',''];
 
   final propertyTypes = ["Flat","Shop","Office","Godown","Farms","Plots",''];
   final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '1 RK', 'Commercial',''];
@@ -293,10 +293,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
   void _loadSavedLatLong() async {
     final latLong = await getSavedLatLong();
-    // print('Latitude: ${latLong['Latitude']}');
-    // print('Longitude: ${latLong['Longitude']}');
-
-    // If you want to set it to a controller or variable, do it here
     setState(() {
       _latitude = latLong['Latitude'] ?? '';
       _longitude = latLong['Longitude'] ?? '';
@@ -324,17 +320,16 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       return value.toString();
     }
   }
+
   DateTime? _lastContinuePressTime;
 
   bool _hasSubmitted = false;
   Future<void> _checkAndSubmitContinue() async {
-    if (_hasSubmitted) return; // prevent multiple API calls
+    if (_hasSubmitted) return;
     _hasSubmitted = true;
 
-    // Call your API
     await _submitForm();
 
-    // Reset flag so button works again after page reload or next usage
     _hasSubmitted = false;
   }
 
@@ -1904,7 +1899,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                           text: _parking ?? '',
                         ),
                         onTap: () => _showBottomSheet(
-                          options: ['Car', 'Bike', 'Both',''],
+                          options: ['Car', 'Bike', 'Both','No Parking',''],
                           onSelected: (val) {
                             setState(() {
                               _parking = val;

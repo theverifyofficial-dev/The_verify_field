@@ -38,6 +38,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             agreement = decoded["data"][0];
             isLoading = false;
           });
+
+          fetchPropertyCard();
         }
       }
     } catch (e) {
@@ -341,38 +343,57 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
+            if (propertyCard != null) propertyCard!,
 
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8, // responsive card width
+                    child: _sectionCard(title: "Owner Details", children: [
+                      _kv("Owner Name", agreement!["owner_name"]),
+                      _kv("Relation", "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
+                      _kv("Address", agreement!["parmanent_addresss_owner"]),
+                      _kv("Mobile", agreement!["owner_mobile_no"]),
+                      _kv("Aadhar", agreement!["owner_addhar_no"]),
+                    ]),
+                  ),
+                  const SizedBox(width: 12),
 
-            // 🔹 Owner Section
-            _sectionCard(title: "Owner Details", children: [
-              _kv("Owner Name", agreement!["owner_name"]),
-              _kv("Relation", "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
-              _kv("Address", agreement!["parmanent_addresss_owner"]),
-              _kv("Mobile", agreement!["owner_mobile_no"]),
-              _kv("Aadhar", agreement!["owner_addhar_no"]),
-            ]),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: _sectionCard(title: "Tenant Details", children: [
+                      _kv("Tenant Name", agreement!["tenant_name"]),
+                      _kv("Relation", "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
+                      _kv("Address", agreement!["permanent_address_tenant"]),
+                      _kv("Mobile", agreement!["tenant_mobile_no"]),
+                      _kv("Aadhar", agreement!["tenant_addhar_no"]),
+                    ]),
+                  ),
+                  const SizedBox(width: 12),
 
-            // 🔹 Tenant Section
-            _sectionCard(title: "Tenant Details", children: [
-              _kv("Tenant Name", agreement!["tenant_name"]),
-              _kv("Relation", "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
-              _kv("Address", agreement!["permanent_address_tenant"]),
-              _kv("Mobile", agreement!["tenant_mobile_no"]),
-              _kv("Aadhar", agreement!["tenant_addhar_no"]),
-            ]),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: _sectionCard(title: "Property Details", children: [
+                      _kv("Property", agreement?["property_id"] ?? ""),
+                      _kv("BHK", agreement?["Bhk"] ?? ""),
+                      _kv("Floor", agreement?["floor"] ?? ""),
+                      _kv("Rented Address", agreement!["rented_address"]),
+                      _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
+                      _kv("Security", "₹${agreement!["securitys"]}"),
+                      _kv("Installment Security", "₹${agreement!["installment_security_amount"]}"),
+                      _kv("Meter", agreement!["meter"]),
+                      _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
+                      _kv("Maintenance", agreement!["maintaince"]),
+                      _kv("Parking", agreement!["parking"]),
+                      _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
+                    ]),
+                  ),
+                ],
+              ),
+            ),
 
-            // 🔹 Agreement Info
-            _sectionCard(title: "Agreement Details", children: [
-              _kv("Rented Address", agreement!["rented_address"]),
-              _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
-              _kv("Security", "₹${agreement!["securitys"]}"),
-              _kv("Installment Security", "₹${agreement!["installment_security_amount"]}"),
-              _kv("Meter", agreement!["meter"]),
-              _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
-              _kv("Maintenance", agreement!["maintaince"]),
-              _kv("Parking", agreement!["parking"]),
-              _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
-            ]),
 
             // 🔹 Fieldworker
             _sectionCard(title: "Field Worker", children: [
@@ -427,6 +448,190 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget? propertyCard;
+
+
+  Future<void> fetchPropertyCard() async {
+    final propertyId = agreement?["property_id"];
+    if (propertyId == null || propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter Property ID first")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            propertyCard = _propertyCard(data);
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
+  }
+
+  Widget _propertyCard(Map<String, dynamic> data) {
+    final String imageUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 20),
+      shadowColor: Colors.black.withOpacity(0.15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Property Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.network(
+              imageUrl,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  alignment: Alignment.center,
+                  child: const Text("No Image",
+                      style: TextStyle(color: Colors.black54)),
+                );
+              },
+            ),
+          ),
+
+          // Details
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BHK + Floor
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "₹${data['show_Price'] ?? "--"}",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+
+                    Text(
+                      data['Bhk'] ?? "",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      data['Floor_'] ?? "--",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Price + Meter
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "Name: ${data['field_warkar_name'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Location: ${data['locations'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // // Availability
+                // Text(
+                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
+                //   style: const TextStyle(
+                //     fontSize: 15,
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
+                // const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Meter: ${data['meter'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Parking: ${data['parking'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Maintenance
+                Text(
+                  "Maintenance: ${data['maintance'] ?? "--"}",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[100],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

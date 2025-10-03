@@ -67,6 +67,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
             agreement = Map<String, dynamic>.from(decoded["data"][0]);
             isLoading = false;
           });
+          fetchPropertyCard();
         } else {
           setState(() => isLoading = false);
         }
@@ -209,15 +210,18 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
+            if (propertyCard != null) propertyCard!,
+
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
                 children: [
-
                   _buildCard(
                     title: "Agreement Details",
                     children: [
+                      _kv("BHK", agreement?["Bhk"] ?? ""),
+                      _kv( "Floor", agreement?["floor"] ?? ""),
                       _kv("Rented Address", agreement?["rented_address"]),
                       _kv("Monthly Rent", agreement?["monthly_rent"] != null
                           ? "₹${agreement?["monthly_rent"]}"
@@ -412,6 +416,192 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       throw Exception('Could not launch $url');
     }
   }
+
+
+  Widget? propertyCard;
+
+
+  Future<void> fetchPropertyCard() async {
+    final propertyId = agreement?["property_id"];
+    if (propertyId == null || propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Property ID not found")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            propertyCard = _propertyCard(data);
+          });
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
+  }
+
+  Widget _propertyCard(Map<String, dynamic> data) {
+    final String imageUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 20),
+      shadowColor: Colors.black.withOpacity(0.15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Property Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.network(
+              imageUrl,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  alignment: Alignment.center,
+                  child: const Text("No Image",
+                      style: TextStyle(color: Colors.black54)),
+                );
+              },
+            ),
+          ),
+
+          // Details
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BHK + Floor
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "₹${data['show_Price'] ?? "--"}",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+
+                    Text(
+                      data['Bhk'] ?? "",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      data['Floor_'] ?? "--",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Price + Meter
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "Name: ${data['field_warkar_name'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Location: ${data['locations'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // // Availability
+                // Text(
+                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
+                //   style: const TextStyle(
+                //     fontSize: 15,
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
+                // const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Meter: ${data['meter'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Parking: ${data['parking'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Maintenance
+                Text(
+                  "Maintenance: ${data['maintance'] ?? "--"}",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[100],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }
 
 class ElevatedGradientButton extends StatelessWidget {

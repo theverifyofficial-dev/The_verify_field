@@ -20,6 +20,7 @@ import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
+import 'Rent Agreement/history_tab.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'add_properties_firstpage.dart';
 import 'ui_decoration_tools/constant.dart';
@@ -398,7 +399,8 @@ class _Home_ScreenState extends State<Home_Screen> {
                           //_AgreementURL(),
                     Navigator.push(context, MaterialPageRoute(
                               builder: (context) =>
-                                  AgreementDashboard())),
+                                  HistoryTab()
+                    )),
                     },
 
 

@@ -92,6 +92,24 @@ class _AgreementDetailsState extends State<AllData> {
     }
   }
 
+  String _calculateRenewalDate(String rawDate) {
+    try {
+      final timestamp = int.parse(rawDate.replaceAll(RegExp(r'[^0-9]'), ''));
+      final shiftingDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
+
+      final renewalDate = DateTime(
+        shiftingDate.year,
+        shiftingDate.month + 10, // add 11 months
+        shiftingDate.day,
+      );
+
+      return "${renewalDate.year}-${_twoDigits(renewalDate.month)}-${_twoDigits(renewalDate.day)}";
+    } catch (e) {
+      return "--";
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -194,17 +212,27 @@ class _AgreementDetailsState extends State<AllData> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: Text(
-                        "Tenant: ${item.tenantName}\n"
-                            "Rent: ₹${item.monthlyRent}\n"
-                            "Shifting Date: ${_formatDate(item.shiftingDate)}\n"
-                            "Agreement ID: ${item.id}",
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white70
-                              : Colors.grey[800],
-                        ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Tenant: ${item.tenantName}"),
+                          Text("Rent: ₹${item.monthlyRent}"),
+                          Text("Shifting Date: ${_formatDate(item.shiftingDate)}"),
+
+                          // 🔴 Renewal Date in RED
+                          Text(
+                            "Renewal Date: ${_calculateRenewalDate(item.shiftingDate)}",
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+
+                          Text("Agreement ID: ${item.id}"),
+                        ],
                       ),
+
+
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         color: Theme.of(context).brightness == Brightness.dark

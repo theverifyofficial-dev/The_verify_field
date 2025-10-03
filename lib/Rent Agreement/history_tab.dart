@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/Dashboard_screen.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/All_agreement.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/request_agreement.dart';
 
@@ -14,6 +16,14 @@ class HistoryTab extends StatefulWidget {
 }
 
 class _parent_TenandDemandState extends State<HistoryTab> {
+
+
+  _launchURL() async {
+    final Uri url = Uri.parse('https://theverify.in/example.html');
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
 
 
   @override
@@ -41,6 +51,25 @@ class _parent_TenandDemandState extends State<HistoryTab> {
             ],
           ),
         ),
+        actions:  [
+          GestureDetector(
+            onTap: () {
+              _launchURL();
+            },
+            child: Row(
+              children: [
+                const Icon(
+                  PhosphorIcons.share,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 20,
+          ),
+        ],
       ),
       body: DefaultTabController(
         length: 3,
@@ -83,6 +112,30 @@ class _parent_TenandDemandState extends State<HistoryTab> {
           ],
         ),
       ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(12.0),
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue.shade700,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              // 👉 Navigate to Add Agreements page
+              Navigator.push(context, MaterialPageRoute(builder: (context) => AgreementDashboard()));
+            },
+            icon: const Icon(Icons.add_circle, color: Colors.white),
+            label: const Text(
+              "Add Agreements",
+              style: TextStyle(fontSize: 18, color: Colors.white),
+            ),
+          ),
+        ),
+      ),
     );
   }
+
 }

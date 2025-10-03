@@ -3,28 +3,25 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Custom_Widget/Custom_backbutton.dart';
+import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
-import 'Dashboard_screen.dart';
+import '../Dashboard_screen.dart';
 
-class RentalWizardPage extends StatefulWidget {
+class ExternalForm extends StatefulWidget {
   final String? agreementId;
-  const RentalWizardPage({Key? key, this.agreementId}) : super(key: key);
+  const ExternalForm({Key? key, this.agreementId}) : super(key: key);
 
   @override
-  State<RentalWizardPage> createState() => _RentalWizardPageState();
+  State<ExternalForm> createState() => _RentalWizardPageState();
 }
 
-class _RentalWizardPageState extends State<RentalWizardPage> with TickerProviderStateMixin {
+class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
@@ -53,22 +50,29 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
 
   final _propertyFormKey = GlobalKey<FormState>();
-  final bhkWithAddress = TextEditingController();
+  final Address = TextEditingController();
   final rentAmount = TextEditingController();
+  final Bhk = TextEditingController();
+  final floor = TextEditingController();
+
   final securityAmount = TextEditingController();
   bool securityInstallment = false;
   final installmentAmount = TextEditingController();
   String meterInfo = 'As per Govt. Unit';
   final customUnitAmount = TextEditingController();
-  final propertyID = TextEditingController();
   DateTime? shiftingDate;
   String maintenance = 'Including';
   String parking = 'Car';
   final customMaintanceAmount = TextEditingController();
 
-   String baseUrl1 = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
-   String baseUrl2 = "https://theverify.in/";
+  String baseUrl1 = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
+  String baseUrl2 = "https://theverify.in/";
 
+
+
+  static const kAppGradient = LinearGradient(
+    colors: [Color(0xFF4CA1FF), Color(0xFF00D4FF)], // Blue → Cyan
+  );
 
   final ImagePicker _picker = ImagePicker();
 
@@ -186,8 +190,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           tenantAadhaar.text = data["tenant_addhar_no"] ?? "";
 
           // 🔹 Agreement
-          propertyID.text = data["property_id"]?.toString() ?? "";
-          bhkWithAddress.text = data["rented_address"] ?? "";
+          Bhk.text = data["Bhk"] ?? "";
+          floor.text = data["floor"] ?? "";
+          Address.text = data["rented_address"] ?? "";
           rentAmount.text = data["monthly_rent"]?.toString() ?? "";
           securityAmount.text = data["securitys"]?.toString() ?? "";
           installmentAmount.text = data["installment_security_amount"]?.toString() ?? "";
@@ -232,7 +237,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     tenantAddress.dispose();
     tenantMobile.dispose();
     tenantAadhaar.dispose();
-    bhkWithAddress.dispose();
+    Bhk.dispose();
+    floor.dispose();
+    Address.dispose();
     rentAmount.dispose();
     securityAmount.dispose();
     installmentAmount.dispose();
@@ -240,7 +247,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     super.dispose();
   }
 
-  // ---------- Image picker ----------
   Future<void> _pickImage(String which) async {
     final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 75);
     if (picked == null) return;
@@ -265,7 +271,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       }
     });
   }
-
 
   void _goNext() {
     bool valid = false;
@@ -407,7 +412,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
           tenantAddress.text = data['permanent_address_tenant'] ?? '';
 
-          // Only update opposite field
           if (searchedByAadhaar) {
             tenantMobile.text = data['tenant_mobile_no'] ?? '';
           } else {
@@ -481,7 +485,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "permanent_address_tenant": tenantAddress.text,
         "tenant_mobile_no": tenantMobile.text,
         "tenant_addhar_no": tenantAadhaar.text,
-        "rented_address": bhkWithAddress.text,
+        "Bhk": Bhk.text,
+        "floor": floor.text,
+        "rented_address": Address.text,
         "monthly_rent": rentAmount.text,
         "securitys": securityAmount.text,
         "installment_security_amount": installmentAmount.text,
@@ -494,7 +500,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
-        "property_id": propertyID.text,
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -613,7 +618,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "permanent_address_tenant": tenantAddress.text,
         "tenant_mobile_no": tenantMobile.text,
         "tenant_addhar_no": tenantAadhaar.text,
-        "rented_address": bhkWithAddress.text,
+        "Bhk": Bhk.text,
+        "floor": floor.text,
+        "rented_address": Address.text,
         "monthly_rent": rentAmount.text,
         "securitys": securityAmount.text,
         "installment_security_amount": installmentAmount.text,
@@ -626,7 +633,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
-        "property_id": propertyID.text,
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -701,7 +707,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           );
         }
         );
-            }
+      }
 
       else {
         _showToast('Submit failed (${response.statusCode})');
@@ -713,55 +719,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     }
   }
 
-
-
-  Future<void> _addFile(
-      http.MultipartRequest request,
-      String field,
-      File? file, {
-        String? filename,
-        MediaType? type,
-      }) async {
-    if (file == null) return;
-
-    File? compressedFile = file;
-
-    // Compress only if image
-    final ext = p.extension(file.path).toLowerCase();
-    if ([".jpg", ".jpeg", ".png"].contains(ext)) {
-      final c = await _compressImage(file);
-      if (c != null) compressedFile = c;
-    }
-
-    request.files.add(await http.MultipartFile.fromPath(
-      field,
-      compressedFile.path,
-      filename: filename ?? p.basename(file.path),
-      contentType: type,
-    ));
-  }
-
-
-  Future<File?> _compressImage(File file) async {
-    final dir = await getTemporaryDirectory();
-    final targetPath = p.join(
-      dir.path,
-      "${DateTime.now().millisecondsSinceEpoch}.jpg",
-    );
-
-    final XFile? compressed = await FlutterImageCompress.compressAndGetFile(
-      file.absolute.path,
-      targetPath,
-      quality: 70, // adjust quality (0–100)
-    );
-
-    if (compressed == null) return null;
-
-    return File(compressed.path); // ✅ convert XFile → File
-  }
-
-
-// Centralized toast function with proper parameters
   void _showToast(String message) {
     Fluttertoast.showToast(
       msg: message,
@@ -891,7 +848,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             child: Text('Error', style: TextStyle(fontSize: 12)),
           ),
         )
-            : Center(child: Text(hint, style: const TextStyle(fontSize: 12))),
+            : Center(child: Text(hint, style: const TextStyle(fontSize: 12,color: Colors.black))),
       ),
     );
   }
@@ -909,7 +866,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text('Rental Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text('External Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(10),
@@ -994,214 +951,30 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
-  Widget _propertyCard(Map<String, dynamic> data) {
-    final String imageUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
-
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      elevation: 8,
-      margin: const EdgeInsets.only(bottom: 20),
-      shadowColor: Colors.black.withOpacity(0.15),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Property Image
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.network(
-              imageUrl,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  height: 200,
-                  width: double.infinity,
-                  color: Colors.grey[200],
-                  alignment: Alignment.center,
-                  child: const Text("No Image",
-                      style: TextStyle(color: Colors.black54)),
-                );
-              },
-            ),
-          ),
-
-          // Details
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // BHK + Floor
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-
-                    Text(
-                      "₹${data['show_Price'] ?? "--"}",
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-
-                    Text(
-                      data['Bhk'] ?? "",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      data['Floor_'] ?? "--",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[100],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Price + Meter
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-
-                    Text(
-                      "Name: ${data['field_warkar_name'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[100],
-                      ),
-                    ),
-
-                    Text(
-                      "Location: ${data['locations'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[100],
-                      ),
-                    ),
-
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // // Availability
-                // Text(
-                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
-                //   style: const TextStyle(
-                //     fontSize: 15,
-                //     fontWeight: FontWeight.w500,
-                //   ),
-                // ),
-                // const SizedBox(height: 6),
-
-                // Parking
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Meter: ${data['meter'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[100],
-                      ),
-                    ),
-
-                    Text(
-                      "Parking: ${data['parking'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[100],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-
-                // Maintenance
-                Text(
-                  "Maintenance: ${data['maintance'] ?? "--"}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[100],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildBackground(bool isDark) {
     return Container(
       decoration: BoxDecoration(
         gradient: isDark
-            ? const LinearGradient(colors: [Color(0xFF07102B), Color(0xFF0B0C14)])
-            : const LinearGradient(colors: [Color(0xFFE6F0FF), Color(0xFFFAFAFF)]),
+            ? const LinearGradient(
+          colors: [Color(0xFF07102B), Color(0xFF0B0C14)],
+        )
+            : const LinearGradient(
+          colors: [Color(0xFFE6F0FF), Color(0xFFFAFAFF)],
+        ),
       ),
       child: Stack(children: [
-        // soft glowing blobs
-        Positioned(top: -80, left: -40, child: _glowCircle(220, Colors.purpleAccent.withOpacity(isDark ? 0.14 : 0.14))),
-        Positioned(bottom: -120, right: -40, child: _glowCircle(280, Colors.tealAccent.withOpacity(isDark ? 0.08 : 0.08))),
-        // faint grid or pattern could be added here
+        Positioned(
+          top: -80,
+          left: -40,
+          child: _glowCircle(220, Colors.blueAccent.withOpacity(isDark ? 0.14 : 0.14)),
+        ),
+        Positioned(
+          bottom: -120,
+          right: -40,
+          child: _glowCircle(280, Colors.cyanAccent.withOpacity(isDark ? 0.08 : 0.08)),
+        ),
       ]),
     );
-  }
-
-  Future<void> fetchPropertyDetails() async {
-    final propertyId = propertyID.text.trim();  // propertyID is your controller
-    if (propertyId.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Enter Property ID first")),
-      );
-      return;
-    }
-
-    try {
-      final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
-        body: {"P_id": propertyId},
-      );
-
-      if (response.statusCode == 200) {
-        final json = jsonDecode(response.body);
-
-        if (json['status'] == "success") {
-          final data = json['data'];
-
-          setState(() {
-            fetchedData = data;
-            bhkWithAddress.text = '${data['Bhk']} ${data['Floor_']} ${data['Apartment_Address']}' ?? "";
-            rentAmount.text = data['show_Price'] ?? "";
-            meterInfo = data['meter'] == "Govt" ? "As per Govt. Unit" : "Custom Unit (Enter Amount)";
-            parking = (data['parking'].toString().toLowerCase().contains("bike"))
-                ? "Bike"
-                : (data['parking'].toString().toLowerCase().contains("car"))
-                ? "Car"
-                : "No";
-            maintenance = (data['maintance'].toString().toLowerCase().contains("include"))
-                ? "Including"
-                : "Excluding";
-          });
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(json['message'] ?? "Property not found")),
-          );
-        }
-      }
-    } catch (e) {
-      print("Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Failed to fetch property details")),
-      );
-    }
   }
 
   Widget _glowCircle(double size, Color color) {
@@ -1215,6 +988,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _fancyStepHeader() {
     final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
     final stepIcons = [Icons.person, Icons.person_outline, Icons.home, Icons.preview];
+
     return Row(
       children: [
         Expanded(
@@ -1222,12 +996,25 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             height: 94,
             child: LayoutBuilder(builder: (context, constraints) {
               final gap = (constraints.maxWidth - 64) / (stepLabels.length - 1);
-              return Stack(children: [
-                Positioned(top: 46, left: 32, right: 5, child: Container(height: 5, decoration: BoxDecoration(color: Colors.grey.shade600, borderRadius: BorderRadius.circular(6)))),
 
-                // progress overlay
+              return Stack(
+                  children: [
                 Positioned(
-                  top: 46,
+                  top: 50,
+                  left: 32,
+                  right: 5,
+                  child: Container(
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade600,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ),
+
+                // ✅ Progress overlay with Blue → Cyan
+                Positioned(
+                  top: 50,
                   left: 32,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 450),
@@ -1235,7 +1022,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     width: gap * _currentStep,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
-                      gradient: const LinearGradient(colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
+                      gradient: kAppGradient,
                     ),
                   ),
                 ),
@@ -1244,6 +1031,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   final left = 0 + gap * i;
                   final isActive = i == _currentStep;
                   final isDone = i < _currentStep;
+
                   return Positioned(
                     left: left,
                     top: 0,
@@ -1256,23 +1044,55 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                           height: isActive ? 56 : 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: isDone || isActive
-                                ? const LinearGradient(colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)])
-                                : null,
+                            gradient: isDone || isActive ? kAppGradient : null,
                             color: isDone || isActive ? null : Colors.transparent,
-                            border: Border.all(color: isActive ? const Color(0xFF8A5CFF) : Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.grey, width: 1.4),
-                            boxShadow: isActive ? [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 18, offset: const Offset(0, 6))] : null,
+                            border: Border.all(
+                              color: isActive
+                                  ? const Color(0xFF00D4FF)
+                                  : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.grey,
+                              width: 1.4,
+                            ),
+                            boxShadow: isActive
+                                ? [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.18),
+                                blurRadius: 18,
+                                offset: const Offset(0, 6),
+                              )
+                            ]
+                                : null,
                           ),
-                          child: Center(child: isDone ? const Icon(Icons.check, color: Colors.white) : Icon(stepIcons[i], color: isActive ? Colors.white : Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.grey,)),
+                          child: Center(
+                            child: isDone
+                                ? const Icon(Icons.check, color: Colors.white)
+                                : Icon(
+                              stepIcons[i],
+                              color: isActive
+                                  ? Colors.white
+                                  : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.grey,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 8),
-                        SizedBox(width: 84, child: Text(stepLabels[i], textAlign: TextAlign.center, style: TextStyle(color: i == _currentStep ?  Colors.purple: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black, fontSize: 12))),
+                        SizedBox(
+                          width: 84,
+                          child: Text(
+                            stepLabels[i],
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: i == _currentStep
+                                  ? Colors.cyan
+                                  : Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Colors.black,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
                       ]),
                     ),
                   );
@@ -1292,82 +1112,102 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-            Align(
-              alignment: Alignment.centerRight,
+
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.cyan, Colors.blue],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: ElevatedButton.icon(
                 onPressed: () => _fetchOwnerData(),
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
+                  elevation: 0, // remove default shadow
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 4,
-                  backgroundColor: Colors.purple.shade900, // needed for gradient
                 ),
               ),
             ),
-          ],
-        ),
+    ]
+    ),
+
         const SizedBox(height: 12),
         Form(
           key: _ownerFormKey,
           child: Column(children: [
             Row(
                 children: [
-              Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,       // only numbers
-                  LengthLimitingTextInputFormatter(10),         // max 10 digits
-                ],
-                validator: (v) {
+                  Expanded(child: _glowTextField(controller: ownerMobile, label: 'Mobile No', keyboard: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,       // only numbers
+                      LengthLimitingTextInputFormatter(10),         // max 10 digits
+                    ],
+                    validator: (v) {
 
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
+                      if (v == null || v.trim().isEmpty) return 'Required';
+                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
 
-                  return null;
-                },
+                      return null;
+                    },
 
-                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-              )
-              ),
-              const SizedBox(width: 12),
+                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                  )
+                  ),
+                  const SizedBox(width: 12),
 
-              Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,       // only numbers
-                  LengthLimitingTextInputFormatter(12),         // max 12 digits
-                ],
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                  return null;
+                  Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,       // only numbers
+                      LengthLimitingTextInputFormatter(12),         // max 12 digits
+                    ],
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Required';
+                      if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
+                      return null;
 
-                },
+                    },
 
-                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-              )),
-            ]),
+                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                  )),
+                ]),
             const SizedBox(height: 14),
             _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
             Row(
                 children: [
-              Expanded(
-                child: DropdownButtonFormField<String>(
-                  value: ownerRelation,
-                  items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                  onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
-                  decoration: _fieldDecoration('Relation'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-            ]),
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: ownerRelation,
+                      items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
+                      decoration: _fieldDecoration('Relation'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                ]),
             const SizedBox(height: 12),
             _glowTextField(controller: ownerAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
@@ -1390,9 +1230,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               ),
             ]),
             const SizedBox(height: 12),
-          ]),
+          ]
+          ),
         ),
-      ]),
+      ]
+    )
     );
   }
 
@@ -1403,22 +1245,41 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-            Align(
-              alignment: Alignment.centerRight,
+
+            Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Colors.cyan, Colors.blue],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: ElevatedButton.icon(
                 onPressed: () => _fetchTenantData(),
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
+                  elevation: 0, // remove default shadow
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 4,
-                  backgroundColor: Colors.purple.shade900, // needed for gradient
                 ),
               ),
             ),
@@ -1430,39 +1291,39 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           child: Column(children: [
             Row(
                 children: [
-              Expanded(child: _glowTextField(controller: tenantMobile, label: 'Mobile No', keyboard: TextInputType.phone,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,       // only numbers
-                  LengthLimitingTextInputFormatter(10),         // max 10 digits
-                ],
-                validator: (v) {
+                  Expanded(child: _glowTextField(controller: tenantMobile, label: 'Mobile No', keyboard: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,       // only numbers
+                      LengthLimitingTextInputFormatter(10),         // max 10 digits
+                    ],
+                    validator: (v) {
 
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
+                      if (v == null || v.trim().isEmpty) return 'Required';
+                      if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) return 'Enter valid 10-digit mobile';
 
-                  return null;
-                },
+                      return null;
+                    },
 
-                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-              )
-              ),
-              const SizedBox(width: 12),
+                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                  )
+                  ),
+                  const SizedBox(width: 12),
 
-              Expanded(child: _glowTextField(controller: tenantAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,       // only numbers
-                  LengthLimitingTextInputFormatter(12),         // max 12 digits
-                ],
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                  return null;
+                  Expanded(child: _glowTextField(controller: tenantAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,       // only numbers
+                      LengthLimitingTextInputFormatter(12),         // max 12 digits
+                    ],
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) return 'Required';
+                      if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
+                      return null;
 
-                },
+                    },
 
-                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-              )),
-            ]),
+                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
+                  )),
+                ]),
             const SizedBox(height: 14),
             _glowTextField(controller: tenantName, label: 'Tenant Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
@@ -1522,56 +1383,40 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
-        Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-        Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton.icon(
-            onPressed: () => fetchPropertyDetails(),
-            icon: const Icon(Icons.search, color: Colors.white),
-            label: const Text(
-              'Auto fetch',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              elevation: 4,
-              backgroundColor: Colors.purple.shade900, // needed for gradient
-            ),
-          ),
-        ),
-          ],
-        ),
+        Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+
         const SizedBox(height: 12),
         Form(
           key: _propertyFormKey,
           child: Column(children: [
-            _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-
-            _glowTextField(controller: bhkWithAddress, label: 'BHK with Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-            Row(children: [
-              Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                  onChanged: (v) {
-                    setState(() {
-                      rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                    });
-                  },
-                  validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-              const SizedBox(width: 12),
-              Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)',        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                keyboard: TextInputType.number,  showInWords: true,onChanged: (v) {
-                  setState(() {
-                    securityAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                  });
-                }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
-            ]),
+            Row(
+                children: [
+                  Expanded(
+                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                ]
+            ),
+            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            Row(
+                children: [
+                  Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                      onChanged: (v) {
+                        setState(() {
+                          rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                        });
+                      },
+                      validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)',        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                    keyboard: TextInputType.number,  showInWords: true,onChanged: (v) {
+                      setState(() {
+                        securityAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                      });
+                    }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
+                ]),
             const SizedBox(height: 8),
             CheckboxListTile(value: securityInstallment, onChanged: (v) => setState(() => securityInstallment = v ?? false), title: const Text('Pay security in installments?')),
             if (securityInstallment) _glowTextField(controller: installmentAmount, label: 'Installment Amount (INR)', keyboard: TextInputType.number,
@@ -1602,7 +1447,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               if (picked != null) setState(() => shiftingDate = picked);
             }),
             const SizedBox(height: 12),
-            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike','No'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
+            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike','Both','No'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
 
             DropdownButtonFormField<String>(value: maintenance, items: const ['Including', 'Excluding'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => maintenance = v ?? 'Including'), decoration: _fieldDecoration('Maintenance')),
             if (maintenance.startsWith('Excluding'))
@@ -1707,13 +1552,16 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         ]),
         const SizedBox(height: 12),
         _sectionCard(title: '*Property', children: [
-          _kv('BHK & Address', bhkWithAddress.text),
+          _kv('BHK', Bhk.text),
+          _kv('Floor', floor.text),
+          _kv('Address', Address.text),
           _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
           _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
           if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),
           _kv('Meter Info', meterInfo),
           if (meterInfo.startsWith('Custom')) _kv('Custom Unit', '${customUnitAmount.text} (${customUnitAmountInWords})'),
           _kv('Shifting', shiftingDate == null ? '' : shiftingDate!.toLocal().toString().split(' ')[0]),
+          _kv('Parking', parking),
           _kv('Maintenance', maintenance),
           if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
 
@@ -1726,6 +1574,15 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
+  Widget _kv(String k, String v) {
+    if (v.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600))), Expanded(child: Text(v))]),
+    );
+  }
+
+
   Widget _sectionCard({required String title, required List<Widget> children}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1737,20 +1594,22 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
-  Widget _kv(String k, String v) {
-    if (v.trim().isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600))), Expanded(child: Text(v))]),
-    );
-  }
 }
 
 class ElevatedGradientButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final VoidCallback onPressed;
-  const ElevatedGradientButton({required this.text, required this.icon, required this.onPressed, super.key});
+  const ElevatedGradientButton({
+    required this.text,
+    required this.icon,
+    required this.onPressed,
+    super.key,
+  });
+
+  static const kAppGradient = LinearGradient(
+    colors: [Color(0xFF4CA1FF), Color(0xFF00D4FF)], // Blue → Cyan
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -1759,16 +1618,31 @@ class ElevatedGradientButton extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
+          gradient: kAppGradient,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 16, offset: const Offset(0, 8))],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.18),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            )
+          ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 12),
-          Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        ]),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 12),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

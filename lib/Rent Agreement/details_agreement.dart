@@ -175,6 +175,9 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
                   const SizedBox(width: 12),
 
                   SizedBox(width: 300, child: _sectionCard(title: "Agreement Details", children: [
+                    DetailRow(label: "Property", value: agreement?["property_id"] ?? ""),
+                    DetailRow(label: "BHK", value: agreement?["Bhk"] ?? ""),
+                    DetailRow(label: "Floor", value: agreement?["floor"] ?? ""),
                     DetailRow(label: "Rented Address", value: agreement?["rented_address"] ?? ""),
                     DetailRow(label: "Monthly Rent", value: "₹${agreement?["monthly_rent"] ?? ""}"),
                     DetailRow(label: "Security", value: "₹${agreement?["securitys"] ?? ""}"),

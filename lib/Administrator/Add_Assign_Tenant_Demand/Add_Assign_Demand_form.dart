@@ -216,12 +216,13 @@ class _assign_demand_formState extends State<assign_demand_form> {
                       Container(
                         padding: EdgeInsets.symmetric(horizontal: 12.0),
                         decoration: BoxDecoration(
+                          color: Colors.white,
                           border: Border.all(color: Colors.grey),
                           borderRadius: BorderRadius.circular(8.0),
                         ),
                         child: DropdownButton<String>(
                           value: _selectedItem,
-                          hint: Text('Select Buy/Rent',style: TextStyle(color: Colors.white)),
+                          hint: Text('Select Buy/Rent',style: TextStyle(color: Colors.grey)),
                           icon: Icon(Icons.arrow_drop_down),
                           iconSize: 24,
                           dropdownColor: Colors.grey.shade600,
@@ -235,7 +236,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
                           items: _items.map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
-                              child: Text(value,style: TextStyle(color: Colors.white)),
+                              child: Text(value,style: TextStyle()),
                             );
                           }).toList(),
                         ),

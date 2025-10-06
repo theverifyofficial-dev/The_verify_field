@@ -133,7 +133,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     super.initState();
     _loaduserdata();
     fetchData(); // loads data once
-
+    _searchController = TextEditingController();
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
@@ -297,7 +298,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 🔍 Search TextField
-                Material           (
+                Material(
                   elevation: 4,
                   borderRadius: BorderRadius.circular(12),
                   child: AnimatedContainer(
@@ -399,29 +400,52 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                 const SizedBox(height: 12),
 
                 // 🔘 Filter Buttons Row
+
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      'Rent',
                       'Buy',
+                      'Rent',
                       'Commercial',
-                      'Missing Field',
-                      'Live',
-                      'Unlive',
-                      'Empty Building',
                     ].map((label) {
                       final isSelected = label == selectedLabel;
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: ElevatedButton(
-                          onPressed: () async {
-                            // keep your filter button logic here
+                          onPressed: () {
+                            setState(() {
+                              if (selectedLabel == label) {
+                                // Unselect if tapped again
+                                selectedLabel = '';
+                                _searchController.clear();
+                                _filteredProperties = _allProperties;
+                              } else {
+                                selectedLabel = label;
+
+                                // 👇 Write selected label in the search box
+                                _searchController.text = label;
+
+                                List<Catid> filtered = _allProperties;
+
+                                if (label == 'Commercial') {
+                                  filtered = filtered.where((item) {
+                                    return (item.residenceCommercial?.toLowerCase() ?? '') == 'commercial';
+                                  }).toList();
+                                } else {
+                                  filtered = filtered.where((item) {
+                                    return (item.buyRent?.toLowerCase() ?? '') == label.toLowerCase();
+                                  }).toList();
+                                }
+
+                                _filteredProperties = filtered;
+                              }
+                              propertyCount = _filteredProperties.length;
+                            });
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                            isSelected ? Colors.blue : Colors.grey[300],
+                            backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10),
                             ),
@@ -429,8 +453,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                           child: Text(
                             label,
                             style: TextStyle(
-                              color:
-                              isSelected ? Colors.white : Colors.black87,
+                              color: isSelected ? Colors.white : Colors.black87,
                               fontWeight: FontWeight.w800,
                               fontSize: 12,
                             ),
@@ -558,7 +581,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                     fit: BoxFit.cover,
                                     width: size.width,
                                     placeholder: (context, url) =>
-                                        Image.asset(AppImages.loading),
+                                        Image.asset(AppImages.loader,),
                                     errorWidget: (context, error, stack) =>
                                         Image.asset(AppImages.imageNotFound),
                                   ),

@@ -494,6 +494,7 @@ class _ADministaterShow_FuturePropertyState
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
       leading: InkWell(

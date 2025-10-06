@@ -99,6 +99,7 @@ class _Home_ScreenState extends State<Home_Screen> {
   String _fieldworkarnumber = '';
 
   String? userName;
+  String? userNumber;
 
 
   @override
@@ -248,10 +249,12 @@ class _Home_ScreenState extends State<Home_Screen> {
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
 
     if (mounted) {
       setState(() {
         userName = storedName;
+        userNumber = storedNumber;
       });
     }
   }
@@ -398,8 +401,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "onTap": () =>
                           //_AgreementURL(),
                     Navigator.push(context, MaterialPageRoute(
-                              builder: (context) =>
-                                  HistoryTab()
+                        builder: (context) => HistoryTab()
                     )),
                     },
 

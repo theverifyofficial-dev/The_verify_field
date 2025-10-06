@@ -16,6 +16,7 @@ import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
 import 'Administater_TenanDemand.dart';
+import 'Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'Administator_Realestate.dart' hide ThemeSwitcher, ADministaterShow_realestete;
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
@@ -344,7 +345,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 4,
+                        itemCount: 5,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -381,7 +382,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 );
                               },
                             },
-
                             {
                               'image': AppImages.tenant,
                               'title': "Tenant Demands",
@@ -389,6 +389,13 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
+                            },
+                            {
+                              'image': AppImages.police,
+                              'title': "All Rented \nFlat",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
                             },
                           ];
 

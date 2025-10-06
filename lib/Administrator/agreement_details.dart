@@ -84,6 +84,8 @@ class _AgreementDetailsState extends State<AgreementDetails> {
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _ownerCard(item),
                     const SizedBox(width: 12),
@@ -176,7 +178,7 @@ class _AgreementDetailsState extends State<AgreementDetails> {
     print('dynamic path : ${item.tenantAadharFront}');
     return Container(
       width: 300,
-      height: 353,
+      // height: 353,
       child: Card(
         color: Colors.grey[850],
         margin: const EdgeInsets.symmetric(vertical: 8),

@@ -334,13 +334,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     _number = prefs.getString('number') ?? '';
   }
 
-  /// Helper to build full URL or return null if empty
   String? _buildUrl(String? path) {
     if (path?.isNotEmpty ?? false) return "https://theverify.in/$path";
     return null;
   }
 
-  /// Generic fetch for owner/tenant
   Future<void> _fetchUserData({
     required bool isOwner,                // true for owner, false for tenant
     required String? aadhaar,             // value in the Aadhaar field
@@ -1150,9 +1148,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             maintenance = (data['maintance'].toString().toLowerCase().contains("include"))
                 ? "Including"
                 : "Excluding";
-          });
-
-
+          }
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(json['message'] ?? "Property not found")),

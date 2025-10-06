@@ -379,7 +379,7 @@ class _View_DetailsState extends State<View_Details> {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
-              const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
+              // const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
             ],
           ),
         ],

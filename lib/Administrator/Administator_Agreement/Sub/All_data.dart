@@ -2,10 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
-
 
 class AllData extends StatefulWidget {
   const AllData({super.key});
@@ -49,7 +47,7 @@ class _AgreementDetailsState extends State<AllData> {
       setState(() => isLoading = true);
       await fetchAgreements();
     } catch (e) {
-      print("❌ Error refreshing agreements: $e");
+      debugPrint("❌ Error refreshing agreements: $e");
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -57,20 +55,20 @@ class _AgreementDetailsState extends State<AllData> {
 
   Future<void> fetchAgreements() async {
     try {
-      final response = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/show_agreement_data'));
+      final response = await http.get(
+        Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
+      );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded is List) {
+        // The response might be wrapped with {status, message, data}
+        if (decoded is Map && decoded.containsKey('data')) {
+          final List dataList = decoded['data'];
+
           setState(() {
-            agreements = decoded
-                .map((e) => AgreementModel.fromJson(e))
-                .toList()
-                .reversed
-                .toList();
-            filteredAgreements = agreements; // Initially, show all
+            agreements = dataList.map((e) => AgreementModel.fromJson(e)).toList().reversed.toList();
+            filteredAgreements = agreements;
             isLoading = false;
           });
         } else {
@@ -80,35 +78,20 @@ class _AgreementDetailsState extends State<AllData> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
-      print('Error fetching data: $e');
+      debugPrint('❌ Error fetching data: $e');
       setState(() => isLoading = false);
     }
   }
 
-  _launchURL(String pdf_url) async {
-    final Uri url = Uri.parse(pdf_url);
-    if (!await launchUrl(url)) {
+  _launchURL(String pdfUrl) async {
+    final Uri url = Uri.parse(pdfUrl.startsWith("http")
+        ? pdfUrl
+        : "https://verifyserve.social/$pdfUrl");
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
-
-  String _calculateRenewalDate(String rawDate) {
-    try {
-      final timestamp = int.parse(rawDate.replaceAll(RegExp(r'[^0-9]'), ''));
-      final shiftingDate = DateTime.fromMillisecondsSinceEpoch(timestamp);
-
-      final renewalDate = DateTime(
-        shiftingDate.year,
-        shiftingDate.month + 10, // add 11 months
-        shiftingDate.day,
-      );
-
-      return "${renewalDate.year}-${_twoDigits(renewalDate.month)}-${_twoDigits(renewalDate.day)}";
-    } catch (e) {
-      return "--";
-    }
-  }
-
 
   @override
   Widget build(BuildContext context) {
@@ -118,43 +101,27 @@ class _AgreementDetailsState extends State<AllData> {
             ? const Center(child: CircularProgressIndicator())
             : Column(
           children: [
-            // Search bar
+            // 🔍 Search bar
             Padding(
               padding: const EdgeInsets.all(10.0),
               child: TextField(
                 controller: searchController,
                 decoration: InputDecoration(
                   hintText: 'Search agreements...',
-                  hintStyle: TextStyle(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white60
-                        : Colors.grey[600],
-                  ),
-                  prefixIcon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : Colors.grey[700],
-                  ),
+                  prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.dark
                       ? Colors.grey[800]
                       : Colors.grey[200],
-                  contentPadding: const EdgeInsets.symmetric(vertical: 15),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                style: TextStyle(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black87,
-                ),
               ),
             ),
 
-            // Agreement count
+            // 🧾 Total count
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 10),
               child: Align(
@@ -169,7 +136,7 @@ class _AgreementDetailsState extends State<AllData> {
 
             const SizedBox(height: 10),
 
-            // List of agreements
+            // 📋 List of agreements
             Expanded(
               child: filteredAgreements.isEmpty
                   ? const Center(child: Text("No agreements found"))
@@ -178,25 +145,27 @@ class _AgreementDetailsState extends State<AllData> {
                 padding: const EdgeInsets.all(10),
                 itemBuilder: (context, index) {
                   final item = filteredAgreements[index];
+                  final renewalDate = _getRenewalDate(item.shiftingDate);
+
                   return Card(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[850]  // Dark mode card color
-                        : Colors.white,      // Light mode card color
+                        ? Colors.grey[850]
+                        : Colors.white,
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 3, // subtle shadow
+                    elevation: 3,
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.green
-                            : Colors.blue,
+                        backgroundColor:
+                        _getRenewalDateColor(renewalDate),
                         radius: 15,
                         child: Text(
-                          '${filteredAgreements.length - index}', // Reverse numbering
+                          '${filteredAgreements.length - index}',
                           style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
+                            color: Theme.of(context).brightness ==
+                                Brightness.dark
                                 ? Colors.black
                                 : Colors.white,
                             fontWeight: FontWeight.bold,
@@ -205,39 +174,38 @@ class _AgreementDetailsState extends State<AllData> {
                       ),
                       title: Text(
                         "Owner: ${item.ownerName}",
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black87,
+                        style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
                           Text("Tenant: ${item.tenantName}"),
                           Text("Rent: ₹${item.monthlyRent}"),
-                          Text("Shifting Date: ${_formatDate(item.shiftingDate)}"),
-
-                          // 🔴 Renewal Date in RED
                           Text(
-                            "Renewal Date: ${_calculateRenewalDate(item.shiftingDate)}",
-                            style: const TextStyle(
-                              color: Colors.red,
+                              "Shifting Date: ${_formatDate(item.shiftingDate)}"),
+                          Text(
+                            "Renewal Date: ${renewalDate != null ? _formatDateTime(renewalDate) : '--'}",
+                            style: TextStyle(
+                              color:
+                              _getRenewalDateColor(renewalDate),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-
-                          Text("Agreement ID: ${item.id}"),
+                          Row(
+                            mainAxisAlignment:
+                            MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text("Agreement ID: ${item.id}"),
+                              Text("By ${item.fieldWorkerName}",style: TextStyle(fontStyle: FontStyle.italic,fontSize: 12),),
+                            ],
+                          ),
                         ],
                       ),
-
-
-                      trailing: Icon(
+                      trailing: const Icon(
                         Icons.arrow_forward_ios,
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white70
-                            : Colors.grey[600],
                         size: 16,
                       ),
                       onTap: () async {
@@ -252,7 +220,6 @@ class _AgreementDetailsState extends State<AllData> {
                       },
                     ),
                   );
-
                 },
               ),
             ),
@@ -262,17 +229,56 @@ class _AgreementDetailsState extends State<AllData> {
     );
   }
 
-  String getFullImageUrl(String path) {
-    path = path.replaceFirst(RegExp(r'^/?uploads/'), '');
-    return 'https://theverify.in/uploads/$path';
+  // ✅ Converts DateTime to "dd MMM yyyy"
+  String _formatDate(DateTime? date) {
+    if (date == null) return "--";
+    return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
   }
 
-  String _formatDate(String rawDate) {
-    final timestamp = int.parse(rawDate.replaceAll(RegExp(r'[^0-9]'), ''));
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    return "${date.year}-${_twoDigits(date.month)}-${_twoDigits(date.day)}";
+  // ✅ Calculates Renewal Date = shiftingDate + 10 months
+  DateTime? _getRenewalDate(DateTime? shiftingDate) {
+    if (shiftingDate == null) return null;
+    try {
+      return DateTime(
+        shiftingDate.year,
+        shiftingDate.month + 10,
+        shiftingDate.day,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _formatDateTime(DateTime date) =>
+      "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
+
+  Color _getRenewalDateColor(DateTime? renewalDate) {
+    if (renewalDate == null) return Colors.black;
+    final now = DateTime.now();
+    final difference = renewalDate.difference(now).inDays;
+
+    if (difference < 0) return Colors.red; // expired
+    if (difference <= 30) return Colors.orange; // expiring soon
+    return Colors.green; // safe
+  }
+
+  String _monthName(int month) {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec"
+    ];
+    return months[month - 1];
   }
 
   String _twoDigits(int n) => n.toString().padLeft(2, '0');
 }
-

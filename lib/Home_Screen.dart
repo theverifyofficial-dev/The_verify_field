@@ -287,7 +287,7 @@ class _Home_ScreenState extends State<Home_Screen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: 10,),
+              SizedBox(height: 8,),
               Icon(
                 PhosphorIcons.user_circle,
                 color: Colors.white,
@@ -296,7 +296,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('${userName}',style: TextStyle(color: Colors.white,fontSize: 9,fontWeight: FontWeight.bold),),
+                  Text('${userName}',style: TextStyle(color: Colors.white,fontSize: 8,fontWeight: FontWeight.bold),),
                 ],
               ),
 
@@ -372,7 +372,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(6  , (index) {
+                children: List.generate(5  , (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -392,6 +392,19 @@ class _Home_ScreenState extends State<Home_Screen> {
                           context,
                           MaterialPageRoute(
                               builder: (_) => ShowProperty())),
+                    },
+
+                    {
+                      "image": AppImages.futureProperty,
+                      "title": "Future\n Property",
+                      "onTap": () async {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FrontPage_FutureProperty(),
+                          ),
+                        );
+                      },
                     },
 
 
@@ -415,30 +428,19 @@ class _Home_ScreenState extends State<Home_Screen> {
                     //               AgreementDetails())),
                     // },
 
-                    {
-                      "image": AppImages.police,
-                      "title": "All Rented \nFlat",
-                      "onTap": () {
-                        uploadImageWithTitle();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AddRentedFlatTabbar()));
-                      },
-                    },
+                    // {
+                    //   "image": AppImages.police,
+                    //   "title": "All Rented \nFlat",
+                    //   "onTap": () {
+                    //     uploadImageWithTitle();
+                    //     Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (_) => const AddRentedFlatTabbar()));
+                    //   },
+                    // },
 
-                    {
-                      "image": AppImages.futureProperty,
-                      "title": "Future\n Property",
-                      "onTap": () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FrontPage_FutureProperty(),
-                          ),
-                        );
-                      },
-                    },
+
 
                       {
                       "image": AppImages.tenant,

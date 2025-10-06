@@ -1185,11 +1185,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -1443,6 +1470,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -1554,11 +1582,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -1813,6 +1868,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -1936,11 +1992,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -2195,6 +2278,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
               delegate: SliverChildBuilderDelegate(
                     (context, index) {
@@ -2299,11 +2383,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -2340,6 +2451,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                                         ],
                                                       ),
+
                                                       SizedBox(
                                                         height: 10,
                                                       ),
@@ -2558,6 +2670,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -2681,11 +2794,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -2941,6 +3081,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -3064,11 +3205,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -3324,6 +3492,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -3447,11 +3616,38 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                               ],
                                                             ),
                                                           ),
+                                                          SizedBox(width: 10,),
 
-                                                          SizedBox(
-                                                            width: 100,
+                                                          Container(
+                                                            padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                            decoration: BoxDecoration(
+                                                              borderRadius: BorderRadius.circular(5),
+                                                              border: Border.all(width: 1, color: Colors.blue),
+                                                              boxShadow: [
+                                                                BoxShadow(
+                                                                    color: Colors.blue.withOpacity(0.5),
+                                                                    blurRadius: 10,
+                                                                    offset: Offset(0, 0),
+                                                                    blurStyle: BlurStyle.outer
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            child: Row(
+                                                              children: [
+                                                                // Icon(Iconsax.sort_copy,size: 15,),
+                                                                //SizedBox(width: 10,),
+                                                                Text("Flat no."+abc.data![len].flatNumber/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                                  style: TextStyle(
+                                                                      fontSize: 13,
+                                                                      color: Colors.black,
+                                                                      fontWeight: FontWeight.w500,
+                                                                      letterSpacing: 0.5
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
                                                           ),
-
+                                                          SizedBox(width: 10,),
                                                           Container(
                                                             padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                             decoration: BoxDecoration(
@@ -3707,6 +3903,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -3941,8 +4138,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
                                         const SizedBox(height: 20),
 
-                                        Wrap(
-                                          alignment: WrapAlignment.spaceBetween,
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
                                             Text(
                                               "Added: ${abc.data![0].currentDate ?? '-'}",
@@ -3952,14 +4149,15 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                 fontFamily: "Poppins",
                                               ),
                                             ),
-                                            Text(
-                                              "ID: ${abc.data![0].id}",
-                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
+
+                                        Text(
+                                          "ID: ${abc.data![0].id}",
+                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: "Poppins",
+                                          ),
+                                        ),
                                           ],
                                         ),
                                       ],

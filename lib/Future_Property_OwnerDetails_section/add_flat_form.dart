@@ -556,6 +556,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       'Washing Machine',
       'Wardrobe',
       'AC',
+      'Water Purifier',
       'Modular Kitchen',
       'Chimney',
       'Single Bed',

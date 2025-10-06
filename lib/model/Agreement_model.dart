@@ -16,7 +16,7 @@ class AgreementModel {
   final String monthlyRent;
   final String securitys;
   final String meter;
-  final String shiftingDate;
+  final DateTime? shiftingDate;
   final String maintaince;
   final String ownerAadharFront;
   final String ownerAadharBack;
@@ -26,9 +26,19 @@ class AgreementModel {
   final String installmentSecurityAmount;
   final String customMeterUnit;
   final String customMaintenanceCharge;
-  final String current_date;
+  final DateTime? currentDate;
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+  final String tenantImage;
+  final String propertyId;
+  final String parking;
+  final String notaryImg;
+  final String policeVerificationPdf;
+  final String bhk;
+  final String floor;
+  final String? agreementType;
 
-  AgreementModel( {
+  AgreementModel({
     required this.id,
     required this.ownerName,
     required this.ownerRelation,
@@ -56,13 +66,22 @@ class AgreementModel {
     required this.installmentSecurityAmount,
     required this.customMeterUnit,
     required this.customMaintenanceCharge,
-    required this. current_date,
+    required this.currentDate,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    required this.tenantImage,
+    required this.propertyId,
+    required this.parking,
+    required this.notaryImg,
+    required this.policeVerificationPdf,
+    required this.bhk,
+    required this.floor,
+    required this.agreementType,
   });
 
   factory AgreementModel.fromJson(Map<String, dynamic> json) {
     return AgreementModel(
-      current_date: json['current_dates'],
-      id: json['id'],
+      id: json['id'] ?? 0,
       ownerName: json['owner_name'] ?? '',
       ownerRelation: json['owner_relation'] ?? '',
       relationPersonNameOwner: json['relation_person_name_owner'] ?? '',
@@ -79,7 +98,9 @@ class AgreementModel {
       monthlyRent: json['monthly_rent'] ?? '',
       securitys: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
-      shiftingDate: json['shifting_date'] ?? '',
+      shiftingDate: json['shifting_date'] != null && json['shifting_date']['date'] != null
+          ? DateTime.tryParse(json['shifting_date']['date'])
+          : null,
       maintaince: json['maintaince'] ?? '',
       ownerAadharFront: json['owner_aadhar_front'] ?? '',
       ownerAadharBack: json['owner_aadhar_back'] ?? '',
@@ -89,6 +110,19 @@ class AgreementModel {
       installmentSecurityAmount: json['installment_security_amount'] ?? '',
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
+      currentDate: json['current_dates'] != null && json['current_dates']['date'] != null
+          ? DateTime.tryParse(json['current_dates']['date'])
+          : null,
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
+      tenantImage: json['tenant_image'] ?? '',
+      propertyId: json['property_id'] ?? '',
+      parking: json['parking'] ?? '',
+      notaryImg: json['notry_img'] ?? '',
+      policeVerificationPdf: json['police_verification_pdf'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      agreementType: json['agreement_type'],
     );
   }
 }

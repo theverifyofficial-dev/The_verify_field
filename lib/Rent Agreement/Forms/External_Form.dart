@@ -50,6 +50,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
 
 
   final _propertyFormKey = GlobalKey<FormState>();
+  final propertyID = TextEditingController();
   final Address = TextEditingController();
   final rentAmount = TextEditingController();
   final Bhk = TextEditingController();
@@ -190,6 +191,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
           tenantAadhaar.text = data["tenant_addhar_no"] ?? "";
 
           // 🔹 Agreement
+          propertyID.text = data["property_id"]?.toString() ?? "";
           Bhk.text = data["Bhk"] ?? "";
           floor.text = data["floor"] ?? "";
           Address.text = data["rented_address"] ?? "";
@@ -500,6 +502,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "property_id": propertyID.text,
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -583,7 +586,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
     }
   }
 
-  Future<void> _updateAll() async {
+  Future<void> _updateAll() async    {
     print("🔹 _updateAll called");
 
     showDialog(
@@ -633,6 +636,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "property_id": propertyID.text,
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -1389,6 +1393,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
         Form(
           key: _propertyFormKey,
           child: Column(children: [
+            _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             Row(
                 children: [
                   Expanded(

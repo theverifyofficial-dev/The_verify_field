@@ -331,7 +331,7 @@ class EditFlatState extends State<EditFlat> {
   void _showFurnitureBottomSheet(BuildContext context) {
     final List<String> furnitureItems = [
       'Fan', 'Light', 'Refrigerator', 'Washing Machine',
-      'Wardrobe', 'AC', 'Modular Kitchen', 'Chimney',
+      'Wardrobe', 'AC','Water Purifier', 'Modular Kitchen', 'Chimney',
       'Single Bed', 'Double Bed', 'Geyser', 'Led Tv',
       'Sofa Set', 'Dining Table', 'Induction', 'Gas Stove','',
     ];

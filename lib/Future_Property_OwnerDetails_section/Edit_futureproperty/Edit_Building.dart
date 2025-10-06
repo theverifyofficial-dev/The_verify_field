@@ -69,8 +69,8 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
         desiredAccuracy: LocationAccuracy.high,
       );
       setState(() {
-        long = '${position.latitude}';
-        lat = '${position.longitude}';
+        long = '${position.longitude}';
+        lat = '${position.latitude}';
         _Longitude.text = long;
         _Latitude.text = lat;
       });
@@ -791,35 +791,73 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
                   SizedBox(height: 5,),
 
                   InkWell(
-                    onTap: ()async {
+                    onTap: () async {
+                      try {
+                        double? latitude;
+                        double? longitude;
 
-                      double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
-                      double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
+                        // validate values
+                        bool isLatValid = lat != null &&
+                            lat.toString().trim().isNotEmpty &&
+                            double.tryParse(lat.toString().trim()) != null;
+                        bool isLongValid = long != null &&
+                            long.toString().trim().isNotEmpty &&
+                            double.tryParse(long.toString().trim()) != null;
 
-                      placemarkFromCoordinates(latitude, longitude).then((placemarks) {
+                        if (isLatValid && isLongValid) {
+                          // fix: correct variable mapping
+                          latitude = double.parse(lat.toString().trim());
+                          longitude = double.parse(long.toString().trim());
+                          print("✅ Using API coordinates → Lat: $latitude, Long: $longitude");
+                        } else {
+                          print("⚠️ Invalid or missing API coordinates. Fetching current location...");
 
-                        var output = 'Unable to fetch location';
-                        if (placemarks.isNotEmpty) {
+                          LocationPermission permission = await Geolocator.checkPermission();
+                          if (permission == LocationPermission.denied) {
+                            permission = await Geolocator.requestPermission();
+                          }
+                          if (permission == LocationPermission.deniedForever ||
+                              permission == LocationPermission.denied) {
+                            print("❌ Location permission denied by user");
+                            return;
+                          }
 
-                          output = placemarks.reversed.last.street.toString()+', '+placemarks.reversed.last.locality.toString()+', '
-                              +placemarks.reversed.last.subLocality.toString()+', '+placemarks.reversed.last.administrativeArea.toString()+', '
-                              +placemarks.reversed.last.subAdministrativeArea.toString()+', '+placemarks.reversed.last.country.toString()+', '
-                              +placemarks.reversed.last.postalCode.toString();
+                          Position position = await Geolocator.getCurrentPosition(
+                              desiredAccuracy: LocationAccuracy.high);
+                          latitude = position.latitude;
+                          longitude = position.longitude;
+                          print("📍 Using device location → Lat: $latitude, Long: $longitude");
                         }
 
-                        // _isLoading
-                        //     ? Center(child: CircularProgressIndicator())
-                        //     :
+                        // ✅ Now coordinates are correct
+                        List<Placemark> placemarks =
+                        await placemarkFromCoordinates(latitude!, longitude!);
+
+                        if (placemarks.isEmpty) {
+                          print("⚠️ No address found for Lat:$latitude, Long:$longitude");
+                          return;
+                        }
+
+                        final place = placemarks.first;
+                        String output = [
+                          place.street,
+                          place.subLocality,
+                          place.locality,
+                          place.subAdministrativeArea,
+                          place.administrativeArea,
+                          place.country,
+                          place.postalCode
+                        ].where((e) => e != null && e.isNotEmpty).join(', ');
 
                         setState(() {
                           full_address = output;
-
                           _Google_Location.text = full_address;
-
-                          print('Your Current Address:- $full_address');
                         });
 
-                      });
+                        print('✅ Your Current Address: $full_address');
+                      } catch (e) {
+                        print('❌ Error fetching address: $e');
+                      }
                     },
                     child: Container(
 

@@ -19,6 +19,7 @@ class _AgreementDetailsState extends State<AllAgreement> {
   String? mobileNumber;
   List<AdminAllAgreementModel> filteredAgreements = [];
   TextEditingController searchController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -49,6 +50,7 @@ class _AgreementDetailsState extends State<AllAgreement> {
       setState(() => isLoading = false);
     }
   }
+
   Future<void> _refreshAgreements() async {
     try {
       setState(() => isLoading = true);
@@ -63,8 +65,7 @@ class _AgreementDetailsState extends State<AllAgreement> {
   Future<void> fetchAgreements() async {
     try {
       final url = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
-      );
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber');
 
       final response = await http.get(url);
 
@@ -81,9 +82,7 @@ class _AgreementDetailsState extends State<AllAgreement> {
                   .reversed
                   .toList();
 
-              // ✅ also update filteredAgreements
               filteredAgreements = agreements;
-
               isLoading = false;
             });
           } else {
@@ -107,6 +106,60 @@ class _AgreementDetailsState extends State<AllAgreement> {
       throw Exception('Could not launch $url');
     }
   }
+
+  DateTime? _getRenewalDate(dynamic rawDate) {
+    try {
+      String actualDate = rawDate is Map ? rawDate['date'] ?? '' : rawDate.toString();
+      if (actualDate.isEmpty) return null;
+
+      final shiftingDate = DateTime.parse(actualDate.split(' ')[0]);
+      final renewalDate = DateTime(
+        shiftingDate.year,
+        shiftingDate.month + 10,
+        shiftingDate.day,
+      );
+      return renewalDate;
+    } catch (e) {
+      debugPrint("❌ Renewal date parse error: $e");
+      return null;
+    }
+  }
+
+  Color _getRenewalDateColor(DateTime? renewalDate) {
+    if (renewalDate == null) return Colors.black;
+    final now = DateTime.now();
+    final difference = renewalDate.difference(now).inDays;
+
+    if (difference < 0) return Colors.red; // expired
+    if (difference <= 30) return Colors.orange; // expiring within 30 days
+    return Colors.green; // safe
+  }
+
+  String _formatDate(dynamic rawDate) {
+    try {
+      String actualDate = rawDate is Map ? rawDate['date'] ?? '' : rawDate.toString();
+      if (actualDate.isEmpty) return "--";
+
+      final date = DateTime.parse(actualDate.split(' ')[0]);
+      return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
+    } catch (e) {
+      return "--";
+    }
+  }
+
+  String _formatDateTime(DateTime date) {
+    return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
+  }
+
+  String _monthName(int month) {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return months[month - 1];
+  }
+
+  String _twoDigits(int n) => n.toString().padLeft(2, '0');
 
   @override
   Widget build(BuildContext context) {
@@ -176,20 +229,20 @@ class _AgreementDetailsState extends State<AllAgreement> {
                 padding: const EdgeInsets.all(10),
                 itemBuilder: (context, index) {
                   final item = filteredAgreements[index];
+                  final renewalDate = _getRenewalDate(item.shiftingDate);
+
                   return Card(
                     color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[850]  // Dark mode card color
-                        : Colors.white,      // Light mode card color
+                        ? Colors.grey[850]
+                        : Colors.white,
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 3, // subtle shadow
+                    elevation: 3,
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.green
-                            : Colors.blue,
+                        backgroundColor: _getRenewalDateColor(renewalDate),
                         radius: 15,
                         child: Text(
                           '${filteredAgreements.length - index}',
@@ -210,16 +263,21 @@ class _AgreementDetailsState extends State<AllAgreement> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      subtitle: Text(
-                        "Tenant: ${item.tenantName}\n"
-                            "Rent: ₹${item.monthlyRent}\n"
-                            "Shifting Date: ${_formatDate(item.shiftingDate)}\n"
-                            "Agreement ID: ${item.id}",
-                        style: TextStyle(
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white70
-                              : Colors.grey[800],
-                        ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text("Tenant: ${item.tenantName}"),
+                          Text("Rent: ₹${item.monthlyRent}"),
+                          Text("Shifting Date: ${_formatDate(item.shiftingDate)}"),
+                          Text(
+                            "Renewal Date: ${renewalDate != null ? _formatDateTime(renewalDate) : '--'}",
+                            style: TextStyle(
+                              color: _getRenewalDateColor(renewalDate),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text("Agreement ID: ${item.id}"),
+                        ],
                       ),
                       trailing: Icon(
                         Icons.arrow_forward_ios,
@@ -240,7 +298,6 @@ class _AgreementDetailsState extends State<AllAgreement> {
                       },
                     ),
                   );
-
                 },
               ),
             ),
@@ -249,15 +306,4 @@ class _AgreementDetailsState extends State<AllAgreement> {
       ),
     );
   }
-
-  String _formatDate(String rawDate) {
-    try {
-      final date = DateTime.parse(rawDate);
-      return "${_twoDigits(date.day)}-${_twoDigits(date.month)}-${date.year}";
-    } catch (e) {
-      return rawDate;
-    }
-  }
-
-  String _twoDigits(int n) => n.toString().padLeft(2, '0');
 }

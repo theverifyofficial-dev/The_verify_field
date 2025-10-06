@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
@@ -15,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../constant.dart';
 import 'Future_property_details.dart';
+import 'package:geocoding/geocoding.dart';
 
 class Catid {
   final int id;
@@ -329,6 +331,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _selectedLift = data.lift;
         _selectedParking = data.parking;
         _selectedPropertyType = data.residenceCommercial;
+        lat = data.longitude; 
+        long = data.latitude;
         setState(() {
           _isLoading = false;
         });
@@ -745,7 +749,125 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
               buildTextInput('Owner Vehicle Number (Optional)', _vehicleno,),
 
               _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
-              const SizedBox(height: 30),
+
+              const SizedBox(height: 8),
+              Container(
+                padding: EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(width: 1, color: Colors.grey.shade600),
+                ),
+                child: Text.rich(
+                    TextSpan(
+                        text: 'Note :',
+                        style: TextStyle(fontSize: 14,fontWeight: FontWeight.w600,fontFamily: 'Poppins',letterSpacing: 0,color: Colors.black),
+                        children: <InlineSpan>[
+                          TextSpan(
+                            text: ' Enter Address manually or get your current Address from one tap on location icon.',
+                            style: TextStyle(fontSize: 14,fontWeight: FontWeight.w500,color: Colors.black,fontFamily: 'Poppins',letterSpacing: 0),
+                          )
+                        ]
+                    )),
+              ),
+              SizedBox(height: 20),
+
+        InkWell(
+            onTap: () async {
+      try {
+      double? latitude;
+      double? longitude;
+
+      // Validate API lat & long before using
+      bool isLatValid = lat != null &&
+      lat.toString().trim().isNotEmpty &&
+      double.tryParse(lat.toString().trim()) != null;
+      bool isLongValid = long != null &&
+      long.toString().trim().isNotEmpty &&
+      double.tryParse(long.toString().trim()) != null;
+
+      if (isLatValid && isLongValid) {
+      latitude = double.parse(lat.toString().trim());
+      longitude = double.parse(long.toString().trim());
+      print("✅ Using API coordinates → Lat: $latitude, Long: $longitude");
+      } else {
+      print("⚠️ Invalid or missing API coordinates. Fetching current location...");
+
+      // Request location permission
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      }
+      if (permission == LocationPermission.deniedForever ||
+      permission == LocationPermission.denied) {
+      print("❌ Location permission denied by user");
+      return;
+      }
+
+      // Get current location
+      Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high);
+
+      latitude = position.latitude;
+      longitude = position.longitude;
+      print("📍 Using device location → Lat: $latitude, Long: $longitude");
+      }
+
+      // Fetch address using coordinates
+      List<Placemark> placemarks =
+      await placemarkFromCoordinates(latitude!, longitude!);
+
+      String output = 'Unable to fetch location';
+      if (placemarks.isNotEmpty) {
+      final place = placemarks.first;
+      output = [
+      place.street,
+      place.subLocality,
+      place.locality,
+      place.subAdministrativeArea,
+      place.administrativeArea,
+      place.country,
+      place.postalCode
+      ].where((e) => e != null && e.isNotEmpty).join(', ');
+      }
+
+      setState(() {
+      full_address = output;
+      _Google_Location.text = full_address;
+      });
+
+      print('✅ Your Current Address: $full_address');
+      } catch (e) {
+      print('❌ Error fetching address: $e');
+      }
+      },
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.only(
+              bottomRight: Radius.circular(10),
+              bottomLeft: Radius.circular(10),
+            ),
+            border: Border.all(width: 1, color: Colors.blue),
+            color: Colors.blue.shade600,
+          ),
+          child: const Center(
+            child: Text(
+              'Get Current Location',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
+                color: Colors.white,
+                fontFamily: 'Poppins',
+                letterSpacing: 1,
+              ),
+            ),
+          ),
+        ),
+      ),
+
+
+      const SizedBox(height: 30),
 
               Center(
                 child: ElevatedButton(

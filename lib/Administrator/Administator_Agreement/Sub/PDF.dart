@@ -162,15 +162,18 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final tenantMobile = safeString(data, 'tenant_mobile_no', '0000000000');
   final tenantAadhaar = safeString(data, 'tenant_addhar_no', '100288377394');
 
-  final rentedAddress = safeString(data, 'rented_address', '2 BHK 18 ACCHANAK');
-  final meter_unit = data['securitys']?.toString() ?? '';
+  final bhk = data['Bhk'] ?? '';
+  final floor = data['floor'] ?? '';
+  final address = data['rented_address'] ?? '';
+
+  final fullAddress = '$bhk, $floor, $address'.replaceAll(RegExp(r', ,|,,| ,'), ',').trim();
+
+
 
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
   final maintenanceRaw = data['maintaince']?.toString() ?? '';
   final securityRaw = data['securitys']?.toString() ?? '';
-  final installmentSecurityRaw = data['installment_security_amount']?.toString() ?? '';
 
-  final shiftingDateStr = formatDateStr(data['shifting_date'], '23/09/2025');
 
   pw.TextSpan getMeterClause(Map<String, dynamic>? data) {
     final customMeterUnit = data?["custom_meter_unit"];
@@ -245,16 +248,12 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final rentDueDay = getDayWithSuffix(shiftingDate.day);
 
 
-  // helper to create clause lines with optional bold span(s)
-  pw.Widget clauseLine(String numberAndTitle, String body, {List<pw.TextSpan>? boldSpans}) {
-    final List<pw.TextSpan> spans = [];
-    spans.add(pw.TextSpan(text: '$numberAndTitle', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)));
-    spans.add(pw.TextSpan(text: body, style: baseStyle));
-    if (boldSpans != null && boldSpans.isNotEmpty) {
-      spans.addAll(boldSpans);
-    }
-    return pw.RichText(text: pw.TextSpan(children: spans));
-  }
+  final currentDate = DateTime.now();
+  final currentDateFormatted =
+      '${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}';
+
+
+
 
   pw.Widget clause(String heading, String body){
     return pw.RichText(
@@ -283,8 +282,27 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.Center(child: pw.Text('RENT AGREEMENT', style: titleStyle)),
         pw.SizedBox(height: 10),
 
-        pw.Text('This Rent Agreement is made and executed on this $shiftingDateFormatted by and Between:', style: baseStyle),
+        pw.RichText(
+          text: pw.TextSpan(
+            children: [
+              pw.TextSpan(
+                text: 'This Rent Agreement is made and executed on this ',
+                style: baseStyle,
+              ),
+              pw.TextSpan(
+                text: currentDateFormatted,
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+              ),
+              pw.TextSpan(
+                text: ' by and Between:',
+                style: baseStyle,
+              ),
+            ],
+          ),
+        ),
         pw.SizedBox(height: 6),
+
+
 
         pw.Text('$ownerName, $ownerRelation, $ownerRelationPerson, Resident of $ownerAddress (hereinafter called the FIRST PARTY/LANDLORD).', style: boldStyle),
         pw.SizedBox(height: 10),
@@ -299,7 +317,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.SizedBox(height: 10),
 
         pw.Text('AND WHEREAS The first party agrees to let out', style: baseStyle),
-        pw.Text(rentedAddress, style: boldStyle),
+        pw.Text(fullAddress, style: boldStyle),
         pw.SizedBox(height: 6),
 
         pw.Text('And the tenant also has agreed to take on rent the said property on the following terms and conditions of this Rent Agreement:-', style: baseStyle),
@@ -307,8 +325,6 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
 
         pw.Text('NOW THIS RENT AGREEMENT WITNESSETH AS UNDER:', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 15),
-
-        // Clauses 1 - 5 (page 1)
 
         pw.RichText(
           text: pw.TextSpan(
@@ -383,7 +399,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.TextSpan(text: '3. Security Deposit: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: 'A security deposit of ', style: baseStyle),
             pw.TextSpan(text: formatAmount(securityRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            pw.TextSpan(text: ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Rent Agreement after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges.', style: baseStyle),
+            pw.TextSpan(text: ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Rent Agreement after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges as per actual.', style: baseStyle),
           ]),
         ),
         pw.SizedBox(height: 10),
@@ -540,7 +556,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.TextSpan(text: 'I ', style: baseStyle),
             pw.TextSpan(text: tenantName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: ', $tenantRelation $tenantRelationPerson residing at ', style: baseStyle),
-            pw.TextSpan(text: rentedAddress, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            pw.TextSpan(text: fullAddress, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: ' have been living here as a tenant since ', style: baseStyle),
             pw.TextSpan(text: shiftingDateFormatted, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: '. The owner of the property is ', style: baseStyle),

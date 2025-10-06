@@ -3384,6 +3384,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       'Light',
       'Wardrobe',
       'AC',
+      'Water Purifier',
       'Washing Machine',
       'Refrigerator',
       'Modular Kitchen',

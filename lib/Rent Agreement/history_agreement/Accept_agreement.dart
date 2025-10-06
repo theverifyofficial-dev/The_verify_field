@@ -75,7 +75,6 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.black,
         body:isLoading
             ? const Center(
           child: CircularProgressIndicator(color: Colors.white),
@@ -91,18 +90,16 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
           itemBuilder: (context, index) {
             final item = agreements[index];
             return Card(
-              color: Colors.grey[850],
               margin: const EdgeInsets.symmetric(vertical: 8),
               child: ListTile(
                 title: Text(
                   "Owner: ${item.ownerName}",
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                  style: const TextStyle( fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  "Tenant: ${item.tenantName}\n💰 Rent: ₹${item.monthlyRent}\n📆 Date: ${_formatDate(item.shiftingDate)}",
-                  style: const TextStyle(color: Colors.white70),
+                  "Tenant: ${item.tenantName}\n Rent: ₹${item.monthlyRent}\n Date: ${_formatDate(item.shiftingDate)}",
                 ),
-                trailing: const Text('by Admin',)
+                trailing: const Text('✅ by Admin',)
                 // onTap: () {
                 //   Navigator.push(
                 //     context,

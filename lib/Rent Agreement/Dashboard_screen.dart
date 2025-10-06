@@ -78,17 +78,17 @@ class AgreementDashboard extends StatelessWidget {
               MaterialPageRoute(builder: (context) => const RentalWizardPage()),
             );
           }),
-          _buildSectionItem("Lease", Icons.recommend, () {
+          _buildSectionItem("Sell", Icons.sell, () {
             // Navigate to Lease Page
           }),
           _buildSectionItem("Commercial", Icons.apartment_sharp, () {
             // Navigate to Commercial Page
           }),
-          _buildSectionItem("External", Icons.outbound_outlined, () {
-            Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const ExternalForm()),
-            );
+          _buildSectionItem("External Rental", Icons.add_business, () {
+            // Navigator.push(
+            // context,
+            // MaterialPageRoute(builder: (context) => const ExternalForm()),
+            // );
           }),
         ],
       ),

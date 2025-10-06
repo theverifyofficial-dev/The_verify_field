@@ -3074,6 +3074,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       'Light',
       'Wardrobe',
       'AC',
+      'Water Purifier',
       'Washing Machine',
       'Refrigerator',
       'Modular Kitchen',

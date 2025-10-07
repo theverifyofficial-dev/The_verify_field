@@ -34,6 +34,7 @@ class _ActionFormState extends State<ActionForm> {
     advanceController.addListener(_calculateBalance);
     extraExpenseController.addListener(_calculateBalance);
   }
+  bool _isSubmitting = false;
 
   String _step1 = "";
   String _step2 = "";
@@ -149,7 +150,7 @@ class _ActionFormState extends State<ActionForm> {
                 Card(
 
                   elevation: 2,
-                  color: Colors.white,
+                  color: Theme.of(context).brightness==Brightness.dark?Colors.grey[900] :Colors.white,
 
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -232,17 +233,26 @@ class _ActionFormState extends State<ActionForm> {
             height: 50,
             child: ElevatedButton.icon(
               icon: const Icon(Icons.save, color: Colors.white),
-              label: const Text("Save",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white)),
+              label: const Text(
+                "Save",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
+                backgroundColor: _isSubmitting ? Colors.grey : Colors.blueAccent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              onPressed: () {
+              onPressed: _isSubmitting
+                  ? null
+                  : () {
                 if (_formKey.currentState!.validate()) {
-                  // Print all input values
+                  setState(() => _isSubmitting = true);
+
                   sendData();
                   print("Rent: ${rentController.text}");
                   print("Security: ${securityController.text}");
@@ -251,17 +261,22 @@ class _ActionFormState extends State<ActionForm> {
                   print("Extra Expense: ${extraExpenseController.text}");
                   print("Total Balance: ${balanceController.text}");
 
-                  // Show success message
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text(" ✅ Successfully Send.")),
+                    const SnackBar(content: Text(" ✅ Successfully Sent.")),
                   );
+
+                  // Re-enable after 3 seconds
+                  Future.delayed(const Duration(seconds: 3), () {
+                    if (mounted) {
+                      setState(() => _isSubmitting = false);
+                    }
+                  });
                 }
               },
             ),
           ),
         ),
       ),
-
     );
   }
   Widget _buildInputField(

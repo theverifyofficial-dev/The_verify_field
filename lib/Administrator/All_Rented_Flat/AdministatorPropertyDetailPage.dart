@@ -7,8 +7,8 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../constant.dart';
-import '../property_preview.dart';
+import '../../constant.dart';
+import '../../property_preview.dart';
 class PropertyDetail {
   final String id;
   final String propertyPhoto;
@@ -162,16 +162,16 @@ class PropertyDetail {
 }
 
 
-class PropertyDetailPage extends StatefulWidget {
+class AdministatorPropertyDetailPage extends StatefulWidget {
   final String propertyId;
 
-  const PropertyDetailPage({super.key, required this.propertyId});
+  const AdministatorPropertyDetailPage({super.key, required this.propertyId});
 
   @override
-  State<PropertyDetailPage> createState() => _PropertyDetailPageState();
+  State<AdministatorPropertyDetailPage> createState() => _AdministatorPropertyDetailPageState();
 }
 
-class _PropertyDetailPageState extends State<PropertyDetailPage> {
+class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDetailPage> {
   late Future<PropertyDetail> propertyDetail;
 
   @override
@@ -181,7 +181,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
   }
   Future<PropertyDetail> fetchPropertyDetail(String pId) async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_book_flat.php?P_id=$pId");
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_pending_flat.php?P_id=$pId");
 
     final response = await http.get(url);
 
@@ -219,7 +219,8 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
               ),
             ],
           ),
-        ),        // centerTitle: true,
+        ),
+        // centerTitle: true,
       ),
       body: FutureBuilder<PropertyDetail>(
         future: propertyDetail,
@@ -278,7 +279,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                                 child:
                                 CachedNetworkImage(
                                   imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +
-                                     property.propertyPhoto,
+                                      property.propertyPhoto,
                                   fit: BoxFit.cover,
                                   placeholder:
                                       (context,
@@ -780,7 +781,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //SizedBox(width: 10,),
                             Text(
                               "" +
-                                 property
+                                  property
                                       .ownerName,
                               maxLines: 2,
                               /*+property.Building_Name.toUpperCase()*/
@@ -878,7 +879,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                               //SizedBox(width: 10,),
                               Text(
                                 "" +
-                                   property
+                                    property
                                         .ownerNumber /*+property.Building_Name.toUpperCase()*/,
                                 style: TextStyle(
                                     fontSize: 12,
@@ -945,7 +946,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         ),
                         child: Text(
                           "" +
-                             property
+                              property
                                   .careTakerName /*+property.Building_Name.toUpperCase()*/,
                           style: TextStyle(
                               fontSize: 14,
@@ -1036,7 +1037,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                               //SizedBox(width: 10,),
                               Text(
                                 "" +
-                                   property
+                                    property
                                         .careTakerNumber /*+property.Building_Name.toUpperCase()*/,
                                 style: TextStyle(
                                     fontSize: 14,
@@ -1089,7 +1090,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .apartmentAddress,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1142,10 +1143,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 180,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .floor +
                               "  |  " +
-                             property
+                              property
                                   .flatNumber,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1195,7 +1196,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .facility,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1248,10 +1249,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .furnishedUnfurnished +
                               "  |  " +
-                             property
+                              property
                                   .apartmentName,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1304,10 +1305,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .kitchen +
                               " Kitchen  |  " +
-                             property
+                              property
                                   .bathroom +
                               " Bathroom",
                           overflow: TextOverflow
@@ -1361,7 +1362,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .fieldworkarAddress,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1417,7 +1418,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //w SizedBox(width: 10,),
                             Text(
                               "Property Id = " +
-                                 property
+                                  property
                                       .id
                                       .toString() /*+property.Building_Name.toUpperCase()*/,
                               style: TextStyle(
@@ -1494,7 +1495,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //SizedBox(width: 10,),
                             Text(
                               "" +
-                                 property
+                                  property
                                       .fieldWarkarName /*+property.Building_Name.toUpperCase()*/,
                               style: TextStyle(
                                   fontSize: 13,
@@ -1550,7 +1551,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //SizedBox(width: 10,),
                             Text(
                               "" +
-                                 property
+                                  property
                                       .fieldWorkarNumber /*+property.Building_Name.toUpperCase()*/,
                               style: TextStyle(
                                   fontSize: 13,

@@ -379,7 +379,7 @@ class _View_DetailsState extends State<View_Details> {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
-              // const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
+              const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
             ],
           ),
         ],
@@ -677,6 +677,50 @@ class _View_DetailsState extends State<View_Details> {
                               style: theme.textTheme.bodyLarge?.copyWith(
                                 color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
                               ),
+                            ),
+                          ),
+                          SizedBox(height: 10,),
+                          InkWell(
+                            onTap: () async {
+                              final address = property
+                                  .fieldWorkerCurrentLocation;
+                              final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
+
+                              if (await canLaunchUrl(url)) {
+                                await launchUrl(url, mode: LaunchMode.externalApplication);
+                              } else {
+                                throw 'Could not launch $url';
+                              }
+                            },
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.location_on, color: Colors.red, size: 25),
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        const TextSpan(
+                                          text: "Current Location: ",
+                                          style: TextStyle(
+                                              fontFamily: "Poppins",
+                                              fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: property.fieldWorkerCurrentLocation,
+                                          style: const TextStyle(
+                                            color: Colors.blue,
+                                            fontFamily: "Poppins",
+                                            decoration: TextDecoration.underline,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
 

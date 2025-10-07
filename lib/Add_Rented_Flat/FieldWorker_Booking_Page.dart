@@ -9,6 +9,8 @@ import '../constant.dart';
 import 'Action_Form.dart';
 import 'Add_Tenent.dart';
 import 'FieldWorker_Booking_Page_Details.dart';
+import 'UpdateTenant.dart';
+
 class Property {
   final int id;
   final String propertyPhoto;
@@ -178,6 +180,58 @@ class Property {
   }
 }
 
+class Tenant {
+  final int id;
+  final String tenantName;
+  final String tenantPhoneNumber;
+  final String? flatRent;
+  final String shiftingDate;
+  final String? members;
+  final String? email;
+  final String? tenantVichalDetails;
+  final String? workProfile;
+  final String? bhk;
+  final String? typeOfProperty;
+  final int subId;
+  final String paymentMode;
+  final String status;
+
+  Tenant({
+    required this.id,
+    required this.tenantName,
+    required this.tenantPhoneNumber,
+    this.flatRent,
+    required this.shiftingDate,
+    this.members,
+    this.email,
+    this.tenantVichalDetails,
+    this.workProfile,
+    this.bhk,
+    this.typeOfProperty,
+    required this.subId,
+    required this.paymentMode,
+    required this.status,
+  });
+
+  factory Tenant.fromJson(Map<String, dynamic> json) {
+    return Tenant(
+      id: json['id'],
+      tenantName: json['tenant_name'] ?? "",
+      tenantPhoneNumber: json['tenant_phone_number'] ?? "",
+      flatRent: json['flat_rent']?.toString(),
+      shiftingDate: json['shifting_date'] ?? "",
+      members: json['members'],
+      email: json['email'],
+      tenantVichalDetails: json['tenant_vichal_details'],
+      workProfile: json['work_profile'],
+      bhk: json['bhk'],
+      typeOfProperty: json['type_of_property'],
+      subId: json['sub_id'],
+      paymentMode: json['payment_mode'] ?? "",
+      status: json['status'] ?? "",
+    );
+  }
+}
 
 class FieldWorkerBookingPage extends StatefulWidget {
   const FieldWorkerBookingPage({super.key});
@@ -209,6 +263,24 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
     }
     throw Exception("Failed to load data");
   }
+  Future<List<Tenant>> fetchTenants(int subId) async {
+    final response = await http.get(
+      Uri.parse("https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId"),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse["success"] == true) {
+        List data = jsonResponse["data"];
+        return data.map((e) => Tenant.fromJson(e)).toList();
+      } else {
+        throw Exception("API success = false");
+      }
+    } else {
+      throw Exception("Failed to load tenants");
+    }
+  }
 
   @override
   void initState() {
@@ -232,172 +304,284 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
       });
     }
   }
-
+  late Future<List<Property>> _bookingFuture;
+  late Future<List<Tenant>> _tenantFuture;
+  void _loadData() {
+    _bookingFuture = fetchBookingData();
+  }
+  Future<void> _onRefresh() async {
+    setState(() {
+      _loadData();
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body: FutureBuilder<List<Property>>(
-          future: fetchBookingData(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No booking data available"));
-            }
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: Scaffold(
+          body: FutureBuilder<List<Property>>(
+            future: fetchBookingData(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text("Error: ${snapshot.error}"));
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text("No booking data available"));
+              }
 
-            final bookingList = snapshot.data!;
+              final bookingList = snapshot.data!;
 
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: bookingList.length,
-              itemBuilder: (context, index) {
-                final item = bookingList[index];
-                return GestureDetector(
-                  onTap: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context){
-                      return PropertyDetailPage(propertyId: item.id.toString(),);
-                    }));
-                  },
-                  child:Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 6,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-
-                        /// --- Tags Row (Type, Location, Buy/Rent)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            _buildTag(item.bhk, Colors.blue),
-                            _buildTag(item.typeOfProperty, Colors.green),
-                            _buildTag(item.locations, Colors.cyan),
-                            _buildTag(item.buyRent, Colors.deepPurple),
-                            _buildTag("₹ ${item.showPrice}", Colors.red),
-
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        /// --- Property Image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl:
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
-                            height: 160,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Image.asset(AppImages.loading, fit: BoxFit.cover),
-                            errorWidget: (context, error, stack) =>
-                                Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
+              return ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: bookingList.length,
+                itemBuilder: (context, index) {
+                  final item = bookingList[index];
+                  return GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context){
+                        return PropertyDetailPage(propertyId: item.id.toString(),);
+                      }));
+                    },
+                    child:Container(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.1),
+                            blurRadius: 6,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 3),
                           ),
-                        ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
 
-                        const SizedBox(height: 12),
-
-                        /// --- Financial Details Box
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.grey.shade200),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          /// --- Tags Row (Type, Location, Buy/Rent)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 6,
                             children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              _buildTag(item.bhk, Colors.blue),
+                              _buildTag(item.typeOfProperty, Colors.green),
+                              _buildTag(item.locations, Colors.cyan),
+                              _buildTag(item.buyRent, Colors.deepPurple),
+                              _buildTag("₹ ${item.showPrice}", Colors.red),
+
+                            ],
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          /// --- Property Image
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CachedNetworkImage(
+                              imageUrl:
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                              height: 160,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) =>
+                                  Image.asset(AppImages.loading, fit: BoxFit.cover),
+                              errorWidget: (context, error, stack) =>
+                                  Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          /// --- Financial Details Box
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey.shade200),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      "Financial Details",
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    Text(
+                                      "ID: ${item.id}",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const Divider(thickness: 0.5, color: Colors.grey),
+
+                                _buildDetailRow("Rent", "₹ ${item.rent}"),
+                                _buildDetailRow("Security", "₹ ${item.security}"),
+                                _buildDetailRow("Commission", "₹ ${item.commission}"),
+                                _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
+                                _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
+                                _buildDetailRow("Balance", "₹ ${item.totalBalance}"),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          /// --- Tenant Details Section
+                          FutureBuilder<List<Tenant>>(
+                            future: fetchTenants(item.id),
+                            builder: (context, tenantSnapshot) {
+                              if (tenantSnapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                              }
+                              if (tenantSnapshot.hasError) {
+                                return const Text("Data Empty",
+                                    style: TextStyle(color: Colors.black54));
+                              }
+                              if (!tenantSnapshot.hasData || tenantSnapshot.data!.isEmpty) {
+                                return const Text("No tenant data available",
+                                    style: TextStyle(color: Colors.black54));
+                              }
+
+                              final tenants = tenantSnapshot.data!;
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  const SizedBox(height: 8),
                                   const Text(
-                                    "Financial Details",
+                                    "Tenant Details",
                                     style: TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.black87,
                                     ),
                                   ),
-                                  Text(
-                                    "ID: ${item.id}",
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const Divider(thickness: 0.5, color: Colors.grey),
+                                  SizedBox(height: 10,),
+                                  ...tenants.map((tenant) => Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 6,
+                                        children: [
+                                          _buildTag(tenant.tenantName, Colors.purple),
+                                          _buildTag(tenant.tenantPhoneNumber, Colors.green),
+                                          _buildTag(_formatDate(tenant.shiftingDate), Colors.blue),
+                                          _buildTag(tenant.paymentMode, Colors.red),
 
-                              _buildDetailRow("Rent", "₹ ${item.rent}"),
-                              _buildDetailRow("Security", "₹ ${item.security}"),
-                              _buildDetailRow("Commission", "₹ ${item.commission}"),
-                              _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
-                              _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
-                              _buildDetailRow("Balance", "₹ ${item.totalBalance}"),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-
-                        /// --- Date & ID Row
-                        Row(
-                          // crossAxisAlignment: CrossAxisAlignment.start,
-
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDate(item.currentDates),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          return AddTenantPage();
-                                        },
+                                        ],
                                       ),
-                                    );
-                                  },
-                                  child: Container(
-                                    height: 40,
-                                    width: 100,
-                                    decoration: BoxDecoration(
-                                      color: Colors.green,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(4.0),
+
+                                    ],
+                                  )),
+                                ],
+                              );
+                            },
+                          ),
+                          /// --- Date & ID Row
+                          const SizedBox(height: 10),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDate(item.currentDates),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  FutureBuilder<List<Tenant>>(
+                                    future: fetchTenants(item.id),
+                                    builder: (context, tenantSnapshot) {
+                                      if (tenantSnapshot.connectionState == ConnectionState.waiting) {
+                                        return const SizedBox(
+                                          height: 40,
+                                          width: 100,
+                                          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                                        );
+                                      }
+                                      if (tenantSnapshot.hasError || !tenantSnapshot.hasData || tenantSnapshot.data!.isEmpty) {
+                                        // 👇 No tenant or error → Show Add Tenant
+                                        return _buildTenantButton(
+                                          label: "Add Tenant",
+                                          color: Colors.green,
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => AddTenantPage(id: item.id.toString()),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+
+                                      final tenant = tenantSnapshot.data!.first; // Taking first tenant for status check
+                                      if (tenant.status == null || tenant.status!.isEmpty) {
+                                        return _buildTenantButton(
+                                          label: "Add Tenant",
+                                          color: Colors.green,
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => AddTenantPage(id: item.id.toString()),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      } else {
+                                        return _buildTenantButton(
+                                          label: "Update Tenant",
+                                          color: Colors.deepOrange,
+                                          onTap: () {
+                                            Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                builder: (context) => UpdateTenantPage(id: item.id.toString()),
+                                              ),
+                                            );
+                                          },
+                                        );
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(width: 10),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) {
+                                            return ActionForm(propertyId: item.id.toString());
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      height: 40,
+                                      width: 90,
+                                      decoration: BoxDecoration(
+                                        color: Colors.blue,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Center(
                                         child: Text(
-                                          "Add Tenant",
+                                          "Add Bill",
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.w600,
@@ -406,55 +590,25 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
                                       ),
                                     ),
                                   ),
-                                ),
-                                SizedBox(width: 10,),
-                                GestureDetector(
-                                  onTap: () {
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (context) {
-                                          return ActionForm(propertyId: item.id.toString());
-                                        },
-                                      ),
-                                    );
-                                  },
-                                  child: Container(
-                                    height: 40,
-                                    width: 90,
-                                    decoration: BoxDecoration(
-                                      color: Colors.blue,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    child: const Center(
-                                      child: Text(
-                                        "Add Bill",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          ],
-                        ),
-                      ],
+                                ],
+                              ),
+                            ],
+                          )
+                        ],
+                      ),
                     ),
-                  ),
 
 
 
 
-                );
-              },
-            );
-          },
-        ),
+                  );
+                },
+              );
+            },
+          ),
 
 
+      ),
     );
   }
   void _loaduserdata() async {
@@ -467,6 +621,33 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
 
   }
 }
+Widget _buildTenantButton({
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: 40,
+      width: 120,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 /// --- Helper Row for fields
 Widget _buildDetailRow(String label, String value) {
   return Padding(

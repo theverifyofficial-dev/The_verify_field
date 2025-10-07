@@ -931,6 +931,51 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
                                                 _buildCompactTextRow("Property:", abc.data![len].propertyNameAddress),
                                                 const SizedBox(height: 6),
                                                 _buildCompactTextRow("Field:", abc.data![len].propertyAddressForFieldworker),
+                                                const SizedBox(height: 6),
+                                                if(abc.data![len].yourAddress!=""&& abc.data![len].yourAddress!=null)
+                                                InkWell(
+                                                  onTap: () async {
+                                                    final address = abc.data![len].yourAddress;
+                                                    final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
+
+                                                    if (await canLaunchUrl(url)) {
+                                                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                                                    } else {
+                                                      throw 'Could not launch $url';
+                                                    }
+                                                  },
+                                                  child: Row(
+                                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                                    children: [
+                                                      const Icon(Icons.location_on, color: Colors.red, size: 20),
+                                                      const SizedBox(width: 6),
+                                                      Expanded(
+                                                        child: RichText(
+                                                          text: TextSpan(
+                                                            children: [
+                                                              const TextSpan(
+                                                                text: "Current Location: ",
+                                                                style: TextStyle(
+                                                                  fontFamily: "Poppins",
+                                                                  fontWeight: FontWeight.bold,
+                                                                ),
+                                                              ),
+                                                              TextSpan(
+                                                                text: abc.data![len].yourAddress,
+                                                                style: const TextStyle(
+                                                                  color: Colors.blue,
+                                                                  fontFamily: "Poppins",
+                                                                  decoration: TextDecoration.underline,
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+
                                               ],
                                             ),
                                           ),

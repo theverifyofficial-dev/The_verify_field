@@ -21,6 +21,7 @@ import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
+import 'Social_Media_links.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'add_properties_firstpage.dart';
 import 'ui_decoration_tools/constant.dart';
@@ -237,12 +238,6 @@ class _Home_ScreenState extends State<Home_Screen> {
     }
   }
 
-  _launchURL() async {
-    final Uri url = Uri.parse('https://theverify.in');
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
 
 
 
@@ -318,8 +313,7 @@ class _Home_ScreenState extends State<Home_Screen> {
           ),
           GestureDetector(
             onTap: () {
-              _launchURL();
-              //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
             },
             child: Row(
               children: [
@@ -372,7 +366,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(5  , (index) {
+                children: List.generate(6  , (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -428,20 +422,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                     //               AgreementDetails())),
                     // },
 
-                    // {
-                    //   "image": AppImages.police,
-                    //   "title": "All Rented \nFlat",
-                    //   "onTap": () {
-                    //     uploadImageWithTitle();
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (_) => const AddRentedFlatTabbar()));
-                    //   },
-                    // },
-
-
-
                       {
                       "image": AppImages.tenant,
                       "title": "Tenant\n Demands",
@@ -453,6 +433,18 @@ class _Home_ScreenState extends State<Home_Screen> {
                                 builder: (_) => const MainPage_TenandDemand()));
                       },
                     },
+                    {
+                      "image": AppImages.police,
+                      "title": "All Rented \nFlat",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddRentedFlatTabbar()));
+                      },
+                    },
+
                   ];
 
                   final item = cardData[index];

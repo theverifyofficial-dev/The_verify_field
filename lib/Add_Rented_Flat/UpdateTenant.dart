@@ -1,16 +1,22 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
-class AddTenantPage extends StatefulWidget {
+import '../constant.dart';
+
+class UpdateTenantPage extends StatefulWidget {
   final String id;
-  const AddTenantPage({Key? key, required this.id}) : super(key: key);
+
+  const UpdateTenantPage({Key? key, required this.id, })
+      : super(key: key);
 
   @override
-  State<AddTenantPage> createState() => _AddTenantPageState();
+  State<UpdateTenantPage> createState() => _UpdateTenantPageState();
 }
 
-class _AddTenantPageState extends State<AddTenantPage> {
+class _UpdateTenantPageState extends State<UpdateTenantPage> {
   final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _tenantNameController = TextEditingController();
@@ -20,42 +26,87 @@ class _AddTenantPageState extends State<AddTenantPage> {
   String? _selectedPaymentMode;
   final List<String> paymentModes = ["Online", "Cash"];
 
-  /// API Call to Insert Tenant
-  Future<void> _submitTenant() async {
-    if (!_formKey.currentState!.validate()) return;
+  bool _isLoading = true;
 
+  @override
+  void initState() {
+    super.initState();
+    _fetchTenantData();
+  }
+
+  /// Fetch Tenant Data
+  Future<void> _fetchTenantData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/insert.php");
-    print("id :"+ widget.id ,);
-    final response = await http.post(url, body: {
-      "tenant_name": _tenantNameController.text,
-      "tenant_phone_number": _tenantPhoneController.text,
-      "shifting_date": _shiftingDateController.text,
-      "payment_mode": _selectedPaymentMode ?? "",
-      "sub_id": widget.id.toString() ,
+        "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=${widget.id}");
 
-    });
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data["success"] == true && data["data"].isNotEmpty) {
+          final tenant = data["data"][0];
 
-    if (response.statusCode == 200) {
-      print(response.body);
+          setState(() {
+            _tenantNameController.text = tenant["tenant_name"] ?? "";
+            _tenantPhoneController.text = tenant["tenant_phone_number"] ?? "";
+            _shiftingDateController.text = tenant["shifting_date"] ?? "";
+            _selectedPaymentMode = tenant["payment_mode"];
+            _isLoading = false;
+          });
+        }
+      } else {
+        throw Exception("Failed to load tenant");
+      }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print("Error fetching tenant data: $e");
+    }
+  }
+
+  /// Update Tenant API Call
+  Future<void> _updateTenant() async {
+    try {
+      var uri = Uri.parse(
+          "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/update_tenant.php");
+
+      var request = http.MultipartRequest("POST", uri);
+
+      // 👇 send ID inside fields instead of URL
+      request.fields["id"] = widget.id;
+      request.fields["tenant_name"] = _tenantNameController.text;
+      request.fields["tenant_phone_number"] = _tenantPhoneController.text;
+      request.fields["shifting_date"] = _shiftingDateController.text;
+      request.fields["payment_mode"] = _selectedPaymentMode ?? "";
+
+      var response = await request.send();
+
+      final respStr = await response.stream.bytesToString();
+      print("Response: $respStr");
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Tenant Updated Successfully ✅")),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to update ❌: $respStr")),
+        );
+      }
+    } catch (e) {
+      print("Exception: $e");
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Tenant Added Successfully ✅")),
-      );
-      Navigator.pop(context);
-    } else {
-      print(response.body);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to add tenant ❌: ${response.body}")),
+        SnackBar(content: Text("Error: $e")),
       );
     }
   }
 
-  /// Custom Input Field
-  Widget _buildInputField(
-      String label, String hint, TextEditingController controller, IconData icon,
+  /// Input Field
+  Widget _buildInputField(String label, String hint,
+      TextEditingController controller, IconData icon,
       {bool isOptional = false, TextInputType inputType = TextInputType.text}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       elevation: 2,
       borderRadius: BorderRadius.circular(14),
@@ -68,10 +119,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
           }
           return null;
         },
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-          fontWeight: FontWeight.w600,
-        ),
         decoration: InputDecoration(
           prefixIcon: Icon(icon, color: Colors.blueAccent),
           labelText: label,
@@ -81,20 +128,22 @@ class _AddTenantPageState extends State<AddTenantPage> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: isDark ? Colors.grey[900] : Colors.white,
+          fillColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[900]
+              : Colors.white,
         ),
       ),
     );
   }
+
   Widget _buildPhoneField() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       elevation: 2,
       borderRadius: BorderRadius.circular(14),
       child: TextFormField(
         controller: _tenantPhoneController,
         keyboardType: TextInputType.phone,
-        maxLength: 10, // 🚨 restrict input to 10 digits
+        maxLength: 10,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return "Phone Number is required";
@@ -103,12 +152,8 @@ class _AddTenantPageState extends State<AddTenantPage> {
           }
           return null;
         },
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-          fontWeight: FontWeight.w600,
-        ),
         decoration: InputDecoration(
-          counterText: "", // hides the "0/10" counter
+          counterText: "",
           prefixIcon: const Icon(Icons.phone, color: Colors.blueAccent),
           labelText: "Phone Number",
           hintText: "Enter 10-digit phone number",
@@ -117,23 +162,21 @@ class _AddTenantPageState extends State<AddTenantPage> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: isDark ? Colors.grey[900] : Colors.white,
+          fillColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[900]
+              : Colors.white,
         ),
       ),
     );
   }
 
-  /// Date Picker Field
   Widget _buildDateField() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       elevation: 2,
       borderRadius: BorderRadius.circular(14),
       child: TextFormField(
         controller: _shiftingDateController,
         readOnly: true,
-        validator: (value) =>
-        value == null || value.isEmpty ? "Shifting Date is required" : null,
         onTap: () async {
           DateTime? pickedDate = await showDatePicker(
             context: context,
@@ -148,10 +191,6 @@ class _AddTenantPageState extends State<AddTenantPage> {
             });
           }
         },
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-          fontWeight: FontWeight.w600,
-        ),
         decoration: InputDecoration(
           prefixIcon: const Icon(Icons.calendar_today, color: Colors.blueAccent),
           labelText: "Shifting Date",
@@ -161,7 +200,9 @@ class _AddTenantPageState extends State<AddTenantPage> {
             borderSide: BorderSide.none,
           ),
           filled: true,
-          fillColor: isDark ? Colors.grey[900] : Colors.white,
+          fillColor: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[900]
+              : Colors.white,
         ),
       ),
     );
@@ -170,40 +211,59 @@ class _AddTenantPageState extends State<AddTenantPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Tenant")),
-      body: SingleChildScrollView(
+      appBar: AppBar(
+        centerTitle: true,
+        elevation: 0, // Make sure there's no shadow
+        surfaceTintColor: Colors.black,
+        backgroundColor: Colors.black,
+        title: Image.asset(AppImages.verify, height: 75),
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: const Row(
+            children: [
+              SizedBox(
+                width: 3,
+              ),
+              Icon(
+                PhosphorIcons.caret_left_bold,
+                color: Colors.white,
+                size: 30,
+              ),
+            ],
+          ),
+        ),        // centerTitle: true,
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildInputField(
-                "Tenant Name",
-                "Enter tenant name",
-                _tenantNameController,
-                Icons.person,
-              ),
+              _buildInputField("Tenant Name", "Enter tenant name",
+                  _tenantNameController, Icons.person),
               const SizedBox(height: 16),
-
               _buildPhoneField(),
               const SizedBox(height: 16),
-
               _buildDateField(),
               const SizedBox(height: 16),
 
-              /// Payment Mode Dropdown
+              /// Payment Mode
               Material(
                 elevation: 2,
                 borderRadius: BorderRadius.circular(14),
                 child: DropdownButtonFormField<String>(
                   value: _selectedPaymentMode,
                   decoration: InputDecoration(
-                    prefixIcon:
-                    const Icon(Icons.payment, color: Colors.blueAccent),
+                    prefixIcon: const Icon(Icons.payment,
+                        color: Colors.blueAccent),
                     labelText: "Payment Mode",
                     filled: true,
-                    fillColor: Theme.of(context).brightness == Brightness.dark
+                    fillColor:
+                    Theme.of(context).brightness == Brightness.dark
                         ? Colors.grey[900]
                         : Colors.white,
                     border: OutlineInputBorder(
@@ -212,8 +272,8 @@ class _AddTenantPageState extends State<AddTenantPage> {
                     ),
                   ),
                   items: paymentModes
-                      .map((mode) =>
-                      DropdownMenuItem(value: mode, child: Text(mode)))
+                      .map((mode) => DropdownMenuItem(
+                      value: mode, child: Text(mode)))
                       .toList(),
                   onChanged: (value) {
                     setState(() {
@@ -226,21 +286,23 @@ class _AddTenantPageState extends State<AddTenantPage> {
               ),
               const SizedBox(height: 24),
 
-              /// Submit Button
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
+                  onPressed: _updateTenant,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blue,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  onPressed: _submitTenant,
                   child: const Text(
-                    "Submit",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600,color: Colors.white),
+                    "Update Tenant",
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ),
                 ),
               ),

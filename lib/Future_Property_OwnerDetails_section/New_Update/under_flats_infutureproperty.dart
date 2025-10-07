@@ -7,6 +7,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../ui_decoration_tools/constant.dart';
 import '../../../model/realestateSlider.dart';
 import '../../property_preview.dart';
@@ -1867,6 +1868,59 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 SizedBox(
                                                   height: 20,
                                                 ),
+                                                if(abc.data![len].fieldWorkerCurrentLocation!=""&& abc.data![len].fieldWorkerCurrentLocation!=null)
+                                                Column(
+                                                  children: [
+                                                    InkWell(
+                                                      onTap: () async {
+                                                        final address =  abc.data![len]
+                                                            .fieldWorkerCurrentLocation;
+                                                        final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
+
+                                                        if (await canLaunchUrl(url)) {
+                                                          await launchUrl(url, mode: LaunchMode.externalApplication);
+                                                        } else {
+                                                          throw 'Could not launch $url';
+                                                        }
+                                                      },
+                                                      child: Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        children: [
+                                                          const Icon(Icons.location_on, color: Colors.red, size: 20),
+                                                          const SizedBox(width: 6),
+                                                          Expanded(
+                                                            child: RichText(
+                                                              text: TextSpan(
+                                                                children: [
+                                                                  const TextSpan(
+                                                                    text: "Current Location: ",
+                                                                    style: TextStyle(
+                                                                      fontFamily: "Poppins",
+                                                                      fontWeight: FontWeight.bold,
+                                                                      color: Colors.black
+                                                                    ),
+                                                                  ),
+                                                                  TextSpan(
+                                                                    text: abc.data![0].fieldWorkerCurrentLocation,
+                                                                    style: const TextStyle(
+                                                                      color: Colors.blue,
+                                                                      fontFamily: "Poppins",
+                                                                      decoration: TextDecoration.underline,
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    SizedBox(
+                                                      height: 20,
+                                                    ),
+                                                  ],
+                                                ),
+
                                                 Row(
                                                   crossAxisAlignment:
                                                       CrossAxisAlignment.center,

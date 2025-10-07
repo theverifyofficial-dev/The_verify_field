@@ -194,11 +194,13 @@ class _AgreementDetailsState extends State<AllData> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
+                          Text("Type: ${item.agreementType}"),
                           Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,
                             children: [
                               Text("Agreement ID: ${item.id}"),
+
                               Text("By ${item.fieldWorkerName}",style: TextStyle(fontStyle: FontStyle.italic,fontSize: 12),),
                             ],
                           ),

@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -503,6 +504,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
+        "agreement_type": "External Rental Agreement",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -572,7 +574,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
           ),
         ).closed.then((_) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => AgreementDashboard()),
+            MaterialPageRoute(builder: (_) => HistoryTab()),
           );
         });
 
@@ -586,7 +588,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
     }
   }
 
-  Future<void> _updateAll() async    {
+  Future<void> _updateAll() async   {
     print("🔹 _updateAll called");
 
     showDialog(
@@ -636,7 +638,6 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
-        "property_id": propertyID.text,
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -707,7 +708,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
           ),
         ).closed.then((_) {
           Navigator.of(context).pushReplacement(
-            MaterialPageRoute(builder: (_) => AgreementDashboard()),
+            MaterialPageRoute(builder: (_) => HistoryTab()),
           );
         }
         );
@@ -1181,20 +1182,27 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
                   ),
                   const SizedBox(width: 12),
 
-                  Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,       // only numbers
-                      LengthLimitingTextInputFormatter(12),         // max 12 digits
-                    ],
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                      return null;
+                  Expanded(
+                    child: _glowTextField(
+                      controller: ownerAadhaar,
+                      label: 'Aadhaar/VID No',
+                      keyboard: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,  // only numbers
+                        LengthLimitingTextInputFormatter(16),    // max 16 digits
+                      ],
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
 
-                    },
+                        final digits = v.trim();
+                        if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
+                          return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+                        }
 
-                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-                  )),
+                        return null;
+                      },
+                    ),
+                  ),
                 ]),
             const SizedBox(height: 14),
             _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
@@ -1313,20 +1321,27 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
                   ),
                   const SizedBox(width: 12),
 
-                  Expanded(child: _glowTextField(controller: tenantAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly,       // only numbers
-                      LengthLimitingTextInputFormatter(12),         // max 12 digits
-                    ],
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Required';
-                      if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                      return null;
+        Expanded(
+          child: _glowTextField(
+            controller: tenantAadhaar,
+            label: 'Aadhaar/VID No',
+            keyboard: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,  // only numbers
+              LengthLimitingTextInputFormatter(16),    // max 16 digits
+            ],
+            validator: (v) {
+              if (v == null || v.trim().isEmpty) return 'Required';
 
-                    },
+              final digits = v.trim();
+              if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
+                return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+              }
 
-                    // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-                  )),
+              return null;
+            },
+          ),
+        ),
                 ]),
             const SizedBox(height: 14),
             _glowTextField(controller: tenantName, label: 'Tenant Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
@@ -1557,6 +1572,7 @@ class _RentalWizardPageState extends State<ExternalForm> with TickerProviderStat
         ]),
         const SizedBox(height: 12),
         _sectionCard(title: '*Property', children: [
+          _kv('Property ID', propertyID.text),
           _kv('BHK', Bhk.text),
           _kv('Floor', floor.text),
           _kv('Address', Address.text),

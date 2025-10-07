@@ -262,6 +262,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "Fieldwarkarname": agreement?["Fieldwarkarname"] ?? "",
         "Fieldwarkarnumber": agreement?["Fieldwarkarnumber"] ?? "",
         "property_id": agreement?["property_id"] ?? "",
+        "agreement_type": agreement?["agreement_type"] ?? "",
       };
 
       fields.forEach((k, v) {
@@ -387,7 +388,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agreement Details'),
+        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
         leading: const SquareBackButton(),
       ),
       body: isLoading
@@ -477,7 +478,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                         ),
                       ]
                   ),
-
                 ],
               ),
             ),

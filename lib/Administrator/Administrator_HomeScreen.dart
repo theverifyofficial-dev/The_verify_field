@@ -345,12 +345,12 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 5,
+                        itemCount: 4,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
                               "image": AppImages.agreement,
-                              "title": "Property Agreement",
+                              "title": "Property \nAgreement",
                               "onTap": () async {
                                 Navigator.push(
                                   context,
@@ -358,16 +358,14 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                     builder: (_) => const AdminDashboard(),
                                   ),
                                 );
-
                               },
                             },
                             {
-                              'image': AppImages.agreement_details,
-                              'title': "Agreement Details",
+                              'image': AppImages.police,
+                              'title': "All Rented \nFlat",
                               'onTap': () =>
                                   Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) =>
-                                          AgreementDetails())),
+                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
                             },
                             {
                               'image': AppImages.propertysale,
@@ -390,13 +388,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
                             },
-                            {
-                              'image': AppImages.police,
-                              'title': "All Rented \nFlat",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                            },
+
                           ];
 
                           final item = featureItems[index];

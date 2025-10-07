@@ -332,7 +332,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Agreement Details'),leading: SquareBackButton(),),
+      appBar: AppBar(
+        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
+        leading: SquareBackButton(),
+      ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : agreement == null
@@ -621,12 +624,24 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                 const SizedBox(height: 6),
 
                 // Maintenance
-                Text(
-                  "Maintenance: ${data['maintance'] ?? "--"}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[100],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Maintenance: ${data['maintance'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                    Text(
+                      "ID: ${agreement?["property_id"] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

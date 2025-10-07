@@ -175,24 +175,19 @@ class _AdminPendingState extends State<AdminPending> {
 
             SizedBox(height: scale(12)),
 
-            Align(
-              alignment:
-              screenWidth < 400 ? Alignment.center : Alignment.centerRight,
-              child: SizedBox(
-                width: screenWidth < 400 ? double.infinity : null,
-                child: ElevatedButton.icon(
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(agreement.Type,style: TextStyle(fontSize: 12,color: Colors.blue),),
+
+                ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: EdgeInsets.symmetric(
-                      vertical: scale(12),
-                      horizontal: scale(16),
-                    ),
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: () async {
-                    await Navigator.push(
+                  onPressed: () {
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => AdminAgreementDetails(
@@ -200,22 +195,18 @@ class _AdminPendingState extends State<AdminPending> {
                         ),
                       ),
                     );
-
-                    _refreshAgreements();
                   },
-
-                  icon:
-                  Icon(Icons.visibility, size: scale(18), color: Colors.white),
-                  label: Text(
-                    "View Details",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: scale(14),
-                    ),
-                  ),
+                  icon: const Icon(Icons.visibility,
+                      size: 18, color: Colors.white),
+                  label: const Text("View Details",
+                      style: TextStyle(color: Colors.white)),
                 ),
-              ),
+
+
+              ],
             ),
+
+
           ],
         ),
       ),

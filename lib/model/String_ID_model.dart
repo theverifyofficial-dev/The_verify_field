@@ -1,4 +1,4 @@
-class StringIdModel {
+class  StringIdModel {
   final String id;
   final String ownerName;
   final String ownerRelation;
@@ -27,6 +27,9 @@ class StringIdModel {
   final String customMeterUnit;
   final String customMaintenanceCharge;
   final String current_date;
+  final String Type;  // ✅ new field
+
+
 
   StringIdModel( {
     required this.id,
@@ -57,6 +60,7 @@ class StringIdModel {
     required this.customMeterUnit,
     required this.customMaintenanceCharge,
     required this. current_date,
+    required this.Type,  // ✅ new field
   });
 
   factory StringIdModel.fromJson(Map<String, dynamic> json) {
@@ -89,6 +93,7 @@ class StringIdModel {
       installmentSecurityAmount: json['installment_security_amount'] ?? '',
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
+      Type: json['agreement_type'] ?? '',
     );
   }
 }

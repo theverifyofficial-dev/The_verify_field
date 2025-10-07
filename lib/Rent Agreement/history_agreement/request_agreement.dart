@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 
 import '../../model/agrement_model.dart';
 import '../Forms/Agreement_Form.dart';
+import '../Forms/External_Form.dart';
 import '../details_agreement.dart';
 
 class RequestAgreementsPage extends StatefulWidget {
@@ -32,6 +33,38 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
       _fetchRentalAgreements();
     }
   }
+
+  void _navigateToEditForm(BuildContext context, AgreementData agreement) async {
+    Widget page;
+
+    switch (agreement.Type.toLowerCase()) {
+      case "rental agreement":
+        page = RentalWizardPage(agreementId: agreement.id);
+        break;
+
+      case "external rental agreement":
+        page = ExternalForm(agreementId: agreement.id);
+        break;
+
+      // case "lease":
+      //   page = LeaseAgreementForm(agreementId: agreement.id);
+      //   break;
+
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Unknown agreement type: ${agreement.Type}")),
+        );
+        return;
+    }
+
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => page),
+    );
+
+    _refreshAgreements();
+  }
+
 
   Future<void> _refreshAgreements() async {
     try {
@@ -144,13 +177,21 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                     ),
                   ),
                   SizedBox(width: 20,),
-                  Expanded(
-                    child: Text(
-                      "Message: ${agreement.messages!}",
-                      style: const TextStyle(fontSize: 14,),
+
+                   Text(
+                    "Message: ",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  Text(
+                    agreement.messages!,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: agreement.status!.toLowerCase() == "fields Updated"
+                          ? Colors.green
+                          : Colors.red,
                     ),
                   ),
-
                 ],
               ),
 
@@ -163,17 +204,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: ElevatedButton(
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => RentalWizardPage(
-                            agreementId: agreement.id,
-                          ),
-                        ),
-                      );
-                      _refreshAgreements();
-                    },
+                    onPressed: () => _navigateToEditForm(context, agreement),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
                       shape: RoundedRectangleBorder(
@@ -189,29 +220,33 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
 
             const SizedBox(height: 10),
 
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => AgreementDetailPage(
-                        agreementId: agreement.id,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(agreement.Type,style: TextStyle(fontSize: 12,color: Colors.blue),),
+
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AgreementDetailPage(
+                          agreementId: agreement.id,
+                        ),
                       ),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.visibility,
-                    size: 18, color: Colors.white),
-                label: const Text("View Details",
-                    style: TextStyle(color: Colors.white)),
-              ),
+                    );
+                  },
+                  icon: const Icon(Icons.visibility,
+                      size: 18, color: Colors.white),
+                  label: const Text("View Details",
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ],
             ),
           ],
         ),

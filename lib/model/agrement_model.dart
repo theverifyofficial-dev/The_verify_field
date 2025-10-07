@@ -68,6 +68,8 @@ class AgreementData {
   final String parking;
   final String? status;    // ✅ new field
   final String? messages;  // ✅ new field
+  final String Type;  // ✅ new field
+
 
 
   AgreementData({
@@ -106,6 +108,7 @@ class AgreementData {
     required this.parking,
     this.status,    // ✅ new field
     this.messages,  // ✅ new field
+    required this.Type,  // ✅ new field
   });
 
   factory AgreementData.fromJson(Map<String, dynamic> json) {
@@ -145,6 +148,7 @@ class AgreementData {
       parking: json['parking'] ?? "",
       status: json['status'],       // ✅ map from JSON
       messages: json['messages'],   // ✅ map from JSON
+      Type: json['agreement_type'],   // ✅ map from JSON
     );
   }
 

@@ -3,13 +3,10 @@ import 'dart:io';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
@@ -499,6 +496,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
+        "agreement_type": "Rental Agreement",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -801,7 +799,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     validator: validator,
                     onFieldSubmitted: onFieldSubmitted,
                     inputFormatters: inputFormatters,
-                    decoration: InputDecoration(labelText: label),
+                    decoration: InputDecoration(labelText: label,  errorMaxLines: 2,),
                     onChanged: (v) {
                       if (showInWords) setState(() {});
                       if (onChanged != null) onChanged(v);  // forward to caller
@@ -1297,20 +1295,27 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               ),
               const SizedBox(width: 12),
 
-              Expanded(child: _glowTextField(controller: ownerAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,       // only numbers
-                  LengthLimitingTextInputFormatter(12),         // max 12 digits
-                ],
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                  return null;
+                  Expanded(
+                    child: _glowTextField(
+                      controller: ownerAadhaar,
+                      label: 'Aadhaar/VID No',
+                      keyboard: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,  // only numbers
+                        LengthLimitingTextInputFormatter(16),    // max 16 digits
+                      ],
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
 
-                },
+                        final digits = v.trim();
+                        if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
+                          return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+                        }
 
-                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-              )),
+                        return null;
+                      },
+                    ),
+                  ),
             ]),
             const SizedBox(height: 14),
             _glowTextField(controller: ownerName, label: 'Owner Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
@@ -1408,20 +1413,27 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               ),
               const SizedBox(width: 12),
 
-              Expanded(child: _glowTextField(controller: tenantAadhaar, label: 'Aadhaar No', keyboard: TextInputType.number,
-                inputFormatters: [
-                  FilteringTextInputFormatter.digitsOnly,       // only numbers
-                  LengthLimitingTextInputFormatter(12),         // max 12 digits
-                ],
-                validator: (v) {
-                  if (v == null || v.trim().isEmpty) return 'Required';
-                  if (!RegExp(r'^\d{12}$').hasMatch(v)) return 'Enter valid 12-digit Aadhaar';
-                  return null;
+                  Expanded(
+                    child: _glowTextField(
+                      controller: tenantAadhaar,
+                      label: 'Aadhaar/VID No',
+                      keyboard: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,  // only numbers
+                        LengthLimitingTextInputFormatter(16),    // max 16 digits
+                      ],
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
 
-                },
+                        final digits = v.trim();
+                        if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
+                          return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+                        }
 
-                // onFieldSubmitted: (val) => _autoFetchUser(query: val, isOwner: true)
-              )),
+                        return null;
+                      },
+                    ),
+                  ),
             ]),
             const SizedBox(height: 14),
             _glowTextField(controller: tenantName, label: 'Tenant Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),

@@ -190,6 +190,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     final filtered = _allProperties.where((item) {
       return (item.locations ?? '').toLowerCase().contains(query) ||
           (item.apartmentAddress ?? '').toLowerCase().contains(query) ||
+          (item.pId ?? '').toString().toLowerCase().contains(query) ||
           (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
           (item.bhk ?? '').toLowerCase().contains(query) ||
           (item.showPrice ?? '').toLowerCase().contains(query) ||

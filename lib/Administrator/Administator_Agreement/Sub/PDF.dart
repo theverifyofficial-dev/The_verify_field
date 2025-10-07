@@ -165,6 +165,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final bhk = data['Bhk'] ?? '';
   final floor = data['floor'] ?? '';
   final address = data['rented_address'] ?? '';
+  final agreement_type = data['agreement_type'] ?? '';
 
   final fullAddress = '$bhk, $floor, $address'.replaceAll(RegExp(r', ,|,,| ,'), ',').trim();
 
@@ -224,7 +225,18 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     shiftingDate = DateTime(2025, 9, 23); // fallback static
   }
 
-  String getDayWithSuffix(int day) {
+  String getIdLabel(String number) {
+    final digitsOnly = number.replaceAll(
+        RegExp(r'\D'), ''); // remove non-digits
+    if (digitsOnly.length == 16) {
+      return 'VID No:'; // Virtual ID (16 digits)
+    } else {
+      return 'Aadhaar No:'; // Aadhaar (12 digits)
+    }
+  }
+
+
+    String getDayWithSuffix(int day) {
     if (day >= 11 && day <= 13) return '${day}th'; // 11th, 12th, 13th special case
     switch (day % 10) {
       case 1:
@@ -487,7 +499,10 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.SizedBox(height: 15),
         clause('24. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
         pw.SizedBox(height: 6),
-        clause('25. Mediator:', 'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.'),
+
+        if (agreement_type.trim().toLowerCase() != "external rental agreement")
+
+          clause('25. Mediator:', 'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.'),
 
         pw.SizedBox(height: 18),
         pw.Text('IN WITNESS WHEREOF, both the parties have signed this Deed of Agreement on the day, month and year first above written. That both the parties have read and understood the contents of this Agreement and have signed the same without any force or pressure from any side.', style: baseStyle),
@@ -502,8 +517,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               children: [
                 pw.Text('FIRST PARTY / LANDLORD', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                 pw.SizedBox(height: 6),
-                pw.Text('Name: $ownerName', style: baseStyle),
-                pw.Text('Aadhaar No: $ownerAadhaar', style: baseStyle),
+                pw.Text('Name: $ownerName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                pw.Text('${getIdLabel(ownerAadhaar)} $ownerAadhaar', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                 pw.SizedBox(height: 18),
                 pw.Text('Signature: ____________________________', style: baseStyle),
               ],
@@ -513,8 +528,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               children: [
                 pw.Text('SECOND PARTY / TENANT', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                 pw.SizedBox(height: 6),
-                pw.Text('Name: $tenantName', style: baseStyle),
-                pw.Text('Aadhaar No: $tenantAadhaar', style: baseStyle),
+                pw.Text('Name: $tenantName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
+                pw.Text('${getIdLabel(tenantAadhaar)} $tenantAadhaar', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 12)),
                 pw.SizedBox(height: 18),
                 pw.Text('Signature: ____________________________', style: baseStyle),
               ],
@@ -555,13 +570,19 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.TextSpan(text: 'Sir,\n\n', style: baseStyle),
             pw.TextSpan(text: 'I ', style: baseStyle),
             pw.TextSpan(text: tenantName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            pw.TextSpan(text: ', $tenantRelation $tenantRelationPerson residing at ', style: baseStyle),
+            pw.TextSpan(text: ', $tenantRelation ', style: baseStyle),
+            pw.TextSpan(text: '$tenantRelationPerson ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            pw.TextSpan(text: ' residing at ', style: baseStyle),
             pw.TextSpan(text: fullAddress, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: ' have been living here as a tenant since ', style: baseStyle),
             pw.TextSpan(text: shiftingDateFormatted, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: '. The owner of the property is ', style: baseStyle),
             pw.TextSpan(text: ownerName, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            pw.TextSpan(text: ', $ownerRelation $ownerRelationPerson residing at ', style: baseStyle),
+            pw.TextSpan(text: ', $ownerRelation ', style: baseStyle),
+            pw.TextSpan(text: ' $ownerRelationPerson ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
+            pw.TextSpan(text: ' residing at ', style: baseStyle),
+
+
             pw.TextSpan(text: ownerAddress, style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: '.\n', style: baseStyle),
           ]),
@@ -582,7 +603,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.Text('Sincerely,', style: baseStyle),
         pw.SizedBox(height: 6),
         pw.Text('Name: $tenantName', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-        pw.Text('Aadhaar No: $tenantAadhaar', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+        pw.Text('${getIdLabel(tenantAadhaar)} $tenantAadhaar', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
       ],
     ),
   );

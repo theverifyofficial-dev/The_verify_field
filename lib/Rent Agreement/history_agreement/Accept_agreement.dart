@@ -97,8 +97,8 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
                   style: const TextStyle( fontWeight: FontWeight.bold),
                 ),
                 subtitle: Text(
-                  "Tenant: ${item.tenantName}\n Rent: ₹${item.monthlyRent}\n Date: ${_formatDate(item.shiftingDate)}",
-                ),
+                    "Tenant: ${item.tenantName}\n Rent: ₹${item.monthlyRent}\n Date: ${_formatDate(item.shiftingDate)}\n Type: ${item.Type}",
+                    style: const TextStyle(color: Colors.white70)),
                 trailing: const Text('✅ by Admin',)
                 // onTap: () {
                 //   Navigator.push(

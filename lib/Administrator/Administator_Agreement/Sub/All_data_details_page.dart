@@ -197,7 +197,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Agreement Details'),
+        title: Text('${agreement?["agreement_type"] ?? ""} Details'),
         leading: const SquareBackButton(),
       ),
       body: isLoading
@@ -587,12 +587,25 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                 const SizedBox(height: 6),
 
                 // Maintenance
-                Text(
-                  "Maintenance: ${data['maintance'] ?? "--"}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[100],
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Maintenance: ${data['maintance'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Flat ID: ${agreement?["property_id"] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

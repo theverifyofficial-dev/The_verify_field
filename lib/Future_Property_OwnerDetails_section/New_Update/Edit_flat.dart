@@ -225,9 +225,9 @@ class EditFlatState extends State<EditFlat> {
       MapEntry("furnished_unfurnished", _furnished.toString()),
       MapEntry("registry_and_gpa", _registry.toString()),
       MapEntry("loan", _loan.toString()),
-      MapEntry("show_Price", _showPrice.text.replaceAll(',', '').trim()),
-      MapEntry("Last_Price", _lastPrice.text.replaceAll(',', '').trim()),
-      MapEntry("asking_price", _askingPrice.text.replaceAll(',', '').trim()),
+      MapEntry("show_Price", _formattedPrice),
+      MapEntry("Last_Price", _formattedLastPrice),
+      MapEntry("asking_price", _formattedAskingPrice),
       MapEntry("meter", _meter.text),
       // MapEntry("subid", widget.id),
     ];

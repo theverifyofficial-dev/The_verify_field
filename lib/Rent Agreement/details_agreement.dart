@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../Custom_Widget/Custom_backbutton.dart';
+
 class AgreementDetailPage extends StatefulWidget {
   final String agreementId;
   const AgreementDetailPage({super.key, required this.agreementId});
@@ -131,7 +133,8 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Agreement Details"),
+        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
+        leading: SquareBackButton(),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())

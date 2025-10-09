@@ -12,17 +12,16 @@ import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
-import '../Dashboard_screen.dart';
 
-class ExternalWizardPage extends StatefulWidget {
+class CommercialWizardPage extends StatefulWidget {
   final String? agreementId;
-  const ExternalWizardPage({Key? key, this.agreementId}) : super(key: key);
+  const CommercialWizardPage({Key? key, this.agreementId}) : super(key: key);
 
   @override
-  State<ExternalWizardPage> createState() => _RentalWizardPageState();
+  State<CommercialWizardPage> createState() => _CommercialWizardPageState();
 }
 
-class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProviderStateMixin {
+class _CommercialWizardPageState extends State<CommercialWizardPage> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
@@ -38,20 +37,23 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   File? ownerAadhaarBack;
   File? agreementPdf;
   final _tenantFormKey = GlobalKey<FormState>();
-  final tenantName = TextEditingController();
-  String tenantRelation = 'S/O';
-  final tenantRelationPerson = TextEditingController();
-  final tenantAddress = TextEditingController();
-  final tenantMobile = TextEditingController();
-  final tenantAadhaar = TextEditingController();
-  File? tenantAadhaarFront;
+  final DirectorName = TextEditingController();
+  String DirectorRelation = 'S/O';
+  final DirectorRelationPerson = TextEditingController();
+  final DirectorAddress = TextEditingController();
+  final CompanyName = TextEditingController();
+  final PanCard = TextEditingController();
+  final GST_no = TextEditingController();
+  final DirectorMobile = TextEditingController();
+  final DirectorAadhaar = TextEditingController();
+  File? DirectorAadhaarFront;
   File? tenantAadhaarBack;
   File? tenantImage;
+  File? PanCard_;
   Map<String, dynamic>? fetchedData;
 
 
   final _propertyFormKey = GlobalKey<FormState>();
-  final propertyID = TextEditingController();
   final Address = TextEditingController();
   final rentAmount = TextEditingController();
   final Bhk = TextEditingController();
@@ -62,6 +64,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   final installmentAmount = TextEditingController();
   String meterInfo = 'As per Govt. Unit';
   final customUnitAmount = TextEditingController();
+  final propertyID = TextEditingController();
   DateTime? shiftingDate;
   String maintenance = 'Including';
   String parking = 'Car';
@@ -70,11 +73,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   String baseUrl1 = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
   String baseUrl2 = "https://theverify.in/";
 
-
-
-  static const kAppGradient = LinearGradient(
-    colors: [Color(0xFF4CA1FF), Color(0xFF00D4FF)], // Blue → Cyan
-  );
 
   final ImagePicker _picker = ImagePicker();
 
@@ -183,13 +181,13 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           ownerMobile.text = data["owner_mobile_no"] ?? "";
           ownerAadhaar.text = data["owner_addhar_no"] ?? "";
 
-          // 🔹 Tenant
-          tenantName.text = data["tenant_name"] ?? "";
-          tenantRelation = data["tenant_relation"] ?? "S/O";
-          tenantRelationPerson.text = data["relation_person_name_tenant"] ?? "";
-          tenantAddress.text = data["permanent_address_tenant"] ?? "";
-          tenantMobile.text = data["tenant_mobile_no"] ?? "";
-          tenantAadhaar.text = data["tenant_addhar_no"] ?? "";
+          // 🔹 Director
+          DirectorName.text = data["tenant_name"] ?? "";
+          DirectorRelation = data["tenant_relation"] ?? "S/O";
+          DirectorRelationPerson.text = data["relation_person_name_tenant"] ?? "";
+          DirectorAddress.text = data["permanent_address_tenant"] ?? "";
+          DirectorMobile.text = data["tenant_mobile_no"] ?? "";
+          DirectorAadhaar.text = data["tenant_addhar_no"] ?? "";
 
           // 🔹 Agreement
           propertyID.text = data["property_id"]?.toString() ?? "";
@@ -235,11 +233,11 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     ownerAddress.dispose();
     ownerMobile.dispose();
     ownerAadhaar.dispose();
-    tenantName.dispose();
-    tenantRelationPerson.dispose();
-    tenantAddress.dispose();
-    tenantMobile.dispose();
-    tenantAadhaar.dispose();
+    DirectorName.dispose();
+    DirectorRelationPerson.dispose();
+    DirectorAddress.dispose();
+    DirectorMobile.dispose();
+    DirectorAadhaar.dispose();
     Bhk.dispose();
     floor.dispose();
     Address.dispose();
@@ -262,7 +260,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           ownerAadhaarBack = File(picked.path);
           break;
         case 'tenantFront':
-          tenantAadhaarFront = File(picked.path);
+          DirectorAadhaarFront = File(picked.path);
           break;
         case 'tenantBack':
           tenantAadhaarBack = File(picked.path);
@@ -291,7 +289,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     } else if (_currentStep == 1) {
       // Tenant step: either file OR URL must exist
       valid = _tenantFormKey.currentState?.validate() == true &&
-          ((tenantAadhaarFront != null || tenantAadharFrontUrl != null) &&
+          ((DirectorAadhaarFront != null || tenantAadharFrontUrl != null) &&
               (tenantAadhaarBack != null || tenantAadharBackUrl != null));
 
       if (!valid) {
@@ -337,13 +335,11 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     _number = prefs.getString('number') ?? '';
   }
 
-  /// Helper to build full URL or return null if empty
   String? _buildUrl(String? path) {
     if (path?.isNotEmpty ?? false) return "https://theverify.in/$path";
     return null;
   }
 
-  /// Generic fetch for owner/tenant
   Future<void> _fetchUserData({
     required bool isOwner,                // true for owner, false for tenant
     required String? aadhaar,             // value in the Aadhaar field
@@ -410,15 +406,15 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           ownerAadharFrontUrl = _buildUrl(data['owner_aadhar_front']);
           ownerAadharBackUrl = _buildUrl(data['owner_aadhar_back']);
         } else {
-          tenantName.text = data['tenant_name'] ?? '';
-          tenantRelation = data['tenant_relation'] ?? 'S/O';
-          tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
-          tenantAddress.text = data['permanent_address_tenant'] ?? '';
+          DirectorName.text = data['tenant_name'] ?? '';
+          DirectorRelation = data['tenant_relation'] ?? 'S/O';
+          DirectorRelationPerson.text = data['relation_person_name_tenant'] ?? '';
+          DirectorAddress.text = data['permanent_address_tenant'] ?? '';
 
           if (searchedByAadhaar) {
-            tenantMobile.text = data['tenant_mobile_no'] ?? '';
+            DirectorMobile.text = data['tenant_mobile_no'] ?? '';
           } else {
-            tenantAadhaar.text = data['tenant_addhar_no'] ?? '';
+            DirectorAadhaar.text = data['tenant_addhar_no'] ?? '';
           }
 
           tenantAadharFrontUrl = _buildUrl(data['tenant_aadhar_front']);
@@ -446,8 +442,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   _fetchTenantData() {
     _fetchUserData(
       isOwner: false,
-      aadhaar: tenantAadhaar.text,
-      mobile: tenantMobile.text,
+      aadhaar: DirectorAadhaar.text,
+      mobile: DirectorMobile.text,
     );
   }
 
@@ -482,12 +478,12 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "parmanent_addresss_owner": ownerAddress.text,
         "owner_mobile_no": ownerMobile.text,
         "owner_addhar_no": ownerAadhaar.text,
-        "tenant_name": tenantName.text,
-        "tenant_relation": tenantRelation ?? '',
-        "relation_person_name_tenant": tenantRelationPerson.text,
-        "permanent_address_tenant": tenantAddress.text,
-        "tenant_mobile_no": tenantMobile.text,
-        "tenant_addhar_no": tenantAadhaar.text,
+        "tenant_name": DirectorName.text,
+        "tenant_relation": DirectorRelation ?? '',
+        "relation_person_name_tenant": DirectorRelationPerson.text,
+        "permanent_address_tenant": DirectorAddress.text,
+        "tenant_mobile_no": DirectorMobile.text,
+        "tenant_addhar_no": DirectorAadhaar.text,
         "Bhk": Bhk.text,
         "floor": floor.text,
         "rented_address": Address.text,
@@ -504,7 +500,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
-        "agreement_type": "External Rental Agreement",
+        "agreement_type": "Rental Agreement",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -542,7 +538,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           filename: "owner_aadhar_front.jpg");
       await attachFileOrUrl("owner_aadhar_back", ownerAadhaarBack, ownerAadharBackUrl,
           filename: "owner_aadhar_back.jpg");
-      await attachFileOrUrl("tenant_aadhar_front", tenantAadhaarFront, tenantAadharFrontUrl,
+      await attachFileOrUrl("tenant_aadhar_front", DirectorAadhaarFront, tenantAadharFrontUrl,
           filename: "tenant_aadhaar_front.jpg");
       await attachFileOrUrl("tenant_aadhar_back", tenantAadhaarBack, tenantAadharBackUrl,
           filename: "tenant_aadhaar_back.jpg");
@@ -588,7 +584,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     }
   }
 
-  Future<void> _updateAll() async   {
+  Future<void> _updateAll() async {
     print("🔹 _updateAll called");
 
     showDialog(
@@ -617,12 +613,12 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "parmanent_addresss_owner": ownerAddress.text,
         "owner_mobile_no": ownerMobile.text,
         "owner_addhar_no": ownerAadhaar.text, // confirm spelling with backend
-        "tenant_name": tenantName.text,
-        "tenant_relation": tenantRelation ?? '',
-        "relation_person_name_tenant": tenantRelationPerson.text,
-        "permanent_address_tenant": tenantAddress.text,
-        "tenant_mobile_no": tenantMobile.text,
-        "tenant_addhar_no": tenantAadhaar.text,
+        "tenant_name": DirectorName.text,
+        "tenant_relation": DirectorRelation ?? '',
+        "relation_person_name_tenant": DirectorRelationPerson.text,
+        "permanent_address_tenant": DirectorAddress.text,
+        "tenant_mobile_no": DirectorMobile.text,
+        "tenant_addhar_no": DirectorAadhaar.text,
         "Bhk": Bhk.text,
         "floor": floor.text,
         "rented_address": Address.text,
@@ -638,6 +634,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "current_dates": DateTime.now().toIso8601String(),
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "property_id": propertyID.text,
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -675,7 +672,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           filename: "owner_aadhar_front.jpg");
       await attachFileOrUrl("owner_aadhar_back", ownerAadhaarBack, ownerAadharBackUrl,
           filename: "owner_aadhar_back.jpg");
-      await attachFileOrUrl("tenant_aadhar_front", tenantAadhaarFront, tenantAadharFrontUrl,
+      await attachFileOrUrl("tenant_aadhar_front", DirectorAadhaarFront, tenantAadharFrontUrl,
           filename: "tenant_aadhaar_front.jpg");
       await attachFileOrUrl("tenant_aadhar_back", tenantAadhaarBack, tenantAadharBackUrl,
           filename: "tenant_aadhaar_back.jpg");
@@ -806,7 +803,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                     validator: validator,
                     onFieldSubmitted: onFieldSubmitted,
                     inputFormatters: inputFormatters,
-                    decoration: InputDecoration(labelText: label),
+                    decoration: InputDecoration(labelText: label,  errorMaxLines: 2,),
                     onChanged: (v) {
                       if (showInWords) setState(() {});
                       if (onChanged != null) onChanged(v);  // forward to caller
@@ -871,7 +868,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: Text('External Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text('Commercial Agreement', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
         centerTitle: true,
         leading: Padding(
           padding: const EdgeInsets.all(10),
@@ -956,29 +953,235 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     );
   }
 
+  Widget _propertyCard(Map<String, dynamic> data) {
+    final String imageUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
+
+    return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      margin: const EdgeInsets.only(bottom: 20),
+      shadowColor: Colors.black.withOpacity(0.15),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Property Image
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Image.network(
+              imageUrl,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 200,
+                  width: double.infinity,
+                  color: Colors.grey[200],
+                  alignment: Alignment.center,
+                  child: const Text("No Image",
+                      style: TextStyle(color: Colors.black54)),
+                );
+              },
+            ),
+          ),
+
+          // Details
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // BHK + Floor
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "₹${data['show_Price'] ?? "--"}",
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+
+                    Text(
+                      data['Bhk'] ?? "",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      data['Floor_'] ?? "--",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+
+                // Price + Meter
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+
+                    Text(
+                      "Name: ${data['field_warkar_name'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Location: ${data['locations'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                  ],
+                ),
+                const SizedBox(height: 10),
+
+                // // Availability
+                // Text(
+                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
+                //   style: const TextStyle(
+                //     fontSize: 15,
+                //     fontWeight: FontWeight.w500,
+                //   ),
+                // ),
+                // const SizedBox(height: 6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Meter: ${data['meter'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+
+                    Text(
+                      "Parking: ${data['parking'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.grey[100],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+
+                // Maintenance
+                Text(
+                  "Maintenance: ${data['maintance'] ?? "--"}",
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.grey[100],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Future<void> fetchPropertyDetails() async {
+    final propertyId = propertyID.text.trim();  // propertyID is your controller
+    if (propertyId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter Property ID first")),
+      );
+      return;
+    }
+
+    try {
+      final response = await http.post(
+        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php"),
+        body: {"P_id": propertyId},
+      );
+
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+
+        if (json['status'] == "success") {
+          final data = json['data'];
+
+          setState(() {
+            fetchedData = data;
+            Bhk.text = data['Bhk'] ?? '';
+            floor.text = data['Floor_'] ?? '';
+            Address.text = data['Apartment_Address'] ?? '';
+            rentAmount.text = data['show_Price'] ?? "";
+            meterInfo = data['meter'] == "Govt" ? "As per Govt. Unit" : "Custom Unit (Enter Amount)";
+            parking = (data['parking'].toString().toLowerCase().contains("bike"))
+                ? "Bike"
+                : (data['parking'].toString().toLowerCase().contains("car"))
+                ? "Car"
+                : (data['parking'].toString().toLowerCase().contains("both")) ?
+            "Both"
+                : "No";
+            maintenance = (data['maintance'].toString().toLowerCase().contains("include"))
+                ? "Including"
+                : "Excluding";
+          }
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(json['message'] ?? "Property not found")),
+          );
+        }
+      }
+    } catch (e) {
+      print("Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Failed to fetch property details")),
+      );
+    }
+  }
+
   Widget _buildBackground(bool isDark) {
+    const kGoldDark1 = Color(0xFF1B1300);
+    const kGoldDark2 = Color(0xFF0D0A00);
     return Container(
       decoration: BoxDecoration(
         gradient: isDark
             ? const LinearGradient(
-          colors: [Color(0xFF07102B), Color(0xFF0B0C14)],
+          colors: [kGoldDark1, kGoldDark2],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         )
             : const LinearGradient(
-          colors: [Color(0xFFE6F0FF), Color(0xFFFAFAFF)],
+          colors: [Color(0xFFFFF9E6), Color(0xFFFFFAF0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
       ),
-      child: Stack(children: [
-        Positioned(
-          top: -80,
-          left: -40,
-          child: _glowCircle(220, Colors.blueAccent.withOpacity(isDark ? 0.14 : 0.14)),
-        ),
-        Positioned(
-          bottom: -120,
-          right: -40,
-          child: _glowCircle(280, Colors.cyanAccent.withOpacity(isDark ? 0.08 : 0.08)),
-        ),
-      ]),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -80,
+            left: -40,
+            child: _glowCircle(220, Colors.amberAccent.withOpacity(isDark ? 0.14 : 0.16)),
+          ),
+          Positioned(
+            bottom: -120,
+            right: -40,
+            child: _glowCircle(280, Colors.orangeAccent.withOpacity(isDark ? 0.08 : 0.1)),
+          ),
+        ],
+      ),
     );
   }
 
@@ -986,13 +1189,24 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [color, color.withOpacity(0.02)])),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [color, color.withOpacity(0.02)],
+        ),
+      ),
     );
   }
 
   Widget _fancyStepHeader() {
     final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
     final stepIcons = [Icons.person, Icons.person_outline, Icons.home, Icons.preview];
+
+    const kGoldGradient = LinearGradient(
+      colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+    );
 
     return Row(
       children: [
@@ -1002,8 +1216,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
             child: LayoutBuilder(builder: (context, constraints) {
               final gap = (constraints.maxWidth - 64) / (stepLabels.length - 1);
 
-              return Stack(
-                  children: [
+              return Stack(children: [
+                // Grey base line
                 Positioned(
                   top: 50,
                   left: 32,
@@ -1016,8 +1230,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                     ),
                   ),
                 ),
-
-                // ✅ Progress overlay with Blue → Cyan
                 Positioned(
                   top: 50,
                   left: 32,
@@ -1027,13 +1239,12 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                     width: gap * _currentStep,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(6),
-                      gradient: kAppGradient,
+                      gradient: kGoldGradient,
                     ),
                   ),
                 ),
-
                 ...List.generate(stepLabels.length, (i) {
-                  final left = 0 + gap * i;
+                  final left = gap * i;
                   final isActive = i == _currentStep;
                   final isDone = i < _currentStep;
 
@@ -1049,11 +1260,11 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                           height: isActive ? 56 : 48,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: isDone || isActive ? kAppGradient : null,
+                            gradient: isDone || isActive ? kGoldGradient : null,
                             color: isDone || isActive ? null : Colors.transparent,
                             border: Border.all(
                               color: isActive
-                                  ? const Color(0xFF00D4FF)
+                                  ? const Color(0xFFFFD700)
                                   : Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : Colors.grey,
@@ -1090,7 +1301,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: i == _currentStep
-                                  ? Colors.cyan
+                                  ? const Color(0xFFFFC107)
                                   : Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white
                                   : Colors.black,
@@ -1117,47 +1328,27 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.cyan, Colors.blue],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+            Align(
+              alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
                 onPressed: () => _fetchOwnerData(),
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  elevation: 0, // remove default shadow
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 4,
+                  backgroundColor: Colors.amber.shade700, // needed for gradient
                 ),
               ),
             ),
-    ]
-    ),
-
+          ],
+        ),
         const SizedBox(height: 12),
         Form(
           key: _ownerFormKey,
@@ -1242,11 +1433,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
               ),
             ]),
             const SizedBox(height: 12),
-          ]
-          ),
+          ]),
         ),
-      ]
-    )
+      ]),
     );
   }
 
@@ -1257,41 +1446,22 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-
-            Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.cyan, Colors.blue],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
+            Align(
+              alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
                 onPressed: () => _fetchTenantData(),
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  elevation: 0, // remove default shadow
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
+                  elevation: 4,
+                  backgroundColor: Colors.amber.shade700, // needed for gradient
                 ),
               ),
             ),
@@ -1303,7 +1473,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           child: Column(children: [
             Row(
                 children: [
-                  Expanded(child: _glowTextField(controller: tenantMobile, label: 'Mobile No', keyboard: TextInputType.phone,
+                  Expanded(child: _glowTextField(controller: DirectorMobile, label: 'Mobile No', keyboard: TextInputType.phone,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,       // only numbers
                       LengthLimitingTextInputFormatter(10),         // max 10 digits
@@ -1321,51 +1491,56 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                   ),
                   const SizedBox(width: 12),
 
-        Expanded(
-          child: _glowTextField(
-            controller: tenantAadhaar,
-            label: 'Aadhaar/VID No',
-            keyboard: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,  // only numbers
-              LengthLimitingTextInputFormatter(16),    // max 16 digits
-            ],
-            validator: (v) {
-              if (v == null || v.trim().isEmpty) return 'Required';
+                  Expanded(
+                    child: _glowTextField(
+                      controller: DirectorAadhaar,
+                      label: 'Aadhaar/VID No',
+                      keyboard: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,  // only numbers
+                        LengthLimitingTextInputFormatter(16),    // max 16 digits
+                      ],
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) return 'Required';
 
-              final digits = v.trim();
-              if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
-                return 'Enter valid 12-digit Aadhaar or 16-digit VID';
-              }
+                        final digits = v.trim();
+                        if (!RegExp(r'^\d{12}$').hasMatch(digits) && !RegExp(r'^\d{16}$').hasMatch(digits)) {
+                          return 'Enter valid 12-digit Aadhaar or 16-digit VID';
+                        }
 
-              return null;
-            },
-          ),
-        ),
+                        return null;
+                      },
+                    ),
+                  ),
                 ]),
             const SizedBox(height: 14),
-            _glowTextField(controller: tenantName, label: 'Tenant Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: DirectorName, label: 'Tenant Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
             Row(children: [
               Expanded(
                 child: DropdownButtonFormField<String>(
-                  value: tenantRelation,
+                  value: DirectorRelation,
                   items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
-                  onChanged: (v) => setState(() => tenantRelation = v ?? 'S/O'),
+                  onChanged: (v) => setState(() => DirectorRelation = v ?? 'S/O'),
                   decoration: _fieldDecoration('Relation'),
                 ),
               ),
               const SizedBox(width: 12),
-              Expanded(child: _glowTextField(controller: tenantRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+              Expanded(child: _glowTextField(controller: DirectorRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
             ]),
             const SizedBox(height: 12),
-            _glowTextField(controller: tenantAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: DirectorAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 12),
+            _glowTextField(controller: DirectorAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 12),
+            _glowTextField(controller: DirectorAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
 
-            Column(children: [
+            Column(
+                children: [
               Row(
                 children: [
-                  _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
+                  _imageTile(file: DirectorAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('tenantFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
                 ],
@@ -1393,6 +1568,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
             const SizedBox(height: 12),
           ]),
         ),
+
       ]),
     );
   }
@@ -1402,8 +1578,32 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
-        Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-
+        if (fetchedData != null) _propertyCard(fetchedData!), // Card appears only after fetch
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => fetchPropertyDetails(),
+                icon: const Icon(Icons.search, color: Colors.white),
+                label: const Text(
+                  'Auto fetch',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                  backgroundColor: Colors.purple.shade900, // needed for gradient
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 12),
         Form(
           key: _propertyFormKey,
@@ -1538,12 +1738,12 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         ]),
         const SizedBox(height: 12),
         _sectionCard(title: '*Tenant', children: [
-          _kv('Name', tenantName.text),
-          _kv('Relation', tenantRelation),
-          _kv('Relation Person', tenantRelationPerson.text),
-          _kv('Mobile', tenantMobile.text),
-          _kv('Aadhaar', tenantAadhaar.text),
-          _kv('Address', tenantAddress.text),
+          _kv('Name', DirectorName.text),
+          _kv('Relation', DirectorRelation),
+          _kv('Relation Person', DirectorRelationPerson.text),
+          _kv('Mobile', DirectorMobile.text),
+          _kv('Aadhaar', DirectorAadhaar.text),
+          _kv('Address', DirectorAddress.text),
           const SizedBox(height: 8),
 
           Column(
@@ -1552,7 +1752,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
               Text('Aadhaar Images'),
               const SizedBox(height: 8),
               Row(children: [
-                _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
+                _imageTile(file: DirectorAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
                 const SizedBox(width: 8),
                 _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
                 const Spacer(),
@@ -1595,6 +1795,29 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     );
   }
 
+  Widget _sectionCard({required String title, required List<Widget> children}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              color: Color(0xFFB8860B), // rich golden brown for headings
+            ),
+          ),
+          const SizedBox(height: 8),
+          _glassContainer(
+            child: Column(children: children),
+            padding: const EdgeInsets.all(14),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _kv(String k, String v) {
     if (v.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -1602,35 +1825,19 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600))), Expanded(child: Text(v))]),
     );
   }
-
-
-  Widget _sectionCard({required String title, required List<Widget> children}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 8),
-        _glassContainer(child: Column(children: children), padding: const EdgeInsets.all(14)),
-      ]),
-    );
-  }
-
 }
 
 class ElevatedGradientButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final VoidCallback onPressed;
+
   const ElevatedGradientButton({
     required this.text,
     required this.icon,
     required this.onPressed,
     super.key,
   });
-
-  static const kAppGradient = LinearGradient(
-    colors: [Color(0xFF4CA1FF), Color(0xFF00D4FF)], // Blue → Cyan
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -1639,27 +1846,33 @@ class ElevatedGradientButton extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          gradient: kAppGradient,
+          gradient: const LinearGradient(
+            colors: [Color(0xFFFFD700), Color(0xFFFFA500)], // Gold → Amber
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.18),
-              blurRadius: 16,
+              color: Colors.amber.withOpacity(0.3),
+              blurRadius: 20,
               offset: const Offset(0, 8),
-            )
+            ),
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: Colors.white),
+            Icon(icon, color: Colors.white, size: 22),
             const SizedBox(width: 12),
             Text(
               text,
               style: const TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                letterSpacing: 0.3,
               ),
             ),
           ],

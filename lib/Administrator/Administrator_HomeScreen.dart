@@ -6,6 +6,7 @@ import 'package:verify_feild_worker/Administrator/agreement_details.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../Social_Media_links.dart';
 import '../Statistics/Target_MainPage.dart';
 import '../Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import '../administrator/Administator_Realestate.dart';
@@ -169,32 +170,39 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
         ),
         leadingWidth: 80,
         // Fixed width for consistent spacing
-        actions: [
+        actions:  [
           IconButton(
             icon: Icon(
-              ThemeSwitcher
-                  .of(context)
-                  ?.themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-              color: Colors.yellow,
-              size: 26, // Consistent icon size
+                ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
+                    ? Icons.light_mode
+                    : Icons.dark_mode,
+                color: Colors.yellow
+
             ),
-            onPressed: () => ThemeSwitcher.of(context)?.toggleTheme(),
-            padding: EdgeInsets.zero, // Remove default padding
-            constraints: const BoxConstraints(), // Remove default constraints
+            onPressed: () {
+              ThemeSwitcher.of(context)?.toggleTheme();
+            },
           ),
-          IconButton(
-            icon: const Icon(
-              PhosphorIcons.share,
-              color: Colors.white,
-              size: 26, // Consistent icon size
+          SizedBox(width: 5,),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
+            },
+            child: Column(
+              children: [
+                SizedBox(height: 10,),
+                Row(
+                  children: [
+                    const Text('🌐'),
+                  ],
+                ),
+                const Text('Web'),
+              ],
             ),
-            onPressed: _launchURL,
-            padding: EdgeInsets.zero, // Remove default padding
-            constraints: const BoxConstraints(), // Remove default constraints
           ),
-          const SizedBox(width: 8),
+          const SizedBox(
+            width: 10,
+          ),
         ],
       ),
       body: SingleChildScrollView(

@@ -43,7 +43,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         break;
 
       case "external rental agreement":
-        page = ExternalForm(agreementId: agreement.id);
+        page = ExternalWizardPage(agreementId: agreement.id);
         break;
 
       // case "lease":

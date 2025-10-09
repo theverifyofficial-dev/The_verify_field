@@ -311,22 +311,25 @@ class _Home_ScreenState extends State<Home_Screen> {
               ThemeSwitcher.of(context)?.toggleTheme();
             },
           ),
+          SizedBox(width: 5,),
           GestureDetector(
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
             },
-            child: Row(
+            child: Column(
               children: [
-                const Icon(
-                  PhosphorIcons.share,
-                  color: Colors.white,
-                  size: 30,
+                SizedBox(height: 10,),
+                Row(
+                  children: [
+                    const Text('🌐'),
+                  ],
                 ),
+                const Text('Web'),
               ],
             ),
           ),
           const SizedBox(
-            width: 20,
+            width: 10,
           ),
         ],
       ),
@@ -366,7 +369,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(6  , (index) {
+                children: List.generate(5  , (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -433,17 +436,17 @@ class _Home_ScreenState extends State<Home_Screen> {
                                 builder: (_) => const MainPage_TenandDemand()));
                       },
                     },
-                    {
-                      "image": AppImages.police,
-                      "title": "All Rented \nFlat",
-                      "onTap": () {
-                        uploadImageWithTitle();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AddRentedFlatTabbar()));
-                      },
-                    },
+                    // {
+                    //   "image": AppImages.police,
+                    //   "title": "All Rented \nFlat",
+                    //   "onTap": () {
+                    //     uploadImageWithTitle();
+                    //     Navigator.push(
+                    //         context,
+                    //         MaterialPageRoute(
+                    //             builder: (_) => const AddRentedFlatTabbar()));
+                    //   },
+                    // },
 
                   ];
 

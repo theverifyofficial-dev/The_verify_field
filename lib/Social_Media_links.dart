@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import 'constant.dart';
 
 class LinksPage extends StatelessWidget {
@@ -13,11 +12,82 @@ class LinksPage extends StatelessWidget {
     }
   }
 
-  Widget _buildLinkButton(BuildContext context, String title, String url, Color color) {
+  // 🆕 Function to show multiple link options in a bottom sheet
+  void _showMultipleLinks(BuildContext context, String title, List<Map<String, String>> links) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Share $title links on WhatsApp",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...links.map((link) {
+                return ListTile(
+                  leading: const Icon(Icons.share, color: Colors.green),
+                  title: Text(link["title"]!),
+                  onTap: () async {
+                    final message =
+                        "Check this property on Verify 🏠\n${link["title"]}: ${link["url"]}";
+                    final encodedMessage = Uri.encodeComponent(message);
+                    final whatsappUrl = "https://wa.me/?text=$encodedMessage";
+
+                    final Uri uri = Uri.parse(whatsappUrl);
+                    if (await canLaunchUrl(uri)) {
+                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("WhatsApp not installed or cannot open link."),
+                        ),
+                      );
+                    }
+                  },
+                );
+              }).toList(),
+              const SizedBox(height: 12),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.close),
+                label: const Text("Close"),
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  backgroundColor: Colors.green,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildLinkButton(BuildContext context, String title, dynamic urlOrList, Color color) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return InkWell(
-      onTap: () => _launchUrl(url),
+      onTap: () {
+        if (urlOrList is String) {
+          _launchUrl(urlOrList);
+        } else if (urlOrList is List<Map<String, String>>) {
+          _showMultipleLinks(context, title, urlOrList);
+        }
+      },
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.all(16),
@@ -42,7 +112,7 @@ class LinksPage extends StatelessWidget {
           child: Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -66,34 +136,55 @@ class LinksPage extends StatelessWidget {
 
     final links = [
       {
+        "title": "🏠 Rent",
+        "url": [
+          {"title": "1RK for Rent", "url": "https://theverify.in/1RK_flat_for_Rent.html"},
+          {"title": "1BHK for Rent", "url": "https://theverify.in/1BHK_flat_for_Rent.html"},
+          {"title": "2BHK for Rent", "url": "https://theverify.in/2BHK_flat_for_Rent.html"},
+          {"title": "3BHK for Rent", "url": "https://theverify.in/3BHK_flat_for_Rent.html"},
+        ],
+        "color": Colors.green,
+      },
+      {
+        "title": "🏷️ Sell",
+        "url": [
+          {"title": "1RK for Sell", "url": "https://theverify.in/1RK_flat_for_buy.html"},
+          {"title": "1BHK for Sell", "url": "https://theverify.in/1BHK_flat_for_buy.html"},
+          {"title": "2BHK for Sell", "url": "https://theverify.in/2BHK_flat_for_buy.html"},
+          {"title": "3BHK for Sell", "url": "https://theverify.in/3BHK_flat_for_buy.html"},
+        ],
+        "color": Colors.yellow,
+      },
+      {
         "title": "🌐 Website",
         "url": "https://theverify.in",
-        "color": Colors.blue
+        "color": Colors.blue,
       },
       {
         "title": "▶️ YouTube",
         "url": "https://www.youtube.com/@Verify_Real_Estate",
-        "color": Colors.red
+        "color": Colors.red,
       },
       {
         "title": "📸 Instagram",
         "url": "https://www.instagram.com/verify_realestate/",
-        "color": Colors.purple
+        "color": Colors.purple,
       },
       {
         "title": "📘 Facebook",
-        "url": "https://www.facebook.com/people/Verify-Realestate-and-Services/61573465167534/",
-        "color": Colors.blue.shade800
+        "url":
+        "https://www.facebook.com/people/Verify-Realestate-and-Services/61573465167534/",
+        "color": Colors.blue.shade800,
       },
       {
         "title": "🐦 Twitter / X",
         "url": "https://x.com/swavenrealty",
-        "color": Colors.grey.shade700
+        "color": Colors.grey.shade700,
       },
       {
         "title": "💼 LinkedIn",
         "url": "https://linkedin.com/in/",
-        "color": Colors.blue.shade700
+        "color": Colors.blue.shade700,
       },
     ];
 
@@ -121,7 +212,6 @@ class LinksPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 30),
-
           Expanded(
             child: GridView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -137,7 +227,7 @@ class LinksPage extends StatelessWidget {
                 return _buildLinkButton(
                   context,
                   link["title"] as String,
-                  link["url"] as String,
+                  link["url"], // can be String or List<Map>
                   link["color"] as Color,
                 );
               },

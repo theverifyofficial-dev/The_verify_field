@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../constant.dart';
 import 'Forms/Agreement_Form.dart';
+import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Form.dart';
 
 class AgreementDashboard extends StatelessWidget {
@@ -81,13 +82,16 @@ class AgreementDashboard extends StatelessWidget {
           // _buildSectionItem("Sell", Icons.sell, () {
           //   // Navigate to Lease Page
           // }),
-          // _buildSectionItem("Commercial", Icons.apartment_sharp, () {
-          //   // Navigate to Commercial Page
-          // }),
+          _buildSectionItem("Commercial", Icons.apartment_sharp, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CommercialWizardPage()),
+            );
+          }),
           _buildSectionItem("External Rental", Icons.add_business, () {
             Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const ExternalForm()),
+            MaterialPageRoute(builder: (context) => const ExternalWizardPage()),
             );
           }),
         ],

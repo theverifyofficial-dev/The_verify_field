@@ -138,35 +138,55 @@ class _add_repet_numState extends State<add_repet_num> {
               return Form(
                 key: _formKey,
                 child: Container(
-                  margin: EdgeInsets.all(10),
-                  padding: const EdgeInsets.only(left: 10, right: 10),
+                  margin: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(15),
-                    // boxShadow: K.boxShadow,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
                   ),
                   child: TextFormField(
-                    style: TextStyle(color: Colors.black),
                     controller: _number,
                     keyboardType: TextInputType.number,
+                    maxLength: 10, // restrict input to 10 digits
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(20),
+                      LengthLimitingTextInputFormatter(10),
                     ],
-                    decoration: InputDecoration(
-                        hintText: "Number",
-                        hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),
-                        border: InputBorder.none),
                     validator: (value) {
-                      if (value == null || value.length != 10) {
+                      if (value == null || value.isEmpty) {
+                        return 'Number is required';
+                      } else if (value.length != 10) {
                         return 'Enter exactly 10 digits';
                       }
                       return null;
                     },
+                    style: const TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    decoration: const InputDecoration(
+                      counterText: "", // hide maxLength counter
+                      prefixIcon: Icon(Icons.phone, color: Colors.red),
+                      hintText: "Enter 10-digit phone number",
+                      hintStyle: TextStyle(
+                        color: Colors.grey,
+                        fontFamily: 'Poppins',
+                      ),
+                      border: InputBorder.none,
+                      errorStyle: TextStyle(color: Colors.red),
+                    ),
                   ),
                 ),
               );
-            }
+            },
           ),
 
           SizedBox(

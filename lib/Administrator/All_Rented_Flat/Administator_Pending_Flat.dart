@@ -10,6 +10,8 @@ import '../../Add_Rented_Flat/Add_Tenent.dart';
 import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
 import '../../constant.dart';
 import 'AdministatorPropertyDetailPage.dart';
+import 'Pending_Add _Property_Form.dart';
+import 'Pending_Property_Update_Form.dart';
 class Property {
   final int id;
   final String propertyPhoto;
@@ -231,6 +233,73 @@ class Tenant {
     );
   }
 }
+class OwnerModel {
+  bool success;
+  List<OwnerData> data;
+
+  OwnerModel({
+    required this.success,
+    required this.data,
+  });
+
+  factory OwnerModel.fromJson(Map<String, dynamic> json) => OwnerModel(
+    success: json["success"],
+    data: List<OwnerData>.from(json["data"].map((x) => OwnerData.fromJson(x))),
+  );
+
+  Map<String, dynamic> toJson() => {
+    "success": success,
+    "data": List<dynamic>.from(data.map((x) => x.toJson())),
+  };
+}
+
+class OwnerData {
+  int id;
+  String ownerName;
+  String ownerNumber;
+  String paymentMode;
+  String advanceAmount;
+  String rent;
+  String securitys;
+  String subid;
+  String status;
+
+  OwnerData({
+    required this.id,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.paymentMode,
+    required this.advanceAmount,
+    required this.rent,
+    required this.securitys,
+    required this.subid,
+    required this.status,
+  });
+
+  factory OwnerData.fromJson(Map<String, dynamic> json) => OwnerData(
+    id: json["id"],
+    ownerName: json["owner_name"],
+    ownerNumber: json["owner_number"],
+    paymentMode: json["payment_mode"],
+    advanceAmount: json["advance_amount"],
+    rent: json["rent"],
+    securitys: json["securitys"],
+    subid: json["subid"],
+    status: json["status"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "owner_name": ownerName,
+    "owner_number": ownerNumber,
+    "payment_mode": paymentMode,
+    "advance_amount": advanceAmount,
+    "rent": rent,
+    "securitys": securitys,
+    "subid": subid,
+    "status": status,
+  };
+}
 
 class AdministatiorFieldWorkerPendingFlats extends StatefulWidget {
   const AdministatiorFieldWorkerPendingFlats({super.key});
@@ -274,6 +343,24 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
         return data.map((e) => Tenant.fromJson(e)).toList();
+      } else {
+        throw Exception("API success = false");
+      }
+    } else {
+      throw Exception("Failed to load tenants");
+    }
+  }
+  Future<List<OwnerData>> fetchPersonDetail(int subId) async {
+    final response = await http.get(
+      Uri.parse("https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subId"),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse["success"] == true) {
+        List data = jsonResponse["data"];
+        return data.map((e) => OwnerData.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");
       }
@@ -443,10 +530,10 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                           future: fetchTenants(item.id),
                           builder: (context, tenantSnapshot) {
                             if (tenantSnapshot.connectionState == ConnectionState.waiting) {
-                              return const Center(child: CircularProgressIndicator(strokeWidth: 2));
+                              return const Center();
                             }
                             if (tenantSnapshot.hasError) {
-                              return const Text("Data Empty",
+                              return const Text("Tenant Data Empty",
                                   style: TextStyle(color: Colors.black54));
                             }
                             if (!tenantSnapshot.hasData || tenantSnapshot.data!.isEmpty) {
@@ -490,6 +577,85 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                           },
                         ),
                         const SizedBox(height: 8),
+                        FutureBuilder<List<OwnerData>>(
+                          future: fetchPersonDetail(item.id),
+                          builder: (context, ownerSnapshot) {
+                            if (ownerSnapshot.connectionState == ConnectionState.waiting) {
+                              return const Center();
+                            }
+                            if (ownerSnapshot.hasError) {
+                              return const Text("Owner Data Empty",
+                                  style: TextStyle(color: Colors.black54));
+                            }
+                            if (!ownerSnapshot.hasData || ownerSnapshot.data!.isEmpty) {
+                              return const Text("No owner data available",
+                                  style: TextStyle(color: Colors.black54));
+                            }
+
+                            final owner = ownerSnapshot.data!;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 8),
+                                const Text(
+                                  "Owner Details",
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                SizedBox(height: 10,),
+                                ...owner.map((owner) => Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Wrap(
+                                      spacing: 8,
+                                      runSpacing: 6,
+                                      children: [
+                                        _buildTag(owner.ownerName, Colors.deepPurple),
+                                        _buildTag(owner.ownerNumber, Colors.teal),
+                                        _buildTag(owner.paymentMode, Colors.orange),
+                                        SizedBox(height: 10,),
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade50,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.grey.shade200),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  const Text(
+                                                    "Owner Financial Details",
+                                                    style: TextStyle(
+                                                      fontSize: 14,
+                                                      fontWeight: FontWeight.w700,
+                                                      color: Colors.black87,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const Divider(thickness: 0.5, color: Colors.grey),
+                                              _buildDetailRow("Rent: ", "₹ ${owner.rent}"),
+                                              _buildDetailRow("Advance: ","₹ ${ owner.advanceAmount}"),
+                                              _buildDetailRow("Security: ", "₹ ${owner.securitys}"),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                  ],
+                                )),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
 
                         /// --- Date & ID Row
                         Row(
@@ -504,69 +670,67 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                 color: Colors.black54,
                               ),
                             ),
-                            // GestureDetector(
-                            //   onTap: () async {
-                            //     // ✅ static map to track last tap time per ID
-                            //     const int cooldownSeconds = 3;
-                            //     _lastTapTimes ??= {}; // initialize if null
-                            //     DateTime now = DateTime.now();
-                            //
-                            //     if (_lastTapTimes![item.id] != null &&
-                            //         now.difference(_lastTapTimes![item.id]!).inSeconds < cooldownSeconds) {
-                            //       // If tapped again within cooldown
-                            //       ScaffoldMessenger.of(context).showSnackBar(
-                            //         const SnackBar(content: Text("Already done ✅")),
-                            //       );
-                            //       return; // stop execution
-                            //     }
-                            //
-                            //     // ✅ update last tap time
-                            //     _lastTapTimes![item.id] = now;
-                            //
-                            //     try {
-                            //       final response = await http.post(
-                            //         Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/pending_rentout_data.php"),
-                            //         body: {
-                            //           "P_id": item.id.toString(),
-                            //         },
-                            //       );
-                            //
-                            //       if (response.statusCode == 200) {
-                            //         ScaffoldMessenger.of(context).showSnackBar(
-                            //           const SnackBar(content: Text("Accepted Successfully ✅")),
-                            //         );
-                            //       } else {
-                            //         ScaffoldMessenger.of(context).showSnackBar(
-                            //           SnackBar(content: Text("Failed: ${response.statusCode}")),
-                            //         );
-                            //       }
-                            //     } catch (e) {
-                            //       ScaffoldMessenger.of(context).showSnackBar(
-                            //         SnackBar(content: Text("Error: $e")),
-                            //       );
-                            //     }
-                            //   },
-                            //   child: Container(
-                            //     height: 40,
-                            //     width: 90,
-                            //     decoration: BoxDecoration(
-                            //       color: Colors.blue,
-                            //       borderRadius: BorderRadius.circular(10),
-                            //     ),
-                            //     child: const Center(
-                            //       child: Text(
-                            //         "Accept",
-                            //         style: TextStyle(
-                            //           color: Colors.white,
-                            //           fontWeight: FontWeight.w600,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
-                            // )
+
+                            FutureBuilder<List<OwnerData>>(
+                              future: fetchPersonDetail(item.id),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 40,
+                                    child: Center(),
+                                  );
+                                }
+
+                                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                                  // 👉 No Owner → Show Add Owner button
+                                  return _buildTenantButton(
+                                    label: "Add Owner Detail",
+                                    color: Colors.green,
+                                    onTap: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
+                                        ),
+                                      );
+
+                                      if (result == true) {
+                                        // refresh UI if owner was added
+                                        _onRefresh();
+                                      }
+                                    },
+                                  );
+                                }
+                                else {
+                                  final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
+                                  return _buildTenantButton(
+                                    label: "Update Owner Detail",
+                                    color: Colors.deepOrange,
+                                    onTap: () async {
+                                      print("Owner Id :"+owner.id.toString());
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => UpdateOwnerPage(
+                                            ownerId: owner.id.toString(), // ✅ Pass ownerId
+                                            propertyId: item.id.toString(), // ✅ Pass ownerId
+                                          ),
+                                        ),
+                                      );
+
+                                      if (result == true) {
+                                        _onRefresh();
+                                      }
+                                    },
+                                  );
+                                }
+                              },
+                            )
 
                           ],
                         ),
+
+
                       ],
                     ),
                   ),
@@ -585,6 +749,34 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       _fieldworkarnumber = prefs.getString('number') ?? '';
     });
   }
+}
+Widget _buildTenantButton({
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 /// --- Helper Row for fields
 Widget _buildDetailRow(String label, String value) {

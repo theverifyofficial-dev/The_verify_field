@@ -9,6 +9,7 @@ import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
 
+import 'Internet_Connectivity/Network_Service.dart';
 import 'ui_decoration_tools/constant.dart';
 
 class Catid {
@@ -48,6 +49,7 @@ class _SplashState extends State<Splash> {
       throw Exception('Unexpected error occured!');
     }
   }
+
 
   @override
   void initState() {

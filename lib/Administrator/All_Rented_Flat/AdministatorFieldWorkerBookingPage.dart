@@ -536,6 +536,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text("Accepted Successfully ✅")),
                           );
+                          _onRefresh();
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text("Failed: ${response.statusCode}")),

@@ -58,7 +58,7 @@ dependencies:
   fluttertoast: ^8.2.12
   equatable: ^2.0.7
   http: ^1.3.0
-  connectivity_plus: ^6.1.3
+  connectivity_plus: ^7.0.0
   vibration: ^3.1.2
   flutter_staggered_grid_view: ^0.7.0
   transparent_image: ^2.0.1
@@ -96,6 +96,7 @@ dependencies:
   youtube_player_flutter: ^9.1.2
   fl_chart: 1.1.0
   animated_flip_counter: ^0.3.4
+  internet_connection_checker: ^1.0.0+1
 
 
 

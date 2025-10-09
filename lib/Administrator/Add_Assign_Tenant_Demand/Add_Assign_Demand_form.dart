@@ -225,7 +225,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
                           hint: Text('Select Buy/Rent',style: TextStyle(color: Colors.grey)),
                           icon: Icon(Icons.arrow_drop_down),
                           iconSize: 24,
-                          dropdownColor: Colors.grey.shade600,
+                          dropdownColor: Colors.white,
                           underline: SizedBox(),
                           onChanged: (String? newValue) {
                             setState(() {
@@ -236,7 +236,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
                           items: _items.map<DropdownMenuItem<String>>((String value) {
                             return DropdownMenuItem<String>(
                               value: value,
-                              child: Text(value,style: TextStyle()),
+                              child: Text(value,style: TextStyle(color: Colors.black)),
                             );
                           }).toList(),
                         ),

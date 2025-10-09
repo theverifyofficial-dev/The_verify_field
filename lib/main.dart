@@ -16,8 +16,15 @@ import 'package:verify_feild_worker/splash.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Controller/Show_demand_binding.dart';
 import 'Home_Screen.dart';
+import 'Internet_Connectivity/NetworkListener.dart';
+import 'Internet_Connectivity/Network_Service.dart';
+
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
+GlobalKey<ScaffoldMessengerState>();
 
 // 🔹 Background handler for FCM
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -59,10 +66,10 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.dark;
-
   @override
   void initState() {
     super.initState();
+
     FirebaseMessaging.instance.getToken().then((token) {
       print("🔑 FCM Token: $token");
     });
@@ -94,7 +101,7 @@ class _MyAppState extends State<MyApp> {
     // ✅ Dynamic Links
     _initDynamicLinks();
   }
-//by pawan.
+
   /// Handle Notification Navigation
   void _handleNotificationNavigation(RemoteMessage message, {bool fromTerminated = false}) {
     try {
@@ -337,46 +344,49 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      themeMode: _themeMode,
+    return NetworkListener(
+      child: MaterialApp(
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        themeMode: _themeMode,
 
-      // 🌙 Light theme with softer background
-      theme: ThemeData.light().copyWith(
-        scaffoldBackgroundColor: const Color(0xFFF7F7F7), // off-white
-        cardColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 1,
-        ),
-        textTheme: ThemeData.light()
-            .textTheme
-            .apply(fontFamily: 'Poppins', bodyColor: Colors.black87),
-      ),
-
-      // 🌑 Dark theme unchanged
-      darkTheme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        cardColor: const Color(0xFF1E1E1E),
-        textTheme: ThemeData.dark()
-            .textTheme
-            .apply(fontFamily: 'Poppins', bodyColor: Colors.white),
-      ),
-
-      initialRoute: Splash.route,
-      routes: Routes.routes,
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-          child: ThemeSwitcher(
-            themeMode: _themeMode,
-            toggleTheme: _toggleTheme,
-            child: child ?? const SizedBox.shrink(),
+        // 🌙 Light theme with softer background
+        theme: ThemeData.light().copyWith(
+          scaffoldBackgroundColor: const Color(0xFFF7F7F7), // off-white
+          cardColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 1,
           ),
-        );
-      },
+          textTheme: ThemeData.light()
+              .textTheme
+              .apply(fontFamily: 'Poppins', bodyColor: Colors.black87),
+        ),
+
+        // 🌑 Dark theme unchanged
+        darkTheme: ThemeData.dark().copyWith(
+          scaffoldBackgroundColor: const Color(0xFF121212),
+          cardColor: const Color(0xFF1E1E1E),
+          textTheme: ThemeData.dark()
+              .textTheme
+              .apply(fontFamily: 'Poppins', bodyColor: Colors.white),
+        ),
+        scaffoldMessengerKey: rootScaffoldMessengerKey, // ✅ add this
+
+        initialRoute: Splash.route,
+        routes: Routes.routes,
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+            child: ThemeSwitcher(
+              themeMode: _themeMode,
+              toggleTheme: _toggleTheme,
+              child: child ?? const SizedBox.shrink(),
+            ),
+          );
+        },
+      ),
     );
   }
 }

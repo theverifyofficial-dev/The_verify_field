@@ -75,7 +75,7 @@ class _ActionFormState extends State<ActionForm> {
       final response = await http.post(
         uri,
         body: {
-          'P_id': widget.propertyId,          // Pass your property ID
+          'P_id': widget.propertyId,
           'Rent': rent,
           'Security': security,
           'Commission': commission,
@@ -87,6 +87,7 @@ class _ActionFormState extends State<ActionForm> {
 
       if (response.statusCode == 200) {
         print("API Response: ${response.body}");
+        Navigator.pop(context);
       } else {
         print("Failed with status: ${response.statusCode}");
       }

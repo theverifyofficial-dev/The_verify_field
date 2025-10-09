@@ -524,6 +524,8 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
                                           label: "Add Tenant",
                                           color: Colors.green,
                                           onTap: () {
+                                            _onRefresh();
+
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (context) => AddTenantPage(id: item.id.toString()),
@@ -551,6 +553,7 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
                                           label: "Update Tenant",
                                           color: Colors.deepOrange,
                                           onTap: () {
+                                            _onRefresh();
                                             Navigator.of(context).push(
                                               MaterialPageRoute(
                                                 builder: (context) => UpdateTenantPage(id: item.id.toString()),
@@ -564,6 +567,7 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
                                   const SizedBox(width: 10),
                                   GestureDetector(
                                     onTap: () {
+                                      _onRefresh();
                                       Navigator.of(context).push(
                                         MaterialPageRoute(
                                           builder: (context) {

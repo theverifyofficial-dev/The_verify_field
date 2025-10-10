@@ -370,7 +370,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(7, (index) {
+                children: List.generate(8, (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -405,6 +405,17 @@ class _Home_ScreenState extends State<Home_Screen> {
                       },
                     },
 
+                    {
+                      "image": AppImages.tenant,
+                      "title": "Tenant\n Demands",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const MainPage_TenandDemand()));
+                      },
+                    },
 
                     {
                       "image": AppImages.agreement,
@@ -416,27 +427,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                     )),
                     },
 
-
-                    // {
-                    //   'image': AppImages.agreement_details,
-                    //   'title': "Agreement Details",
-                    //   'onTap': () =>
-                    //       Navigator.push(context, MaterialPageRoute(
-                    //           builder: (context) =>
-                    //               AgreementDetails())),
-                    // },
-
-                      {
-                      "image": AppImages.tenant,
-                      "title": "Tenant\n Demands",
-                      "onTap": () {
-                        uploadImageWithTitle();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const MainPage_TenandDemand()));
-                      },
-                    },
                     {
                       "image": AppImages.police,
                       "title": "All Rented \nFlat",
@@ -451,6 +441,17 @@ class _Home_ScreenState extends State<Home_Screen> {
                     {
                       "image": AppImages.websiteIssue,
                       "title": "Web \nQuery",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const WebQueryPage()));
+                      },
+                    },
+                    {
+                      "image": AppImages.realestatefeild,
+                      "title": "Upcoming\nFlats",
                       "onTap": () {
                         uploadImageWithTitle();
                         Navigator.push(

@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Home_Screen_click/showVehicle.dart';
 
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 
 class Delete_Image extends StatefulWidget {
   const Delete_Image({super.key});

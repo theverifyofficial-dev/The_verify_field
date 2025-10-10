@@ -12,7 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Model.dart';
 
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 import 'Add_image_under_property.dart';
 import 'Edit_Page_Realestate.dart';

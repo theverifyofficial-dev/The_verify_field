@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 
-import '../../ui_decoration_tools/constant.dart';
+import '../../ui_decoration_tools/app_images.dart';
 
 class Available_property extends StatefulWidget {
   const Available_property({super.key});

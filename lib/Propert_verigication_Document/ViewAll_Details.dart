@@ -13,7 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../Police_Verification/Owner_Details.dart';
 import '../property_preview.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/docpropertySlider.dart';
 
 class Catid {

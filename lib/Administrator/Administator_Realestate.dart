@@ -13,7 +13,7 @@ import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infuturep
 import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Home_Screen_click/Commercial_property_Filter.dart';
 import '../Home_Screen_click/Filter_Options.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Add_Assign_Tenant_Demand/See_All_Realestate.dart';
 import 'Administater_Realestate_Details.dart';
 

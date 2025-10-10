@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/profile.dart';
+import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
 import 'Add_Rented_Flat/Field_Worker_Target.dart';
 import 'Administrator/agreement_details.dart';
@@ -23,8 +24,8 @@ import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
+import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
 import 'add_properties_firstpage.dart';
-import 'ui_decoration_tools/constant.dart';
 import 'main.dart';
 
 class Catid1122 {
@@ -369,7 +370,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(5  , (index) {
+                children: List.generate(7, (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -436,17 +437,28 @@ class _Home_ScreenState extends State<Home_Screen> {
                                 builder: (_) => const MainPage_TenandDemand()));
                       },
                     },
-                    // {
-                    //   "image": AppImages.police,
-                    //   "title": "All Rented \nFlat",
-                    //   "onTap": () {
-                    //     uploadImageWithTitle();
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (_) => const AddRentedFlatTabbar()));
-                    //   },
-                    // },
+                    {
+                      "image": AppImages.police,
+                      "title": "All Rented \nFlat",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddRentedFlatTabbar()));
+                      },
+                    },
+                    {
+                      "image": AppImages.websiteIssue,
+                      "title": "Web \nQuery",
+                      "onTap": () {
+                        uploadImageWithTitle();
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const WebQueryPage()));
+                      },
+                    },
 
                   ];
 

@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../Document/Owner_Document.dart';
 import '../Document/Tenant_Document.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Rented_property_Details.dart';
 
 

@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart'; // ✅ for Indian number format
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ for Indian number format
 
 class AddOwnerPage extends StatefulWidget {
   final String propertyId;
@@ -17,22 +20,59 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
   final TextEditingController _ownerNameController = TextEditingController();
   final TextEditingController _ownerPhoneController = TextEditingController();
   final TextEditingController _advanceController = TextEditingController();
-  final TextEditingController _rentController = TextEditingController();
-  final TextEditingController _securityController = TextEditingController();
+  final TextEditingController _sendtoOwnerController = TextEditingController();
+  final TextEditingController _totalAmountController = TextEditingController();
 
   String? _selectedPaymentMode;
   final List<String> paymentModes = ["Online", "Cash"];
 
   final _formatter = NumberFormat.decimalPattern('hi_IN'); // ✅ Indian format
+  String _fieldworkarnumber = '';
 
+  void _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      print("_fieldworkarnumber ${_fieldworkarnumber}");
+      _fieldworkarnumber = prefs.getString('number') ?? '';
+    });
+  }
   @override
   void initState() {
     super.initState();
+    _fetchAdvanceAmount();
+    _loaduserdata();
 
     // Add format listeners to amount fields
     _addFormatListener(_advanceController);
-    _addFormatListener(_rentController);
-    _addFormatListener(_securityController);
+    _addFormatListener(_sendtoOwnerController);
+    _addFormatListener(_totalAmountController);
+  }
+  Future<void> _fetchAdvanceAmount() async {
+    try {
+      final response = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${_fieldworkarnumber}"));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data is Map) {
+          setState(() {
+            _advanceController.text = _formatter.format(
+              int.tryParse(data["Advance_Payment"]?.toString() ?? "0") ?? 0,
+            );
+          });
+        } else if (data is List && data.isNotEmpty) {
+          setState(() {
+            _advanceController.text = _formatter.format(
+              int.tryParse(data[0]["Advance_Payment"]?.toString() ?? "0") ?? 0,
+            );
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching advance amount: $e");
+    }
   }
 
   void _addFormatListener(TextEditingController controller) {
@@ -64,11 +104,10 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
         "owner_name": _ownerNameController.text,
         "owner_number": _ownerPhoneController.text,
         "payment_mode": _selectedPaymentMode ?? "",
-        "advance_amount": _advanceController.text.replaceAll(',', ''), // ✅ remove commas before sending
-        "rent": _rentController.text.replaceAll(',', ''),
-        "securitys": _securityController.text.replaceAll(',', ''),
+        "advance_amount": _advanceController.text.replaceAll(',', ''),
+        "rent": _sendtoOwnerController.text.replaceAll(',', ''),
+        "securitys": _totalAmountController.text.replaceAll(',', ''),
         "subid": widget.propertyId,
-        "status": "Active", // default status
       });
 
       if (response.statusCode == 200) {
@@ -226,9 +265,9 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
               const SizedBox(height: 16),
               _buildNumberField("Advance Amount", _advanceController),
               const SizedBox(height: 16),
-              _buildNumberField("Rent", _rentController),
+              _buildNumberField("Send to owner", _sendtoOwnerController),
               const SizedBox(height: 16),
-              _buildNumberField("Security", _securityController),
+              _buildNumberField("Total Amount", _totalAmountController),
               const SizedBox(height: 24),
 
               /// Submit Button

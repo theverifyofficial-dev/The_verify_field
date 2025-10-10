@@ -14,7 +14,7 @@ import 'package:verify_feild_worker/Model.dart';
 
 import '../Home_Screen_click/Preview_Image.dart';
 import '../property_preview.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 import 'Administator_Realestate.dart';
 import 'package:intl/intl.dart';

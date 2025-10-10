@@ -8,7 +8,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Propert_verigication_Document/Add_Property_Veerification.dart';
 import '../Propert_verigication_Document/Show_tenant.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Owner_Details.dart';
 import 'Submit_Police_Verification.dart';
 

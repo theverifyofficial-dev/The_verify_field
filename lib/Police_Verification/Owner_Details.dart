@@ -7,7 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Document/Owner_Document.dart';
 import '../Document/Tenant_Document.dart';
 import '../Pending_Document/Pending_Document.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Tenant_Details.dart';
 
 class Catid_pp {

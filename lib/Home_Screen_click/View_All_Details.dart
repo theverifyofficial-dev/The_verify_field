@@ -20,7 +20,7 @@ import 'package:verify_feild_worker/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 import 'Add_image_under_property.dart';
 import 'Add_images_in_Realestate.dart';
@@ -379,7 +379,7 @@ class _View_DetailsState extends State<View_Details> {
             },
             itemBuilder: (context) => [
               const PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
-              // const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
+              const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
             ],
           ),
         ],

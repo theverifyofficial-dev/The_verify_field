@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Police_Verification/Property_Verify_Details.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Add_Property_Veerification.dart';
 import 'Add_Tenant.dart';
 import 'Show_tenant.dart';

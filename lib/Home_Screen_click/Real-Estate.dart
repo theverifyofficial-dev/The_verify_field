@@ -10,7 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../Propert_verigication_Document/Show_tenant.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Add_New_Property.dart';
 import 'Add_RealEstate.dart';
 import 'Add_image_under_property.dart';

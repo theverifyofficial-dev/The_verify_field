@@ -10,6 +10,8 @@ import '../../Add_Rented_Flat/Add_Tenent.dart';
 import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
 import '../../constant.dart';
 import '../Administrator/All_Rented_Flat/AdministatorPropertyDetailPage.dart';
+import '../Administrator/All_Rented_Flat/Pending_Add _Property_Form.dart';
+import '../Administrator/All_Rented_Flat/Pending_Property_Update_Form.dart';
 class Property {
   final int id;
   final String propertyPhoto;
@@ -618,8 +620,8 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                                 ],
                                               ),
                                               const Divider(thickness: 0.5, color: Colors.grey),
+                                              _buildDetailRow("Advance: ","₹ ${owner.advanceAmount}"),
                                               _buildDetailRow("Rent: ", "₹ ${owner.rent}"),
-                                              _buildDetailRow("Advance: ","₹ ${ owner.advanceAmount}"),
                                               _buildDetailRow("Security: ", "₹ ${owner.securitys}"),
                                             ],
                                           ),
@@ -647,83 +649,61 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                 color: Colors.black54,
                               ),
                             ),
-                            // GestureDetector(
-                            //   onTap: () async {
-                            //     // ✅ static map to track last tap time per ID
-                            //     const int cooldownSeconds = 3;
-                            //     _lastTapTimes ??= {}; // initialize if null
-                            //     DateTime now = DateTime.now();
-                            //
-                            //     if (_lastTapTimes![item.id] != null &&
-                            //         now.difference(_lastTapTimes![item.id]!).inSeconds < cooldownSeconds) {
-                            //       // If tapped again within cooldown
-                            //       ScaffoldMessenger.of(context).showSnackBar(
-                            //         const SnackBar(content: Text("Already done ✅")),
-                            //       );
-                            //       return; // stop execution
-                            //     }
-                            //
-                            //     // ✅ update last tap time
-                            //     _lastTapTimes![item.id] = now;
-                            //
-                            //     try {  Future<List<OwnerData>> fetchPersonDetail(int subId) async {
-                            //     final response = await http.get(
-                            //       Uri.parse("https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subId"),
-                            //     );
-                            //
-                            //     if (response.statusCode == 200) {
-                            //       final jsonResponse = json.decode(response.body);
-                            //
-                            //       if (jsonResponse["success"] == true) {
-                            //         List data = jsonResponse["data"];
-                            //         return data.map((e) => OwnerData.fromJson(e)).toList();
-                            //       } else {
-                            //         throw Exception("API success = false");
-                            //       }
-                            //     } else {
-                            //       throw Exception("Failed to load tenants");
-                            //     }
-                            //   }
-                            //       final response = await http.post(
-                            //         Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/pending_rentout_data.php"),
-                            //         body: {
-                            //           "P_id": item.id.toString(),
-                            //         },
-                            //       );
-                            //
-                            //       if (response.statusCode == 200) {
-                            //         ScaffoldMessenger.of(context).showSnackBar(
-                            //           const SnackBar(content: Text("Accepted Successfully ✅")),
-                            //         );
-                            //       } else {
-                            //         ScaffoldMessenger.of(context).showSnackBar(
-                            //           SnackBar(content: Text("Failed: ${response.statusCode}")),
-                            //         );
-                            //       }
-                            //     } catch (e) {
-                            //       ScaffoldMessenger.of(context).showSnackBar(
-                            //         SnackBar(content: Text("Error: $e")),
-                            //       );
-                            //     }
-                            //   },
-                            //   child: Container(
-                            //     height: 40,
-                            //     width: 90,
-                            //     decoration: BoxDecoration(
-                            //       color: Colors.blue,
-                            //       borderRadius: BorderRadius.circular(10),
-                            //     ),
-                            //     child: const Center(
-                            //       child: Text(
-                            //         "Accept",
-                            //         style: TextStyle(
-                            //           color: Colors.white,
-                            //           fontWeight: FontWeight.w600,
-                            //         ),
-                            //       ),
-                            //     ),
-                            //   ),
-                            // )
+                            FutureBuilder<List<OwnerData>>(
+                              future: fetchPersonDetail(item.id),
+                              builder: (context, snapshot) {
+                                if (snapshot.connectionState == ConnectionState.waiting) {
+                                  return const SizedBox(
+                                    height: 40,
+                                    child: Center(),
+                                  );
+                                }
+
+                                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                                  // 👉 No Owner → Show Add Owner button
+                                  return _buildTenantButton(
+                                    label: "Add Owner Detail",
+                                    color: Colors.green,
+                                    onTap: () async {
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
+                                        ),
+                                      );
+
+                                      if (result == true) {
+                                        // refresh UI if owner was added
+                                        _onRefresh();
+                                      }
+                                    },
+                                  );
+                                }
+                                else {
+                                  final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
+                                  return _buildTenantButton(
+                                    label: "Update Owner Detail",
+                                    color: Colors.deepOrange,
+                                    onTap: () async {
+                                      print("Owner Id :"+owner.id.toString());
+                                      final result = await Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => UpdateOwnerPage(
+                                            ownerId: owner.id.toString(), // ✅ Pass ownerId
+                                            propertyId: item.id.toString(), // ✅ Pass ownerId
+                                          ),
+                                        ),
+                                      );
+
+                                      if (result == true) {
+                                        _onRefresh();
+                                      }
+                                    },
+                                  );
+                                }
+                              },
+                            )
 
                           ],
                         ),
@@ -745,6 +725,34 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
       _fieldworkarnumber = prefs.getString('number') ?? '';
     });
   }
+}
+Widget _buildTenantButton({
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: 40,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(4.0),
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 /// --- Helper Row for fields
 Widget _buildDetailRow(String label, String value) {

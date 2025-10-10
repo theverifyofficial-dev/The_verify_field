@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/Agreement_model.dart';
 import 'Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
 import 'Administrator/imagepreviewscreen.dart';

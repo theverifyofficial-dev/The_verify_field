@@ -11,7 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import '../Police_Verification/Owner_Details.dart';
 import '../Police_Verification/Property_Verify_Details.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/doctenantSlider.dart';
 import 'Add_Tenant.dart';
 import 'Property_Verification.dart';

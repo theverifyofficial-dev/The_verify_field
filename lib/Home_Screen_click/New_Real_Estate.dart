@@ -11,7 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../Propert_verigication_Document/Show_tenant.dart';
 import '../add_properties_firstpage.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import 'Add_New_Property.dart';
 import 'Add_RealEstate.dart';
 import 'Add_image_under_property.dart';
@@ -689,7 +689,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                           ),
                                           const SizedBox(height: 8),
                                           Wrap(
-                                            spacing: 16, // horizontal spacing between items
+                                            spacing: 4, // horizontal spacing between items
                                             runSpacing: 8, // vertical spacing between lines
                                             alignment: WrapAlignment.start,
                                             children: [
@@ -710,6 +710,15 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                 backgroundColor: Colors.teal.shade50,
                                                 textColor: Colors.teal.shade700,
                                                 shadowColor: Colors.teal.shade100,
+                                              ),
+                                              _buildFeatureItem(
+                                                context: context,
+                                                icon: Icons.receipt_rounded,
+                                                text: "Flat No. ${_filteredProperties[index].flatNumber}",
+                                                borderColor: Colors.red.shade200,
+                                                backgroundColor: Colors.red.shade50,
+                                                textColor: Colors.red.shade700,
+                                                shadowColor: Colors.red.shade100,
                                               ),
                                               _buildFeatureItem(
                                                 context: context,

@@ -14,7 +14,7 @@ import 'package:verify_feild_worker/Model.dart';
 
 import '../Home_Screen_click/Real-Estate.dart';
 import '../Propert_verigication_Document/Show_tenant.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 
 class Catid {

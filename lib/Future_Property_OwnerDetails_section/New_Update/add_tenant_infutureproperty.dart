@@ -5,7 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 
-import '../../ui_decoration_tools/constant.dart';
+import '../../ui_decoration_tools/app_images.dart';
 
 class AddTenantUnderFutureProperty extends StatefulWidget {
   final String id;

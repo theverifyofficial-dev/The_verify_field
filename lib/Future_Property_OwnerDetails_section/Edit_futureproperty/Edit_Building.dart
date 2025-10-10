@@ -12,7 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Administrator/Admin_future _property/Future_Property_Details.dart';
-import '../../ui_decoration_tools/constant.dart';
+import '../../ui_decoration_tools/app_images.dart';
 
 class Edit_Building_futureproperty extends StatefulWidget {
   String id;

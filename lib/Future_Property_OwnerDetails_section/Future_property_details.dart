@@ -10,7 +10,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
 import '../property_preview.dart';
-import '../ui_decoration_tools/constant.dart';
+import '../ui_decoration_tools/app_images.dart';
 import '../model/futureProperty_Slideer.dart';
 import 'Add_FutureProperty_Images.dart';
 import 'Duplicate_Property.dart';

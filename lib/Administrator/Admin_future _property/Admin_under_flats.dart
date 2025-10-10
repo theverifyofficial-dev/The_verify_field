@@ -7,7 +7,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../ui_decoration_tools/constant.dart';
+import '../../../ui_decoration_tools/app_images.dart';
 import '../../../model/realestateSlider.dart';
 import '../../property_preview.dart';
 

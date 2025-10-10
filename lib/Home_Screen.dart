@@ -454,10 +454,10 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "title": "Upcoming\nFlats",
                       "onTap": () {
                         uploadImageWithTitle();
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WebQueryPage()));
+                        // Navigator.push(
+                        //     context,
+                        //     MaterialPageRoute(
+                        //         builder: (_) => const WebQueryPage()));
                       },
                     },
 

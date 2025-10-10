@@ -38,23 +38,29 @@ class LinksPage extends StatelessWidget {
                 return ListTile(
                   leading: const Icon(Icons.share, color: Colors.green),
                   title: Text(link["title"]!),
-                  onTap: () async {
-                    final message =
-                        "Check this property on Verify 🏠\n${link["title"]}: ${link["url"]}";
-                    final encodedMessage = Uri.encodeComponent(message);
-                    final whatsappUrl = "https://wa.me/?text=$encodedMessage";
+                    onTap: () async {
+                      final message = "Check this property on Verify 🏠\n${link["title"]}: ${link["url"]}";
+                      final encodedMessage = Uri.encodeComponent(message);
 
-                    final Uri uri = Uri.parse(whatsappUrl);
-                    if (await canLaunchUrl(uri)) {
-                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text("WhatsApp not installed or cannot open link."),
-                        ),
-                      );
+                      // ✅ Works for both WhatsApp & WhatsApp Business
+                      final whatsappUri = Uri.parse("whatsapp://send?text=$encodedMessage");
+
+                      if (await canLaunchUrl(whatsappUri)) {
+                        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+                      } else {
+                        // fallback to web link (works even without WhatsApp)
+                        final webUri = Uri.parse("https://wa.me/?text=$encodedMessage");
+                        if (await canLaunchUrl(webUri)) {
+                          await launchUrl(webUri, mode: LaunchMode.externalApplication);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("WhatsApp not installed or cannot open link."),
+                            ),
+                          );
+                        }
+                      }
                     }
-                  },
                 );
               }).toList(),
               const SizedBox(height: 12),

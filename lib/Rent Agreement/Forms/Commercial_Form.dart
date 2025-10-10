@@ -25,7 +25,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
-  // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
   final ownerName = TextEditingController();
   String ownerRelation = 'S/O';
@@ -47,8 +46,9 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   final DirectorMobile = TextEditingController();
   final DirectorAadhaar = TextEditingController();
   File? DirectorAadhaarFront;
-  File? tenantAadhaarBack;
-  File? tenantImage;
+  File? DirectorAadhaarBack;
+  File? DirectorImage;
+  File? GST_;
   File? PanCard_;
   Map<String, dynamic>? fetchedData;
 
@@ -56,7 +56,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   final _propertyFormKey = GlobalKey<FormState>();
   final Address = TextEditingController();
   final rentAmount = TextEditingController();
-  final Bhk = TextEditingController();
+  final Sqft = TextEditingController();
   final floor = TextEditingController();
 
   final securityAmount = TextEditingController();
@@ -79,6 +79,32 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   // animations
   late final AnimationController _fabController;
 
+  String rentAmountInWords = '';
+  String securityAmountInWords = '';
+  String installmentAmountInWords = '';
+  String customUnitAmountInWords = '';
+  String customMaintanceAmountInWords = '';
+  String _number = '';
+  String _name = '';
+  bool _userLoaded = false;
+
+  String? ownerAadharFrontUrl;
+  String? ownerAadharBackUrl;
+  String? tenantAadharFrontUrl;
+  String? tenantAadharBackUrl;
+  String? tenantPhotoUrl;
+  String? GstImageUrl;
+  String? PanCardUrl;
+
+
+  @override
+  void initState() {
+    super.initState();
+    _fabController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    if (widget.agreementId != null) {
+      _fetchAgreementDetails(widget.agreementId!);
+    }
+  }
 
   String resolveUrl(String? url) {
     if (url == null || url.isEmpty) return "";
@@ -134,31 +160,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   }
 
 
-  String rentAmountInWords = '';
-  String securityAmountInWords = '';
-  String installmentAmountInWords = '';
-  String customUnitAmountInWords = '';
-  String customMaintanceAmountInWords = '';
-  String _number = '';
-  String _name = '';
-  bool _userLoaded = false;
-
-  String? ownerAadharFrontUrl;
-  String? ownerAadharBackUrl;
-  String? tenantAadharFrontUrl;
-  String? tenantAadharBackUrl;
-  String? tenantPhotoUrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _fabController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
-    if (widget.agreementId != null) {
-      _fetchAgreementDetails(widget.agreementId!);
-    }
-  }
-
-
   Future<void> _fetchAgreementDetails(String id) async {
     final url = Uri.parse(
         "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
@@ -191,7 +192,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
           // 🔹 Agreement
           propertyID.text = data["property_id"]?.toString() ?? "";
-          Bhk.text = data["Bhk"] ?? "";
+          Sqft.text = data["Sqft"] ?? "";
           floor.text = data["floor"] ?? "";
           Address.text = data["rented_address"] ?? "";
           rentAmount.text = data["monthly_rent"]?.toString() ?? "";
@@ -207,13 +208,14 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
               ? DateTime.tryParse(data["shifting_date"])
               : null;
-
           // 🔹 Documents
           ownerAadharFrontUrl = data["owner_aadhar_front"] ?? "";
           ownerAadharBackUrl  = data["owner_aadhar_back"] ?? "";
           tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
           tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
           tenantPhotoUrl       = data["tenant_image"] ?? "";
+          GstImageUrl     =  data["GST_img"] ?? "";
+          PanCardUrl     =  data["pan_photo"] ?? "";
         });
       } else {
         debugPrint("⚠️ No agreement data found");
@@ -238,7 +240,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     DirectorAddress.dispose();
     DirectorMobile.dispose();
     DirectorAadhaar.dispose();
-    Bhk.dispose();
+    Sqft.dispose();
     floor.dispose();
     Address.dispose();
     rentAmount.dispose();
@@ -263,11 +265,17 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           DirectorAadhaarFront = File(picked.path);
           break;
         case 'tenantBack':
-          tenantAadhaarBack = File(picked.path);
+          DirectorAadhaarBack = File(picked.path);
+          break;
+        case 'GSTImage':
+          GST_ = File(picked.path);
           break;
 
+        case 'PanCardImage':
+          PanCard_ = File(picked.path);
+          break;
         case 'tenantImage':
-          tenantImage = File(picked.path);
+          DirectorImage = File(picked.path);
           break;
       }
     });
@@ -290,7 +298,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       // Tenant step: either file OR URL must exist
       valid = _tenantFormKey.currentState?.validate() == true &&
           ((DirectorAadhaarFront != null || tenantAadharFrontUrl != null) &&
-              (tenantAadhaarBack != null || tenantAadharBackUrl != null));
+              (DirectorAadhaarBack != null || tenantAadharBackUrl != null));
 
       if (!valid) {
         Fluttertoast.showToast(msg: 'Please upload Tenant Aadhaar images');
@@ -349,7 +357,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     String paramKey;
     bool searchedByAadhaar;
 
-    // Determine which field to search by
     if (aadhaar?.trim().isNotEmpty ?? false) {
       query = aadhaar!.trim();
       paramKey = isOwner ? "owner_addhar_no" : "tenant_addhar_no";
@@ -420,6 +427,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           tenantAadharFrontUrl = _buildUrl(data['tenant_aadhar_front']);
           tenantAadharBackUrl = _buildUrl(data['tenant_aadhar_back']);
           tenantPhotoUrl = _buildUrl(data['tenant_image']);
+          PanCardUrl  = _buildUrl(data['pan_photot']);
         }
       });
 
@@ -446,8 +454,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       mobile: DirectorMobile.text,
     );
   }
-
-
 
   Future<void> _submitAll() async {
     print("🔹 _submitAll called");
@@ -484,9 +490,13 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "permanent_address_tenant": DirectorAddress.text,
         "tenant_mobile_no": DirectorMobile.text,
         "tenant_addhar_no": DirectorAadhaar.text,
-        "Bhk": Bhk.text,
+        "Sqft": Sqft.text,
         "floor": floor.text,
+        "company_name": CompanyName.text,
         "rented_address": Address.text,
+        "gst_no": GST_no.text,
+        "pan_no": PanCard.text,
+
         "monthly_rent": rentAmount.text,
         "securitys": securityAmount.text,
         "installment_security_amount": installmentAmount.text,
@@ -500,7 +510,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
-        "agreement_type": "Rental Agreement",
+        "agreement_type": "Commercial Agreement",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -540,13 +550,14 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           filename: "owner_aadhar_back.jpg");
       await attachFileOrUrl("tenant_aadhar_front", DirectorAadhaarFront, tenantAadharFrontUrl,
           filename: "tenant_aadhaar_front.jpg");
-      await attachFileOrUrl("tenant_aadhar_back", tenantAadhaarBack, tenantAadharBackUrl,
+      await attachFileOrUrl("tenant_aadhar_back", DirectorAadhaarBack, tenantAadharBackUrl,
           filename: "tenant_aadhaar_back.jpg");
-      await attachFileOrUrl("tenant_image", tenantImage, tenantPhotoUrl,
+      await attachFileOrUrl("pan_photo", PanCard_, tenantPhotoUrl,
+          filename: "PanCard.jpg");
+      await attachFileOrUrl("gst_photo", GST_, GstImageUrl,
+          filename: "GST.jpg");
+      await attachFileOrUrl("tenant_image", DirectorImage, tenantPhotoUrl,
           filename: "tenant_image.jpg");
-      await attachFileOrUrl("agreement_pdf", agreementPdf, null,
-          filename: "agreement.pdf", type: MediaType("application", "pdf"));
-
       print("📦 Files ready: ${request.files.map((f) => f.filename).toList()}");
 
       // 🔹 Send request
@@ -619,7 +630,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "permanent_address_tenant": DirectorAddress.text,
         "tenant_mobile_no": DirectorMobile.text,
         "tenant_addhar_no": DirectorAadhaar.text,
-        "Bhk": Bhk.text,
+        "Bhk": Sqft.text,
         "floor": floor.text,
         "rented_address": Address.text,
         "monthly_rent": rentAmount.text,
@@ -674,9 +685,9 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           filename: "owner_aadhar_back.jpg");
       await attachFileOrUrl("tenant_aadhar_front", DirectorAadhaarFront, tenantAadharFrontUrl,
           filename: "tenant_aadhaar_front.jpg");
-      await attachFileOrUrl("tenant_aadhar_back", tenantAadhaarBack, tenantAadharBackUrl,
+      await attachFileOrUrl("tenant_aadhar_back", DirectorAadhaarBack, tenantAadharBackUrl,
           filename: "tenant_aadhaar_back.jpg");
-      await attachFileOrUrl("tenant_image", tenantImage, tenantPhotoUrl,
+      await attachFileOrUrl("tenant_image", DirectorImage, tenantPhotoUrl,
           filename: "tenant_image.jpg");
       await attachFileOrUrl("agreement_pdf", agreementPdf, null,
           filename: "agreement.pdf", type: MediaType("application", "pdf"));
@@ -1120,7 +1131,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
           setState(() {
             fetchedData = data;
-            Bhk.text = data['Bhk'] ?? '';
+            Sqft.text = data['Sqft'] ?? '';
             floor.text = data['Floor_'] ?? '';
             Address.text = data['Apartment_Address'] ?? '';
             rentAmount.text = data['show_Price'] ?? "";
@@ -1199,7 +1210,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   }
 
   Widget _fancyStepHeader() {
-    final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
+    final stepLabels = ['Owner', 'Director', 'Property', 'Preview'];
     final stepIcons = [Icons.person, Icons.person_outline, Icons.home, Icons.preview];
 
     const kGoldGradient = LinearGradient(
@@ -1445,7 +1456,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text('Director Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
@@ -1514,7 +1525,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                   ),
                 ]),
             const SizedBox(height: 14),
-            _glowTextField(controller: DirectorName, label: 'Tenant Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: DirectorName, label: 'Director Full Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
             Row(children: [
               Expanded(
@@ -1529,13 +1540,47 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
               Expanded(child: _glowTextField(controller: DirectorRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
             ]),
             const SizedBox(height: 12),
-            _glowTextField(controller: DirectorAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
-            const SizedBox(height: 12),
-            _glowTextField(controller: DirectorAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: CompanyName, label: 'Company Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
             _glowTextField(controller: DirectorAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
 
+            Row(
+                children: [
+              Expanded(
+                child:  _glowTextField(controller: GST_no, label: 'GST no.',
+
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(15),         // max 15 digits
+                  ],
+                  validator: (v) {
+
+                    if (v == null || v.trim().isEmpty) return 'Required';
+
+                    // if (!RegExp(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$').hasMatch(v)) return 'Enter valid 15-character Number';
+
+                    return null;
+                  },
+                )
+              ),
+              const SizedBox(width: 12),
+              Expanded(child: _glowTextField(controller: PanCard, label: 'PanCard no.',
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(10), // max 10 characters (A-Z + 0-9)
+                ],
+                // validator: (v) {
+                //
+                //   if (v == null || v.trim().isEmpty) return 'Required';
+                //
+                //   // if (!RegExp(r'^[A-Z]{5}[0-9]{4}[A-Z]{1}$').hasMatch(v)) return 'Enter valid 10-digit PanCard';
+                //
+                //   return null;
+                // },
+
+              ),
+              ),
+            ]),
+            const SizedBox(height: 12),
             Column(
                 children: [
               Row(
@@ -1549,16 +1594,31 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
               const SizedBox(height: 16),
               Row(
                 children: [
-                  _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
+                  _imageTile(file: DirectorAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('tenantBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
                 ],
               ),
               const SizedBox(height: 16),
-
-              Row(
+                  Row(
+                    children: [
+                      _imageTile(file: GST_, url: GstImageUrl, hint: 'GST Image'),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(onPressed: () => _pickImage('GSTImage'), icon: const Icon(Icons.upload_file), label: const Text('GST Image')),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _imageTile(file: PanCard_, url: PanCardUrl, hint: 'PanCard'),
+                      const SizedBox(width: 12),
+                      ElevatedButton.icon(onPressed: () => _pickImage('PanCardImage'), icon: const Icon(Icons.upload_file), label: const Text('PanCard Photo')),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
                 children: [
-                  _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
+                  _imageTile(file: DirectorImage, url: tenantPhotoUrl, hint: 'Director Photo'),
                   const SizedBox(width: 12),
                   ElevatedButton.icon(onPressed: () => _pickImage('tenantImage'), icon: const Icon(Icons.upload_file), label: const Text('Upload Photo')),
                 ],
@@ -1572,7 +1632,6 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       ]),
     );
   }
-
 
   Widget _propertyStep() {
     return _glassContainer(
@@ -1598,7 +1657,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 4,
-                  backgroundColor: Colors.purple.shade900, // needed for gradient
+                  backgroundColor: Colors.amber.shade700,
                 ),
               ),
             ),
@@ -1612,7 +1671,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             Row(
                 children: [
                   Expanded(
-                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      child: _glowTextField(controller: Sqft, label: 'Sqft', keyboard: TextInputType.number, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
                   const SizedBox(width: 12),
                   Expanded(
                       child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
@@ -1737,13 +1796,17 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
         ]),
         const SizedBox(height: 12),
-        _sectionCard(title: '*Tenant', children: [
+        _sectionCard(title: '*Director', children: [
           _kv('Name', DirectorName.text),
           _kv('Relation', DirectorRelation),
           _kv('Relation Person', DirectorRelationPerson.text),
           _kv('Mobile', DirectorMobile.text),
           _kv('Aadhaar', DirectorAadhaar.text),
+          _kv('Company', CompanyName.text),
           _kv('Address', DirectorAddress.text),
+          _kv('GST no.', GST_no.text),
+          _kv('PanCard', PanCard.text),
+
           const SizedBox(height: 8),
 
           Column(
@@ -1751,29 +1814,42 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             children: [
               Text('Aadhaar Images'),
               const SizedBox(height: 8),
-              Row(children: [
+              Row(
+                  children: [
                 _imageTile(file: DirectorAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
                 const SizedBox(width: 8),
-                _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
+                _imageTile(file: DirectorAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
                 const Spacer(),
               ]),
               const SizedBox(height: 8),
-              Text('Tenant Photo'),
+              Text('PanCard & Director Photo'),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
-                  const SizedBox(width: 100),
-                  TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit'))
+                  _imageTile(file: PanCard_, url: PanCardUrl, hint: 'Director Photo'),
+                  const SizedBox(width: 8),
+                  _imageTile(file: DirectorImage, url: tenantPhotoUrl, hint: 'Director Photo'),
                 ],
               ),
+              const SizedBox(height: 8),
+              Text('GST Photo'),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _imageTile(file: GST_, url: GstImageUrl, hint: 'GST Photo'),
+                  const SizedBox(width: 8),
+                  TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit')),
+                ],
+              )
+
             ],
           )
         ]),
         const SizedBox(height: 12),
         _sectionCard(title: '*Property', children: [
           _kv('Property ID', propertyID.text),
-          _kv('BHK', Bhk.text),
+          _kv('Sqft', Sqft.text),
           _kv('Floor', floor.text),
           _kv('Address', Address.text),
           _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
@@ -1855,8 +1931,8 @@ class ElevatedGradientButton extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.amber.withOpacity(0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              blurRadius: 10,
+              offset: const Offset(4,4),
             ),
           ],
         ),

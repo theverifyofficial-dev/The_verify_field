@@ -81,59 +81,11 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     );
   }
 
-  Widget _kv(String k, String v) {
-    if (v.trim().isEmpty) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-              width: 140,
-              child: Text('$k:',
-                  style: const TextStyle(fontWeight: FontWeight.w600))),
-          Expanded(child: Text(v)),
-        ],
-      ),
-    );
-  }
-  Widget _kvImage(String k, String url) {
-    if (url.trim().isEmpty) return const SizedBox.shrink();
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 140,
-            child: Text(
-              '$k:',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-          Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${url}",
-                height: 150,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.broken_image, color: Colors.red),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
+        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details',style: TextStyle(fontSize: 18),),
         leading: SquareBackButton(),
       ),
       body: isLoading
@@ -151,51 +103,84 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
-                  SizedBox(width: 300, child: _sectionCard(title: "Owner Details", children: [
-                    DetailRow(label: "Owner Name", value: agreement?["owner_name"] ?? ""),
-                    DetailRow(
-                      label: "Relation",
-                      value: "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}",
+                  // Owner Section
+                  SizedBox(
+                    width: 300,
+                    child: _sectionCard(
+                      title: "Owner Details",
+                      children: [
+                        DetailRow(label: "Owner Name", value: agreement?["owner_name"] ?? ""),
+                        DetailRow(
+                          label: "Relation",
+                          value: "${agreement?["owner_relation"] ?? ""} ${agreement?["relation_person_name_owner"] ?? ""}",
+                        ),
+                        DetailRow(label: "Address", value: agreement?["parmanent_addresss_owner"] ?? ""),
+                        DetailRow(label: "Mobile", value: agreement?["owner_mobile_no"] ?? ""),
+                        DetailRow(label: "Aadhar", value: agreement?["owner_addhar_no"] ?? ""),
+                      ],
                     ),
-                    DetailRow(label: "Address", value: agreement?["parmanent_addresss_owner"] ?? ""),
-                    DetailRow(label: "Mobile", value: agreement?["owner_mobile_no"] ?? ""),
-                    DetailRow(label: "Aadhar", value: agreement?["owner_addhar_no"] ?? ""),
-                  ])),
-
+                  ),
                   const SizedBox(width: 12),
 
-                  SizedBox(width: 300, child: _sectionCard(title: "Tenant Details", children: [
-                    DetailRow(label: "Tenant Name", value: agreement?["tenant_name"] ?? ""),
-                    DetailRow(
-                      label: "Relation",
-                      value: "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}",
-                    ),
-                    DetailRow(label: "Address", value: agreement?["permanent_address_tenant"] ?? ""),
-                    DetailRow(label: "Mobile", value: agreement?["tenant_mobile_no"] ?? ""),
-                    DetailRow(label: "Aadhar", value: agreement?["tenant_addhar_no"] ?? ""),
-                  ])),
+                  // Tenant / Director Section
+                  SizedBox(
+                    width: 300,
+                    child: _sectionCard(
+                      title: agreement?["agreement_type"] == "Commercial Agreement"
+                          ? "Director Details"
+                          : "Tenant Details",
+                      children: [
+                        DetailRow(
+                          label: agreement?["agreement_type"] == "Commercial Agreement"
+                              ? "Director Name"
+                              : "Tenant Name",
+                          value: agreement?["tenant_name"] ?? "",
+                        ),
+                        DetailRow(
+                          label: "Relation",
+                          value: "${agreement?["tenant_relation"] ?? ""} ${agreement?["relation_person_name_tenant"] ?? ""}",
+                        ),
+                        DetailRow(label: "Address", value: agreement?["permanent_address_tenant"] ?? ""),
+                        DetailRow(label: "Mobile", value: agreement?["tenant_mobile_no"] ?? ""),
+                        DetailRow(label: "Aadhar", value: agreement?["tenant_addhar_no"] ?? ""),
 
+                        // Commercial-only fields
+                        if (agreement?["agreement_type"] == "Commercial Agreement") ...[
+                          const Divider(),
+                          DetailRow(label: "Company Name", value: agreement?["company_name"] ?? ""),
+                          DetailRow(label: "GST Number", value: agreement?["gst_no"] ?? ""),
+                          DetailRow(label: "PAN Number", value: agreement?["pan_no"] ?? ""),
+                        ],
+                      ],
+                    ),
+                  ),
                   const SizedBox(width: 12),
 
-                  SizedBox(width: 300, child: _sectionCard(title: "Agreement Details", children: [
-                    DetailRow(label: "Property", value: agreement?["property_id"] ?? ""),
-                    DetailRow(label: "BHK", value: agreement?["Bhk"] ?? ""),
-                    DetailRow(label: "Floor", value: agreement?["floor"] ?? ""),
-                    DetailRow(label: "Rented Address", value: agreement?["rented_address"] ?? ""),
-                    DetailRow(label: "Monthly Rent", value: "₹${agreement?["monthly_rent"] ?? ""}"),
-                    DetailRow(label: "Security", value: "₹${agreement?["securitys"] ?? ""}"),
-                    DetailRow(label: "Installment Security", value: "₹${agreement?["installment_security_amount"] ?? ""}"),
-                    DetailRow(label: "Meter", value: agreement?["meter"] ?? ""),
-                    DetailRow(label: "Custom Unit", value: agreement?["custom_meter_unit"] ?? ""),
-                    DetailRow(label: "Maintenance", value: agreement?["maintaince"] ?? ""),
-                    DetailRow(label: "Parking", value: agreement?["parking"] ?? ""),
-                    DetailRow(label: "Shifting Date", value: agreement?["shifting_date"]?.toString().split("T")[0] ?? ""),
-                  ])),
+                  // Agreement Details Section
+                  SizedBox(
+                    width: 300,
+                    child: _sectionCard(
+                      title: "Agreement Details",
+                      children: [
+                        DetailRow(label: "Property", value: agreement?["property_id"] ?? ""),
+                        DetailRow(label: "BHK", value: agreement?["Bhk"] ?? ""),
+                        DetailRow(label: "Floor", value: agreement?["floor"] ?? ""),
+                        DetailRow(label: "Rented Address", value: agreement?["rented_address"] ?? ""),
+                        DetailRow(label: "Monthly Rent", value: "₹${agreement?["monthly_rent"] ?? ""}"),
+                        DetailRow(label: "Security", value: "₹${agreement?["securitys"] ?? ""}"),
+                        DetailRow(label: "Installment Security", value: "₹${agreement?["installment_security_amount"] ?? ""}"),
+                        DetailRow(label: "Meter", value: agreement?["meter"] ?? ""),
+                        DetailRow(label: "Custom Unit", value: agreement?["custom_meter_unit"] ?? ""),
+                        DetailRow(label: "Maintenance", value: agreement?["maintaince"] ?? ""),
+                        DetailRow(label: "Parking", value: agreement?["parking"] ?? ""),
+                        DetailRow(label: "Shifting Date", value: agreement?["shifting_date"]?.toString().split("T")[0] ?? ""),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-            ),
+            ),const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
 
             // 🔹 Remaining sections vertically
             _sectionCard(title: "Field Worker", children: [
@@ -209,6 +194,18 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
               DetailRow(label: "Tenant Aadhaar Front", value: agreement?["tenant_aadhar_front"] ?? "", isImage: true),
               DetailRow(label: "Tenant Aadhaar Back", value: agreement?["tenant_aadhar_back"] ?? "", isImage: true),
               DetailRow(label: "Tenant Photo", value: agreement?["tenant_image"] ?? "", isImage: true),
+              // 🔹 Show only if Commercial Agreement
+              if (agreement?["agreement_type"] == "Commercial Agreement") ...[
+                const Divider(),
+                DetailRow(
+                    label: "GST Photo",
+                    value: agreement?["gst_photo"] ?? "",
+                    isImage: true),
+                DetailRow(
+                    label: "PAN Photo",
+                    value: agreement?["pan_photo"] ?? "",
+                    isImage: true),
+              ],
             ]),
 
             if (agreement?["status"] != null)

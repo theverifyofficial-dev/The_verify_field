@@ -838,6 +838,7 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: PreferredSize(
@@ -918,11 +919,16 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
                     );
                   }
                   else{
+
                     return ListView.builder(
                         itemCount: abc.data!.length,
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemBuilder: (BuildContext context,int len){
+                          final propertyType = abc.data![len].BHK?.toLowerCase() ?? '';
+
+                          final nextWord = propertyType.contains('commercial') ? 'Space' : 'Flat';
+
                           return GestureDetector(
                             onTap: () async {
                               //  int itemId = abc.data![len].id;
@@ -1156,6 +1162,7 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
 
 
                                             GestureDetector(
+
                                               onTap: () async {
 
 
@@ -1178,8 +1185,10 @@ class _Feedback_DetailsState extends State<Feedback_Details> {
                                                               fetchdata_add_responce('Try to contact on Whatsapp', widget.id, 'Date: $formattedDate Time: $formattedTime');
 
                                                               String phone = "+91${abc.data![len].demand_number}"; // Ensure phone number is in international format without '+'
-                                                              String message = Uri.encodeComponent("Looking for a ${abc.data![len].BHK} flat for ${abc.data![len].buy_rent} in Sultanpur? Feel free to contact us for further details.\n\nRegards,\nVerify Properties");
-
+                                                              String message = Uri.encodeComponent(
+                                                                  "Looking for a ${abc.data![len].BHK} $nextWord for ${abc.data![len].buy_rent} in Sultanpur? "
+                                                                      "Feel free to contact us for further details.\n\nRegards,\nVerify Properties"
+                                                              );
                                                               String url;
 
                                                               if(Platform.isAndroid){

@@ -333,7 +333,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
+        title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details',style: TextStyle(fontSize: 18),),
         leading: SquareBackButton(),
       ),
       body: isLoading
@@ -352,46 +352,73 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
+                  // Owner Details
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8, // responsive card width
-                    child: _sectionCard(title: "Owner Details", children: [
-                      _kv("Owner Name", agreement!["owner_name"]),
-                      _kv("Relation", "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
-                      _kv("Address", agreement!["parmanent_addresss_owner"]),
-                      _kv("Mobile", agreement!["owner_mobile_no"]),
-                      _kv("Aadhar", agreement!["owner_addhar_no"]),
-                    ]),
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: _sectionCard(
+                      title: "Owner Details",
+                      children: [
+                        _kv("Owner Name", agreement!["owner_name"]),
+                        _kv("Relation", "${agreement!["owner_relation"]} ${agreement!["relation_person_name_owner"]}"),
+                        _kv("Address", agreement!["parmanent_addresss_owner"]),
+                        _kv("Mobile", agreement!["owner_mobile_no"]),
+                        _kv("Aadhar", agreement!["owner_addhar_no"]),
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 12),
 
+                  // Tenant / Director
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.8,
-                    child: _sectionCard(title: "Tenant Details", children: [
-                      _kv("Tenant Name", agreement!["tenant_name"]),
-                      _kv("Relation", "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
-                      _kv("Address", agreement!["permanent_address_tenant"]),
-                      _kv("Mobile", agreement!["tenant_mobile_no"]),
-                      _kv("Aadhar", agreement!["tenant_addhar_no"]),
-                    ]),
+                    child: _sectionCard(
+                      title: agreement!["agreement_type"] == "Commercial Agreement"
+                          ? "Director Details"
+                          : "Tenant Details",
+                      children: [
+                        _kv(
+                          agreement!["agreement_type"] == "Commercial Agreement"
+                              ? "Director Name"
+                              : "Tenant Name",
+                          agreement!["tenant_name"],
+                        ),
+                        _kv("Relation", "${agreement!["tenant_relation"]} ${agreement!["relation_person_name_tenant"]}"),
+                        _kv("Address", agreement!["permanent_address_tenant"]),
+                        _kv("Mobile", agreement!["tenant_mobile_no"]),
+                        _kv("Aadhar", agreement!["tenant_addhar_no"]),
+
+                        // Commercial-only fields
+                        if (agreement!["agreement_type"] == "Commercial Agreement") ...[
+                          const Divider(),
+                          _kv("Company Name", agreement!["company_name"]),
+                          _kv("GST Number", agreement!["gst_no"]),
+                          _kv("PAN Number", agreement!["pan_no"]),
+                        ],
+                      ],
+                    ),
                   ),
                   const SizedBox(width: 12),
 
+                  // Agreement Details
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.8,
-                    child: _sectionCard(title: "Property Details", children: [
-                      _kv("Property", agreement?["property_id"] ?? ""),
-                      _kv("BHK", agreement?["Bhk"] ?? ""),
-                      _kv("Floor", agreement?["floor"] ?? ""),
-                      _kv("Rented Address", agreement!["rented_address"]),
-                      _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
-                      _kv("Security", "₹${agreement!["securitys"]}"),
-                      _kv("Installment Security", "₹${agreement!["installment_security_amount"]}"),
-                      _kv("Meter", agreement!["meter"]),
-                      _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
-                      _kv("Maintenance", agreement!["maintaince"]),
-                      _kv("Parking", agreement!["parking"]),
-                      _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
-                    ]),
+                    child: _sectionCard(
+                      title: "Agreement Details",
+                      children: [
+                        _kv("Property", agreement?["property_id"] ?? ""),
+                        _kv("BHK", agreement?["Bhk"] ?? ""),
+                        _kv("Floor", agreement?["floor"] ?? ""),
+                        _kv("Rented Address", agreement!["rented_address"]),
+                        _kv("Monthly Rent", "₹${agreement!["monthly_rent"]}"),
+                        _kv("Security", "₹${agreement!["securitys"]}"),
+                        _kv("Installment Security", "₹${agreement!["installment_security_amount"]}"),
+                        _kv("Meter", agreement!["meter"]),
+                        _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
+                        _kv("Maintenance", agreement!["maintaince"]),
+                        _kv("Parking", agreement!["parking"] ?? ""),
+                        _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -404,13 +431,22 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
               _kv("Number", agreement!["Fieldwarkarnumber"]),
             ]),
 
-            _sectionCard(title: "Documents", children: [
-              _kvImage("Owner Aadhaar Front", agreement!["owner_aadhar_front"]),
-              _kvImage("Owner Aadhaar Back", agreement!["owner_aadhar_back"]),
-              _kvImage("Tenant Aadhaar Front", agreement!["tenant_aadhar_front"]),
-              _kvImage("Tenant Aadhaar Back", agreement!["tenant_aadhar_back"]),
-              _kvImage("Tenant Photo", agreement!["tenant_image"]),
-            ]),
+            _sectionCard(
+              title: "Documents",
+              children: [
+                _kvImage("Owner Aadhaar Front", agreement!["owner_aadhar_front"]),
+                _kvImage("Owner Aadhaar Back", agreement!["owner_aadhar_back"]),
+                _kvImage("Tenant Aadhaar Front", agreement!["tenant_aadhar_front"]),
+                _kvImage("Tenant Aadhaar Back", agreement!["tenant_aadhar_back"]),
+                _kvImage("Tenant Photo", agreement!["tenant_image"]),
+
+                if (agreement!["agreement_type"] == "Commercial Agreement") ...[
+                  const Divider(),
+                  _kvImage("GST Photo", agreement!["gst_photo"]),
+                  _kvImage("PAN Photo", agreement!["pan_photo"]),
+                ],
+              ],
+            ),
 
             const SizedBox(height: 30),
 

@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import '../ui_decoration_tools/app_images.dart';
-import 'Upcoming_details.dart';
-import 'add_coming_flats.dart';
 
 class Upcoming_model {
   final int? pId;
@@ -149,14 +147,14 @@ class Upcoming_model {
   }
 }
 
-class ParentUpcoming extends StatefulWidget {
-  const ParentUpcoming({super.key});
+class AdminUpcoming extends StatefulWidget {
+  const AdminUpcoming({super.key});
 
   @override
-  State<ParentUpcoming> createState() => _Show_New_Real_EstateState();
+  State<AdminUpcoming> createState() => _Show_New_Real_EstateState();
 }
 
-class _Show_New_Real_EstateState extends State<ParentUpcoming> {
+class _Show_New_Real_EstateState extends State<AdminUpcoming> {
 
   List<Upcoming_model> _allProperties = [];
   List<Upcoming_model> _filteredProperties = [];
@@ -221,7 +219,7 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
 
   Future<List<Upcoming_model>> fetchData(String number) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_api_for_fieldworkar.php?field_workar_number=$number",
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_api_for_admin.php",
     );
 
     final response = await http.get(url);
@@ -298,21 +296,6 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
       print("❌ Error fetching data: $e");
       setState(() => _isLoading = false);
     }
-  }
-
-  void _setSearchText(String label, String text) {
-    setState(() {
-      selectedLabel = label;
-      _searchController.text = text;
-      _searchController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _searchController.text.length),
-
-      );
-      // propertyCount = _getMockPropertyCount(text); // Mock or real count
-
-    });
-
-    print("Search for: $text");
   }
 
   bool get _isSearchActive {
@@ -528,6 +511,7 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                         "Total Floor": property.totalFloor,
                         "Residence/Commercial": property.typeOfProperty,
                         "Facility": property.facility,
+                        "Video": property.video,
                       };
 
                       final missingFields = fields.entries
@@ -552,7 +536,7 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => UpcomingDetailsPage(id: _filteredProperties[index].pId??0),
+                                    builder: (context) => View_Details(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
                                 print(_filteredProperties[index].pId??0);
@@ -689,6 +673,15 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                                                   textColor: Colors.orange.shade700,
                                                   shadowColor: Colors.orange.shade100,
                                                 ),
+                                                _buildFeatureItem(
+                                                  context: context,
+                                                  icon: Icons.person,
+                                                  text: _filteredProperties[index].fieldWorkerName ?? "",
+                                                  borderColor: Colors.blue.shade200,
+                                                  backgroundColor: Colors.blue.shade50,
+                                                  textColor: Colors.blue.shade700,
+                                                  shadowColor: Colors.blue.shade100,
+                                                ),
 
                                               ],
                                             ),
@@ -724,63 +717,14 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                       );
                     },
                   );
-
                 },
               ),
             ),
           ),
         ],
       ),
-
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-            gradient: LinearGradient(
-              colors: [Colors.blueAccent, Colors.lightBlueAccent],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddComingFlats()));
-            },
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text(
-              'Add Flats',
-              style: TextStyle(
-                fontSize: 17,
-                fontFamily: "PoppinsBold",
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-                color: Colors.white,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              elevation: 0, // Shadow handled by container
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ),
     );
   }
-
-
 
   Widget _buildFeatureItem({
     required BuildContext context,

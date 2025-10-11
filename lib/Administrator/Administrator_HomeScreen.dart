@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import 'package:verify_feild_worker/Administrator/agreement_details.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import 'package:verify_feild_worker/Login_page.dart';
@@ -353,7 +354,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 4,
+                        itemCount: 5,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -395,6 +396,17 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
+                            },
+
+                            {
+                              "image": AppImages.realestatefeild,
+                              "title": "Upcoming\nFlats",
+                              "onTap": () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const AdminUpcoming()));
+                              },
                             },
 
                           ];

@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
@@ -375,7 +376,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                   final List<Map<String, dynamic>> cardData = [
                     {
                       "image": AppImages.verify_Property,
-                      "title": "Add Real Estate",
+                      "title": "Live Property",
                       "onTap": () =>
                           Navigator.push(
                           context,
@@ -409,7 +410,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "image": AppImages.tenant,
                       "title": "Tenant\n Demands",
                       "onTap": () {
-                        uploadImageWithTitle();
                         Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -431,7 +431,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "image": AppImages.police,
                       "title": "All Rented \nFlat",
                       "onTap": () {
-                        uploadImageWithTitle();
                         Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -442,7 +441,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "image": AppImages.websiteIssue,
                       "title": "Web \nQuery",
                       "onTap": () {
-                        uploadImageWithTitle();
                         Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -453,11 +451,10 @@ class _Home_ScreenState extends State<Home_Screen> {
                       "image": AppImages.realestatefeild,
                       "title": "Upcoming\nFlats",
                       "onTap": () {
-                        uploadImageWithTitle();
-                        // Navigator.push(
-                        //     context,
-                        //     MaterialPageRoute(
-                        //         builder: (_) => const WebQueryPage()));
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ParentUpcoming()));
                       },
                     },
 

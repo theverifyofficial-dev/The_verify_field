@@ -178,7 +178,7 @@ class _Commercial_FilterState extends State<Commercial_Filter> {
                     _place = newValue!;
                   });
                 },
-                items: <String>['Sultanpur','Uttam Nagar','Dwarka mor','Ghitoni','Chhattarpur','Nawada','Janak Puri','Vikas Puri','Hauz Khas']
+                items: <String>['Sultanpur','Uttam Nagar','Dwarka mor','Ghitoni','Chhattarpur','Nawada','Janak Puri','Vikas Puri','Hauz Khas','Vasant Kunj','Ghitorni']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,

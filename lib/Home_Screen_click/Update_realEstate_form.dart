@@ -256,7 +256,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String? _networkImageUrl;
   String? apiImageUrl;
   File? _imageFile2;
-  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada',''];
+  final cities = ['SultanPur', 'ChhattarPur', 'Aya Nagar', 'Ghitorni', 'Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj','Ghitorni',''];
 
   final propertyTypes = ["Flat","Shop","Office","Godown","Farms","Plots",''];
   final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '1 RK', 'Commercial',''];
@@ -703,7 +703,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     }
   }
   final List<String> _metroOptions = [
-    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur','Dwarka Mor',''
+    'Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur','Dwarka Mor','Ghitorni',''
   ];
   Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [

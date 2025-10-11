@@ -12,6 +12,7 @@ import '../../constant.dart';
 import '../Administrator/All_Rented_Flat/AdministatorPropertyDetailPage.dart';
 import '../Administrator/All_Rented_Flat/Pending_Add _Property_Form.dart';
 import '../Administrator/All_Rented_Flat/Pending_Property_Update_Form.dart';
+import 'All_finacial.dart';
 class Property {
   final int id;
   final String propertyPhoto;
@@ -258,16 +259,17 @@ class OwnerData {
   });
 
   factory OwnerData.fromJson(Map<String, dynamic> json) => OwnerData(
-    id: json["id"],
-    ownerName: json["owner_name"],
-    ownerNumber: json["owner_number"],
-    paymentMode: json["payment_mode"],
-    advanceAmount: json["advance_amount"],
-    rent: json["rent"],
-    securitys: json["securitys"],
-    subid: json["subid"],
-    status: json["status"],
+    id: json["id"] ?? 0,
+    ownerName: json["owner_name"] ?? "-",
+    ownerNumber: json["owner_number"] ?? "-",
+    paymentMode: json["payment_mode"] ?? "-",
+    advanceAmount: json["advance_amount"] ?? "0",
+    rent: json["rent"] ?? "0",
+    securitys: json["securitys"] ?? "0",
+    subid: json["subid"] ?? "-",
+    status: json["status"] ?? "-",
   );
+
 
   Map<String, dynamic> toJson() => {
     "id": id,
@@ -292,24 +294,27 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
 
   String _fieldworkarnumber = '';
   static Map<dynamic, DateTime>? _lastTapTimes;
-  Future<List<OwnerData>> fetchPersonDetail(int subId) async {
-    final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subId"),
-    );
+  Future<List<OwnerData>> fetchPersonDetail(int subid) async {
+    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
+    final response = await http.get(url);
+
+    print("API Response: ${response.body}");
 
     if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
+      final decoded = json.decode(response.body);
+      if (decoded['success'] == true) {
+        final data = decoded['data'] as List<dynamic>;
+        print("Decoded Owner Data: $data"); // ✅ Check decoded list
         return data.map((e) => OwnerData.fromJson(e)).toList();
       } else {
-        throw Exception("API success = false");
+        return [];
       }
     } else {
-      throw Exception("Failed to load tenants");
+      throw Exception("Failed to fetch owner data");
     }
   }
+
+
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
@@ -606,20 +611,6 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                           ),
                                           child: Column(
                                             children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Owner Financial Details",
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: Colors.black87,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const Divider(thickness: 0.5, color: Colors.grey),
                                               _buildDetailRow("Advance: ","₹ ${owner.advanceAmount}"),
                                               _buildDetailRow("Rent: ", "₹ ${owner.rent}"),
                                               _buildDetailRow("Security: ", "₹ ${owner.securitys}"),
@@ -628,9 +619,8 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                         ),
                                       ],
                                     ),
-
                                   ],
-                                )),
+                                ))
                               ],
                             );
                           },
@@ -649,61 +639,93 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                 color: Colors.black54,
                               ),
                             ),
-                            FutureBuilder<List<OwnerData>>(
-                              future: fetchPersonDetail(item.id),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const SizedBox(
-                                    height: 40,
-                                    child: Center(),
-                                  );
-                                }
+                            Row(
+                              children: [
+                                FutureBuilder<List<Property>>(
+                                    future: fetchBookingData(),
+                                    builder: (context, snapshot) {
+                                      return _buildTenantButton(
+                                        label: "Add",
+                                        color: Colors.green,
+                                        onTap: () async {
+                                          print(item.id);
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  TenantPaymentFlowPage(
+                                                      propertyId: item.id.toString()),
+                                            ),
+                                          );
 
-                                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                                  // 👉 No Owner → Show Add Owner button
-                                  return _buildTenantButton(
-                                    label: "Add Owner Detail",
-                                    color: Colors.green,
-                                    onTap: () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
-                                        ),
+                                          if (result == true) {
+                                            // refresh UI if owner was added
+                                            _onRefresh();
+                                          }
+                                        },
+
                                       );
-
-                                      if (result == true) {
-                                        // refresh UI if owner was added
-                                        _onRefresh();
-                                      }
-                                    },
-                                  );
-                                }
-                                else {
-                                  final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
-                                  return _buildTenantButton(
-                                    label: "Update Owner Detail",
-                                    color: Colors.deepOrange,
-                                    onTap: () async {
-                                      print("Owner Id :"+owner.id.toString());
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => UpdateOwnerPage(
-                                            ownerId: owner.id.toString(), // ✅ Pass ownerId
-                                            propertyId: item.id.toString(), // ✅ Pass ownerId
-                                          ),
-                                        ),
+                                    }),
+                                SizedBox(width: 10,),
+                                FutureBuilder<List<OwnerData>>(
+                                  future: fetchPersonDetail(item.id),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const SizedBox(
+                                        height: 40,
+                                        child: Center(),
                                       );
+                                    }
 
-                                      if (result == true) {
-                                        _onRefresh();
-                                      }
-                                    },
-                                  );
-                                }
-                              },
+                                    if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                                      // 👉 No Owner → Show Add Owner button
+                                      return _buildTenantButton(
+                                        label: "Add Owner Detail",
+                                        color: Colors.green,
+                                        onTap: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
+                                            ),
+                                          );
+
+                                          if (result == true) {
+                                            // refresh UI if owner was added
+                                            _onRefresh();
+                                          }
+                                        },
+
+                                      );
+                                    }
+                                    else {
+                                      final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
+                                      return _buildTenantButton(
+                                        label: "Update Owner Detail",
+                                        color: Colors.deepOrange,
+                                        onTap: () async {
+                                          print("Owner Id :"+owner.id.toString());
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => UpdateOwnerPage(
+                                                ownerId: owner.id.toString(), // ✅ Pass ownerId
+                                                propertyId: item.id.toString(), // ✅ Pass ownerId
+                                              ),
+                                            ),
+                                          );
+
+                                          if (result == true) {
+                                            _onRefresh();
+                                          }
+                                        },
+                                      );
+                                    }
+                                  },
+                                )
+                              ],
                             )
+
 
                           ],
                         ),

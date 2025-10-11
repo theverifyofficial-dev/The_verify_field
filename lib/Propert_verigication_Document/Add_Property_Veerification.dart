@@ -361,7 +361,7 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
   List<String> tempArray = [];
 
   String? _selectedItem;
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Hauz Khas','Uttam Nagar East','Uttam Nagar West','Janak Puri East','Janak Puri West','Dwarka Mor'];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Hauz Khas','Uttam Nagar East','Uttam Nagar West','Janak Puri East','Janak Puri West','Dwarka Mor','Vasant Kunj','Ghitorni'];
 
   String? _selectedItem1;
   final List<String> _items1 = ['Buy','Rent'];

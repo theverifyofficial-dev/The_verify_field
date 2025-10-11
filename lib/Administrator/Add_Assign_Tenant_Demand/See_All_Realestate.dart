@@ -227,30 +227,26 @@ class See_All_Realestate extends StatefulWidget {
 
 class _See_All_RealestateState extends State<See_All_Realestate> {
 
-  Future<List<Catid>> fetchData() async {
+  Future<void> _loadData() async {
     try {
       final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=${widget.id}&live_unlive=Live",
       );
-
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final body = json.decode(response.body);
 
         if (body is List) {
-          // Reverse the list instead of sorting by PVR_id
           final reversedList = body.reversed.toList();
-          return reversedList.map((data) => Catid.fromJson(data)).toList();
-        } else {
-          throw Exception("Invalid JSON format: Expected a list");
+          setState(() {
+            _allData = reversedList.map((data) => Catid.fromJson(data)).toList();
+            _filteredData = List.from(_allData); // copy initially
+          });
         }
-      } else {
-        throw Exception("Server error: ${response.statusCode}");
       }
     } catch (e) {
       print("fetchData error: $e");
-      throw Exception("Failed to fetch data: $e");
     }
   }
   String _formatDate(String? dateString) {
@@ -262,6 +258,77 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       return dateString; // fallback if parsing fails
     }
   }
+  TextEditingController _searchController = TextEditingController();
+  List<Catid> _allData = [];   // full fetched data
+  List<Catid> _filteredData = []; // filtered list
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+  void _searchData(String query) {
+    final input = query.toLowerCase();
+
+    final results = _allData.where((item) {
+      // Convert whole object into a big searchable string
+      final combined = [
+        item.id.toString(),
+        item.propertyPhoto,
+        item.locations,
+        item.flatNumber,
+        item.buyRent,
+        item.residenceCommercial,
+        item.apartmentName,
+        item.apartmentAddress,
+        item.typeOfProperty,
+        item.bhk,
+        item.showPrice,
+        item.lastPrice,
+        item.askingPrice,
+        item.floor,
+        item.totalFloor,
+        item.balcony,
+        item.squareFit,
+        item.maintance,
+        item.parking,
+        item.ageOfProperty,
+        item.fieldWorkerAddress,
+        item.roadSize,
+        item.metroDistance,
+        item.highwayDistance,
+        item.mainMarketDistance,
+        item.meter,
+        item.ownerName,
+        item.ownerNumber,
+        item.currentDates,
+        item.availableDate,
+        item.kitchen,
+        item.bathroom,
+        item.lift,
+        item.facility,
+        item.furnishedUnfurnished,
+        item.fieldWorkerName,
+        item.liveUnlive,
+        item.fieldWorkerNumber,
+        item.registryAndGpa,
+        item.loan,
+        item.longitude,
+        item.latitude,
+        item.videoLink,
+        item.fieldWorkerCurrentLocation,
+        item.careTakerName,
+        item.careTakerNumber,
+        item.subid.toString(),
+      ].join(" ").toLowerCase();
+
+      return combined.contains(input);
+    }).toList();
+
+    setState(() {
+      _filteredData = results;
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -307,311 +374,300 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
         // ],
       ),
 
-      body: SingleChildScrollView(
-        child: FutureBuilder<List<Catid>>(
-          future: fetchData(),
-          builder: (context, abc) {
-            if (abc.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (abc.hasError) {
-              return Center(child: Text('Error: ${abc.error}'));
-            } else if (!abc.hasData || abc.data!.isEmpty) {
-              return Center(child: Text('No data available'));
-            } else {
-              final data = abc.data!;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: "Search property...",
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onChanged: _searchData, // call search on typing
+            ),
+          ),
+          if (_searchController.text.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Results found: ${_filteredData.length}",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
+            ),
 
-                    child: ListView.builder(
-                      //scrollDirection: Axis.horizontal,
-                      physics: NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: data.length,
-                      itemBuilder: (BuildContext context,int len) {
-                        int displayIndex = abc.data!.length - len;
-                        return GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Administater_View_Details(idd: '${abc.data![len].id}'),
+          // Now ListView.builder will use _filteredData
+          Expanded(
+            child: ListView.builder(
+
+              itemCount: _filteredData.length,
+              itemBuilder: (context, index) {
+                final item = _filteredData[index];
+                int displayIndex = _filteredData.length - index;
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Administater_View_Details(idd: '${item.id}'),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 320,
+                    margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[900]
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: Theme.of(context).brightness == Brightness.dark
+                          ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.6),
+                          blurRadius: 20,
+                          offset: const Offset(0, 6),
+                          spreadRadius: 1,
+                        ),
+                      ]
+                          : [
+                        BoxShadow(
+                          color: Colors.blueGrey.withOpacity(0.08),
+                          blurRadius: 20,
+                          offset: const Offset(0, 4),
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Property Image with subtle overlay
+                        Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(20),
+                                topRight: Radius.circular(20),
                               ),
-                            );
-                          },
-                          child: Container(
-                            width: 320,
-                            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[900]
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: Theme.of(context).brightness == Brightness.dark
-                                  ? [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.6),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 6),
-                                  spreadRadius: 1,
-                                ),
-                              ]
-                                  : [
-                                BoxShadow(
-                                  color: Colors.blueGrey.withOpacity(0.08),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 4),
-                                  spreadRadius: 1,
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Property Image with subtle overlay
-                                Stack(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(20),
-                                        topRight: Radius.circular(20),
-                                      ),
-                                      child: Container(
-                                        height: 300,
-                                        width: double.infinity,
-                                        child: CachedNetworkImage(
-                                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${abc.data![len].propertyPhoto}",
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) => Container(
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.grey[800]
-                                                : Colors.grey[50],
-                                            child: Center(
-                                              child: Image.asset(
-                                                AppImages.loading,
-                                                width: 40,
-                                                height: 40,
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.grey[400]
-                                                    : Colors.blueGrey[200],
-                                              ),
-                                            ),
-                                          ),
-                                          errorWidget: (context, error, stack) => Container(
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.grey[800]
-                                                : Colors.grey[50],
-                                            child: Center(
-                                              child: Image.asset(
-                                                AppImages.imageNotFound,
-                                                width: 40,
-                                                height: 40,
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.grey[400]
-                                                    : Colors.blueGrey[200],
-                                              ),
-                                            ),
-                                          ),
-                                        ),
+                              child: Container(
+                                height: 300,
+                                width: double.infinity,
+                                child: CachedNetworkImage(
+                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.grey[800]
+                                        : Colors.grey[50],
+                                    child: Center(
+                                      child: Image.asset(
+                                        AppImages.loading,
+                                        width: 40,
+                                        height: 40,
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.grey[400]
+                                            : Colors.blueGrey[200],
                                       ),
                                     ),
-                                    // Subtle gradient overlay
-                                    // Container(
-                                    //   height: 300,
-                                    //   decoration: BoxDecoration(
-                                    //     borderRadius: const BorderRadius.only(
-                                    //       topLeft: Radius.circular(20),
-                                    //       topRight: Radius.circular(20),
-                                    //     ),
-                                    //     gradient: LinearGradient(
-                                    //       begin: Alignment.topCenter,
-                                    //       end: Alignment.bottomCenter,
-                                    //       colors: [
-                                    //         Colors.transparent,
-                                    //         Theme.of(context).brightness == Brightness.dark
-                                    //             ? Colors.black.withOpacity(0.4)
-                                    //             : Colors.black.withOpacity(0.03),
-                                    //       ],
-                                    //     ),
-                                    //   ),
-                                    // ),
-                                  ],
-                                ),
-
-                                // Property Details
-                                Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      // Property Type, Buy/Rent, BHK
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 8,
-                                        children: [
-                                          _buildFeatureChip(
-                                            context: context,
-                                            text: abc.data![len].typeOfProperty.toUpperCase(),
-                                            color: Colors.blue,
-                                            icon: Icons.apartment,
-                                          ),
-                                          _buildFeatureChip(
-                                            context: context,
-                                            text: abc.data![len].buyRent.toUpperCase(),
-                                            color: Colors.teal,
-                                            icon: Icons.swap_horiz,
-                                          ),
-                                          _buildFeatureChip(
-                                            context: context,
-                                            text: abc.data![len].bhk.toUpperCase(),
-                                            color: Colors.orange,
-                                            icon: Icons.hotel,
-                                          ),
-                                        ],
+                                  ),
+                                  errorWidget: (context, error, stack) => Container(
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.grey[800]
+                                        : Colors.grey[50],
+                                    child: Center(
+                                      child: Image.asset(
+                                        AppImages.imageNotFound,
+                                        width: 40,
+                                        height: 40,
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.grey[400]
+                                            : Colors.blueGrey[200],
                                       ),
-
-                                      const SizedBox(height: 16),
-
-                                      // Location and Floor
-                                      Row(
-                                        children: [
-                                          _buildInfoItem(
-                                            context: context,
-                                            icon: Icons.location_on,
-                                            value: abc.data![len].locations,
-                                            color: Colors.orangeAccent,
-                                          ),
-                                          const SizedBox(width: 12),
-                                          _buildInfoItem(
-                                            context: context,
-                                            icon: Icons.stairs,
-                                            value: abc.data![len].floor,
-                                            color: Colors.redAccent,
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 16),
-
-                                      // Property Address
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Icon(
-                                            Icons.location_city_rounded,
-                                            size: 20,
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.blue[300]
-                                                : Colors.blue[600],
-                                          ),
-                                          const SizedBox(width: 10),
-                                          Expanded(
-                                            child: Text(
-                                              abc.data![len].apartmentAddress,
-                                              maxLines: 2,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontFamily: 'Poppins',
-                                                fontSize: 13,
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.grey[300]
-                                                    : Colors.blueGrey,
-                                                fontWeight: FontWeight.w500,
-                                                height: 1.4,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 16),
-
-                                      // Available Date and Price
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          _buildInfoItem(
-                                            context: context,
-                                            icon: Icons.calendar_today,
-                                            value:  _formatDate(abc.data![len].availableDate),
-                                            color: Colors.cyan,
-                                          ),
-
-                                          Text(
-                                            "₹ ${abc.data![len].showPrice}",
-                                            style: TextStyle(
-                                              fontFamily: 'Poppins',
-                                              fontSize: 22,
-                                              fontWeight: FontWeight.w700,
-                                              color: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.green[300]
-                                                  : Colors.green[700],
-                                              letterSpacing: 0.5,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      const SizedBox(height: 16),
-
-                                      // Property ID and Index
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                        decoration: BoxDecoration(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.grey[800]
-                                              : Colors.grey[50],
-                                          borderRadius: BorderRadius.circular(12),
-                                          border: Border.all(
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.grey.shade700
-                                                : Colors.grey.shade100,
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                          children: [
-                                            _buildIdBadge(
-                                              context: context,
-                                              label: "PROPERTY ID #",
-                                              value: displayIndex.toString(),
-                                            ),
-                                            Container(
-                                              width: 1,
-                                              height: 20,
-                                              color: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.grey[600]
-                                                  : Colors.grey[200],
-                                            ),
-                                            _buildIdBadge(
-                                              context: context,
-                                              label: "ID",
-                                              value: abc.data![len].id.toString(),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
+                          ],
+                        ),
+
+                        // Property Details
+                        Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Property Type, Buy/Rent, BHK
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  _buildFeatureChip(
+                                    context: context,
+                                    text: item.typeOfProperty.toUpperCase(),
+                                    color: Colors.blue,
+                                    icon: Icons.apartment,
+                                  ),
+                                  _buildFeatureChip(
+                                    context: context,
+                                    text: item.buyRent.toUpperCase(),
+                                    color: Colors.teal,
+                                    icon: Icons.swap_horiz,
+                                  ),
+                                  _buildFeatureChip(
+                                    context: context,
+                                    text: item.bhk.toUpperCase(),
+                                    color: Colors.orange,
+                                    icon: Icons.hotel,
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Location and Floor
+                              Row(
+                                children: [
+                                  _buildInfoItem(
+                                    context: context,
+                                    icon: Icons.location_on,
+                                    value: item.locations,
+                                    color: Colors.orangeAccent,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  _buildInfoItem(
+                                    context: context,
+                                    icon: Icons.stairs,
+                                    value: item.floor,
+                                    color: Colors.redAccent,
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Property Address
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Icon(
+                                    Icons.location_city_rounded,
+                                    size: 20,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.blue[300]
+                                        : Colors.blue[600],
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      item.apartmentAddress,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontFamily: 'Poppins',
+                                        fontSize: 13,
+                                        color: Theme.of(context).brightness == Brightness.dark
+                                            ? Colors.grey[300]
+                                            : Colors.blueGrey,
+                                        fontWeight: FontWeight.w500,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Available Date and Price
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _buildInfoItem(
+                                    context: context,
+                                    icon: Icons.calendar_today,
+                                    value:  _formatDate(item.availableDate),
+                                    color: Colors.cyan,
+                                  ),
+
+                                  Text(
+                                    "₹ ${item.showPrice}",
+                                    style: TextStyle(
+                                      fontFamily: 'Poppins',
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.green[300]
+                                          : Colors.green[700],
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Property ID and Index
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey[800]
+                                      : Colors.grey[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.grey.shade700
+                                        : Colors.grey.shade100,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                  children: [
+                                    _buildIdBadge(
+                                      context: context,
+                                      label: "TOTAL ID #",
+                                      value: displayIndex.toString(),
+                                    ),
+                                    Container(
+                                      width: 1,
+                                      height: 20,
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.grey[600]
+                                          : Colors.grey[200],
+                                    ),
+                                    _buildIdBadge(
+                                      context: context,
+                                      label: "PROPERTY ID #",
+                                      value: item.id.toString(),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                        );
-                        },
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              );
-            }
-          },
-        ),
-      ),
+                );            },
+            ),
+          ),
+        ],
+      )
+
 
     );
   }
+
 
 // Helper widget for feature chips
   Widget _buildFeatureChip({

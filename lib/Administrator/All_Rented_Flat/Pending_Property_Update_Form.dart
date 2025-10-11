@@ -108,10 +108,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
         "id": widget.ownerId,
         "owner_name": _ownerNameController.text.trim(),
         "owner_number": _ownerPhoneController.text.trim(),
-        "payment_mode": _selectedPaymentMode ?? "",
-        "advance_amount": _advanceController.text.replaceAll(',', '').trim(),
-        "rent": _rentController.text.replaceAll(',', '').trim(),
-        "securitys": _securityController.text.replaceAll(',', '').trim(),
         "subid": widget.propertyId.trim(),
       });
 
@@ -271,48 +267,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
                   LengthLimitingTextInputFormatter(10),
                 ],
               ),
-              const SizedBox(height: 16),
-
-              /// Payment Mode Dropdown
-              Material(
-                elevation: 2,
-                borderRadius: BorderRadius.circular(14),
-                child: DropdownButtonFormField<String>(
-                  value: _selectedPaymentMode,
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.payment,
-                        color: Colors.blueAccent),
-                    labelText: "Payment Mode",
-                    filled: true,
-                    fillColor:
-                    Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[900]
-                        : Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: paymentModes
-                      .map((mode) => DropdownMenuItem(
-                      value: mode, child: Text(mode)))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() => _selectedPaymentMode = value);
-                  },
-                  validator: (value) =>
-                  value == null ? "Payment Mode is required" : null,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              _buildCurrencyField("Rent", _rentController, Icons.money),
-              const SizedBox(height: 16),
-              _buildCurrencyField("Advance Amount", _advanceController,
-                  Icons.account_balance_wallet),
-              const SizedBox(height: 16),
-              _buildCurrencyField(
-                  "Security", _securityController, Icons.security),
               const SizedBox(height: 24),
 
               SizedBox(

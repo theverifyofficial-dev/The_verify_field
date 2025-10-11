@@ -7,9 +7,9 @@ import 'package:http/http.dart' as http;
 import '../constant.dart';
 
 class UpdateTenantPage extends StatefulWidget {
-  final String id;
-
-  const UpdateTenantPage({Key? key, required this.id, })
+  final String propertyId;
+  final String tenentId;
+  const UpdateTenantPage({Key? key, required this.propertyId, required this.tenentId })
       : super(key: key);
 
   @override
@@ -37,7 +37,7 @@ class _UpdateTenantPageState extends State<UpdateTenantPage> {
   /// Fetch Tenant Data
   Future<void> _fetchTenantData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=${widget.id}");
+        "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=${widget.propertyId}");
 
     try {
       final response = await http.get(url);
@@ -74,7 +74,7 @@ class _UpdateTenantPageState extends State<UpdateTenantPage> {
       var request = http.MultipartRequest("POST", uri);
 
       // 👇 send ID inside fields instead of URL
-      request.fields["id"] = widget.id;
+      request.fields["id"] = widget.tenentId;
       request.fields["tenant_name"] = _tenantNameController.text;
       request.fields["tenant_phone_number"] = _tenantPhoneController.text;
       request.fields["shifting_date"] = _shiftingDateController.text;
@@ -89,7 +89,7 @@ class _UpdateTenantPageState extends State<UpdateTenantPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Tenant Updated Successfully ✅")),
         );
-        Navigator.pop(context);
+        Navigator.pop(context,true);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Failed to update ❌: $respStr")),

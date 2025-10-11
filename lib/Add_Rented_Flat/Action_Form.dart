@@ -87,7 +87,7 @@ class _ActionFormState extends State<ActionForm> {
 
       if (response.statusCode == 200) {
         print("API Response: ${response.body}");
-        Navigator.pop(context);
+        Navigator.pop(context,true);
       } else {
         print("Failed with status: ${response.statusCode}");
       }
@@ -227,7 +227,11 @@ class _ActionFormState extends State<ActionForm> {
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.all(12.0),
+        padding: EdgeInsets.only(
+          left: 12,
+          right: 12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+        ),
         child: SafeArea(
           child: SizedBox(
             width: double.infinity,

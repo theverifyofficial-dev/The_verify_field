@@ -552,30 +552,43 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
                                         return _buildTenantButton(
                                           label: "Update Tenant",
                                           color: Colors.deepOrange,
-                                          onTap: () {
-                                            _onRefresh();
-                                            Navigator.of(context).push(
+                                          onTap: () async {
+                                            final result = await Navigator.push(
+                                              context,
                                               MaterialPageRoute(
-                                                builder: (context) => UpdateTenantPage(id: item.id.toString()),
+                                                builder: (context) => UpdateTenantPage(
+                                                    propertyId: item.id.toString(),
+                                                    tenentId: tenant.id.toString(), // ✅ Pass ownerId
+                                                ),
                                               ),
                                             );
+
+                                            if (result == true) {
+                                              // refresh UI if owner was added
+                                              _onRefresh();
+                                            }
                                           },
+
                                         );
                                       }
                                     },
                                   ),
                                   const SizedBox(width: 10),
                                   GestureDetector(
-                                    onTap: () {
-                                      _onRefresh();
-                                      Navigator.of(context).push(
+                                    onTap: () async {
+                                      final result = await Navigator.push(
+                                        context,
                                         MaterialPageRoute(
-                                          builder: (context) {
-                                            return ActionForm(propertyId: item.id.toString());
-                                          },
+                                          builder: (context) => ActionForm(propertyId: item.id.toString()),
                                         ),
                                       );
+
+                                      if (result == true) {
+                                        // refresh UI if owner was added
+                                        _onRefresh();
+                                      }
                                     },
+
                                     child: Container(
                                       height: 40,
                                       width: 90,

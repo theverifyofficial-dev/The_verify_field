@@ -103,14 +103,11 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
       final response = await http.post(url, body: {
         "owner_name": _ownerNameController.text,
         "owner_number": _ownerPhoneController.text,
-        "payment_mode": _selectedPaymentMode ?? "",
-        "advance_amount": _advanceController.text.replaceAll(',', ''),
-        "rent": _sendtoOwnerController.text.replaceAll(',', ''),
-        "securitys": _totalAmountController.text.replaceAll(',', ''),
         "subid": widget.propertyId,
       });
 
       if (response.statusCode == 200) {
+        print(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text("Owner Added Successfully ✅"),
@@ -227,47 +224,6 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
                 ],
               ),
 
-              const SizedBox(height: 16),
-
-              /// Payment Mode Dropdown
-              Material(
-                elevation: 2,
-                borderRadius: BorderRadius.circular(14),
-                child: DropdownButtonFormField<String>(
-                  value: _selectedPaymentMode,
-                  decoration: InputDecoration(
-                    prefixIcon:
-                    const Icon(Icons.payment, color: Colors.blueAccent),
-                    labelText: "Payment Mode",
-                    filled: true,
-                    fillColor:
-                    Theme.of(context).brightness == Brightness.dark
-                        ? Colors.grey[900]
-                        : Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  items: paymentModes
-                      .map((mode) =>
-                      DropdownMenuItem(value: mode, child: Text(mode)))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedPaymentMode = value;
-                    });
-                  },
-                  validator: (value) =>
-                  value == null ? "Payment Mode is required" : null,
-                ),
-              ),
-              const SizedBox(height: 16),
-              _buildNumberField("Advance Amount", _advanceController),
-              const SizedBox(height: 16),
-              _buildNumberField("Send to owner", _sendtoOwnerController),
-              const SizedBox(height: 16),
-              _buildNumberField("Total Amount", _totalAmountController),
               const SizedBox(height: 24),
 
               /// Submit Button

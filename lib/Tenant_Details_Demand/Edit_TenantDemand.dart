@@ -53,7 +53,7 @@ class _Edit_TenantDemandsState extends State<Edit_TenantDemands> {
   final List<String> _buyrent1 = ['Buy','Rent'];
 
   String? _selectedItem;
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Hauz Khas','Uttam Nagar East','Uttam Nagar West','Janak Puri East','Janak Puri West','Dwarka Mor'];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Hauz Khas','Uttam Nagar East','Uttam Nagar West','Janak Puri East','Janak Puri West','Dwarka Mor','Vasant Kunj','Ghitorni'];
 
   String? _Parking;
   final List<String> _Parking_items = ['Car','Bike','No'];

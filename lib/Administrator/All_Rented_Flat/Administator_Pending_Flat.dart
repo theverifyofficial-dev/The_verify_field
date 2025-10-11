@@ -277,16 +277,17 @@ class OwnerData {
   });
 
   factory OwnerData.fromJson(Map<String, dynamic> json) => OwnerData(
-    id: json["id"],
-    ownerName: json["owner_name"],
-    ownerNumber: json["owner_number"],
-    paymentMode: json["payment_mode"],
-    advanceAmount: json["advance_amount"],
-    rent: json["rent"],
-    securitys: json["securitys"],
-    subid: json["subid"],
-    status: json["status"],
+    id: json["id"] ?? 0,
+    ownerName: json["owner_name"] ?? "-",
+    ownerNumber: json["owner_number"] ?? "-",
+    paymentMode: json["payment_mode"] ?? "-",
+    advanceAmount: json["advance_amount"] ?? "0",
+    rent: json["rent"] ?? "0",
+    securitys: json["securitys"] ?? "0",
+    subid: json["subid"] ?? "-",
+    status: json["status"] ?? "-",
   );
+
 
   Map<String, dynamic> toJson() => {
     "id": id,
@@ -350,22 +351,23 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       throw Exception("Failed to load tenants");
     }
   }
-  Future<List<OwnerData>> fetchPersonDetail(int subId) async {
-    final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subId"),
-    );
+  Future<List<OwnerData>> fetchPersonDetail(int subid) async {
+    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
+    final response = await http.get(url);
+
+    print("API Response: ${response.body}");
 
     if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
+      final decoded = json.decode(response.body);
+      if (decoded['success'] == true) {
+        final data = decoded['data'] as List<dynamic>;
+        print("Decoded Owner Data: $data"); // ✅ Check decoded list
         return data.map((e) => OwnerData.fromJson(e)).toList();
       } else {
-        throw Exception("API success = false");
+        return [];
       }
     } else {
-      throw Exception("Failed to load tenants");
+      throw Exception("Failed to fetch owner data");
     }
   }
 
@@ -584,7 +586,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               return const Center();
                             }
                             if (ownerSnapshot.hasError) {
-                              return const Text("Owner Data Empty",
+                              return const Text("Data Empty",
                                   style: TextStyle(color: Colors.black54));
                             }
                             if (!ownerSnapshot.hasData || ownerSnapshot.data!.isEmpty) {
@@ -626,31 +628,16 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                           ),
                                           child: Column(
                                             children: [
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                children: [
-                                                  const Text(
-                                                    "Owner Financial Details",
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight: FontWeight.w700,
-                                                      color: Colors.black87,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const Divider(thickness: 0.5, color: Colors.grey),
+                                              _buildDetailRow("Advance: ","₹ ${owner.advanceAmount}"),
                                               _buildDetailRow("Rent: ", "₹ ${owner.rent}"),
-                                              _buildDetailRow("Advance: ","₹ ${ owner.advanceAmount}"),
                                               _buildDetailRow("Security: ", "₹ ${owner.securitys}"),
                                             ],
                                           ),
                                         ),
                                       ],
                                     ),
-
                                   ],
-                                )),
+                                ))
                               ],
                             );
                           },

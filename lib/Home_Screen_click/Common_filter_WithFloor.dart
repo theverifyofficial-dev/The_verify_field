@@ -212,7 +212,7 @@ class _Residential_filter_withfloorState extends State<Residential_filter_withfl
                     _place = newValue!;
                   });
                 },
-                items: <String>['SultanPur','Uttam Nagar','Dwarka mor','Ghitoni','Chhattarpur','Nawada','Janak Puri','Vikas Puri','Hauz Khas']
+                items: <String>['SultanPur','Uttam Nagar','Dwarka mor','Ghitoni','Chhattarpur','Nawada','Janak Puri','Vikas Puri','Hauz Khas','Vasant Kunj','Ghitorni']
                     .map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,

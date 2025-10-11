@@ -247,6 +247,7 @@ class _Residential_filterState extends State<Residential_filter> {
                   'Janak Puri',
                   'Vikas Puri',
                   'Hauz Khas',
+                  'Vasant Kunj','Ghitorni'
                 ].map((String value) {
                   return DropdownMenuItem<String>(
                     value: value,

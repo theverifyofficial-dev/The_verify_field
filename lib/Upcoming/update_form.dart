@@ -1572,76 +1572,8 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                //
-                // TextFormField(
-                //   controller: _buildingInfoController,
-                //   decoration: InputDecoration(
-                //     labelText: "Building Info (e.g. Tower A, Flat 301)",
-                //     labelStyle: TextStyle(
-                //       fontWeight: FontWeight.w600,
-                //       fontSize: 15,
-                //       color: Theme
-                //           .of(context)
-                //           .brightness == Brightness.dark
-                //           ? Colors.grey.shade300
-                //           : Colors.black54,
-                //     ),
-                //     border: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(10),
-                //       borderSide: BorderSide(
-                //         color: Theme
-                //             .of(context)
-                //             .brightness == Brightness.dark
-                //             ? Colors.grey.shade700
-                //             : Colors.grey.shade300,
-                //       ),
-                //     ),
-                //     enabledBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(10),
-                //       borderSide: BorderSide(
-                //         color: Theme
-                //             .of(context)
-                //             .brightness == Brightness.dark
-                //             ? Colors.grey.shade700
-                //             : Colors.grey.shade300,
-                //       ),
-                //     ),
-                //     focusedBorder: OutlineInputBorder(
-                //       borderRadius: BorderRadius.circular(10),
-                //       borderSide: BorderSide(
-                //         color: Theme
-                //             .of(context)
-                //             .brightness == Brightness.dark
-                //             ? Colors.blue.shade200
-                //             : Colors.blue.shade300,
-                //         width: 2,
-                //       ),
-                //     ),
-                //     contentPadding: const EdgeInsets.symmetric(
-                //         vertical: 14, horizontal: 14),
-                //     filled: true,
-                //     fillColor: Theme
-                //         .of(context)
-                //         .brightness == Brightness.dark
-                //         ? Colors.grey.shade900
-                //         : Colors.white,
-                //   ),
-                //   style: TextStyle(
-                //     color: Theme
-                //         .of(context)
-                //         .brightness == Brightness.dark
-                //         ? Colors.white
-                //         : Colors.black,
-                //   ),
-                //   onSaved: (val) => _buildingInfo = val,
-                // ),
-                // const SizedBox(height: 16),
-
-                // Maintenance
                 Row(
                   children: [
-
-                    /// Maintenance dropdown field
                     Expanded(
                       child: _buildReadOnlyField(
                         label: "Maintenance",
@@ -2161,8 +2093,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
                                 });
                               },
                             ),
-
-                            // ✅ No
                             ChoiceChip(
                               label: Text(
                                 "No",
@@ -3073,7 +3003,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
       await provider.fetchLatestPropertyId();
 
       final uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget.propertyId}"
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_upcoming_flat.php"
       );
 
       var request = http.MultipartRequest('POST', uri);
@@ -3183,19 +3113,20 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
           textColor: Colors.white,
           fontSize: 16.0,
         );
-        Navigator.pop(context);
+        // Navigator.pop(context);
       } else {
         throw Exception("Failed to upload data.");
       }
     } catch (e) {
-      // Fluttertoast.showToast(
-      //   msg: "Error: ${e.toString()}",
-      //   toastLength: Toast.LENGTH_SHORT,
-      //   gravity: ToastGravity.SNACKBAR,
-      //   backgroundColor: Colors.red,
-      //   textColor: Colors.white,
-      //   fontSize: 16.0,
-      // );
+
+      Fluttertoast.showToast(
+        msg: "Error: ${e.toString()}, Unsuccessful",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.SNACKBAR,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
     } finally {
       if (mounted) {
         setState(() {

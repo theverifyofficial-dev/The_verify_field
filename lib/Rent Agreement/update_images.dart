@@ -21,7 +21,12 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
   bool isLoading = true;
   late int ID = widget.propertyId;
 
-  late final String baseUrl = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$ID}';
+  // 🔹 Separate endpoints
+  late final String fetchUrl =
+      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_mumlitiple_image_api.php?subid=$ID';
+
+  late final String updateUrl =
+      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_upcoming_multiple_image.php';
 
   @override
   void initState() {
@@ -29,9 +34,10 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
     fetchImages();
   }
 
+  // 🔹 Fetch images from the server
   Future<void> fetchImages() async {
     try {
-      final response = await http.post(Uri.parse(baseUrl), body: {
+      final response = await http.post(Uri.parse(fetchUrl), body: {
         'action': 'show',
         'subid': widget.propertyId.toString(),
       });
@@ -40,11 +46,11 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
 
       final data = json.decode(response.body);
 
-      if (data['status'] == 'success') {
+      if (data['status'] == 'success' && data['data'] != null) {
         setState(() {
-          existingImages = (data['images'] as List)
+          existingImages = (data['data'] as List)
               .map((item) =>
-          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.toString()}')
+          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item['M_images']}')
               .toList();
           isLoading = false;
         });
@@ -58,33 +64,30 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
     }
   }
 
+  // 🔹 Pick new images from gallery
   Future<void> pickImage() async {
     final picker = ImagePicker();
-    final pickedFiles = await picker.pickMultiImage(); // for multiple images
+    final pickedFiles = await picker.pickMultiImage();
 
-    if (pickedFiles != null && pickedFiles.isNotEmpty) {
+    if (pickedFiles.isNotEmpty) {
       setState(() {
         newImages.addAll(pickedFiles.map((xfile) => File(xfile.path)));
       });
     }
   }
 
-  // 🔹 Delete an existing image
-// inside _MultiImagePickerPageState
-
+  // 🔹 Mark an existing image for deletion
   void deleteExistingImage(String imageUrl) {
     setState(() {
       existingImages.remove(imageUrl);
-
-      // ✅ Strip full URL to relative path
       final parts = imageUrl.split('main_realestate/');
       if (parts.length == 2) {
-        deletedImages.add(parts[1]); // e.g., 'uploads/xyz.jpg'
+        deletedImages.add(parts[1]);
       }
     });
   }
 
-// 🔹 Submit only deletion (via separate button)
+  // 🔹 Delete marked images from server
   Future<void> deleteMarkedImages() async {
     if (deletedImages.isEmpty) return;
 
@@ -98,39 +101,39 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
         deleteBody['delete_images[$i]'] = deletedImages[i];
       }
 
-      final deleteResponse = await http.post(Uri.parse(baseUrl), body: deleteBody);
+      final deleteResponse = await http.post(Uri.parse(updateUrl), body: deleteBody);
       print("Delete Response: ${deleteResponse.body}");
-
 
       Fluttertoast.showToast(
         msg: "Selected images deleted successfully.",
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.SNACKBAR, // or TOP
+        gravity: ToastGravity.SNACKBAR,
         backgroundColor: Colors.black87,
         textColor: Colors.white,
       );
 
-
-      // Refresh UI
       setState(() {
         deletedImages.clear();
         isLoading = true;
       });
+
       await fetchImages();
     } catch (e) {
       print("Error deleting images: $e");
     }
   }
 
-  // 🔹 Delete a newly picked image
+  // 🔹 Remove a newly picked (local) image
   void deleteNewImage(File image) {
     setState(() {
       newImages.remove(image);
     });
   }
 
+  // 🔹 Update (insert new + delete selected)
   Future<void> updateImages() async {
     try {
+      // 1️⃣ Handle deletions
       if (deletedImages.isNotEmpty) {
         Map<String, String> deleteBody = {
           'action': 'delete_selected',
@@ -141,16 +144,15 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
           deleteBody['delete_images[$i]'] = deletedImages[i];
         }
 
-        final deleteResponse = await http.post(Uri.parse(baseUrl), body: deleteBody);
+        final deleteResponse = await http.post(Uri.parse(updateUrl), body: deleteBody);
         print("Delete Response: ${deleteResponse.body}");
       }
 
-
-      // 2. Insert new images
+      // 2️⃣ Handle insertions
       if (newImages.isNotEmpty) {
-        var request = http.MultipartRequest('POST', Uri.parse(baseUrl));
+        var request = http.MultipartRequest('POST', Uri.parse(updateUrl));
         request.fields['action'] = 'insert';
-        request.fields['subid'] = widget.propertyId.toString(); // ✅ added here
+        request.fields['subid'] = widget.propertyId.toString();
 
         for (File image in newImages) {
           request.files.add(await http.MultipartFile.fromPath('images[]', image.path));
@@ -161,7 +163,7 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
         print("Insert Response: $body");
       }
 
-      // 3. Show confirmation
+      // 3️⃣ Confirmation Toast
       Fluttertoast.showToast(
         msg: "Images updated successfully!",
         toastLength: Toast.LENGTH_SHORT,
@@ -171,16 +173,14 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
         fontSize: 16.0,
       );
 
-
-      // 4. Refresh list after submission
+      // 4️⃣ Refresh state
       setState(() {
         newImages.clear();
         deletedImages.clear();
         isLoading = true;
       });
 
-      await fetchImages(); // refresh image list from server
-
+      await fetchImages();
     } catch (e) {
       print("Error updating images: $e");
       ScaffoldMessenger.of(context).showSnackBar(
@@ -201,9 +201,11 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
           ),
         ],
       ),
-      body: existingImages.isEmpty && newImages.isEmpty
-          ? Center(child: Text("No images to display"))
-          :Column(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : (existingImages.isEmpty && newImages.isEmpty)
+          ? const Center(child: Text("No images to display"))
+          : Column(
         children: [
           Expanded(
             child: GridView.count(
@@ -221,10 +223,11 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
                         right: 4,
                         child: InkWell(
                           onTap: () => deleteExistingImage(url),
-                          child: CircleAvatar(
-                              radius: 15,
-                              backgroundColor: Colors.white,
-                              child: const Icon(Icons.close, color: Colors.red)),
+                          child: const CircleAvatar(
+                            radius: 15,
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.close, color: Colors.red),
+                          ),
                         ),
                       ),
                     ],
@@ -242,10 +245,11 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
                         right: 4,
                         child: InkWell(
                           onTap: () => deleteNewImage(file),
-                          child: CircleAvatar(
-                              radius: 15,
-                              backgroundColor: Colors.white,
-                              child: const Icon(Icons.close, color: Colors.red)),
+                          child: const CircleAvatar(
+                            radius: 15,
+                            backgroundColor: Colors.white,
+                            child: Icon(Icons.close, color: Colors.red),
+                          ),
                         ),
                       ),
                     ],
@@ -259,9 +263,13 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: ElevatedButton.icon(
-                    icon: const Icon(Icons.delete_forever,color: Colors.white,),
-                    label: Text("Delete Selected (${deletedImages.length})",style: TextStyle(color: Colors.white),),
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+                    icon: const Icon(Icons.delete_forever, color: Colors.white),
+                    label: Text(
+                      "Delete Selected (${deletedImages.length})",
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent),
                     onPressed: deleteMarkedImages,
                   ),
                 ),
@@ -271,10 +279,6 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
               ),
             ],
           ),
-          // ElevatedButton(
-          //   onPressed: updateImages,
-          //   child: const Text("Submit Changes"),
-          // ),
         ],
       ),
     );

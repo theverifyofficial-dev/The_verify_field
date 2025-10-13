@@ -52,6 +52,9 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
   Map<String, dynamic>? propertyData;
   bool isLoading = true;
   Future<List<UpcomingPropertyImage>>? _galleryFuture;
+  bool _isLoading = false; // Add this state variable
+  String? _status; // value from liveUnlive key
+  Map<int, String> _statusMap = {}; // holds status for all IDs
 
   @override
   void initState() {
@@ -71,6 +74,8 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
         setState(() {
           propertyData = decoded["data"][0];
           isLoading = false;
+          final data = propertyData!;
+          _status = data['live_unlive'];
         });
       }
     } else {
@@ -268,6 +273,44 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
     );
   }
 
+
+  Future<void> _toggleStatus() async {
+    setState(() => _isLoading = true);
+    final currentStatus = _status;
+    try {
+      if (currentStatus == "Book") {
+        await _performAction("update");
+        await _performAction("copy");
+        _status = "Live";
+      } else if (currentStatus == "Live") {
+        await _performAction("reupdate");
+        await _performAction("delete");
+        _status = "Book";
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Status changed to $_status"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _performAction(String action) async {
+    final response = await http.post(
+      Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+      body: {"action": action, "P_id": widget.id.toString()},
+    );
+    if (response.statusCode != 200) throw Exception("Failed $action");
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -442,6 +485,63 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                   infoRow(context, "Address", data['fieldworkar_address']),
                   infoRow(context, "Current Location", data['field_worker_current_location']),
                 ]),
+
+                Container(
+                  padding: const EdgeInsets.only(left: 12,right: 12,top: 10,bottom: 25),
+                  height: 100,
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 100,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _isLoading
+                            ? Colors.grey
+                            : (_status == "Live"
+                            ? Colors.grey
+                            : _status == "Book"
+                            ? Colors.red
+                            : Colors.green),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                      ),
+                      onPressed: _isLoading || _status == null ? null : _toggleStatus,
+                      child: _isLoading
+                          ? Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          SizedBox(
+                            width: 18,
+                            height: 30,
+                            child: CircularProgressIndicator(
+                                color: Colors.white, strokeWidth: 2),
+                          ),
+                          SizedBox(width: 12),
+                          Text("Processing...",
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white)),
+                        ],
+                      )
+                          : Text(
+                        _status == "Live"
+                            ? "Rent out / Book" // Live → text
+                            : _status == "Book"
+                            ? "Move to live" // Book → text
+                            : "Loading...",
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
               ],
             ),
           ),
@@ -450,7 +550,6 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
       bottomNavigationBar: _BottomActionBar(
 
         onAddImages: () {
-          // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImageCompressor(id: _id.toString(),)));
           Navigator.of(context).push(MaterialPageRoute(builder: (context)=> UpdateImages(propertyId: widget.id,)));
 
         }, onEdit: () {

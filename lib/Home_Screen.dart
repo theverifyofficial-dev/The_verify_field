@@ -241,8 +241,6 @@ class _Home_ScreenState extends State<Home_Screen> {
   }
 
 
-
-
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');

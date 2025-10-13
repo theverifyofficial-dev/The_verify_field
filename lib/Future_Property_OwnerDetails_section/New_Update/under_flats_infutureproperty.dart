@@ -2787,10 +2787,12 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
                   final deleteResponse = await http.post(
                     Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                    body: {"action": "delete", "subid": widget.Subid.toString()},
+                    body: {"action": "delete", "source_id": widget.id.toString()},
+
                   );
 
                   if (deleteResponse.statusCode == 200) {
+                    print('source_id ${widget.id}');
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text("Property UnLived successfully!",

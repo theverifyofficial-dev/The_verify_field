@@ -10,6 +10,7 @@ import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Social_Media_links.dart';
 import '../Statistics/Target_MainPage.dart';
 import '../Tenant_Details_Demand/Parent_class_TenantDemand.dart';
+import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../administrator/Administator_Realestate.dart';
 import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -354,7 +355,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 5,
+                        itemCount: 6,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -396,6 +397,16 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
+                            },
+                            {
+                              "image": AppImages.websiteIssue,
+                              "title": "Web \nQuery",
+                              "onTap": () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const WebQueryPage()));
+                              },
                             },
 
                             {

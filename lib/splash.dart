@@ -1,15 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Administrator_HomeScreen.dart';
 import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
-
-import 'Internet_Connectivity/Network_Service.dart';
 import 'ui_decoration_tools/app_images.dart';
 
 class Catid {
@@ -49,7 +45,6 @@ class _SplashState extends State<Splash> {
       throw Exception('Unexpected error occured!');
     }
   }
-
 
   @override
   void initState() {

@@ -18,7 +18,6 @@ class _NetworkListenerState extends State<NetworkListener> {
     super.initState();
     _networkService = NetworkService();
 
-    // ✅ Listen to network changes and show snackbar
     _networkService.connectionStream.listen((status) {
       rootScaffoldMessengerKey.currentState?.showSnackBar(
         SnackBar(

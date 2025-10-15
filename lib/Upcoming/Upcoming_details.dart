@@ -7,6 +7,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../Rent Agreement/update_images.dart';
 import '../constant.dart';
 import '../property_preview.dart';
+import 'package:shimmer/shimmer.dart';
 
 
 
@@ -302,6 +303,30 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
     }
   }
 
+  Widget _buildImageShimmer() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey.shade300,
+      highlightColor: Colors.grey.shade100,
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
+        itemCount: 6, // number of shimmer placeholders
+        itemBuilder: (context, index) => Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+  }
+
+
   Future<void> _performAction(String action) async {
     final response = await http.post(
       Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
@@ -373,7 +398,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                   future: _galleryFuture,
                   builder: (context, gallerySnapshot) {
                     if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: CircularProgressIndicator());
+                      return _buildImageShimmer();
                     } else if (gallerySnapshot.hasError) {
                       return Center(child: Text("Error loading gallery"));
                     } else if (!gallerySnapshot.hasData || gallerySnapshot.data!.isEmpty) {
@@ -498,16 +523,78 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                         backgroundColor: _isLoading
                             ? Colors.grey
                             : (_status == "Live"
-                            ? Colors.grey
+                            ? Colors.grey // Live → Grey
                             : _status == "Book"
-                            ? Colors.red
+                            ? Colors.red // Book → Red
                             : Colors.green),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 20),
                       ),
-                      onPressed: _isLoading || _status == null ? null : _toggleStatus,
+                      onPressed: _isLoading || _status == null
+                          ? null
+                          : () async {
+                        setState(() => _isLoading = true);
+
+                        try {
+                          if (_status == "Book") {
+                            // Update + Copy
+                            final updateResponse = await http.post(
+                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                              body: {"action": "update", "P_id": widget.id.toString()},
+                            );
+
+                            final moveResponse = await http.post(
+                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                              body: {"action": "copy", "P_id": widget.id.toString()},
+                            );
+
+                            if (updateResponse.statusCode == 200 &&
+                                moveResponse.statusCode == 200) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Property updated & moved successfully!",
+                                      style: TextStyle(color: Colors.white)),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                              setState(() => _status = "Live"); // flip after success
+                            }
+                          } else if (_status == "Live") {
+                            // Reupdate + Delete
+                            final updateResponse = await http.post(
+                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                              body: {"action": "reupdate", "P_id": widget.id.toString()},
+                            );
+
+                            final deleteResponse = await http.post(
+                              Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                              body: {"action": "delete", "source_id": widget.id.toString()},
+
+                            );
+
+                            if (deleteResponse.statusCode == 200) {
+                              print('source_id ${widget.id}');
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Property UnLived successfully!",
+                                      style: TextStyle(color: Colors.white)),
+                                  backgroundColor: Colors.blue,
+                                ),
+                              );
+                              setState(() => _status = "Book"); // flip after success
+                            }
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Error: $e"),
+                                backgroundColor: Colors.red),
+                          );
+                        } finally {
+                          setState(() => _isLoading = false);
+                        }
+                      },
                       child: _isLoading
                           ? Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -541,7 +628,6 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                     ),
                   ),
                 ),
-
               ],
             ),
           ),

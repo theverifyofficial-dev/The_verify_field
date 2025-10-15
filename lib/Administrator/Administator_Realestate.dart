@@ -1456,6 +1456,18 @@ class PropertyCard extends StatelessWidget {
               fontFamily: "Poppins",
             ),
           ),
+            SizedBox(height: 5,),
+
+            Text(
+              "Building ID: ${property.subid}",
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                fontFamily: "Poppins",
+              ),
+
+          ),
         ],
       ),
     );

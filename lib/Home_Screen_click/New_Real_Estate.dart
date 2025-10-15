@@ -21,6 +21,7 @@ import 'View_All_Details.dart';
 
 class NewRealEstateShowDateModel {
   final int? pId;
+  final int? sId;
   final String? propertyPhoto;
   final String? locations;
   final String? flatNumber;
@@ -65,6 +66,7 @@ class NewRealEstateShowDateModel {
   final String? video;
 
   NewRealEstateShowDateModel({
+    this.sId,
     this.pId,
     this.propertyPhoto,
     this.locations,
@@ -113,6 +115,7 @@ class NewRealEstateShowDateModel {
   factory NewRealEstateShowDateModel.fromJson(Map<String, dynamic> json) {
     return NewRealEstateShowDateModel(
       pId: json['P_id'],
+      sId: json['subid'],
       propertyPhoto: json['property_photo'],
       locations: json['locations'],
       flatNumber: json['Flat_number'],
@@ -219,6 +222,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
           (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
           (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
           (item.careTakerName ?? '').toLowerCase().contains(query) ||
+          // (item. ?? '').toLowerCase().contains(query) ||
           (item.careTakerNumber ?? '').toLowerCase().contains(query);
     }).toList();
 
@@ -639,19 +643,19 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               _buildFeatureItem(
                                                 context: context,
                                                 // icon: Icons.king_bed,
-                                                text: "${_filteredProperties[index].pId}",
-                                                borderColor: Colors.red.shade200,
-                                                backgroundColor: Colors.red.shade50,
-                                                textColor: Colors.red.shade700,
-                                                shadowColor: Colors.red.shade100,
+                                                text: "Property: ${_filteredProperties[index].pId}",
+                                                borderColor: Colors.grey.shade700,
+                                                backgroundColor: Colors.white,
+                                                textColor: Colors.blue,
+                                                shadowColor: Colors.white60,
                                               ),  _buildFeatureItem(
                                                 context: context,
                                                 // icon: Icons.king_bed,
-                                                text: _filteredProperties[index].buyRent ?? "Property",
-                                                borderColor: Colors.blue.shade200,
-                                                backgroundColor: Colors.blue.shade50,
-                                                textColor: Colors.blue.shade700,
-                                                shadowColor: Colors.blue.shade100,
+                                                text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
+                                                borderColor: Colors.green.shade400,
+                                                backgroundColor: Colors.green.shade100,
+                                                textColor: Colors.green.shade700,
+                                                shadowColor: Colors.green.shade100,
                                               ),
 
                                             ],
@@ -729,6 +733,19 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                 textColor: Colors.orange.shade700,
                                                 shadowColor: Colors.orange.shade100,
                                               ),
+
+                                              _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
+                                                  ? _buildFeatureItem(
+                                                context: context,
+                                                text: " Building: ${_filteredProperties[index].sId.toString()}",
+                                                borderColor: Colors.deepOrange.shade400,
+                                                backgroundColor: Colors.deepOrange.shade100,
+                                                textColor: Colors.deepOrange.shade700,
+                                                shadowColor: Colors.deepOrange.shade100,
+                                              )
+                                                  : SizedBox.shrink(), // Empty widget if condition is not met
+
+
 
                                             ],
                                           ),

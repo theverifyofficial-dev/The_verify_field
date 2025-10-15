@@ -1978,6 +1978,55 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                     SizedBox(
                                                       width: 10,
                                                     ),
+                                                    Container(
+                                                      padding: EdgeInsets.only(
+                                                          left: 10,
+                                                          right: 10,
+                                                          top: 0,
+                                                          bottom: 0),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                        BorderRadius
+                                                            .circular(5),
+                                                        border: Border.all(
+                                                            width: 1,
+                                                            color: Colors.blue),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                              color: Colors.blue
+                                                                  .withOpacity(
+                                                                  0.5),
+                                                              blurRadius: 10,
+                                                              offset:
+                                                              Offset(0, 0),
+                                                              blurStyle:
+                                                              BlurStyle
+                                                                  .outer),
+                                                        ],
+                                                      ),
+                                                      child: Row(
+                                                        children: [
+                                                          // Icon(Iconsax.sort_copy,size: 15,),
+                                                          //w SizedBox(width: 10,),
+                                                          Text(
+                                                            "Building Id = " +
+                                                                abc.data![len]
+                                                                    .subid
+                                                                    .toString() /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                            style: TextStyle(
+                                                                fontSize: 14,
+                                                                color: Colors
+                                                                    .black,
+                                                                fontWeight:
+                                                                FontWeight
+                                                                    .w500,
+                                                                letterSpacing:
+                                                                0.5),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+
                                                   ],
                                                 ),
                                                 SizedBox(
@@ -2787,8 +2836,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
                   final deleteResponse = await http.post(
                     Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                    body: {"action": "delete", "source_id": widget.id.toString()},
-
+                    body: {"action": "delete", "subid": widget.Subid.toString()},
                   );
 
                   if (deleteResponse.statusCode == 200) {

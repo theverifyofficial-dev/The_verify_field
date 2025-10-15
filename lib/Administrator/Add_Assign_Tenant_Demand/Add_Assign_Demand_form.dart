@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
@@ -70,6 +72,67 @@ class _assign_demand_formState extends State<assign_demand_form> {
     _number.text = widget.A_num;
 
   }
+
+  void _showCountdownDialog() {
+    int countdown = 5;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false, // user cannot dismiss
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            Timer? timer;
+            timer = Timer.periodic(Duration(seconds: 1), (t) {
+              setState(() {
+                if (countdown > 1) {
+                  countdown--;
+                } else {
+                  t.cancel();
+                  Navigator.of(context).pop(); // close dialog
+                  _generateDateTime();
+                  fetchdata(
+                    _date,
+                    _Time,
+                    _name.text,
+                    _number.text,
+                    _selectedItem.toString(),
+                    _Building_information.text,
+                    _Refrence.text,
+                    tempArray.join(', '),
+                  );
+                }
+              });
+            });
+
+            return AlertDialog(
+              backgroundColor: Colors.black,
+              title: Text(
+                "Sending in $countdown seconds",
+                style: TextStyle(color: Colors.white),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  LinearProgressIndicator(
+                    value: (5 - countdown) / 5,
+                    backgroundColor: Colors.grey,
+                    color: Colors.red,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    "Please wait...",
+                    style: TextStyle(color: Colors.white70),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -407,15 +470,17 @@ class _assign_demand_formState extends State<assign_demand_form> {
                     style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.red
                     ),
-                    onPressed: (){
+                    onPressed: () {
 
-                      _generateDateTime();
+                      if (_number.text.isEmpty) {
+                        _showErrorDialog("Please enter Number");
+                        return;
+                      }
 
-                      fetchdata(_date,_Time,_name.text, _number.text, _selectedItem.toString(), _Building_information.text, _Refrence.text, tempArray.join(', '));
-                      //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Tenant_demands(),), (route) => route.isFirst);
+                      _showCountdownDialog();
+                    },
+                    child: Text("Submit", style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold, ),
 
-
-                    }, child: Text("Submit", style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold, ),
                   ),
                   ),
 
@@ -431,6 +496,24 @@ class _assign_demand_formState extends State<assign_demand_form> {
 
     );
   }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Error"),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text("OK"),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {

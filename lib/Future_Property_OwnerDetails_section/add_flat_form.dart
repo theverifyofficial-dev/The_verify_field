@@ -314,8 +314,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         await MultipartFile.fromFile(image.path, filename: image.path.split('/').last),
       ));
     }
-
-    // 🔍 Adding fields
     List<MapEntry<String, String>> fields = [
       MapEntry("owner_name", _Ownername.text.trim() ?? ''),
       MapEntry("Balcony", balcony.toString()),
@@ -1810,39 +1808,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       ),
     );
   }
-  Widget _buildDropdownRegister(
-      String label,
-      List<String> items,
-      String? selectedValue,
-      Function(String?) onChanged, {
-        String? Function(String?)? validator,
-      }) {
-    return _buildSectionCard(
-      title: label,
 
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        validator: validator,
-        // dropdownColor: Colors.blue,
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.blue,
-
-          border: OutlineInputBorder
-            (borderRadius: BorderRadius.circular(10)),
-        ),
-        style: const TextStyle(),
-        icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
-        onChanged: onChanged,
-        items: items
-            .map((item) => DropdownMenuItem<String>(
-          value: item,
-          child: Text(item, style:  TextStyle(/*color: Colors.grey.shade800*/)),
-        ))
-            .toList(),
-      ),
-    );
-  }
   Widget _buildReadOnlyField({
     required String label,
     required TextEditingController controller,

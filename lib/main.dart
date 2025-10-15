@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
 import 'package:verify_feild_worker/provider/Theme_provider.dart';
@@ -15,9 +16,7 @@ import 'package:verify_feild_worker/routes.dart';
 import 'package:verify_feild_worker/splash.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Controller/Show_demand_binding.dart';
-import 'Home_Screen.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
-import 'Internet_Connectivity/Network_Service.dart';
 
 
 
@@ -26,7 +25,6 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
 GlobalKey<ScaffoldMessengerState>();
 
-// 🔹 Background handler for FCM
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
   print("📩 Background Message: ${message.data}");
@@ -35,6 +33,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // await dotenv.load(fileName: ".env");
   await FireBaseApi().initNotifications();
 
   // register FCM background handler

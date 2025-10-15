@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'Admin_upcoming_details.dart';
 
 class Upcoming_model {
   final int? pId;
@@ -536,7 +537,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => View_Details(id: _filteredProperties[index].pId??0),
+                                    builder: (context) => AdminUpcomingDetails(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
                                 print(_filteredProperties[index].pId??0);

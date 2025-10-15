@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,12 +27,23 @@ class Add_FutureProperty extends StatefulWidget {
 
 class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
+
+
+
   bool _isLoading = false;
   List<File> _multipleImages = [];
   final _formKey = GlobalKey<FormState>();
 
   DateTime uploadDate = DateTime.now();
   //String formattedDate = DateFormat('yyyy-MM-dd').format(uploadDate);
+
+  List<Map<String, dynamic>> nearbyHospitals = [];
+  List<Map<String, dynamic>> nearbySchools = [];
+  List<Map<String, dynamic>> nearbyMetros = [];
+  List<Map<String, dynamic>> nearbyMalls = [];
+  List<Map<String, dynamic>> nearbyParks = [];
+  List<Map<String, dynamic>> nearbyCinemas = [];
+
 
   final TextEditingController _Ownername = TextEditingController();
   final TextEditingController _Owner_number = TextEditingController();
@@ -93,6 +106,27 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     });
   }
   // Format the date as you like
+
+  // Future<void> _getCurrentLocation() async {
+  //   if (await _checkLocationPermission()) {
+  //     Position position = await Geolocator.getCurrentPosition(
+  //       desiredAccuracy: LocationAccuracy.high,
+  //     );
+  //
+  //     setState(() {
+  //       lat = position.latitude.toString();
+  //       long = position.longitude.toString();
+  //       _Latitude.text = lat;
+  //       _Longitude.text = long;
+  //     });
+  //
+  //     print("Current Location -> lat: ${position.latitude}, long: ${position.longitude}");
+  //
+  //     // await fetchNearbyFacilities(position); // pass the Position object
+  //   } else {
+  //     await _requestLocationPermission();
+  //   }
+  // }
 
   Future<void> _getCurrentLocation() async {
     // Check for location permissions
@@ -286,14 +320,65 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   List<String> tempArray = [];
 
+  String googleApiKey = "AIzaSyAFB2UEvMTcgeH2MrlX2oUq08yVWPVlVr0";
+
+
+
+
+
+  // Future<List<Map<String, dynamic>>> getNearbyPlaces(
+  //     double latitude, double longitude, String placeType) async {
+  //
+  //   final url =
+  //       "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=2000&type=$placeType&key=$googleApiKey";
+  //
+  //   final response = await http.get(Uri.parse(url));
+  //   print("Google Places API Response for $placeType: ${response.body}");
+  //
+  //   if (response.statusCode == 200) {
+  //     final data = jsonDecode(response.body);
+  //     final results = data['results'] as List<dynamic>;
+  //     return results.map((e) => e as Map<String, dynamic>).toList();
+  //   } else {
+  //     throw Exception("Failed to fetch places");
+  //   }
+  // }
+  //
+  // Future<void> fetchNearbyFacilities(Position position) async {
+  //   double latitude = position.latitude;
+  //   double longitude = position.longitude;
+  //
+  //   print("Fetching nearby places for lat: $latitude, long: $longitude");
+  //
+  //   try {
+  //     var hospitals = await getNearbyPlaces(latitude, longitude, "hospital");
+  //     var schools = await getNearbyPlaces(latitude, longitude, "school");
+  //     var metros = await getNearbyPlaces(latitude, longitude, "subway_station");
+  //     var malls = await getNearbyPlaces(latitude, longitude, "shopping_mall");
+  //     var parks = await getNearbyPlaces(latitude, longitude, "park");
+  //     var cinemas = await getNearbyPlaces(latitude, longitude, "movie_theater");
+  //
+  //     setState(() {
+  //       nearbyHospitals = hospitals;
+  //       nearbySchools = schools;
+  //       nearbyMetros = metros;
+  //       nearbyMalls = malls;
+  //       nearbyParks = parks;
+  //       nearbyCinemas = cinemas;
+  //
+  //       if (metros.isNotEmpty) metro_name = metros.first['name'];
+  //     });
+  //   } catch (e) {
+  //     print("Error fetching nearby facilities: $e");
+  //   }
+  // }
+
 
 
   @override
   Widget build(BuildContext context) {
-    // final size = MediaQuery.of(context).size;
 
     return Scaffold(
-      // backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
@@ -510,12 +595,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
               const SizedBox(height: 10,),
 
-              // _buildTextInput('Building Info', _Building_information),
-
-
-
               Row(
-
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
@@ -607,6 +687,18 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
               UpperCase(  'Owner Vehicle Number (Optional)', _vehicleno, keyboardType: TextInputType.text, toUpperCase: true,),
 
+              const SizedBox(height: 20),
+
+              buildNearbyCard('Nearby Hospitals', nearbyHospitals),
+              buildNearbyCard('Nearby Schools', nearbySchools),
+              buildNearbyCard('Nearby Metro Stations', nearbyMetros),
+              buildNearbyCard('Nearby Malls', nearbyMalls),
+              buildNearbyCard('Nearby Parks', nearbyParks),
+              buildNearbyCard('Nearby Cinemas', nearbyCinemas),
+
+              const SizedBox(height: 8),
+
+
               _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
               const SizedBox(height: 8),
               Container(
@@ -629,20 +721,84 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               ),
               SizedBox(height: 20),
               InkWell(
+                // onTap: ()async {
+                //
+                //   // double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
+                //   // double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
+                //
+                //   double? latitude = double.tryParse(long);
+                //   double? longitude = double.tryParse(lat);
+                //
+                //   if (latitude == null || longitude == null) {
+                //     print("Invalid coordinates! long: $long, lat: $lat");
+                //     return; // stop execution
+                //   }
+                //
+                //   print("Placemark lookup for lat: $latitude, long: $longitude");
+                //
+                //   placemarkFromCoordinates(latitude, longitude).then((placemarks) {
+                //
+                //     var output = 'Unable to fetch location';
+                //     if (placemarks.isNotEmpty) {
+                //       final place = placemarks.first;
+                //
+                //       // Collect all available parts, ignoring null or empty ones
+                //       List<String> parts = [
+                //         place.street,
+                //         place.subLocality,
+                //         place.locality,
+                //         place.subAdministrativeArea,
+                //         place.administrativeArea,
+                //         place.postalCode,
+                //         place.country,
+                //       ].whereType<String>() // 👈 filters out null automatically
+                //           .where((e) => e.trim().isNotEmpty) // 👈 removes empty strings
+                //           .toList();
+                //
+                //       // Join them with commas
+                //       output = parts.join(', ');
+                //     }
+                //
+                //     setState(() {
+                //       full_address = output;
+                //
+                //       _Google_Location.text = full_address;
+                //
+                //       print('Your Current Address:- $full_address');
+                //     });
+                //
+                //   });
+                // },
+
                 onTap: ()async {
 
-                  double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
-                  double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
+                  // double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
+                  // double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
 
-                  placemarkFromCoordinates(latitude, longitude).then((placemarks) {
+                    double? latitude = double.tryParse(long);
+                    double? longitude = double.tryParse(lat);
+
+                  placemarkFromCoordinates(latitude!, longitude!).then((placemarks) {
 
                     var output = 'Unable to fetch location';
                     if (placemarks.isNotEmpty) {
+                      final place = placemarks.first;
 
-                      output = placemarks.reversed.last.street.toString()+', '+placemarks.reversed.last.locality.toString()+', '
-                          +placemarks.reversed.last.subLocality.toString()+', '+placemarks.reversed.last.administrativeArea.toString()+', '
-                          +placemarks.reversed.last.subAdministrativeArea.toString()+', '+placemarks.reversed.last.country.toString()+', '
-                          +placemarks.reversed.last.postalCode.toString();
+                      // Collect all available parts, ignoring null or empty ones
+                      List<String> parts = [
+                        place.street,
+                        place.subLocality,
+                        place.locality,
+                        place.subAdministrativeArea,
+                        place.administrativeArea,
+                        place.postalCode,
+                        place.country,
+                      ].whereType<String>() // 👈 filters out null automatically
+                          .where((e) => e.trim().isNotEmpty) // 👈 removes empty strings
+                          .toList();
+
+                      // Join them with commas
+                      output = parts.join(', ');
                     }
                     setState(() {
                       full_address = output;
@@ -654,6 +810,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
                   });
                 },
+
+
                 child: Container(
 
                   width: MediaQuery.of(context).size.width,
@@ -891,9 +1049,57 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
+  Widget buildNearbyCard(String title, List<Map<String, dynamic>> places) {
+    if (places.isEmpty) return SizedBox(); // hide if empty
+    return _buildSectionCard(
+      title: title,
+      child: SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          itemCount: places.length,
+          itemBuilder: (context, index) {
+            final place = places[index];
+            return Card(
+              margin: EdgeInsets.symmetric(horizontal: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              elevation: 3,
+              child: Container(
+                width: 160,
+                padding: EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      place['name'] ?? 'Unknown',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      place['vicinity'] ?? '',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'Rating: ${place['rating'] ?? 'N/A'}',
+                      style: TextStyle(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+
   Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
-      width: double.infinity, // 🔥 Forces full width
+      width: double.infinity,
       child: Card(
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

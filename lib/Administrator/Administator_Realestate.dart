@@ -26,7 +26,7 @@ class Catid {
   final String residenceCommercial;
   final String apartmentName;
   final String apartmentAddress;
-  final String typeOfProperty;
+  final String typeofProperty;
   final String bhk;
   final String showPrice;
   final String lastPrice;
@@ -34,8 +34,8 @@ class Catid {
   final String floor;
   final String totalFloor;
   final String balcony;
-  final String squareFit;
-  final String maintance;
+  final String squarefit;
+  final String maintenance;
   final String parking;
   final String ageOfProperty;
   final String fieldWorkerAddress;
@@ -46,27 +46,28 @@ class Catid {
   final String meter;
   final String ownerName;
   final String ownerNumber;
-  final String currentDates;
+  final String currentDate;
   final String availableDate;
   final String kitchen;
   final String bathroom;
   final String lift;
   final String facility;
-  final String furnishedUnfurnished;
+  final String furnishing;
   final String fieldWorkerName;
   final String liveUnlive;
   final String fieldWorkerNumber;
   final String registryAndGpa;
   final String loan;
+  final String fieldWorkerCurrentLocation;
+  final String caretakerName;
+  final String caretakerNumber;
   final String longitude;
   final String latitude;
   final String videoLink;
-  final String fieldWorkerCurrentLocation;
-  final String careTakerName;
-  final String careTakerNumber;
   final int subid;
+  final String? sourceId; // NEW, nullable
 
-  const Catid({
+  Catid({
     required this.id,
     required this.propertyPhoto,
     required this.locations,
@@ -75,7 +76,7 @@ class Catid {
     required this.residenceCommercial,
     required this.apartmentName,
     required this.apartmentAddress,
-    required this.typeOfProperty,
+    required this.typeofProperty,
     required this.bhk,
     required this.showPrice,
     required this.lastPrice,
@@ -83,8 +84,8 @@ class Catid {
     required this.floor,
     required this.totalFloor,
     required this.balcony,
-    required this.squareFit,
-    required this.maintance,
+    required this.squarefit,
+    required this.maintenance,
     required this.parking,
     required this.ageOfProperty,
     required this.fieldWorkerAddress,
@@ -95,134 +96,83 @@ class Catid {
     required this.meter,
     required this.ownerName,
     required this.ownerNumber,
-    required this.currentDates,
+    required this.currentDate,
     required this.availableDate,
     required this.kitchen,
     required this.bathroom,
     required this.lift,
     required this.facility,
-    required this.furnishedUnfurnished,
+    required this.furnishing,
     required this.fieldWorkerName,
     required this.liveUnlive,
     required this.fieldWorkerNumber,
     required this.registryAndGpa,
     required this.loan,
+    required this.fieldWorkerCurrentLocation,
+    required this.caretakerName,
+    required this.caretakerNumber,
     required this.longitude,
     required this.latitude,
     required this.videoLink,
-    required this.fieldWorkerCurrentLocation,
-    required this.careTakerName,
-    required this.careTakerNumber,
     required this.subid,
+    this.sourceId, // NEW
   });
+
+  static String _s(dynamic v) => v?.toString() ?? '';
+  static int _i(dynamic v) => int.tryParse(v?.toString() ?? '') ?? 0;
 
   factory Catid.fromJson(Map<String, dynamic> json) {
     return Catid(
-      id: json['P_id'] is int
-          ? json['P_id']
-          : int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
-      propertyPhoto: json['property_photo']?.toString() ?? '',
-      locations: json['locations']?.toString() ?? '',
-      flatNumber: json['Flat_number']?.toString() ?? '',
-      buyRent: json['Buy_Rent']?.toString() ?? '',
-      residenceCommercial: json['Residence_Commercial']?.toString() ?? '',
-      apartmentName: json['Apartment_name']?.toString() ?? '',
-      apartmentAddress: json['Apartment_Address']?.toString() ?? '',
-      typeOfProperty: json['Typeofproperty']?.toString() ?? '',
-      bhk: json['Bhk']?.toString() ?? '',
-      showPrice: json['show_Price']?.toString() ?? '',
-      lastPrice: json['Last_Price']?.toString() ?? '',
-      askingPrice: json['asking_price']?.toString() ?? '',
-      floor: json['Floor_']?.toString() ?? '',
-      totalFloor: json['Total_floor']?.toString() ?? '',
-      balcony: json['Balcony']?.toString() ?? '',
-      squareFit: json['squarefit']?.toString() ?? '',
-      maintance: json['maintance']?.toString() ?? '',
-      parking: json['parking']?.toString() ?? '',
-      ageOfProperty: json['age_of_property']?.toString() ?? '',
-      fieldWorkerAddress: json['fieldworkar_address']?.toString() ?? '',
-      roadSize: json['Road_Size']?.toString() ?? '',
-      metroDistance: json['metro_distance']?.toString() ?? '',
-      highwayDistance: json['highway_distance']?.toString() ?? '',
-      mainMarketDistance: json['main_market_distance']?.toString() ?? '',
-      meter: json['meter']?.toString() ?? '',
-      ownerName: json['owner_name']?.toString() ?? '',
-      ownerNumber: json['owner_number']?.toString() ?? '',
-      currentDates: json['current_dates']?.toString() ?? '',
-      availableDate: json['available_date']?.toString() ?? '',
-      kitchen: json['kitchen']?.toString() ?? '',
-      bathroom: json['bathroom']?.toString() ?? '',
-      lift: json['lift']?.toString() ?? '',
-      facility: json['Facility']?.toString() ?? '',
-      furnishedUnfurnished: json['furnished_unfurnished']?.toString() ?? '',
-      fieldWorkerName: json['field_warkar_name']?.toString() ?? '',
-      liveUnlive: json['live_unlive']?.toString() ?? '',
-      fieldWorkerNumber: json['field_workar_number']?.toString() ?? '',
-      registryAndGpa: json['registry_and_gpa']?.toString() ?? '',
-      loan: json['loan']?.toString() ?? '',
-      longitude: json['Longitude']?.toString() ?? '',
-      latitude: json['Latitude']?.toString() ?? '',
-      videoLink: json['video_link']?.toString() ?? '',
-      fieldWorkerCurrentLocation:
-      json['field_worker_current_location']?.toString() ?? '',
-      careTakerName: json['care_taker_name']?.toString() ?? '',
-      careTakerNumber: json['care_taker_number']?.toString() ?? '',
-      subid: json['subid'] is int
-          ? json['subid']
-          : int.tryParse(json['subid']?.toString() ?? '0') ?? 0,
+      id: _i(json['P_id']),
+      propertyPhoto: _s(json['property_photo']),
+      locations: _s(json['locations']),
+      flatNumber: _s(json['Flat_number']),
+      buyRent: _s(json['Buy_Rent']),
+      residenceCommercial: _s(json['Residence_Commercial']),
+      apartmentName: _s(json['Apartment_name']),
+      apartmentAddress: _s(json['Apartment_Address']),
+      typeofProperty: _s(json['Typeofproperty']),
+      bhk: _s(json['Bhk']),
+      showPrice: _s(json['show_Price']),
+      lastPrice: _s(json['Last_Price']),
+      askingPrice: _s(json['asking_price']),
+      floor: _s(json['Floor_']),
+      totalFloor: _s(json['Total_floor']),
+      balcony: _s(json['Balcony']),
+      squarefit: _s(json['squarefit']),
+      maintenance: _s(json['maintance']),
+      parking: _s(json['parking']),
+      ageOfProperty: _s(json['age_of_property']),
+      fieldWorkerAddress: _s(json['fieldworkar_address']),
+      roadSize: _s(json['Road_Size']),
+      metroDistance: _s(json['metro_distance']),
+      highwayDistance: _s(json['highway_distance']),
+      mainMarketDistance: _s(json['main_market_distance']),
+      meter: _s(json['meter']),
+      ownerName: _s(json['owner_name']),
+      ownerNumber: _s(json['owner_number']),
+      currentDate: _s(json['current_dates']),
+      // your API sometimes sends ISO datetime; we keep it as raw string
+      availableDate: _s(json['available_date']),
+      kitchen: _s(json['kitchen']),
+      bathroom: _s(json['bathroom']),
+      lift: _s(json['lift']),
+      facility: _s(json['Facility']),
+      furnishing: _s(json['furnished_unfurnished']),
+      fieldWorkerName: _s(json['field_warkar_name']),
+      liveUnlive: _s(json['live_unlive']),
+      fieldWorkerNumber: _s(json['field_workar_number']),
+      registryAndGpa: _s(json['registry_and_gpa']),
+      loan: _s(json['loan']),
+      fieldWorkerCurrentLocation: _s(json['field_worker_current_location']),
+      caretakerName: _s(json['care_taker_name']),
+      caretakerNumber: _s(json['care_taker_number']),
+      longitude: _s(json['Longitude']),
+      latitude: _s(json['Latitude']),
+      videoLink: _s(json['video_link']),
+      subid: _i(json['subid']),
+      sourceId: json['source_id']?.toString(), // NEW
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      "P_id": id,
-      "property_photo": propertyPhoto,
-      "locations": locations,
-      "Flat_number": flatNumber,
-      "Buy_Rent": buyRent,
-      "Residence_Commercial": residenceCommercial,
-      "Apartment_name": apartmentName,
-      "Apartment_Address": apartmentAddress,
-      "Typeofproperty": typeOfProperty,
-      "Bhk": bhk,
-      "show_Price": showPrice,
-      "Last_Price": lastPrice,
-      "asking_price": askingPrice,
-      "Floor_": floor,
-      "Total_floor": totalFloor,
-      "Balcony": balcony,
-      "squarefit": squareFit,
-      "maintance": maintance,
-      "parking": parking,
-      "age_of_property": ageOfProperty,
-      "fieldworkar_address": fieldWorkerAddress,
-      "Road_Size": roadSize,
-      "metro_distance": metroDistance,
-      "highway_distance": highwayDistance,
-      "main_market_distance": mainMarketDistance,
-      "meter": meter,
-      "owner_name": ownerName,
-      "owner_number": ownerNumber,
-      "current_dates": currentDates,
-      "available_date": availableDate,
-      "kitchen": kitchen,
-      "bathroom": bathroom,
-      "lift": lift,
-      "Facility": facility,
-      "furnished_unfurnished": furnishedUnfurnished,
-      "field_warkar_name": fieldWorkerName,
-      "live_unlive": liveUnlive,
-      "field_workar_number": fieldWorkerNumber,
-      "registry_and_gpa": registryAndGpa,
-      "loan": loan,
-      "Longitude": longitude,
-      "Latitude": latitude,
-      "video_link": videoLink,
-      "field_worker_current_location": fieldWorkerCurrentLocation,
-      "care_taker_name": careTakerName,
-      "care_taker_number": careTakerNumber,
-      "subid": subid,
-    };
   }
 }
 
@@ -309,141 +259,91 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
   String _number = '';
 
+// ---- Shared helpers ----
+  List<Map<String, dynamic>> _normalizeList(dynamic raw) {
+    if (raw is List) {
+      return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } else if (raw is Map) {
+      return [Map<String, dynamic>.from(raw)];
+    }
+    return const <Map<String, dynamic>>[];
+  }
 
+  dynamic _unwrapBody(dynamic decoded) {
+    // Handle { success: true, data: [...] }
+    if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+      return decoded['data'];
+    }
+    // Handle .asmx pattern: { "d": "[{...}]" } or { "d": {...} }
+    if (decoded is Map<String, dynamic> && decoded.containsKey('d')) {
+      final d = decoded['d'];
+      try {
+        return d is String ? json.decode(d) : d;
+      } catch (_) {
+        return d; // if not decodable, return as-is
+      }
+    }
+    // Otherwise assume the decoded JSON is already the payload
+    return decoded;
+  }
+
+  Future<List<Catid>> _fetchCommon(Uri url) async {
+    final resp = await http.get(url);
+    if (resp.statusCode != 200) {
+      throw Exception("HTTP ${resp.statusCode}: ${resp.body}");
+    }
+
+    final decoded = json.decode(resp.body);
+    final payload = _unwrapBody(decoded);
+    final list = _normalizeList(payload);
+
+    // Newest first by P_id if present
+    int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
+    list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
+
+    return list.map((e) => Catid.fromJson(e)).toList();
+  }
 
   Future<List<Catid>> av() async {
-    try {
-      final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=11&live_unlive=Live",
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-
-        if (body is List) {
-          // Reverse the list instead of sorting by PVR_id
-          final reversedList = body.reversed.toList();
-          return reversedList.map((data) => Catid.fromJson(data)).toList();
-        } else {
-          throw Exception("Invalid JSON format: Expected a list");
-        }
-      } else {
-        throw Exception("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("av error: $e");
-      throw Exception("Failed to fetch data: $e");
-    }
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+          "?field_workar_number=11&live_unlive=Live",
+    );
+    return _fetchCommon(url);
   }
+
   Future<List<Catid>> fetchData() async {
-    try {
-      final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=9711775300&live_unlive=Live",
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-
-        if (body is List) {
-          // Reverse the list instead of sorting by PVR_id
-          final reversedList = body.reversed.toList();
-          return reversedList.map((data) => Catid.fromJson(data)).toList();
-        } else {
-          throw Exception("Invalid JSON format: Expected a list");
-        }
-      } else {
-        throw Exception("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("fetchData2 error: $e");
-      throw Exception("Failed to fetch data: $e");
-    }
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+          "?field_workar_number=9711775300&live_unlive=Live",
+    );
+    return _fetchCommon(url);
   }
+
   Future<List<Catid>> fetchData1() async {
-    try {
-      final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-            "?field_workar_number=9711275300&live_unlive=Live",
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-
-        if (body is List) {
-          // Reverse the list instead of sorting by PVR_id
-          final reversedList = body.reversed.toList();
-          return reversedList.map((data) => Catid.fromJson(data)).toList();
-        } else {
-          throw Exception("Invalid JSON format: Expected a list");
-        }
-      } else {
-        throw Exception("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("fetchData2 error: $e");
-      throw Exception("Failed to fetch data: $e");
-    }
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+          "?field_workar_number=9711275300&live_unlive=Live",
+    );
+    return _fetchCommon(url);
   }
+
   Future<List<Catid>> fetchData2() async {
-    try {
-      final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-            "?field_workar_number=9971172204&live_unlive=Live",
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-
-        if (body is List) {
-          // Reverse the list instead of sorting by PVR_id
-          final reversedList = body.reversed.toList();
-          return reversedList.map((data) => Catid.fromJson(data)).toList();
-        } else {
-          throw Exception("Invalid JSON format: Expected a list");
-        }
-      } else {
-        throw Exception("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("fetchData2 error: $e");
-      throw Exception("Failed to fetch data: $e");
-    }
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+          "?field_workar_number=9971172204&live_unlive=Live",
+    );
+    return _fetchCommon(url);
   }
+
   Future<List<Catid>> fetchData_rajpur() async {
-    try {
-      final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-            "?field_workar_number=9818306096&live_unlive=Live",
-      );
-
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-
-        if (body is List) {
-          // Reverse the list instead of sorting by PVR_id
-          final reversedList = body.reversed.toList();
-          return reversedList.map((data) => Catid.fromJson(data)).toList();
-        } else {
-          throw Exception("Invalid JSON format: Expected a list");
-        }
-      } else {
-        throw Exception("Server error: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("fetchData2 error: $e");
-      throw Exception("Failed to fetch data: $e");
-    }
+    final url = Uri.parse(
+      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
+          "?field_workar_number=9818306096&live_unlive=Live",
+    );
+    return _fetchCommon(url);
   }
+
   String? _highlightedFlatId;
   bool _hasHighlighted = false;
   List<Catid> _properties = [];
@@ -683,7 +583,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
                             // 🔹 Horizontal list
                             SizedBox(
-                              height: 440,
+                              height: 450,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: snapshot.data!.length,
@@ -864,7 +764,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                               ),
                             ),
                             SizedBox(
-                              height: 440,
+                              height: 450,
                               child: ListView.builder(
                                 controller: scrollController,
                                 scrollDirection: Axis.horizontal,
@@ -1039,7 +939,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                               ),
                             ),
                             SizedBox(
-                              height: 440,
+                              height: 450,
                               child: ListView.builder(
                                 controller: scrollController,
                                 scrollDirection: Axis.horizontal,
@@ -1168,7 +1068,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                               ),
                             ),
                             SizedBox(
-                              height: 440,
+                              height: 450,
                               child: ListView.builder(
                                 scrollDirection: Axis.horizontal,
                                 itemCount: data.length,
@@ -1422,7 +1322,7 @@ class PropertyCard extends StatelessWidget {
       spacing: 8,
       runSpacing: 8,
       children: [
-        _buildFeaturePill(Icons.category_outlined, property.typeOfProperty.toUpperCase(), Colors.blue[100]!, Colors.blue[800]!),
+        _buildFeaturePill(Icons.category_outlined, property.typeofProperty.toUpperCase(), Colors.blue[100]!, Colors.blue[800]!),
         _buildFeaturePill(Icons.currency_rupee_outlined, property.buyRent.toUpperCase(), Colors.green[100]!, Colors.green[800]!),
         _buildFeaturePill(Icons.bed_outlined, property.bhk.toUpperCase(), Colors.orange[100]!, Colors.orange[800]!),
         _buildFeaturePill(Icons.stairs_outlined, "${property.floor}", Colors.purple[100]!, Colors.purple[800]!),
@@ -1479,7 +1379,7 @@ class PropertyCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          "ID: ${property.id}",
+          "ID: ${property.sourceId??""}",
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
             fontSize: 13,

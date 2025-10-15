@@ -571,11 +571,11 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                             final deleteResponse = await http.post(
                               Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
                               body: {"action": "delete", "source_id": widget.id.toString()},
-
                             );
 
                             if (deleteResponse.statusCode == 200) {
                               print('source_id ${widget.id}');
+                              print(deleteResponse.body);
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text("Property UnLived successfully!",

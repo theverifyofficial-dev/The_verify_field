@@ -314,6 +314,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         await MultipartFile.fromFile(image.path, filename: image.path.split('/').last),
       ));
     }
+
     List<MapEntry<String, String>> fields = [
       MapEntry("owner_name", _Ownername.text.trim() ?? ''),
       MapEntry("Balcony", balcony.toString()),
@@ -362,9 +363,8 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("Last_Price", _formattedLastPrice),
       MapEntry("asking_price", _formattedAskingPrice),
       MapEntry("Road_Size", widget.road_size),
-      MapEntry("metro_distance", widget.metro_dis),
-      MapEntry("metro_name", widget.metro_name),
-      MapEntry("highway_distance", widget.metro_name),
+      MapEntry("metro_distance", widget.metro_name),
+      MapEntry("highway_distance", widget.metro_dis),
       MapEntry("main_market_distance", widget.market_dis),
       MapEntry("meter", _meter.text),
       MapEntry("subid", widget.id),

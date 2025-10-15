@@ -84,6 +84,7 @@ class Catid {
   final String latitude;
   final String videoLink;
   final int subid;
+  final String? sourceId; // NEW, nullable
 
   Catid({
     required this.id,
@@ -133,57 +134,63 @@ class Catid {
     required this.latitude,
     required this.videoLink,
     required this.subid,
+    this.sourceId, // NEW
   });
+
+  static String _s(dynamic v) => v?.toString() ?? '';
+  static int _i(dynamic v) => int.tryParse(v?.toString() ?? '') ?? 0;
 
   factory Catid.fromJson(Map<String, dynamic> json) {
     return Catid(
-      id: int.tryParse(json['P_id'].toString()) ?? 0,
-      propertyPhoto: json['property_photo'] ?? '',
-      locations: json['locations'] ?? '',
-      flatNumber: json['Flat_number'] ?? '',
-      buyRent: json['Buy_Rent'] ?? '',
-      residenceCommercial: json['Residence_Commercial'] ?? '',
-      apartmentName: json['Apartment_name'] ?? '',
-      apartmentAddress: json['Apartment_Address'] ?? '',
-      typeofProperty: json['Typeofproperty'] ?? '',
-      bhk: json['Bhk'] ?? '',
-      showPrice: json['show_Price'] ?? '',
-      lastPrice: json['Last_Price'] ?? '',
-      askingPrice: json['asking_price'] ?? '',
-      floor: json['Floor_'] ?? '',
-      totalFloor: json['Total_floor'] ?? '',
-      balcony: json['Balcony'] ?? '',
-      squarefit: json['squarefit'] ?? '',
-      maintenance: json['maintance'] ?? '',
-      parking: json['parking'] ?? '',
-      ageOfProperty: json['age_of_property'] ?? '',
-      fieldWorkerAddress: json['fieldworkar_address'] ?? '',
-      roadSize: json['Road_Size'] ?? '',
-      metroDistance: json['metro_distance'] ?? '',
-      highwayDistance: json['highway_distance'] ?? '',
-      mainMarketDistance: json['main_market_distance'] ?? '',
-      meter: json['meter'] ?? '',
-      ownerName: json['owner_name'] ?? '',
-      ownerNumber: json['owner_number'] ?? '',
-      currentDate: json['current_dates'] ?? '',
-      availableDate: json['available_date'] ?? '',
-      kitchen: json['kitchen'] ?? '',
-      bathroom: json['bathroom'] ?? '',
-      lift: json['lift'] ?? '',
-      facility: json['Facility'] ?? '',
-      furnishing: json['furnished_unfurnished'] ?? '',
-      fieldWorkerName: json['field_warkar_name'] ?? '',
-      liveUnlive: json['live_unlive'] ?? '',
-      fieldWorkerNumber: json['field_workar_number'] ?? '',
-      registryAndGpa: json['registry_and_gpa'] ?? '',
-      loan: json['loan'] ?? '',
-      fieldWorkerCurrentLocation: json['field_worker_current_location'] ?? '',
-      caretakerName: json['care_taker_name'] ?? '',
-      caretakerNumber: json['care_taker_number'] ?? '',
-      longitude: json['Longitude'] ?? '',
-      latitude: json['Latitude'] ?? '',
-      videoLink: json['video_link'] ?? '',
-      subid: json['subid'] ?? 0,
+      id: _i(json['P_id']),
+      propertyPhoto: _s(json['property_photo']),
+      locations: _s(json['locations']),
+      flatNumber: _s(json['Flat_number']),
+      buyRent: _s(json['Buy_Rent']),
+      residenceCommercial: _s(json['Residence_Commercial']),
+      apartmentName: _s(json['Apartment_name']),
+      apartmentAddress: _s(json['Apartment_Address']),
+      typeofProperty: _s(json['Typeofproperty']),
+      bhk: _s(json['Bhk']),
+      showPrice: _s(json['show_Price']),
+      lastPrice: _s(json['Last_Price']),
+      askingPrice: _s(json['asking_price']),
+      floor: _s(json['Floor_']),
+      totalFloor: _s(json['Total_floor']),
+      balcony: _s(json['Balcony']),
+      squarefit: _s(json['squarefit']),
+      maintenance: _s(json['maintance']),
+      parking: _s(json['parking']),
+      ageOfProperty: _s(json['age_of_property']),
+      fieldWorkerAddress: _s(json['fieldworkar_address']),
+      roadSize: _s(json['Road_Size']),
+      metroDistance: _s(json['metro_distance']),
+      highwayDistance: _s(json['highway_distance']),
+      mainMarketDistance: _s(json['main_market_distance']),
+      meter: _s(json['meter']),
+      ownerName: _s(json['owner_name']),
+      ownerNumber: _s(json['owner_number']),
+      currentDate: _s(json['current_dates']),
+      // your API sometimes sends ISO datetime; we keep it as raw string
+      availableDate: _s(json['available_date']),
+      kitchen: _s(json['kitchen']),
+      bathroom: _s(json['bathroom']),
+      lift: _s(json['lift']),
+      facility: _s(json['Facility']),
+      furnishing: _s(json['furnished_unfurnished']),
+      fieldWorkerName: _s(json['field_warkar_name']),
+      liveUnlive: _s(json['live_unlive']),
+      fieldWorkerNumber: _s(json['field_workar_number']),
+      registryAndGpa: _s(json['registry_and_gpa']),
+      loan: _s(json['loan']),
+      fieldWorkerCurrentLocation: _s(json['field_worker_current_location']),
+      caretakerName: _s(json['care_taker_name']),
+      caretakerNumber: _s(json['care_taker_number']),
+      longitude: _s(json['Longitude']),
+      latitude: _s(json['Latitude']),
+      videoLink: _s(json['video_link']),
+      subid: _i(json['subid']),
+      sourceId: json['source_id']?.toString(), // NEW
     );
   }
 }
@@ -243,23 +250,42 @@ class _View_DetailsState extends State<View_Details> {
   }
 
   Future<List<Catid>> fetchData(int id) async {
-    print(id);
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id");
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
+    );
+
     final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      List<dynamic> listResponse = json.decode(response.body);
-      final properties =
-      listResponse.map((data) => Catid.fromJson(data)).toList();
-
-      if (properties.isNotEmpty) {
-        firstProperty = properties.first; // store first property
-      }
-      return properties;
-    } else {
-      throw Exception('Unexpected error occurred!');
+    if (response.statusCode != 200) {
+      throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
+
+    // Print for debugging if you're feeling brave
+    // print(response.body);
+
+    final decoded = json.decode(response.body);
+
+    // Expecting { success: true, data: [...] }
+    final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
+
+    // Normalize to a list
+    final List<Map<String, dynamic>> listResponse;
+    if (raw is List) {
+      listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else if (raw is Map) {
+      listResponse = [Map<String, dynamic>.from(raw)];
+    } else {
+      listResponse = const [];
+    }
+
+    final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
+
+    // If you keep a top-level `firstProperty`, set it here. Otherwise delete this.
+    // if (properties.isNotEmpty) {
+    //   firstProperty = properties.first;
+    // }
+
+    return properties;
   }
 
 
@@ -658,11 +684,22 @@ class _View_DetailsState extends State<View_Details> {
                             title: "Property Details",
                             isDarkMode: isDarkMode,
                           ),
-                          _FactChip(
-                            icon: Icons.install_desktop_sharp,
-                            label: "Property Id : "+ property.id.toString(),
-                            color: Colors.lightGreen,
-                            isDarkMode: isDarkMode,
+                          Row(
+                            children: [
+                              _FactChip(
+                                icon: Icons.install_desktop_sharp,
+                                label: "Property Id : "+ property.sourceId.toString(),
+                                color: Colors.lightGreen,
+                                isDarkMode: isDarkMode,
+                              ),
+                              SizedBox(width: 8,),
+                              _FactChip(
+                                icon: Icons.nineteen_mp_outlined,
+                                label: "Building Id : "+ property.subid.toString(),
+                                color: Colors.lightBlue,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ],
                           ),
 
                           // Full Address
@@ -682,8 +719,7 @@ class _View_DetailsState extends State<View_Details> {
                           SizedBox(height: 10,),
                           InkWell(
                             onTap: () async {
-                              final address = property
-                                  .fieldWorkerCurrentLocation;
+                              final address = property.fieldWorkerCurrentLocation;
                               final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
 
                               if (await canLaunchUrl(url)) {

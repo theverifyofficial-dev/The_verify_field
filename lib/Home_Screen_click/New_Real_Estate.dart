@@ -21,11 +21,14 @@ import 'View_All_Details.dart';
 
 class NewRealEstateShowDateModel {
   final int? pId;
-  final int? sId;
+  final int? sId; // subid
+  final String? sourceId; // NEW
   final String? propertyPhoto;
   final String? locations;
   final String? flatNumber;
   final String? buyRent;
+  final String? residenceCommercial; // NEW
+  final String? apartmentName;       // NEW
   final String? apartmentAddress;
   final String? typeOfProperty;
   final String? bhk;
@@ -56,6 +59,7 @@ class NewRealEstateShowDateModel {
   final String? furnishedUnfurnished;
   final String? fieldWorkerName;
   final String? fieldWorkerNumber;
+  final String? liveUnlive; // NEW
   final String? registryAndGpa;
   final String? loan;
   final String? longitude;
@@ -66,12 +70,15 @@ class NewRealEstateShowDateModel {
   final String? video;
 
   NewRealEstateShowDateModel({
-    this.sId,
     this.pId,
+    this.sId,
+    this.sourceId,
     this.propertyPhoto,
     this.locations,
     this.flatNumber,
     this.buyRent,
+    this.residenceCommercial,
+    this.apartmentName,
     this.apartmentAddress,
     this.typeOfProperty,
     this.bhk,
@@ -102,6 +109,7 @@ class NewRealEstateShowDateModel {
     this.furnishedUnfurnished,
     this.fieldWorkerName,
     this.fieldWorkerNumber,
+    this.liveUnlive,
     this.registryAndGpa,
     this.loan,
     this.longitude,
@@ -112,53 +120,119 @@ class NewRealEstateShowDateModel {
     this.video,
   });
 
+  // tiny helpers so backend shenanigans don't break you
+  static int? _asInt(dynamic v) {
+    if (v == null) return null;
+    if (v is int) return v;
+    return int.tryParse(v.toString());
+  }
+
+  static String? _asStr(dynamic v) => v?.toString();
+
   factory NewRealEstateShowDateModel.fromJson(Map<String, dynamic> json) {
     return NewRealEstateShowDateModel(
-      pId: json['P_id'],
-      sId: json['subid'],
-      propertyPhoto: json['property_photo'],
-      locations: json['locations'],
-      flatNumber: json['Flat_number'],
-      buyRent: json['Buy_Rent'],
-      apartmentAddress: json['Apartment_Address'],
-      typeOfProperty: json['Typeofproperty'],
-      bhk: json['Bhk'],
-      showPrice: json['show_Price'],
-      lastPrice: json['Last_Price'],
-      askingPrice: json['asking_price'],
-      floor: json['Floor_'],
-      totalFloor: json['Total_floor'],
-      balcony: json['Balcony'],
-      squarefit: json['squarefit'],
-      maintance: json['maintance'],
-      parking: json['parking'],
-      ageOfProperty: json['age_of_property'],
-      fieldWorkerAddress: json['fieldworkar_address'],
-      roadSize: json['Road_Size'],
-      metroDistance: json['metro_distance'],
-      highwayDistance: json['highway_distance'],
-      mainMarketDistance: json['main_market_distance'],
-      meter: json['meter'],
-      ownerName: json['owner_name'],
-      ownerNumber: json['owner_number'],
-      currentDates: json['current_dates'],
-      availableDate: json['available_date'],
-      kitchen: json['kitchen'],
-      bathroom: json['bathroom'],
-      lift: json['lift'],
-      facility: json['Facility'],
-      furnishedUnfurnished: json['furnished_unfurnished'],
-      fieldWorkerName: json['field_warkar_name'],
-      fieldWorkerNumber: json['field_workar_number'],
-      registryAndGpa: json['registry_and_gpa'],
-      loan: json['loan'],
-      longitude: json['Longitude'],
-      latitude: json['Latitude'],
-      fieldWorkerCurrentLocation: json['field_worker_current_location'],
-      careTakerName: json['care_taker_name'],
-      careTakerNumber: json['care_taker_number'],
-      video: json['video_link'],
+      pId: _asInt(json['P_id']),
+      sId: _asInt(json['subid']),
+      sourceId: _asStr(json['source_id']), // "921" in your sample
+      propertyPhoto: _asStr(json['property_photo']),
+      locations: _asStr(json['locations']),
+      flatNumber: _asStr(json['Flat_number']),
+      buyRent: _asStr(json['Buy_Rent']),
+      residenceCommercial: _asStr(json['Residence_Commercial']),
+      apartmentName: _asStr(json['Apartment_name']),
+      apartmentAddress: _asStr(json['Apartment_Address']),
+      typeOfProperty: _asStr(json['Typeofproperty']),
+      bhk: _asStr(json['Bhk']),
+      showPrice: _asStr(json['show_Price']),
+      lastPrice: _asStr(json['Last_Price']),
+      askingPrice: _asStr(json['asking_price']),
+      floor: _asStr(json['Floor_']),
+      totalFloor: _asStr(json['Total_floor']),
+      balcony: _asStr(json['Balcony']),
+      squarefit: _asStr(json['squarefit']),
+      maintance: _asStr(json['maintance']),
+      parking: _asStr(json['parking']),
+      ageOfProperty: _asStr(json['age_of_property']),
+      fieldWorkerAddress: _asStr(json['fieldworkar_address']),
+      roadSize: _asStr(json['Road_Size']),
+      metroDistance: _asStr(json['metro_distance']),
+      highwayDistance: _asStr(json['highway_distance']),
+      mainMarketDistance: _asStr(json['main_market_distance']),
+      meter: _asStr(json['meter']),
+      ownerName: _asStr(json['owner_name']),
+      ownerNumber: _asStr(json['owner_number']),
+      currentDates: _asStr(json['current_dates']),
+      availableDate: _asStr(json['available_date']),
+      kitchen: _asStr(json['kitchen']),
+      bathroom: _asStr(json['bathroom']),
+      lift: _asStr(json['lift']),
+      facility: _asStr(json['Facility']),
+      furnishedUnfurnished: _asStr(json['furnished_unfurnished']),
+      fieldWorkerName: _asStr(json['field_warkar_name']),
+      fieldWorkerNumber: _asStr(json['field_workar_number']),
+      liveUnlive: _asStr(json['live_unlive']),
+      registryAndGpa: _asStr(json['registry_and_gpa']),
+      loan: _asStr(json['loan']),
+      longitude: _asStr(json['Longitude']),
+      latitude: _asStr(json['Latitude']),
+      fieldWorkerCurrentLocation: _asStr(json['field_worker_current_location']),
+      careTakerName: _asStr(json['care_taker_name']),
+      careTakerNumber: _asStr(json['care_taker_number']),
+      video: _asStr(json['video_link']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'P_id': pId,
+      'subid': sId,
+      'source_id': sourceId,
+      'property_photo': propertyPhoto,
+      'locations': locations,
+      'Flat_number': flatNumber,
+      'Buy_Rent': buyRent,
+      'Residence_Commercial': residenceCommercial,
+      'Apartment_name': apartmentName,
+      'Apartment_Address': apartmentAddress,
+      'Typeofproperty': typeOfProperty,
+      'Bhk': bhk,
+      'show_Price': showPrice,
+      'Last_Price': lastPrice,
+      'asking_price': askingPrice,
+      'Floor_': floor,
+      'Total_floor': totalFloor,
+      'Balcony': balcony,
+      'squarefit': squarefit,
+      'maintance': maintance,
+      'parking': parking,
+      'age_of_property': ageOfProperty,
+      'fieldworkar_address': fieldWorkerAddress,
+      'Road_Size': roadSize,
+      'metro_distance': metroDistance,
+      'highway_distance': highwayDistance,
+      'main_market_distance': mainMarketDistance,
+      'meter': meter,
+      'owner_name': ownerName,
+      'owner_number': ownerNumber,
+      'current_dates': currentDates,
+      'available_date': availableDate,
+      'kitchen': kitchen,
+      'bathroom': bathroom,
+      'lift': lift,
+      'Facility': facility,
+      'furnished_unfurnished': furnishedUnfurnished,
+      'field_warkar_name': fieldWorkerName,
+      'field_workar_number': fieldWorkerNumber,
+      'live_unlive': liveUnlive,
+      'registry_and_gpa': registryAndGpa,
+      'loan': loan,
+      'Longitude': longitude,
+      'Latitude': latitude,
+      'field_worker_current_location': fieldWorkerCurrentLocation,
+      'care_taker_name': careTakerName,
+      'care_taker_number': careTakerNumber,
+      'video_link': video,
+    };
   }
 }
 
@@ -234,24 +308,41 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
-    var url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=$number&live_unlive=Live",
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+          "?field_workar_number=$number&live_unlive=Live",
     );
 
     final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-// print(response.body);
-      // You can sort by "P_id" since that's available
-      listResponse.sort((a, b) => b['P_id'].compareTo(a['P_id']));
-
-      return listResponse
-          .map((data) => NewRealEstateShowDateModel.fromJson(data))
-          .toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
+    if (response.statusCode != 200) {
+      throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
+
+    final decoded = json.decode(response.body);
+
+    // Most backends wrap results like { success: true, data: [...] }
+    final raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
+
+    // Normalize to a List<Map<String,dynamic>>
+    final List<Map<String, dynamic>> listResponse;
+    if (raw is List) {
+      listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else if (raw is Map) {
+      listResponse = [Map<String, dynamic>.from(raw)];
+    } else {
+      listResponse = const [];
+    }
+
+    // Sort by P_id desc, even if P_id comes as String sometimes
+    int _asInt(dynamic v) =>
+        v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
+
+    listResponse.sort((a, b) => _asInt(b['P_id']).compareTo(_asInt(a['P_id'])));
+
+    return listResponse
+        .map((data) => NewRealEstateShowDateModel.fromJson(data))
+        .toList();
   }
 
   @override
@@ -643,7 +734,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               _buildFeatureItem(
                                                 context: context,
                                                 // icon: Icons.king_bed,
-                                                text: "Property: ${_filteredProperties[index].pId}",
+                                                text: "Property ID : ${_filteredProperties[index].sourceId}",
                                                 borderColor: Colors.grey.shade700,
                                                 backgroundColor: Colors.white,
                                                 textColor: Colors.blue,

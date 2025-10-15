@@ -38,14 +38,14 @@ class LinksPage extends StatelessWidget {
                     leading: const Icon(Icons.share, color: Colors.green),
                     title: Text(link["title"]!),
                     onTap: () async {
-                      // final url = link["url"]!;
-                      // final isMap = url.contains("google.com/maps");
-                      //
-                      // final message = isMap
-                      //     ? "📍 Here's our office location:\n${link["title"]}\n$url"
-                      //     : "🏠 Check this property on Verify:\n${link["title"]}\n$url";
-                      //
-                      // await Share.share(message, subject: "Verify Real Estate");
+                      final url = link["url"]!;
+                      final isMap = url.contains("google.com/maps");
+
+                      final message = isMap
+                          ? "📍 Here's our office location:\n${link["title"]}\n$url"
+                          : "🏠 Check this property on Verify:\n${link["title"]}\n$url";
+
+                      await Share.share(message, subject: "Verify Real Estate");
                     },
                   );
                 }).toList(),
@@ -191,9 +191,9 @@ class LinksPage extends StatelessWidget {
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () async {
-                  // final message =
-                  //     "📍 Here's our office location:\nVerify Real Estate & Services\n$officeUrl";
-                  // await Share.share(message, subject: "Verify Office Location");
+                  final message =
+                      "📍 Here's our office location:\nVerify Real Estate & Services\n$officeUrl";
+                  await Share.share(message, subject: "Verify Office Location");
                 },
                 icon: const Icon(Icons.share),
                 label: const Text("Share"),

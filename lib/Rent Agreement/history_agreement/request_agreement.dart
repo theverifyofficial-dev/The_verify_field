@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Rent%20Agreement/Forms/Renewal_form.dart';
 
 import '../../model/agrement_model.dart';
 import '../Forms/Agreement_Form.dart';
@@ -46,9 +47,9 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         page = ExternalWizardPage(agreementId: agreement.id);
         break;
 
-      // case "lease":
-      //   page = LeaseAgreementForm(agreementId: agreement.id);
-      //   break;
+      case "renewal agreement":
+        page = RenewalForm(agreementId: agreement.id);
+        break;
 
       default:
         ScaffoldMessenger.of(context).showSnackBar(
@@ -142,8 +143,6 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
               ],
             ),
             const SizedBox(height: 8),
-
-            // Address
             Text(
               "Property Address: ${agreement.rentedAddress}",
               style: const TextStyle(fontSize: 14),

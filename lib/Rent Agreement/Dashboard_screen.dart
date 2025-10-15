@@ -4,6 +4,7 @@ import '../constant.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Form.dart';
+import 'Forms/Renewal_form.dart';
 
 class AgreementDashboard extends StatelessWidget {
   const AgreementDashboard({super.key});
@@ -94,6 +95,12 @@ class AgreementDashboard extends StatelessWidget {
             MaterialPageRoute(builder: (context) => const ExternalWizardPage()),
             );
           }),
+          // _buildSectionItem("Renewal", Icons.timer, () {
+          //   Navigator.push(
+          //     context,
+          //     MaterialPageRoute(builder: (context) => const RenewalForm()),
+          //   );
+          // }),
         ],
       ),
     );

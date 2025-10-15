@@ -12,6 +12,7 @@ import '../../constant.dart';
 import '../Administrator/All_Rented_Flat/AdministatorPropertyDetailPage.dart';
 import '../Administrator/All_Rented_Flat/Pending_Add _Property_Form.dart';
 import '../Administrator/All_Rented_Flat/Pending_Property_Update_Form.dart';
+import '../Administrator/All_Rented_Flat/PropertyCalculationPage.dart';
 import 'All_finacial.dart';
 class Property {
   final int id;
@@ -68,6 +69,8 @@ class Property {
   final String extraExpense;
   final String advancePayment;
   final String totalBalance;
+  final String secondAmount;
+  final String finalAmount;
 
   Property({
     required this.id,
@@ -122,6 +125,8 @@ class Property {
     required this.extraExpense,
     required this.advancePayment,
     required this.totalBalance,
+    required this.finalAmount,
+    required this.secondAmount
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -178,6 +183,8 @@ class Property {
       extraExpense: json["Extra_Expense"] ?? "",
       advancePayment: json["Advance_Payment"] ?? "",
       totalBalance: json["Total_Balance"] ?? "",
+      secondAmount: json["second_amount"] ?? "",
+      finalAmount: json["final_amount"] ?? "",
     );
   }
 }
@@ -353,6 +360,136 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
       throw Exception("Failed to load tenants");
     }
   }
+  void _openAmountSheet(
+      BuildContext context,
+      int pId,
+      String title,
+      String apiUrl,
+      String fieldName,
+      ) {
+    final controller = TextEditingController();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: controller,
+                keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: "Enter Amount",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    final amount = controller.text.trim();
+                    if (amount.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("Please enter amount")),
+                      );
+                      return;
+                    }
+
+                    Navigator.pop(context,true); // close sheet
+                    await _sendAmount(context, pId, apiUrl, fieldName, amount);
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                  child: const Text("Save",style: TextStyle(color: Colors.white),),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+  Future<void> _sendAmount(
+      BuildContext context,
+      int pId,
+      String apiUrl,
+      String fieldName,
+      String amount,
+      ) async {
+    try {
+      final resp = await http.post(
+        Uri.parse(apiUrl),
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: {"P_id": pId.toString(), fieldName: amount},
+      );
+
+      String message;
+
+      if (resp.statusCode == 200) {
+        try {
+          final data = json.decode(resp.body);
+          message = data["message"]?.toString() ??
+              data["status"]?.toString() ??
+              resp.body.toString();
+        } catch (_) {
+          message = resp.body.toString();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("✅ Response: $message"),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+
+        // ---- REFRESH PAGE ----
+        if (context.mounted) {
+          // re-call your refresh or rebuild function here
+          if (context.findAncestorStateOfType<_FieldWorkerPendingFlatsState>() != null) {
+            final parentState = context.findAncestorStateOfType<_FieldWorkerPendingFlatsState>()!;
+            parentState._onRefresh(); // this re-fetches your data
+          }
+        }
+
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("❌ HTTP ${resp.statusCode}: ${resp.body}"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("⚠️ Error: $e"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+
 
   @override
   void initState() {
@@ -504,8 +641,44 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                               _buildDetailRow("Security", "₹ ${item.security}"),
                               _buildDetailRow("Commission", "₹ ${item.commission}"),
                               _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
+                              _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
                               _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
-                              _buildDetailRow("Balance", "₹ ${item.totalBalance}"),
+                              _buildDetailRow("Second Amount", "₹ ${item.secondAmount}"),
+                              _buildDetailRow("Final Payment", "₹ ${item.finalAmount}"),
+                              // --- Two Buttons (Open Sheets) ---
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                    onPressed: () {
+                                      _openAmountSheet(
+                                        context,
+                                        item.id,
+                                        "Second Amount",
+                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
+                                        "second_amount",
+                                      );
+                                    },
+                                    child: const Text("Set 2nd Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),),
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
+                                    onPressed: () {
+                                      _openAmountSheet(
+                                        context,
+                                        item.id,
+                                        "Final Amount",
+                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/final_amount.php",
+                                        "final_amount",
+                                      );
+                                    },
+                                    child: const Text("Set Final Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),),
+                                  ),
+                                ],
+                              ),
+
+
                             ],
                           ),
                         ),
@@ -600,7 +773,6 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                       children: [
                                         _buildTag(owner.ownerName, Colors.deepPurple),
                                         _buildTag(owner.ownerNumber, Colors.teal),
-                                        _buildTag(owner.paymentMode, Colors.orange),
                                         SizedBox(height: 10,),
                                         Container(
                                           padding: const EdgeInsets.all(10),
@@ -611,9 +783,7 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                           ),
                                           child: Column(
                                             children: [
-                                              _buildDetailRow("Advance: ","₹ ${owner.advanceAmount}"),
-                                              _buildDetailRow("Rent: ", "₹ ${owner.rent}"),
-                                              _buildDetailRow("Security: ", "₹ ${owner.securitys}"),
+                                              _buildDetailRow("Commission: ","₹ ${owner.paymentMode}"),
                                             ],
                                           ),
                                         ),
@@ -641,31 +811,25 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                             ),
                             Row(
                               children: [
-                                FutureBuilder<List<Property>>(
-                                    future: fetchBookingData(),
-                                    builder: (context, snapshot) {
-                                      return _buildTenantButton(
-                                        label: "Add",
-                                        color: Colors.green,
-                                        onTap: () async {
-                                          print(item.id);
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) =>
-                                                  TenantPaymentFlowPage(
-                                                      propertyId: item.id.toString()),
-                                            ),
-                                          );
+                                _buildTenantButton(
+                                  label: "Add Billing",
+                                  color: Colors.blue,
+                                  onTap: () async {
+                                    // wherever you have the current property's id:
+                                    final int propertyId = item.id; // or however you get it
 
-                                          if (result == true) {
-                                            // refresh UI if owner was added
-                                            _onRefresh();
-                                          }
-                                        },
+                                    final ok = await Navigator.push<bool>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PropertyCalculate(propertyId: propertyId),
+                                      ),
+                                    );
 
-                                      );
-                                    }),
+                                    if (ok == true) {
+                                      _onRefresh();
+                                    }
+                                  },
+                                ),
                                 SizedBox(width: 10,),
                                 FutureBuilder<List<OwnerData>>(
                                   future: fetchPersonDetail(item.id),

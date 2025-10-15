@@ -51,12 +51,16 @@ class _ActionFormState extends State<ActionForm> {
       extra = double.tryParse(extraExpenseController.text.replaceAll(',', '')) ?? 0;
       advance = double.tryParse(advanceController.text.replaceAll(',', '')) ?? 0;
 
+      // ✅ Only add these, don't subtract advance
       addPart = rent + security + commission + extra;
-      _finalBalance = addPart - advance;
+      _finalBalance = addPart;
 
-      balanceController.text = _finalBalance > 0 ? _indianFormat.format(_finalBalance) : '';
+      balanceController.text = _finalBalance > 0
+          ? _indianFormat.format(_finalBalance)
+          : '';
     });
   }
+
   String _calculationText = "";
 
   Future<void> sendData() async {
@@ -135,6 +139,7 @@ class _ActionFormState extends State<ActionForm> {
               children: [
                 const SizedBox(height: 6),
 
+
                 _buildInputField("Rent", "e.g. 15000", rentController, Icons.home_work_rounded),
                 const SizedBox(height: 16),
                 _buildInputField("Security", "e.g. 30000", securityController, Icons.security),
@@ -143,10 +148,7 @@ class _ActionFormState extends State<ActionForm> {
                 const SizedBox(height: 16),
                 _buildInputField("Extra Expense", "e.g. 5000", extraExpenseController, Icons.money_off, isOptional: true, ),// optional parameter),
                 const SizedBox(height: 16),
-                _buildInputField("Advance Payment", "e.g. 10000", advanceController, Icons.payments),
-                const SizedBox(height: 16),
-
-                _buildInputField("Total Balance", "Auto calculated", balanceController, Icons.account_balance_wallet_outlined),
+                _buildInputField("Total Amount", "Auto calculated", balanceController, Icons.account_balance_wallet_outlined),
                 const SizedBox(height: 16),
                 Card(
 
@@ -177,20 +179,19 @@ class _ActionFormState extends State<ActionForm> {
                         const SizedBox(height: 8),
                         Text(
                           "(${_indianFormat.format(rent)} + ${_indianFormat.format(security)} + "
-                              "${_indianFormat.format(commission)} + ${_indianFormat.format(extra)}) – "
-                              "(${_indianFormat.format(advance)})",
+                              "${_indianFormat.format(commission)} + ${_indianFormat.format(extra)})",
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
 
                         const SizedBox(height: 4),
                         Text(
-                          "(Rent + Security + Commission + Extra Expense) – Advance Payment",
+                          "Rent + Security + Commission + Extra Expense",
                           style: TextStyle(fontSize: 14, color: Colors.grey[700]),
                         ),
                         const SizedBox(height: 6),
 
                         Text(
-                          "= ${_indianFormat.format(addPart)} – ${_indianFormat.format(advance)}",
+                          "= ${_indianFormat.format(addPart)}",
                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 6),
@@ -218,6 +219,10 @@ class _ActionFormState extends State<ActionForm> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                _buildInputField("Advance Payment", "e.g. 10000", advanceController, Icons.payments),
+
+
 
                 const SizedBox(height: 80),
 

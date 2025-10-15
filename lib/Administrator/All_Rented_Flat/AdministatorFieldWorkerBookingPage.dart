@@ -433,8 +433,9 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                               _buildDetailRow("Security", "₹ ${item.security}"),
                               _buildDetailRow("Commission", "₹ ${item.commission}"),
                               _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
+                              _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
+
                               _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
-                              _buildDetailRow("Balance", "₹ ${item.totalBalance}"),
                             ],
                           ),
                         ),

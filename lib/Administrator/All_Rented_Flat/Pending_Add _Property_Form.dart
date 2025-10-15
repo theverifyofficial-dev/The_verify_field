@@ -103,6 +103,7 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
       final response = await http.post(url, body: {
         "owner_name": _ownerNameController.text,
         "owner_number": _ownerPhoneController.text,
+        "payment_mode": _advanceController.text,
         "subid": widget.propertyId,
       });
 
@@ -216,6 +217,16 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
               _buildInputField("Owner Name", _ownerNameController),
               const SizedBox(height: 16),
               _buildPhoneField("Owner Number", _ownerPhoneController,
+                inputType: TextInputType.phone,
+                icon: Icons.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              _buildPhoneField("Owner Commission", _advanceController,
                 inputType: TextInputType.phone,
                 icon: Icons.phone,
                 inputFormatters: [

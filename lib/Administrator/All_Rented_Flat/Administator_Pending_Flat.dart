@@ -12,6 +12,7 @@ import '../../constant.dart';
 import 'AdministatorPropertyDetailPage.dart';
 import 'Pending_Add _Property_Form.dart';
 import 'Pending_Property_Update_Form.dart';
+import 'PropertyCalculationPage.dart';
 class Property {
   final int id;
   final String propertyPhoto;
@@ -519,10 +520,11 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 
                               _buildDetailRow("Rent", "₹ ${item.rent}"),
                               _buildDetailRow("Security", "₹ ${item.security}"),
-                              _buildDetailRow("Commission", "₹ ${item.commission}"),
+                              _buildDetailRow("Tenant Commission", "₹ ${item.commission}"),
                               _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
-                              _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
-                              _buildDetailRow("Balance", "₹ ${item.totalBalance}"),
+                              _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
+
+                              _buildAdvancePayment("Advance Payment", "₹ ${item.advancePayment}"),
                             ],
                           ),
                         ),
@@ -617,7 +619,6 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                       children: [
                                         _buildTag(owner.ownerName, Colors.deepPurple),
                                         _buildTag(owner.ownerNumber, Colors.teal),
-                                        _buildTag(owner.paymentMode, Colors.orange),
                                         SizedBox(height: 10,),
                                         Container(
                                           padding: const EdgeInsets.all(10),
@@ -628,9 +629,8 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                           ),
                                           child: Column(
                                             children: [
-                                              _buildDetailRow("Advance: ","₹ ${owner.advanceAmount}"),
-                                              _buildDetailRow("Rent: ", "₹ ${owner.rent}"),
-                                              _buildDetailRow("Security: ", "₹ ${owner.securitys}"),
+                                              _buildDetailRow("Owner Commission: ","₹ ${owner.paymentMode}"),
+
                                             ],
                                           ),
                                         ),
@@ -658,60 +658,84 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               ),
                             ),
 
-                            FutureBuilder<List<OwnerData>>(
-                              future: fetchPersonDetail(item.id),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState == ConnectionState.waiting) {
-                                  return const SizedBox(
-                                    height: 40,
-                                    child: Center(),
-                                  );
-                                }
+                            Row(
+                              children: [
+                              _buildTenantButton(
+                              label: "Add Billing",
+                              color: Colors.blue,
+                              onTap: () async {
+                                // wherever you have the current property's id:
+                                final int propertyId = item.id; // or however you get it
 
-                                if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                                  // 👉 No Owner → Show Add Owner button
-                                  return _buildTenantButton(
-                                    label: "Add Owner Detail",
-                                    color: Colors.green,
-                                    onTap: () async {
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
-                                        ),
-                                      );
+                                final ok = await Navigator.push<bool>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => PropertyCalculate(propertyId: propertyId),
+                                  ),
+                                );
 
-                                      if (result == true) {
-                                        // refresh UI if owner was added
-                                        _onRefresh();
-                                      }
-                                    },
-                                  );
-                                }
-                                else {
-                                  final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
-                                  return _buildTenantButton(
-                                    label: "Update Owner Detail",
-                                    color: Colors.deepOrange,
-                                    onTap: () async {
-                                      print("Owner Id :"+owner.id.toString());
-                                      final result = await Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => UpdateOwnerPage(
-                                            ownerId: owner.id.toString(), // ✅ Pass ownerId
-                                            propertyId: item.id.toString(), // ✅ Pass ownerId
-                                          ),
-                                        ),
-                                      );
-
-                                      if (result == true) {
-                                        _onRefresh();
-                                      }
-                                    },
-                                  );
+                                if (ok == true) {
+                                  _onRefresh();
                                 }
                               },
+                            ),
+                                SizedBox(width: 6,),
+                                FutureBuilder<List<OwnerData>>(
+                                  future: fetchPersonDetail(item.id),
+                                  builder: (context, snapshot) {
+                                    if (snapshot.connectionState == ConnectionState.waiting) {
+                                      return const SizedBox(
+                                        height: 40,
+                                        child: Center(),
+                                      );
+                                    }
+
+                                    if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                                      // 👉 No Owner → Show Add Owner button
+                                      return _buildTenantButton(
+                                        label: "Add Owner Detail",
+                                        color: Colors.green,
+                                        onTap: () async {
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
+                                            ),
+                                          );
+
+                                          if (result == true) {
+                                            // refresh UI if owner was added
+                                            _onRefresh();
+                                          }
+                                        },
+                                      );
+                                    }
+                                    else {
+                                      final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
+                                      return _buildTenantButton(
+                                        label: "Update Owner Detail",
+                                        color: Colors.deepOrange,
+                                        onTap: () async {
+                                          print("Owner Id :"+owner.id.toString());
+                                          final result = await Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => UpdateOwnerPage(
+                                                ownerId: owner.id.toString(), // ✅ Pass ownerId
+                                                propertyId: item.id.toString(), // ✅ Pass ownerId
+                                              ),
+                                            ),
+                                          );
+
+                                          if (result == true) {
+                                            _onRefresh();
+                                          }
+                                        },
+                                      );
+                                    }
+                                  },
+                                ),
+                              ],
                             )
 
                           ],
@@ -786,6 +810,32 @@ Widget _buildDetailRow(String label, String value) {
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: Colors.black,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+Widget _buildAdvancePayment(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black54,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontFamily: "PoppinsBold",
+            color: Colors.lightBlue,
           ),
         ),
       ],

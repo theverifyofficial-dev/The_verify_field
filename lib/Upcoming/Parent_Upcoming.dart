@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Home_Screen_click/View_All_Details.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Upcoming_details.dart';
 import 'add_coming_flats.dart';

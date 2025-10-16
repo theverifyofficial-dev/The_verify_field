@@ -498,7 +498,8 @@ class _Home_ScreenState extends State<Home_Screen> {
 
   }
 }
-// Your original dashboardCard widget with animations added
+
+
 class _AnimatedDashboardCard extends StatefulWidget {
   final BuildContext context;
   final String image;

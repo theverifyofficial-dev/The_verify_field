@@ -67,6 +67,7 @@ class Catid {
   final String careTakerName;
   final String careTakerNumber;
   final int subid;
+  final String? sourceId; // NEW, nullable
 
   const Catid({
     required this.id,
@@ -116,6 +117,7 @@ class Catid {
     required this.careTakerName,
     required this.careTakerNumber,
     required this.subid,
+    required  this.sourceId,
   });
 
   factory Catid.fromJson(Map<String, dynamic> json) {
@@ -169,6 +171,7 @@ class Catid {
       json['field_worker_current_location']?.toString() ?? '',
       careTakerName: json['care_taker_name']?.toString() ?? '',
       careTakerNumber: json['care_taker_number']?.toString() ?? '',
+      sourceId: json['source_id']?.toString(), // NEW
       subid: json['subid'] is int
           ? json['subid']
           : int.tryParse(json['subid']?.toString() ?? '0') ?? 0,
@@ -243,20 +246,52 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
   int _currentIndex = 0;
 
   Future<List<Catid>> fetchData() async {
+
     final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/display_main_realesate_data_by_id?P_id=${widget.idd}",
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=${widget.idd}",
     );
 
-    // var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.idd}");
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Catid.fromJson(data)).toList();
+    final resp = await http.get(url);
+    if (resp.statusCode != 200) {
+      throw Exception("HTTP ${resp.statusCode}: ${resp.body}");
     }
-    else {
-      throw Exception('Unexpected error occured!');
+
+    // Step 1: decode the outer body
+    final decoded = json.decode(resp.body);
+
+    // Step 2: unwrap payloads (.asmx "d" or {success,data})
+    dynamic payload;
+    if (decoded is Map<String, dynamic> && decoded.containsKey('d')) {
+      // .asmx often returns {"d":"[...json...]"} or {"d": {...}}
+      final d = decoded['d'];
+      try {
+        payload = d is String ? json.decode(d) : d;
+      } catch (_) {
+        payload = d; // if it's not valid JSON string, just use as-is
+      }
+    } else if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+      payload = decoded['data'];
+    } else {
+      payload = decoded; // already the array/object
     }
+
+    // Step 3: normalize to a List<Map<String,dynamic>>
+    final List<Map<String, dynamic>> list;
+    if (payload is List) {
+      list = payload.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    } else if (payload is Map) {
+      list = [Map<String, dynamic>.from(payload)];
+    } else {
+      list = const [];
+    }
+
+    // Optional: sort by P_id desc if multiple come back
+    int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
+    list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
+
+    return list.map((m) => Catid.fromJson(m)).toList();
   }
+
 
   Future<void> Book_property() async{
     final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.idd}&looking=Book'));
@@ -418,7 +453,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
         //   ),
         // ],
       ),
-
       body: SingleChildScrollView(
         child: FutureBuilder<List<Catid>>(
             future: fetchData(),
@@ -465,9 +499,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                                 return const Text('No images available');
                               }
-
                               final List<RealEstateSlider> images = snapshot.data!;
-
                               return SizedBox(
                                 height: 200,
                                 child: PageView.builder(
@@ -485,7 +517,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                           ),
                                         );
                                       },
-
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
                                         child: Image.network(
@@ -503,7 +534,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                             },
                           ),
                         ),
-
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 18.0),
                           child: Divider(),
@@ -567,7 +597,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   ],
                                 ),
                                 SizedBox(height: 16),
-
                                 // Price Section
                                 Container(
                                   padding: EdgeInsets.all(12),
@@ -600,7 +629,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                   ),
                                 ),
                                 SizedBox(height: 16),
-
                                 // Property Information Sections
                                 _buildSection(
                                   title: 'Property Information',
@@ -629,7 +657,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     _buildInfoRow('Furnished', "${abc.data![len].furnishedUnfurnished}, ${abc.data![len].apartmentName}"),
                                   ],
                                 ),
-
                                 _buildSection(
                                   title: 'Facilities',
                                   icon: Icons.emoji_food_beverage_outlined,
@@ -715,7 +742,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     ),
                                   ],
                                 ),
-
                                 _buildSection(
                                   title: 'CareTaker',
                                   icon: Icons.support_agent_outlined,
@@ -727,7 +753,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     ),
                                   ],
                                 ),
-
                                 _buildSection(
                                   title: 'Field Worker',
                                   icon: Icons.engineering_outlined,
@@ -737,7 +762,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     _buildInfoRow('Address', abc.data![len].fieldWorkerAddress),
                                   ],
                                 ),
-
                                 // Additional Info
                                 _buildSection(
                                   title: 'Additional Information',
@@ -747,7 +771,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     _buildInfoRow('Show Price', abc.data![len].showPrice),
                                     _buildInfoRow('Ask Price', abc.data![len].askingPrice),
                                     _buildInfoRow('Last Price', abc.data![len].lastPrice),
-                                    _buildInfoRow('Property ID', abc.data![len].id.toString(),),
+                                    _buildInfoRow('Property ID', abc.data![len].sourceId.toString(),),
                                   ],
                                 ),
                               ],
@@ -759,18 +783,12 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                     );
                   },
                 );
-
               }
-
-
             }
-
         ),
       ),
-
     );
   }
-
   Widget _buildSection({required String title, required IconData icon, required List<Widget> children}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -825,7 +843,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
       ),
     );
   }
-
   Widget _buildContactRow({required String name, required String number, required BuildContext context}) {
     return Column(
       children: [
@@ -872,7 +889,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
       ],
     );
   }
-
   Widget _buildDetailChip(String text, Color color) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -901,7 +917,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
 
   }
-
   void _launchDialer(String phoneNumber) async {
     final Uri launchUri = Uri(
       scheme: 'tel',
@@ -913,5 +928,4 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
       throw 'Could not launch $phoneNumber';
     }
   }
-
 }

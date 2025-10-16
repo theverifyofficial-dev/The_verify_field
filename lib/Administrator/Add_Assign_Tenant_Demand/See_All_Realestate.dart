@@ -56,6 +56,7 @@ class Catid {
   final String careTakerName;
   final String careTakerNumber;
   final int subid;
+  final String? sourceId; // NEW, nullable
 
   const Catid({
     required this.id,
@@ -105,6 +106,8 @@ class Catid {
     required this.careTakerName,
     required this.careTakerNumber,
     required this.subid,
+    this.sourceId, // NEW
+
   });
 
   factory Catid.fromJson(Map<String, dynamic> json) {
@@ -158,6 +161,8 @@ class Catid {
       json['field_worker_current_location']?.toString() ?? '',
       careTakerName: json['care_taker_name']?.toString() ?? '',
       careTakerNumber: json['care_taker_number']?.toString() ?? '',
+      sourceId: json['source_id']?.toString(), // NEW
+
       subid: json['subid'] is int
           ? json['subid']
           : int.tryParse(json['subid']?.toString() ?? '0') ?? 0,
@@ -230,23 +235,56 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
   Future<void> _loadData() async {
     try {
       final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=${widget.id}&live_unlive=Live",
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+            "?field_workar_number=${widget.id}&live_unlive=Live",
       );
-      final response = await http.get(url);
 
-      if (response.statusCode == 200) {
-        final body = json.decode(response.body);
-
-        if (body is List) {
-          final reversedList = body.reversed.toList();
-          setState(() {
-            _allData = reversedList.map((data) => Catid.fromJson(data)).toList();
-            _filteredData = List.from(_allData); // copy initially
-          });
-        }
+      final resp = await http.get(url);
+      if (resp.statusCode != 200) {
+        debugPrint("HTTP ${resp.statusCode}: ${resp.body}");
+        return;
       }
+
+      final decoded = json.decode(resp.body);
+
+      // --- unwrap payloads: {success,data} or .asmx {"d":"[...]"}
+      dynamic payload;
+      if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+        payload = decoded['data'];
+      } else if (decoded is Map<String, dynamic> && decoded.containsKey('d')) {
+        final d = decoded['d'];
+        try {
+          payload = d is String ? json.decode(d) : d;
+        } catch (_) {
+          payload = d;
+        }
+      } else {
+        payload = decoded;
+      }
+
+      // --- normalize to List<Map<String,dynamic>>
+      List<Map<String, dynamic>> list;
+      if (payload is List) {
+        list = payload.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+      } else if (payload is Map) {
+        list = [Map<String, dynamic>.from(payload)];
+      } else {
+        list = const [];
+      }
+
+      // --- newest first by P_id (even if it comes as string)
+      int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
+      list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
+
+      final items = list.map((m) => Catid.fromJson(m)).toList();
+
+      if (!mounted) return;
+      setState(() {
+        _allData = items;
+        _filteredData = List<Catid>.from(_allData);
+      });
     } catch (e) {
-      print("fetchData error: $e");
+      debugPrint("fetchData error: $e");
     }
   }
   String _formatDate(String? dateString) {
@@ -647,7 +685,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                                     _buildIdBadge(
                                       context: context,
                                       label: "PROPERTY ID #",
-                                      value: item.id.toString(),
+                                      value: item.sourceId.toString(),
                                     ),
                                   ],
                                 ),

@@ -846,5 +846,4 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
       ),
     );
   }
-
 }

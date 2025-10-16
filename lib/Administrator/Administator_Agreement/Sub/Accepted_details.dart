@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
@@ -613,26 +614,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
             const SizedBox(height: 20),
 
-            // 🔹 Preview PDF Button (full width, big button)
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              width: double.infinity, // make it full width
-              child: ElevatedButton.icon(
-                onPressed: (){
-                  _handleGeneratePdf();
-                },
-                icon: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                label: const Text(
-                  "Generate Agreement",
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 16), // increase height
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-            ),
+            GenerateAgreementButton(onGenerate: _handleGeneratePdf),
 
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -946,6 +928,88 @@ class ElevatedGradientButton extends StatelessWidget {
               style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w600)),
         ]),
+      ),
+    );
+  }
+}
+
+class GenerateAgreementButton extends StatefulWidget {
+  final Future<void> Function() onGenerate;
+
+  const GenerateAgreementButton({super.key, required this.onGenerate});
+
+  @override
+  State<GenerateAgreementButton> createState() => _GenerateAgreementButtonState();
+}
+
+class _GenerateAgreementButtonState extends State<GenerateAgreementButton> {
+  bool _isLoading = false;
+  int _countdown = 0;
+  Timer? _timer;
+
+  Future<void> _startCountdown() async {
+    setState(() {
+      _isLoading = true;
+      _countdown = 5; // seconds (you can change this)
+    });
+
+    // Start countdown
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_countdown == 0) {
+        timer.cancel();
+      } else {
+        setState(() {
+          _countdown--;
+        });
+      }
+    });
+
+    // Execute your function
+    await widget.onGenerate();
+
+    // Stop loader after done
+    _timer?.cancel();
+    setState(() {
+      _isLoading = false;
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _isLoading ? null : _startCountdown,
+        icon: _isLoading
+            ? const SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            color: Colors.white,
+            strokeWidth: 2,
+          ),
+        )
+            : const Icon(Icons.picture_as_pdf, color: Colors.white),
+        label: Text(
+          _isLoading
+              ? 'Generating ($_countdown s)...'
+              : 'Generate Agreement',
+          style: const TextStyle(
+              color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.blue,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape:
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
     );
   }

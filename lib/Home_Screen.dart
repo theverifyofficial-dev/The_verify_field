@@ -381,7 +381,6 @@ class _Home_ScreenState extends State<Home_Screen> {
                           MaterialPageRoute(
                               builder: (_) => Show_New_Real_Estate())),
                     },
-
                     {
                       "image": AppImages.documents,
                       "title": "Verification",

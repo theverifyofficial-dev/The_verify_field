@@ -500,9 +500,12 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         clause('24. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
         pw.SizedBox(height: 6),
 
-        if (agreement_type.trim().toLowerCase() != "external rental agreement")
-
-          clause('25. Mediator:', 'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.'),
+      if (agreement_type.trim().toLowerCase() != "external rental agreement" &&
+      agreement_type.trim().toLowerCase() != "renewal agreement")
+        clause(
+        '25. Mediator:',
+        'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.',
+        ),
 
         pw.SizedBox(height: 18),
         pw.Text('IN WITNESS WHEREOF, both the parties have signed this Deed of Agreement on the day, month and year first above written. That both the parties have read and understood the contents of this Agreement and have signed the same without any force or pressure from any side.', style: baseStyle),

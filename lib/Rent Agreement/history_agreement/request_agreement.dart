@@ -159,63 +159,74 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
             // ✅ Status + message info
             // ✅ Status + message info
             if (agreement.status != null) ...[
-              Row(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "Status: ",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Status: ",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      Text(
+                        agreement.status!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: agreement.status!.toLowerCase() == "rejected"
+                              ? Colors.red
+                              : Colors.green,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      const Text(
+                        "Message: ",
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      ),
+                      // 👇 Flexible allows the message text to wrap when long
+                      Expanded(
+                        child: Text(
+                          agreement.messages ?? '',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: agreement.status!.toLowerCase() == "fields updated"
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                          softWrap: true,
+                          overflow: TextOverflow.visible,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    agreement.status!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: agreement.status!.toLowerCase() == "rejected"
-                          ? Colors.red
-                          : Colors.green,
-                    ),
-                  ),
-                  SizedBox(width: 20,),
 
-                   Text(
-                    "Message: ",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                  ),
-                  Text(
-                    agreement.messages!,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: agreement.status!.toLowerCase() == "fields Updated"
-                          ? Colors.green
-                          : Colors.red,
-                    ),
-                  ),
-                ],
-              ),
-
-              // Show message + Edit button (only for rejected with message)
-              if (agreement.status!.toLowerCase() == "rejected" &&
-                  agreement.messages != null &&
-                  agreement.messages!.isNotEmpty) ...[
-
-                const SizedBox(height: 4),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: ElevatedButton(
-                    onPressed: () => _navigateToEditForm(context, agreement),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  // Show message + Edit button (only for rejected)
+                  if (agreement.status!.toLowerCase() == "rejected" &&
+                      agreement.messages != null &&
+                      agreement.messages!.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: ElevatedButton(
+                        onPressed: () => _navigateToEditForm(context, agreement),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        child: const Text(
+                          "Edit",
+                          style: TextStyle(color: Colors.white),
+                        ),
                       ),
                     ),
-                    child: const Text("Edit", style: TextStyle(color: Colors.white)),
-                  ),
-                ),
-              ],
+                  ],
+                ],
+              ),
             ],
-
 
             const SizedBox(height: 10),
 

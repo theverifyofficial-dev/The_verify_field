@@ -32,6 +32,19 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: const Row(
+            children: [
+              SizedBox(width: 3),
+              Icon(
+                PhosphorIcons.caret_left_bold,
+                color: Colors.white,
+                size: 30,
+              ),
+            ],
+          ),
         ),
 
         actions:  [

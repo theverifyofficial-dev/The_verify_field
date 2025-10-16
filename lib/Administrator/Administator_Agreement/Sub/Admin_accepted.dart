@@ -120,10 +120,8 @@ class _AgreementDetailsState extends State<AdminAccepted> {
 
   String _formatDate(String rawDate) {
     try {
-      // Sometimes API might return null or empty
       if (rawDate.isEmpty) return "N/A";
 
-      // Parse directly
       final date = DateTime.parse(rawDate);
 
       return "${_twoDigits(date.day)}-${_twoDigits(date.month)}-${date.year}";

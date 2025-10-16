@@ -194,7 +194,7 @@ class _AgreementDetailsState extends State<AllData> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text("Type: ${item.agreementType}"),
+                          Text("Type: ${item.agreementType}",style: TextStyle(color: Colors.amber),),
                           Row(
                             mainAxisAlignment:
                             MainAxisAlignment.spaceBetween,

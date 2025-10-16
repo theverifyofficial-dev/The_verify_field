@@ -2226,7 +2226,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 Text(
                                                   "Metro Name : " +
                                                       abc.data![len]
-                                                          .highwayDistance,
+                                                          .metroDistance,
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                   maxLines: 2,
@@ -2242,7 +2242,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                 Text(
                                                   "Metro Distance : " +
                                                       abc.data![len]
-                                                          .metroDistance,
+                                                          .highwayDistance,
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                   maxLines: 2,

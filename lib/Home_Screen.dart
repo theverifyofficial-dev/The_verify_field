@@ -369,7 +369,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(5, (index) {
+                children: List.generate(8, (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -424,36 +424,36 @@ class _Home_ScreenState extends State<Home_Screen> {
                     )),
                     },
 
-                    // {
-                    //   "image": AppImages.police,
-                    //   "title": "All Rented \nFlat",
-                    //   "onTap": () {
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (_) => const AddRentedFlatTabbar()));
-                    //   },
-                    // },
-                    // {
-                    //   "image": AppImages.websiteIssue,
-                    //   "title": "Web \nQuery",
-                    //   "onTap": () {
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (_) => const WebQueryPage()));
-                    //   },
-                    // },
-                    // {
-                    //   "image": AppImages.realestatefeild,
-                    //   "title": "Upcoming\nFlats",
-                    //   "onTap": () {
-                    //     Navigator.push(
-                    //         context,
-                    //         MaterialPageRoute(
-                    //             builder: (_) => const ParentUpcoming()));
-                    //   },
-                    // },
+                    {
+                      "image": AppImages.police,
+                      "title": "All Rented \nFlat",
+                      "onTap": () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const AddRentedFlatTabbar()));
+                      },
+                    },
+                    {
+                      "image": AppImages.websiteIssue,
+                      "title": "Web \nQuery",
+                      "onTap": () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const WebQueryPage()));
+                      },
+                    },
+                    {
+                      "image": AppImages.realestatefeild,
+                      "title": "Upcoming\nFlats",
+                      "onTap": () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ParentUpcoming()));
+                      },
+                    },
 
                   ];
 

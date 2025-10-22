@@ -190,12 +190,10 @@ class Catid {
       latitude: _s(json['Latitude']),
       videoLink: _s(json['video_link']),
       subid: _i(json['subid']),
-      sourceId: json['source_id']?.toString(), // NEW
+      sourceId: json['source_id']?.toString(),
     );
   }
 }
-
-
 
 class View_Details extends StatefulWidget {
 
@@ -208,6 +206,7 @@ class View_Details extends StatefulWidget {
 }
 
 class _View_DetailsState extends State<View_Details> {
+
   Future<void> Book_property() async{
 
     final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
@@ -255,20 +254,13 @@ class _View_DetailsState extends State<View_Details> {
     );
 
     final response = await http.get(url);
-
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
 
-    // Print for debugging if you're feeling brave
-    // print(response.body);
-
     final decoded = json.decode(response.body);
-
-    // Expecting { success: true, data: [...] }
     final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
 
-    // Normalize to a list
     final List<Map<String, dynamic>> listResponse;
     if (raw is List) {
       listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -280,10 +272,12 @@ class _View_DetailsState extends State<View_Details> {
 
     final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
 
-    // If you keep a top-level `firstProperty`, set it here. Otherwise delete this.
-    // if (properties.isNotEmpty) {
-    //   firstProperty = properties.first;
-    // }
+    // >>> store firstProperty for later navigation
+    if (properties.isNotEmpty) {
+      setState(() {
+        firstProperty = properties.first;
+      });
+    }
 
     return properties;
   }
@@ -367,7 +361,7 @@ class _View_DetailsState extends State<View_Details> {
     });
   }
   String data = 'Initial Data';
-  Catid? firstProperty; // ✅ store first property here
+  Catid? firstProperty;
 
 
 //  final result = await profile();
@@ -388,24 +382,35 @@ class _View_DetailsState extends State<View_Details> {
                   ),
                 );
               } else if (value == "rented") {
+                // >>> correct the condition and guard null
                 if (firstProperty != null) {
-                  print('P_id : '+firstProperty!.id.toString(),);
-                  print('Subid : '+firstProperty!.subid.toString(),);
+                  final pid = firstProperty!.id.toString();
+                  final sid = firstProperty!.subid.toString();
+                  debugPrint('P_id : $pid');
+                  debugPrint('Subid : $sid');
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder: (context) => RentedPropertyPage(
-                        id: firstProperty!.id.toString(),
-                        subid: firstProperty!.subid.toString(),
+                        id: pid,
+                        subid: sid,
                       ),
                     ),
+                  );
+                } else {
+                  debugPrint('P_id : ${firstProperty!.id.toString()}');
+                  debugPrint('Subid : ${firstProperty!.subid.toString()}');
+                  // either still loading or API returned nothing
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Property not loaded yet.")),
                   );
                 }
               }
             },
-            itemBuilder: (context) => [
-              const PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
-              // const PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
+              PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
             ],
           ),
         ],

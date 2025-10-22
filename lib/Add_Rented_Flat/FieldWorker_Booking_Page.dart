@@ -434,7 +434,7 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
 
                                 _buildDetailRow("Rent", "₹ ${item.rent}"),
                                 _buildDetailRow("Security", "₹ ${item.security}"),
-                                _buildDetailRow("Commission", "₹ ${item.commission}"),
+                                _buildDetailRow("Company Commission \nfrom Tenant", "₹ ${item.commission}"),
                                 _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
                                 _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
                                 _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),

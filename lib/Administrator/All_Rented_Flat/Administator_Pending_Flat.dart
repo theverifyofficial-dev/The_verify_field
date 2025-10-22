@@ -302,6 +302,123 @@ class OwnerData {
     "status": status,
   };
 }
+class FirstPaymentRecord {
+  final int id;
+  final String subid;
+
+  // statuses
+  final String statusFirst;   // status_fist
+  final String statusSec;     // status_tow
+  final String statusThird;   // status_three
+
+  // step 1
+  final String tenantAdvance;        // tenant_advance
+  final String giveToOwnerAdvance;   // give_to_owner_advance
+  final String officeHold;           // office_hold
+
+  // step 2
+  final String? midPaymentToOwner;         // mid_payment_to_owner
+  final String? ownerReceivedPaymentInMid; // owner_reccived_payment_in_mid
+
+  // step 3 (old set you already had)
+  final String? tenantPayLastAmount;         // tenant_pay_last_amount
+  final String? bothSideCompanyCommission;   // bothside_company_comition
+  final String? ownerReceivedFinalAmount;    // owner_recived_final_amount
+  final String? tenantTotalPay;              // tenant_tatal_pay
+  final String? ownerTotalReceivedAmount;    // owner_total_recived_amount
+
+  // step 3 (NEW keys to add)
+  final String? remainingHold;                 // remaining_hold
+  final String? companyKeepComition;           // company_keep_comition
+  final String? remainBalanceShareToOwner;     // remain_balance_share_to_owner
+  final String? finalRecivedAmountOwner;       // final_recived_amount_owner
+  final String? remaingFinalBalance;           // remaing_final_balance
+  final String? totalPayTenant;                // total_pay_tenant
+
+  FirstPaymentRecord({
+    required this.id,
+    required this.subid,
+    required this.statusFirst,
+    required this.statusSec,
+    required this.statusThird,
+    required this.tenantAdvance,
+    required this.giveToOwnerAdvance,
+    required this.officeHold,
+    this.midPaymentToOwner,
+    this.ownerReceivedPaymentInMid,
+    this.tenantPayLastAmount,
+    this.bothSideCompanyCommission,
+    this.ownerReceivedFinalAmount,
+    this.tenantTotalPay,
+    this.ownerTotalReceivedAmount,
+    // new ones
+    this.remainingHold,
+    this.companyKeepComition,
+    this.remainBalanceShareToOwner,
+    this.finalRecivedAmountOwner,
+    this.remaingFinalBalance,
+    this.totalPayTenant,
+  });
+
+  factory FirstPaymentRecord.fromJson(Map<String, dynamic> j) => FirstPaymentRecord(
+    id: int.tryParse(j['id']?.toString() ?? '') ?? 0,
+    subid: (j['subid'] ?? '').toString(),
+
+    statusFirst: (j['status_fist'] ?? '').toString(),
+    statusSec: (j['status_tow'] ?? '').toString(),
+    statusThird: (j['status_three'] ?? '').toString(),
+
+    tenantAdvance: (j['tenant_advance'] ?? '').toString(),
+    giveToOwnerAdvance: (j['give_to_owner_advance'] ?? '').toString(),
+    officeHold: (j['office_hold'] ?? '').toString(),
+
+    midPaymentToOwner: j['mid_payment_to_owner']?.toString(),
+    ownerReceivedPaymentInMid: j['owner_reccived_payment_in_mid']?.toString(),
+
+    // existing step-3 fields
+    tenantPayLastAmount: j['tenant_pay_last_amount']?.toString(),
+    bothSideCompanyCommission: j['bothside_company_comition']?.toString(),
+    ownerReceivedFinalAmount: j['owner_recived_final_amount']?.toString(),
+    tenantTotalPay: j['tenant_tatal_pay']?.toString(),
+    ownerTotalReceivedAmount: j['owner_total_recived_amount']?.toString(),
+
+    // NEW fields (exact keys from new payload)
+    remainingHold: j['remaining_hold']?.toString(),
+    companyKeepComition: j['company_keep_comition']?.toString(),
+    remainBalanceShareToOwner: j['remain_balance_share_to_owner']?.toString(),
+    finalRecivedAmountOwner: j['final_recived_amount_owner']?.toString(),
+    remaingFinalBalance: j['remaing_final_balance']?.toString(),
+    totalPayTenant: j['total_pay_tenant']?.toString(),
+  );
+}
+extension FirstPaymentNums on FirstPaymentRecord {
+  num _n(String? s) {
+    if (s == null) return 0;
+    final t = s.replaceAll(RegExp(r'[^\d\.\-]'), '');
+    return num.tryParse(t) ?? 0;
+  }
+
+  num get nTenantAdvance => _n(tenantAdvance);
+  num get nGiveToOwnerAdvance => _n(giveToOwnerAdvance);
+  num get nOfficeHold => _n(officeHold);
+
+  num get nMidPaymentToOwner => _n(midPaymentToOwner);
+  num get nOwnerReceivedPaymentInMid => _n(ownerReceivedPaymentInMid);
+
+  num get nTenantPayLastAmount => _n(tenantPayLastAmount);
+  num get nBothSideCompanyCommission => _n(bothSideCompanyCommission);
+  num get nOwnerReceivedFinalAmount => _n(ownerReceivedFinalAmount);
+  num get nTenantTotalPayLegacy => _n(tenantTotalPay);
+  num get nOwnerTotalReceivedAmount => _n(ownerTotalReceivedAmount);
+
+  // new ones
+  num get nRemainingHold => _n(remainingHold);
+  num get nCompanyKeepComition => _n(companyKeepComition);
+  num get nRemainBalanceShareToOwner => _n(remainBalanceShareToOwner);
+  num get nFinalRecivedAmountOwner => _n(finalRecivedAmountOwner);
+  num get nRemaingFinalBalance => _n(remaingFinalBalance);
+  num get nTotalPayTenant => _n(totalPayTenant);
+}
 
 class AdministatiorFieldWorkerPendingFlats extends StatefulWidget {
   const AdministatiorFieldWorkerPendingFlats({super.key});
@@ -394,11 +511,42 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       });
     }
   }
+  /// ---------- FETCH (by subid) ----------
+  Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+    );
+
+    final r = await http.get(uri);
+    if (r.statusCode != 200) {
+      throw Exception('HTTP ${r.statusCode}');
+    }
+
+    final decoded = json.decode(r.body) as Map<String, dynamic>;
+    if (decoded['success'] != true) {
+      throw Exception('API error: ${decoded['message'] ?? 'unknown'}');
+    }
+
+    final List data = (decoded['data'] as List? ?? []);
+    return data
+        .map((e) => FirstPaymentRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Optional: get the latest row (highest id) for that subid.
+  Future<FirstPaymentRecord?> fetchLatestFirstPayment(int subid) async {
+    final list = await fetchFirstPaymentsBySubId(subid);
+    if (list.isEmpty) return null;
+    list.sort((a, b) => a.id.compareTo(b.id));
+    return list.last;
+  }
+
   Future<void> _onRefresh() async {
     setState(() {
       fetchBookingData();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -523,8 +671,8 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               _buildDetailRow("Tenant Commission", "₹ ${item.commission}"),
                               _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
                               _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
-
                               _buildAdvancePayment("Advance Payment", "₹ ${item.advancePayment}"),
+
                             ],
                           ),
                         ),
@@ -629,8 +777,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                           ),
                                           child: Column(
                                             children: [
-                                              _buildDetailRow("Owner Commission: ","₹ ${owner.paymentMode}"),
-
+                                              _buildDetailRow("Company Commission \nFrom Owner: ","₹ ${owner.paymentMode}"),
                                             ],
                                           ),
                                         ),
@@ -740,8 +887,276 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 
                           ],
                         ),
+                        const SizedBox(height: 20),
 
+                        FutureBuilder<List<FirstPaymentRecord>>(
+                          future: fetchFirstPaymentsBySubId(item.id), // returns list for this property/subid
+                          builder: (context, billingSnapshot) {
+                            if (billingSnapshot.connectionState == ConnectionState.waiting) {
+                              return const Center();
+                            }
 
+                            if (billingSnapshot.hasError) {
+                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
+                            }
+
+                            final list = billingSnapshot.data ?? const <FirstPaymentRecord>[];
+
+                            // No step-1 record yet -> show Add button
+                            if (list.isEmpty) {
+                              return Text("");
+                            }
+                            return Container(
+                              decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(10)
+                              ),
+                              padding: EdgeInsets.all(6),
+
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    "Step 1 Billing",
+                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87),
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  // Map each record to a card. If you only want the latest shown, render [list.last] instead.
+                                  ...list.map((rec) => Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 6,
+                                        children: [
+                                          _buildTag("${rec.statusFirst ?? '—'}", Colors.deepPurple),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade50,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: Colors.grey.shade200),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            _buildDetailRow("Tenant Advance: ", "₹ ${rec.tenantAdvance}"),
+                                            _buildDetailRow("Give to Owner: ", "₹ ${rec.giveToOwnerAdvance}"),
+                                            _buildDetailRow("Office Hold: ", "₹ ${rec.officeHold}"),
+                                          ],
+                                        ),
+                                      ),
+                                      // const SizedBox(height: 8),
+
+                                      const SizedBox(height: 12),
+                                    ],
+                                  )),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 10),
+
+                        FutureBuilder<List<FirstPaymentRecord>>(
+                          future: fetchFirstPaymentsBySubId(item.id),
+                          builder: (context, billingSnapshot) {
+                            if (billingSnapshot.connectionState == ConnectionState.waiting) {
+                              return const SizedBox.shrink();
+                            }
+
+                            if (billingSnapshot.hasError) {
+                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
+                            }
+
+                            final all = billingSnapshot.data ?? const <FirstPaymentRecord>[];
+
+                            // Treat null/empty/zero as "no value"
+                            bool _hasMid(dynamic v) {
+                              if (v == null) return false;
+                              if (v is num) return v != 0;
+                              final s = v.toString().trim();
+                              if (s.isEmpty) return false;
+                              final n = num.tryParse(s.replaceAll(RegExp(r'[^\d\.\-]'), ''));
+                              return (n ?? 0) != 0;
+                            }
+
+                            // Keep only records where Mid Payment To Owner has a value
+                            final list = all.where((r) => _hasMid(r.midPaymentToOwner)).toList();
+
+                            // If none have the field, show nothing at all
+                            if (list.isEmpty) return const SizedBox.shrink();
+
+                            return Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.all(6),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        "Step 2 Billing",
+                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87),
+                                      ),
+                                      const SizedBox(height: 10),
+
+                                      // Only mapped over records that actually have the field
+                                      ...list.map((rec) => Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Wrap(
+                                            spacing: 8,
+                                            runSpacing: 6,
+                                            children: [
+                                              _buildTag("${rec.statusSec ?? '—'}", Colors.deepPurple),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade50,
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.grey.shade200),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                _buildDetailRow("Mid Payment From Tenant: ", "₹ ${rec.midPaymentToOwner}"),
+                                                _buildDetailRow("Office Transfer Payment \nTo Owner: ", "₹ ${rec.midPaymentToOwner}"),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                        ],
+                                      )),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 10),
+
+                        FutureBuilder<List<FirstPaymentRecord>>(
+                          future: fetchFirstPaymentsBySubId(item.id),
+                          builder: (context, billingSnapshot) {
+                            if (billingSnapshot.connectionState == ConnectionState.waiting) {
+                              return const SizedBox.shrink();
+                            }
+                            if (billingSnapshot.hasError) {
+                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
+                            }
+
+                            final all = billingSnapshot.data ?? const <FirstPaymentRecord>[];
+
+                            // show value if it’s present (even "0"), hide only if null or empty string
+                            bool _hasAny(dynamic v) {
+                              if (v == null) return false;
+                              final s = v.toString().trim();
+                              return s.isNotEmpty;
+                            }
+
+                            String _money(dynamic v) {
+                              if (v == null || v.toString().trim().isEmpty) return "—";
+                              final n = num.tryParse(v.toString().replaceAll(RegExp(r'[^\d\.\-]'), '')) ?? 0;
+                              return "₹ ${n.toStringAsFixed(0)}";
+                            }
+
+                            // consider a record as having step 3 if ANY of these keys exist (old + new)
+                            bool _hasStep3(FirstPaymentRecord r) =>
+                                _hasAny(r.tenantPayLastAmount) ||
+                                    _hasAny(r.bothSideCompanyCommission) ||
+                                    _hasAny(r.ownerReceivedFinalAmount) ||
+                                    _hasAny(r.tenantTotalPay) ||
+                                    _hasAny(r.ownerTotalReceivedAmount) || // legacy
+                                    _hasAny(r.remainingHold) ||
+                                    _hasAny(r.companyKeepComition) ||
+                                    _hasAny(r.remainBalanceShareToOwner) ||
+                                    _hasAny(r.finalRecivedAmountOwner) ||
+                                    _hasAny(r.remaingFinalBalance) ||
+                                    _hasAny(r.totalPayTenant);
+
+                            final filtered = all.where(_hasStep3).toList();
+                            if (filtered.isEmpty) return const SizedBox.shrink();
+
+                            // latest row only
+                            final rec = filtered.last;
+
+                            List<Widget> rows = [];
+                            void addRow(String k, dynamic v) {
+                              if (_hasAny(v)) rows.add(_buildDetailRow(k, _money(v)));
+                            }
+
+                            // Step 3 — use the CORRECT fields
+                            addRow("Last Payment From Tenant", rec.tenantPayLastAmount);
+                            addRow("Both-side Company Commission (Total)", rec.bothSideCompanyCommission);
+
+                            // NEW server keys
+                            addRow("Remaining Hold (Final + Hold)", rec.remainingHold);
+                            addRow("Company Keep Commission", rec.companyKeepComition);
+                            addRow("Owner Share From Pool", rec.remainBalanceShareToOwner);
+                            addRow("Owner Final Received", rec.finalRecivedAmountOwner);
+                            addRow("Remaining Final Balance", rec.remaingFinalBalance);
+                            addRow("Total Paid By Tenant", rec.totalPayTenant);
+
+                            // // Context (optional)
+                            // addRow("Mid Payment To Owner (Step 2)", rec.midPaymentToOwner);
+                            // addRow("Advance Given To Owner (Step 1)", rec.giveToOwnerAdvance);
+                            // addRow("Office Hold (Step 1)", rec.officeHold);
+
+                            return Column(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.all(6),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        "Step 3 Billing",
+                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 6,
+                                        children: [
+                                          _buildTag(rec.statusThird.isEmpty ? "—" : rec.statusThird, Colors.deepPurple),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade50,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: Colors.grey.shade200),
+                                        ),
+                                        child: Column(children: rows),
+                                      ),
+                                      const SizedBox(height: 12),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
                       ],
                     ),
                   ),

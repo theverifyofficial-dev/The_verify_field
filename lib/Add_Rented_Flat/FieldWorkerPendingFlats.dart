@@ -242,6 +242,54 @@ class Tenant {
   }
 }
 
+class FirstPaymentRecord {
+  final int id;
+  final String subid;
+  final String statusFirst;
+  final String tenantAdvance;
+  final String giveToOwnerAdvance;
+  final String officeHold;
+  final String? midPaymentToOwner;
+  final String? ownerReceivedPaymentInMid;
+  final String? tenantPayLastAmount;
+  final String? bothSideCompanyCommission;
+  final String? ownerReceivedFinalAmount;
+  final String? tenantTotalPay;
+  final String? ownerTotalReceivedAmount;
+
+  FirstPaymentRecord({
+    required this.id,
+    required this.subid,
+    required this.statusFirst,
+    required this.tenantAdvance,
+    required this.giveToOwnerAdvance,
+    required this.officeHold,
+    this.midPaymentToOwner,
+    this.ownerReceivedPaymentInMid,
+    this.tenantPayLastAmount,
+    this.bothSideCompanyCommission,
+    this.ownerReceivedFinalAmount,
+    this.tenantTotalPay,
+    this.ownerTotalReceivedAmount,
+  });
+
+  factory FirstPaymentRecord.fromJson(Map<String, dynamic> j) => FirstPaymentRecord(
+    id: int.tryParse(j['id']?.toString() ?? '') ?? 0,
+    subid: (j['subid'] ?? '').toString(),
+    statusFirst: (j['status_fist'] ?? '').toString(),
+    tenantAdvance: (j['tenant_advance'] ?? '').toString(),
+    giveToOwnerAdvance: (j['give_to_owner_advance'] ?? '').toString(),
+    officeHold: (j['office_hold'] ?? '').toString(),
+    midPaymentToOwner: j['mid_payment_to_owner']?.toString(),
+    ownerReceivedPaymentInMid: j['owner_reccived_payment_in_mid']?.toString(),
+    tenantPayLastAmount: j['tenant_pay_last_amount']?.toString(),
+    bothSideCompanyCommission: j['bothside_company_comition']?.toString(),
+    ownerReceivedFinalAmount: j['owner_recived_final_amount']?.toString(),
+    tenantTotalPay: j['tenant_tatal_pay']?.toString(),
+    ownerTotalReceivedAmount: j['owner_total_recived_amount']?.toString(),
+  );
+}
+
 class OwnerData {
   int id;
   String ownerName;
@@ -321,6 +369,35 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
     }
   }
 
+  /// ---------- FETCH (by subid) ----------
+  Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+    );
+
+    final r = await http.get(uri);
+    if (r.statusCode != 200) {
+      throw Exception('HTTP ${r.statusCode}');
+    }
+
+    final decoded = json.decode(r.body) as Map<String, dynamic>;
+    if (decoded['success'] != true) {
+      throw Exception('API error: ${decoded['message'] ?? 'unknown'}');
+    }
+
+    final List data = (decoded['data'] as List? ?? []);
+    return data
+        .map((e) => FirstPaymentRecord.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  /// Optional: get the latest row (highest id) for that subid.
+  Future<FirstPaymentRecord?> fetchLatestFirstPayment(int subid) async {
+    final list = await fetchFirstPaymentsBySubId(subid);
+    if (list.isEmpty) return null;
+    list.sort((a, b) => a.id.compareTo(b.id));
+    return list.last;
+  }
 
 
   Future<List<Property>> fetchBookingData() async {
@@ -639,7 +716,7 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
 
                               _buildDetailRow("Rent", "₹ ${item.rent}"),
                               _buildDetailRow("Security", "₹ ${item.security}"),
-                              _buildDetailRow("Commission", "₹ ${item.commission}"),
+                              _buildDetailRow("Company Commission \nFrom Tenant", "₹ ${item.commission}"),
                               _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
                               _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
                               _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
@@ -735,6 +812,7 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                           },
                         ),
                         const SizedBox(height: 8),
+                        /// --- Owner Details Section
                         FutureBuilder<List<OwnerData>>(
                           future: fetchPersonDetail(item.id),
                           builder: (context, ownerSnapshot) {
@@ -783,7 +861,7 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                                           ),
                                           child: Column(
                                             children: [
-                                              _buildDetailRow("Commission: ","₹ ${owner.paymentMode}"),
+                                              _buildDetailRow("Company Commission \nFrom Owner: ","₹ ${owner.paymentMode}"),
                                             ],
                                           ),
                                         ),
@@ -795,104 +873,11 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                             );
                           },
                         ),
+
+
+
                         const SizedBox(height: 8),
-                        /// --- Date & ID Row
-                        Row(
-                          // crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDate(item.currentDates),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                _buildTenantButton(
-                                  label: "Add Billing",
-                                  color: Colors.blue,
-                                  onTap: () async {
-                                    // wherever you have the current property's id:
-                                    final int propertyId = item.id; // or however you get it
 
-                                    final ok = await Navigator.push<bool>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => PropertyCalculate(propertyId: propertyId),
-                                      ),
-                                    );
-
-                                    if (ok == true) {
-                                      _onRefresh();
-                                    }
-                                  },
-                                ),
-                                SizedBox(width: 10,),
-                                FutureBuilder<List<OwnerData>>(
-                                  future: fetchPersonDetail(item.id),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const SizedBox(
-                                        height: 40,
-                                        child: Center(),
-                                      );
-                                    }
-
-                                    if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                                      // 👉 No Owner → Show Add Owner button
-                                      return _buildTenantButton(
-                                        label: "Add Owner Detail",
-                                        color: Colors.green,
-                                        onTap: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            // refresh UI if owner was added
-                                            _onRefresh();
-                                          }
-                                        },
-
-                                      );
-                                    }
-                                    else {
-                                      final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
-                                      return _buildTenantButton(
-                                        label: "Update Owner Detail",
-                                        color: Colors.deepOrange,
-                                        onTap: () async {
-                                          print("Owner Id :"+owner.id.toString());
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => UpdateOwnerPage(
-                                                ownerId: owner.id.toString(), // ✅ Pass ownerId
-                                                propertyId: item.id.toString(), // ✅ Pass ownerId
-                                              ),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            _onRefresh();
-                                          }
-                                        },
-                                      );
-                                    }
-                                  },
-                                )
-                              ],
-                            )
-
-
-                          ],
-                        ),
                       ],
                     ),
                   ),

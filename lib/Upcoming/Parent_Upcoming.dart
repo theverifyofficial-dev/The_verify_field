@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/Upcoming/All_flats.dart';
+import 'package:verify_feild_worker/Upcoming/user_flat.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Upcoming_details.dart';
 import 'add_coming_flats.dart';
@@ -346,436 +348,47 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
           ),
         ),
       ),
-      body:
-      _isLoading
-          ? Center(child: Image.asset(AppImages.loader,height: 50,))
-          : Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 16,
+      body: DefaultTabController(
+        length: 3,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(height: 5,),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+              height: 50,
+              decoration: BoxDecoration(
+                color: Colors.grey[800],
+                borderRadius: BorderRadius.circular(10),
               ),
-              decoration: InputDecoration(
-                hintText: 'Search Flats here',
-                hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 16,
+              child: TabBar(
+                indicator: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  color: Theme.of(context).iconTheme.color?.withOpacity(0.8),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: Theme.of(context).iconTheme.color?.withOpacity(0.6),
-                  ),
-                  onPressed: () => _searchController.clear(),
-                )
-                    : null,
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 1.5,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-            ),
-          ),
-          if (propertyCount > 0 && _isSearchActive)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
-                        const SizedBox(width: 6),
-                        Text(
-                          "$propertyCount properties found",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              _searchController.clear();
-                              selectedLabel = '';
-                              _filteredProperties = _allProperties;
-                              propertyCount = 0;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Icon(Icons.close, size: 18, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  ),
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                labelStyle: TextStyle(fontWeight: FontWeight.bold),
+                unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
+                indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
+                tabs: const [
+                  Tab(text: 'All Flats'),
+                  Tab(text: 'Your Flats'),
                 ],
               ),
             ),
-          _filteredProperties.isEmpty
-              ? Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    "No Flats found",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Try a different search term",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-              : Expanded(
-            child: RefreshIndicator(
-              onRefresh: _fetchProperties,
-              child: ListView.builder(
-                itemCount: _filteredProperties.length,
-                itemBuilder: (context, index) {
-                  final property = _filteredProperties[index];
-                  return StreamBuilder<http.Response>(
-                    stream: Stream.periodic(const Duration(seconds: 5))
-                        .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
-                    ))),
-                    builder: (context, snapshot) {
-                      bool isRedDot = false;
 
-                      if (snapshot.hasData) {
-                        try {
-                          final body = jsonDecode(snapshot.data!.body);
-                          isRedDot = body is List && body.isNotEmpty && body[0]['logg'] == 0;
-                        } catch (_) {}
-                      }
-
-                      final Map<String, dynamic> fields = {
-                        "Images": property.propertyPhoto,
-                        "Owner Name": property.ownerName,
-                        "Owner Number": property.ownerNumber,
-                        "Caretaker Name": property.careTakerName,
-                        "Caretaker Number": property.careTakerNumber,
-                        "Place": property.locations,
-                        "Buy/Rent": property.buyRent,
-                        "Property Name/Address": property.apartmentAddress,
-                        "Property Address (Fieldworker)":
-                        property.fieldWorkerAddress,
-                        // "Owner Vehicle Number": property.ownerVehicleNumber,
-                        // "Your Address": property.fieldWorkerCurrentLocation,
-                        "Field Worker Name": property.fieldWorkerName,
-                        "Field Worker Number": property.fieldWorkerNumber,
-                        "Current Date": property.currentDates,
-                        "Longitude": property.longitude,
-                        "Latitude": property.latitude,
-                        "Road Size": property.roadSize,
-                        "Metro Distance": property.metroDistance,
-                        "Metro Name": property.highwayDistance,
-                        "Main Market Distance": property.mainMarketDistance,
-                        "Age of Property": property.ageOfProperty,
-                        "Lift": property.lift,
-                        "Parking": property.parking,
-                        "Total Floor": property.totalFloor,
-                        "Residence/Commercial": property.typeOfProperty,
-                        "Facility": property.facility,
-                      };
-
-                      final missingFields = fields.entries
-                          .where((entry) {
-                        final value = entry.value;
-                        if (value == null) return true;
-                        if (value is String && value.trim().isEmpty) return true;
-                        return false;
-                      })
-                          .map((entry) => entry.key)
-                          .toList();
-
-                      final hasMissingFields = missingFields.isNotEmpty;
-                      return Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                SharedPreferences prefs = await SharedPreferences.getInstance();
-                                prefs.setInt('id_Building', _filteredProperties[index].pId??0);
-                                prefs.setString('id_Longitude', _filteredProperties[index].longitude.toString());
-                                prefs.setString('id_Latitude', _filteredProperties[index].latitude.toString());
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => UpcomingDetailsPage(id: _filteredProperties[index].pId??0),
-                                  ),
-                                );
-                                print(_filteredProperties[index].pId??0);
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-
-                                child: Card(
-                                  elevation: 4, // ✅ elevation added
-                                  shadowColor:  Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
-                                  child:
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          Container(
-                                            height: 450,
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).highlightColor,
-                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                            ),
-                                            child: Image.network(
-                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => Center(
-                                                child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            top: 12,
-                                            right: 12,
-                                            child: Wrap(
-                                              spacing: 8, // space between the two containers
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  // icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].pId}",
-                                                  borderColor: Colors.red.shade200,
-                                                  backgroundColor: Colors.red.shade50,
-                                                  textColor: Colors.red.shade700,
-                                                  shadowColor: Colors.red.shade100,
-                                                ),  _buildFeatureItem(
-                                                  context: context,
-                                                  // icon: Icons.king_bed,
-                                                  text: _filteredProperties[index].buyRent ?? "Property",
-                                                  borderColor: Colors.blue.shade200,
-                                                  backgroundColor: Colors.blue.shade50,
-                                                  textColor: Colors.blue.shade700,
-                                                  shadowColor: Colors.blue.shade100,
-                                                ),
-
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "₹${_filteredProperties[index].showPrice??"-"
-                                                      ".0"}"
-                                                  ,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _filteredProperties[index].locations ?? "",
-                                                  style: TextStyle(
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Wrap(
-                                              spacing: 4, // horizontal spacing between items
-                                              runSpacing: 8, // vertical spacing between lines
-                                              alignment: WrapAlignment.start,
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].bhk}",
-                                                  borderColor: Colors.purple.shade200,
-                                                  backgroundColor: Colors.purple.shade50,
-                                                  textColor: Colors.purple.shade700,
-                                                  shadowColor: Colors.purple.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.apartment,
-                                                  text: "${_filteredProperties[index].floor}",
-                                                  borderColor: Colors.teal.shade200,
-                                                  backgroundColor: Colors.teal.shade50,
-                                                  textColor: Colors.teal.shade700,
-                                                  shadowColor: Colors.teal.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.receipt_rounded,
-                                                  text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                  borderColor: Colors.red.shade200,
-                                                  backgroundColor: Colors.red.shade50,
-                                                  textColor: Colors.red.shade700,
-                                                  shadowColor: Colors.red.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.home_work,
-                                                  text: _filteredProperties[index].typeOfProperty ?? "",
-                                                  borderColor: Colors.orange.shade200,
-                                                  backgroundColor: Colors.orange.shade50,
-                                                  textColor: Colors.orange.shade700,
-                                                  shadowColor: Colors.orange.shade100,
-                                                ),
-
-                                              ],
-                                            ),
-                                            if (hasMissingFields) ...[
-                                              SizedBox(height: 20),
-                                              Container(
-                                                width: double.infinity,
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red[50],
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: Colors.redAccent, width: 1),
-                                                ),
-                                                child: Text(
-                                                  "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.redAccent,
-                                                  ),
-                                                ),
-                                              ),
-                                            ]
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ]
-                      );
-                    },
-                  );
-
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
-
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-            gradient: LinearGradient(
-              colors: [Colors.blueAccent, Colors.lightBlueAccent],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddComingFlats()));
-            },
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text(
-              'Add Flats',
-              style: TextStyle(
-                fontSize: 17,
-                fontFamily: "PoppinsBold",
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-                color: Colors.white,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              elevation: 0, // Shadow handled by container
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
+            Expanded(
+              child: TabBarView(children: [
+                AllFlats(),
+                UserFlat(),
+              ]),
+            )
+          ],
         ),
       ),
+
+
     );
   }
 

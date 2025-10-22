@@ -75,41 +75,42 @@ class _assign_demand_formState extends State<assign_demand_form> {
 
   void _showCountdownDialog() {
     int countdown = 5;
+    Timer? timer;
 
     showDialog(
       context: context,
-      barrierDismissible: false, // user cannot dismiss
-      builder: (BuildContext context) {
+      barrierDismissible: false,
+      builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            Timer? timer;
-            timer = Timer.periodic(Duration(seconds: 1), (t) {
-              setState(() {
-                if (countdown > 1) {
-                  countdown--;
-                } else {
-                  t.cancel();
-                  Navigator.of(context).pop(); // close dialog
-                  _generateDateTime();
-                  fetchdata(
-                    _date,
-                    _Time,
-                    _name.text,
-                    _number.text,
-                    _selectedItem.toString(),
-                    _Building_information.text,
-                    _Refrence.text,
-                    tempArray.join(', '),
-                  );
-                }
-              });
+            // ✅ Only create timer once
+            timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
+              if (countdown > 1) {
+                setState(() => countdown--);
+              } else {
+                t.cancel();
+                Navigator.of(context).pop(); // close dialog
+
+                // Generate and send data only once
+                _generateDateTime();
+                fetchdata(
+                  _nameSherar,
+                  _numberSherar,
+                  _name.text,
+                  _number.text,
+                  _selectedItem.toString(),
+                  _Building_information.text,
+                  _Refrence.text,
+                  tempArray.join(', '),
+                );
+              }
             });
 
             return AlertDialog(
               backgroundColor: Colors.black,
               title: Text(
                 "Sending in $countdown seconds",
-                style: TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -119,18 +120,17 @@ class _assign_demand_formState extends State<assign_demand_form> {
                     backgroundColor: Colors.grey,
                     color: Colors.red,
                   ),
-                  SizedBox(height: 10),
-                  Text(
-                    "Please wait...",
-                    style: TextStyle(color: Colors.white70),
-                  ),
+                  const SizedBox(height: 10),
+                  const Text("Please wait...", style: TextStyle(color: Colors.white70)),
                 ],
               ),
             );
           },
         );
       },
-    );
+    ).then((_) {
+      timer?.cancel(); // ✅ cleanup after dialog closes
+    });
   }
 
 
@@ -160,21 +160,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
             ],
           ),
         ),
-        actions:  [
-          GestureDetector(
-            onTap: () {
-              //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Delete_Image()));
-            },
-            child: const Icon(
-              PhosphorIcons.trash,
-              color: Colors.black,
-              size: 30,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-        ],
+
       ),
 
       body: SingleChildScrollView(
@@ -183,17 +169,17 @@ class _assign_demand_formState extends State<assign_demand_form> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-
               Row(
                 children: [
-
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
 
                       Container(
                           padding: EdgeInsets.only(left: 5),
-                          child: Text('Name',style: TextStyle(fontSize: 16,color: Colors.grey[500],fontFamily: 'Poppins'),)),
+                          child: Text('Name',style: TextStyle(fontSize: 16,color: Colors.grey[500],fontFamily: 'Poppins'),
+                          ),
+                      ),
 
                       SizedBox(height: 5,),
 
@@ -425,46 +411,11 @@ class _assign_demand_formState extends State<assign_demand_form> {
                     );
                   }),
 
-              /*Container(
-                  padding: EdgeInsets.only(left: 5),
-                  child: Text('BHK',style: TextStyle(fontSize: 16,color: Colors.grey[500],fontFamily: 'Poppins'),)),
-
-              SizedBox(height: 5,),
-
-              Container(
-                padding: const EdgeInsets.all(1),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                  // boxShadow: K.boxShadow,
-                ),
-                child: TextField(
-                  style: TextStyle(color: Colors.black),
-                  controller: _BHK,
-                  decoration: InputDecoration(
-                      hintText: "Add BHK",
-                      prefixIcon: Icon(
-                        Icons.circle,
-                        color: Colors.black54,
-                      ),
-                      hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),
-                      border: InputBorder.none),
-                ),
-              ),
-
-              SizedBox(height: 20),*/
-
               Center(
                 child: Container(
                   height: 50,
                   width: 200,
                   margin: const EdgeInsets.symmetric(horizontal: 50),
-                  // decoration: BoxDecoration(
-                  //     borderRadius: BorderRadius.all(Radius.circular(15)),
-                  //     color: Colors.red.withOpacity(0.8)
-                  // ),
-
-
 
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(

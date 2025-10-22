@@ -355,7 +355,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 6,
+                        itemCount: 3,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -370,13 +370,13 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 );
                               },
                             },
-                            {
-                              'image': AppImages.police,
-                              'title': "All Rented \nFlat",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                            },
+                            // {
+                            //   'image': AppImages.police,
+                            //   'title': "All Rented \nFlat",
+                            //   'onTap': () =>
+                            //       Navigator.push(context, MaterialPageRoute(
+                            //           builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                            // },
                             {
                               'image': AppImages.propertysale,
                               'title': "Future Property",
@@ -398,27 +398,27 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
                             },
-                            {
-                              "image": AppImages.websiteIssue,
-                              "title": "Web \nQuery",
-                              "onTap": () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const WebQueryPage()));
-                              },
-                            },
-
-                            {
-                              "image": AppImages.realestatefeild,
-                              "title": "Upcoming\nFlats",
-                              "onTap": () {
-                                Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (_) => const AdminUpcoming()));
-                              },
-                            },
+                            // {
+                            //   "image": AppImages.websiteIssue,
+                            //   "title": "Web \nQuery",
+                            //   "onTap": () {
+                            //     Navigator.push(
+                            //         context,
+                            //         MaterialPageRoute(
+                            //             builder: (_) => const WebQueryPage()));
+                            //   },
+                            // },
+                            //
+                            // {
+                            //   "image": AppImages.realestatefeild,
+                            //   "title": "Upcoming\nFlats",
+                            //   "onTap": () {
+                            //     Navigator.push(
+                            //         context,
+                            //         MaterialPageRoute(
+                            //             builder: (_) => const AdminUpcoming()));
+                            //   },
+                            // },
 
                           ];
 

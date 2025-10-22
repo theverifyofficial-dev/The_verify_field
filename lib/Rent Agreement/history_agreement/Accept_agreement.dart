@@ -38,7 +38,7 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_all_data_accept_agreement.php'));
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_accpet_agreement_for_fieldsworkar.php?Fieldwarkarnumber=$mobileNumber '));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);

@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AllDataDetailsPage extends StatefulWidget {
   final String agreementId;
@@ -23,6 +25,117 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   void initState() {
     super.initState();
     _fetchAgreementDetail();
+  }
+
+
+  Future<void> _pickAndUploadPoliceVerification() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result != null && result.files.single.path != null) {
+      File file = File(result.files.single.path!);
+      await _uploadDocument(
+        file,
+        type: "police_verification_pdf",
+      );
+    }
+  }
+
+  Future<void> _pickAndUploadNotaryImage() async {
+    final picker = ImagePicker();
+    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+
+    if (picked != null) {
+      File image = File(picked.path);
+      await _uploadDocument(
+        image,
+        type: "notry_img",
+      );
+    }
+  }
+
+  Future<void> _uploadDocument(File file, {required String type}) async {
+    if (!mounted) return;
+
+    // Show loader
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse("https://theverify.in/update_police_verifification_notry_img.php"),
+      );
+
+      // Dynamic field name
+      String fieldName = type == "notry_img" ? "notry_img" : "police_verification_pdf";
+
+      request.fields['id'] = widget.agreementId;
+      request.fields['file_type'] = fieldName;
+      request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
+
+      debugPrint("📤 Upload Started: ${file.path}");
+      final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
+
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop();
+
+      debugPrint("🌐 Response Code: ${response.statusCode}");
+      debugPrint("🧾 Raw Response: $responseBody");
+
+      if (response.statusCode == 200) {
+        try {
+          final data = jsonDecode(responseBody);
+          debugPrint("✅ Decoded JSON: $data");
+
+          if (data['status'] == 'ok') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(data['message'] ?? "Upload successful"),
+                backgroundColor: Colors.green,
+              ),
+            );
+            _fetchAgreementDetail();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Failed: ${data['message']}"),
+                backgroundColor: Colors.redAccent,
+              ),
+            );
+          }
+        } catch (e) {
+          debugPrint("⚠️ JSON Parse Error: $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Response: $responseBody")),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Upload failed: ${response.statusCode}"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.of(context, rootNavigator: true).pop();
+        debugPrint("❌ Upload Error: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+      }
+    }
   }
 
   String? _formatDate(dynamic shiftingDate) {
@@ -46,12 +159,10 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   Future<void> _fetchAgreementDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget
-              .agreementId}"));
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}"));
 
       print(widget.agreementId);
 
-      // Print raw response body
       print("API Response: ${response.body}");
 
       if (response.statusCode == 200) {
@@ -147,51 +258,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
-  Widget
-  _kvImage(String k, dynamic url) {
-    if (url == null) return const SizedBox.shrink();
-    final imageUrl = url.toString().trim();
-    if (imageUrl.isEmpty) return const SizedBox.shrink();
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ImagePreviewScreen(imageUrl: 'https://theverify.in/$imageUrl'),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 140,
-              child: Text(
-                '$k:',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  "https://theverify.in/$imageUrl",
-                  height: 150,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                  const SizedBox.shrink(), // Hide if image fails to load
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -315,34 +381,64 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
+                // 🔹 Police Verification Button
                 ElevatedButton(
-                  onPressed: () =>
-                      _launchURL(
-                          'https://theverify.in/${agreement?["police_verification_pdf"]}'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.yellow,
-                      foregroundColor: Colors.black),
-                  child: const Text('View P. Verification '),
+                  onPressed: () {
+                    final pdf = agreement?["police_verification_pdf"];
+                    if (pdf == null || pdf.toString().isEmpty) {
+                      _pickAndUploadPoliceVerification();
+                    } else {
+                      _launchURL('https://theverify.in/$pdf');
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: (agreement?["police_verification_pdf"] == null ||
+                        agreement!["police_verification_pdf"].toString().isEmpty)
+                        ? Colors.grey
+                        : Colors.yellow,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: Text(
+                    (agreement?["police_verification_pdf"] == null ||
+                        agreement!["police_verification_pdf"].toString().isEmpty)
+                        ? 'Add P. Verification'
+                        : 'View P. Verification',
+                  ),
                 ),
 
+                // 🔹 Notary Button
                 ElevatedButton(
-                  onPressed: () =>
+                  onPressed: () {
+                    final notary = agreement?["notry_img"];
+                    if (notary == null || notary.toString().isEmpty) {
+                      _pickAndUploadNotaryImage();
+                    } else {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              ImagePreviewScreen(
-                                  imageUrl: 'https://theverify.in/${agreement?["notry_img"]}'),
+                          builder: (context) => ImagePreviewScreen(
+                              imageUrl: 'https://theverify.in/$notary'),
                         ),
-                      ),
-
+                      );
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.black),
-                  child: const Text('View Notary'),
+                    backgroundColor: (agreement?["notry_img"] == null ||
+                        agreement!["notry_img"].toString().isEmpty)
+                        ? Colors.grey
+                        : Colors.red,
+                    foregroundColor: Colors.black,
+                  ),
+                  child: Text(
+                    (agreement?["notry_img"] == null ||
+                        agreement!["notry_img"].toString().isEmpty)
+                        ? 'Add Notary'
+                        : 'View Notary',
+                  ),
                 ),
               ],
             ),
+
 
             const SizedBox(height: 12),
             Row(
@@ -471,7 +567,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Property Image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: Image.network(

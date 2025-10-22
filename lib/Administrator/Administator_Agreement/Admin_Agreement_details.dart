@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import '../../Custom_Widget/Custom_backbutton.dart';
+import '../imagepreviewscreen.dart';
 import 'Admin_dashboard.dart';
 
 class AdminAgreementDetails extends StatefulWidget {
@@ -257,16 +258,37 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             ),
           ),
           Expanded(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url",
-                height: 150,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.broken_image, color: Colors.red),
+            child: GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ImagePreviewScreen(
+                      imageUrl:
+                      'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url',
+                    ),
+                  ),
+                );
+              },
+              child: Container(
+                width: 120,
+                height: 120,
+                margin: const EdgeInsets.only(right: 12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url",
+                    width: 160,   // force same as container
+                    height: 120,  // force same as container
+                    fit: BoxFit.cover, // ensures full fill
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image, color: Colors.red, size: 40),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            )
           ),
         ],
       ),

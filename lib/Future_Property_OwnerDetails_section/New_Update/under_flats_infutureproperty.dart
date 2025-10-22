@@ -329,7 +329,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       throw Exception('Failed to load data');
     }
   }
-  bool _isLoading = false; // Add this state variable
+  bool _isMainLoading = false;
+  bool _isUpcomingLoading = false;
   Property? property;
   String? _status; // value from liveUnlive key
   Map<int, String> _statusMap = {}; // holds status for all IDs
@@ -2767,7 +2768,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                     Text("Add Tenant",style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
                     ),
                   ],
-                ),),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 30,)
@@ -2775,120 +2777,226 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       ),
 
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.only(left: 12,right: 12,top: 10,bottom: 25),
+        padding: const EdgeInsets.only(left: 12, right: 12, top: 10, bottom: 25),
         height: 100,
         color: Theme.of(context).scaffoldBackgroundColor,
-        child: SizedBox(
-          width: double.infinity,
-          height: 100,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _isLoading
-                  ? Colors.grey
-                  : (_status == "Live"
-                  ? Colors.grey // Live → Grey
-                  : _status == "Book"
-                  ? Colors.red // Book → Red
-                  : Colors.green),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 20),
-            ),
-            onPressed: _isLoading || _status == null
-                ? null
-                : () async {
-              setState(() => _isLoading = true);
-
-              try {
-                if (_status == "Book") {
-                  // Update + Copy
-                  final updateResponse = await http.post(
-                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                    body: {"action": "update", "P_id": widget.id.toString()},
-                  );
-
-                  final moveResponse = await http.post(
-                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                    body: {"action": "copy", "P_id": widget.id.toString()},
-                  );
-
-                  if (updateResponse.statusCode == 200 &&
-                      moveResponse.statusCode == 200) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Property updated & moved successfully!",
-                            style: TextStyle(color: Colors.white)),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                    setState(() => _status = "Live"); // flip after success
-                  }
-                } else if (_status == "Live") {
-                  // Reupdate + Delete
-                  final updateResponse = await http.post(
-                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                    body: {"action": "reupdate", "P_id": widget.id.toString()},
-                  );
-
-                  final deleteResponse = await http.post(
-                    Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                    body: {"action": "delete", "source_id": widget.id.toString()},
-                  );
-
-                  if (deleteResponse.statusCode == 200) {
-                    print('source_id ${widget.id}');
-                    print(deleteResponse.body);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Property UnLived successfully!",
-                            style: TextStyle(color: Colors.white)),
-                        backgroundColor: Colors.blue,
-                      ),
-                    );
-                    setState(() => _status = "Book"); // flip after success
-                  }
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Error: $e"),
-                      backgroundColor: Colors.red),
-                );
-              } finally {
-                setState(() => _isLoading = false);
-              }
-            },
-            child: _isLoading
-                ? Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: const [
-                SizedBox(
-                  width: 18,
-                  height: 30,
-                  child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2),
+        child: Row(
+          children: [
+            // 🔴 First button (Main Real Estate logic)
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isMainLoading
+                      ? Colors.grey
+                      : (_status == "Live"
+                      ? Colors.grey
+                      : _status == "Book"
+                      ? Colors.red
+                      : Colors.green),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
                 ),
-                SizedBox(width: 12),
-                Text("Processing...",
-                    style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white)),
-              ],
-            )
-                : Text(
-              _status == "Live"
-                  ? "Rent out / Book" // Live → text
-                  : _status == "Book"
-                  ? "Move to live" // Book → text
-                  : "Loading...",
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                onPressed: _isMainLoading || _status == null
+                    ? null
+                    : () async {
+                  setState(() => _isMainLoading = true);
+                  try {
+                    if (_status == "Book") {
+                      print("🔴 MOVE TO LIVE: ${widget.id}");
+                      final updateResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                        body: {"action": "update", "P_id": widget.id.toString()},
+                      );
+                      final moveResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                        body: {"action": "copy", "P_id": widget.id.toString()},
+                      );
+
+                      print("🟢 Update: ${updateResponse.statusCode}");
+                      print("🟢 Copy: ${moveResponse.statusCode}");
+
+                      if (updateResponse.statusCode == 200 &&
+                          moveResponse.statusCode == 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Property moved to Live successfully!",
+                                style: TextStyle(color: Colors.white)),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                        setState(() => _status = "Live");
+                      }
+                    } else if (_status == "Live") {
+                      print("🔵 MOVE TO BOOK (Unlive): ${widget.id}");
+                      final updateResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                        body: {"action": "reupdate", "P_id": widget.id.toString()},
+                      );
+                      final deleteResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
+                        body: {"action": "delete", "source_id": widget.id.toString()},
+                      );
+
+                      print("🟡 Reupdate: ${updateResponse.statusCode}");
+                      print("🟡 Delete: ${deleteResponse.statusCode}");
+
+                      if (deleteResponse.statusCode == 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Property UnLived successfully!",
+                                style: TextStyle(color: Colors.white)),
+                            backgroundColor: Colors.blue,
+                          ),
+                        );
+                        setState(() => _status = "Book");
+                      }
+                    }
+                  } catch (e) {
+                    print("❌ Error Main: $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text("Error: $e"),
+                          backgroundColor: Colors.red),
+                    );
+                  } finally {
+                    setState(() => _isMainLoading = false);
+                  }
+                },
+                child: _isMainLoading
+                    ? const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                        width: 18,
+                        height: 30,
+                        child: CircularProgressIndicator(
+                            color: Colors.white, strokeWidth: 2)),
+                    SizedBox(width: 12),
+                    Text("Processing...",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white)),
+                  ],
+                )
+                    : Text(
+                  _status == "Live"
+                      ? "Rent out / Book"
+                      : _status == "Book"
+                      ? "Move to Live"
+                      : "Loading...",
+                  style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
               ),
             ),
-          ),
+
+            const SizedBox(width: 10),
+
+            // 🟠 Second button (Move to Upcoming)
+            Expanded(
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _isUpcomingLoading
+                      ? Colors.grey
+                      : (_status == "Live" ? Colors.grey : Colors.orange),
+                  shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+                onPressed: _isUpcomingLoading || _status == null
+                    ? null
+                    : () async {
+                  setState(() => _isUpcomingLoading = true);
+
+                  try {
+                    if (_status == "Book") {
+                      print("🟠 MOVE TO UPCOMING: ${widget.id}");
+                      final updateResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        body: {"action": "update", "P_id": widget.id.toString()},
+                      );
+                      final moveResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        body: {"action": "copy", "P_id": widget.id.toString()},
+                      );
+
+                      print("🟢 Update: ${updateResponse.statusCode}");
+                      print("🟢 Copy: ${moveResponse.statusCode}");
+
+                      if (updateResponse.statusCode == 200 &&
+                          moveResponse.statusCode == 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Moved to Upcoming successfully!",
+                                style: TextStyle(color: Colors.white)),
+                            backgroundColor: Colors.orange,
+                          ),
+                        );
+                        setState(() => _status = "Live");
+                      }
+                    } else if (_status == "Live") {
+                      print("🔵 REMOVE FROM UPCOMING: ${widget.id}");
+                      final updateResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        body: {"action": "reupdate", "P_id": widget.id.toString()},
+                      );
+                      final deleteResponse = await http.post(
+                        Uri.parse(
+                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        body: {"action": "delete", "subid": widget.Subid.toString()},
+                      );
+
+                      print("🟡 Reupdate: ${updateResponse.statusCode}");
+                      print("🟡 Delete: ${deleteResponse.statusCode}");
+
+                      if (deleteResponse.statusCode == 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Removed from Upcoming successfully!",
+                                style: TextStyle(color: Colors.white)),
+                            backgroundColor: Colors.blue,
+                          ),
+                        );
+                        setState(() => _status = "Book");
+                      }
+                    }
+                  } catch (e) {
+                    print("❌ Error Upcoming: $e");
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text("Error: $e"),
+                          backgroundColor: Colors.red),
+                    );
+                  } finally {
+                    setState(() => _isUpcomingLoading = false);
+                  }
+                },
+                child: Text(
+                  _isUpcomingLoading
+                      ? "Processing..."
+                      : _status == "Live"
+                      ? "Remove"
+                      : _status == "Book"
+                      ? "Move to Upcoming"
+                      : "Loading...",
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
 

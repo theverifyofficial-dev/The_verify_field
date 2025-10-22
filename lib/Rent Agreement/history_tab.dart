@@ -112,6 +112,7 @@ class _parent_TenandDemandState extends State<HistoryTab> {
           ],
         ),
       ),
+
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(12.0),

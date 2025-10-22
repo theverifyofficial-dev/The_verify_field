@@ -1408,7 +1408,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         Form(
           key: _propertyFormKey,
           child: Column(children: [
-            _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: propertyID,keyboard: TextInputType.number, label: 'Property ID',),
             Row(
                 children: [
                   Expanded(

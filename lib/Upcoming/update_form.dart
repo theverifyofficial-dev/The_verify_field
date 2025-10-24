@@ -21,6 +21,10 @@ import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Administrator/Add_Assign_Tenant_Demand/Feild_Workers_Bylocation.dart';
 import '../constant.dart';
 import '../model/realestateSlider.dart';
+
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+
 class Catid {
   final int id;
   final String propertyPhoto;
@@ -62,12 +66,12 @@ class Catid {
   final String fieldWorkerNumber;
   final String registryAndGpa;
   final String loan;
-  final String fieldWorkerCurrentLocation;
-  final String caretakerName;
-  final String caretakerNumber;
   final String longitude;
   final String latitude;
   final String videoLink;
+  final String fieldWorkerCurrentLocation;
+  final String caretakerName;
+  final String caretakerNumber;
   final int subid;
 
   Catid({
@@ -111,12 +115,12 @@ class Catid {
     required this.fieldWorkerNumber,
     required this.registryAndGpa,
     required this.loan,
-    required this.fieldWorkerCurrentLocation,
-    required this.caretakerName,
-    required this.caretakerNumber,
     required this.longitude,
     required this.latitude,
     required this.videoLink,
+    required this.fieldWorkerCurrentLocation,
+    required this.caretakerName,
+    required this.caretakerNumber,
     required this.subid,
   });
 
@@ -162,16 +166,17 @@ class Catid {
       fieldWorkerNumber: json['field_workar_number'] ?? '',
       registryAndGpa: json['registry_and_gpa'] ?? '',
       loan: json['loan'] ?? '',
-      fieldWorkerCurrentLocation: json['field_worker_current_location'] ?? '',
-      caretakerName: json['care_taker_name'] ?? '',
-      caretakerNumber: json['care_taker_number'] ?? '',
       longitude: json['Longitude'] ?? '',
       latitude: json['Latitude'] ?? '',
       videoLink: json['video_link'] ?? '',
-      subid: json['subid'] ?? 0,
+      fieldWorkerCurrentLocation: json['field_worker_current_location'] ?? '',
+      caretakerName: json['care_taker_name'] ?? '',
+      caretakerNumber: json['care_taker_number'] ?? '',
+      subid: int.tryParse(json['subid'].toString()) ?? 0,
     );
   }
 }
+
 final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
 class UpdateForm extends StatefulWidget {
@@ -338,9 +343,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
   void initState() {
     super.initState();
 
-    autofillFormFields(widget.propertyId);
+    autofillFormFields();
     _loadSavedLatLong();
-    fetchAndSetData(widget.propertyId);
+    fetchAndSetData();
 
     Future.microtask(() async {
       final provider = Provider.of<PropertyIdProvider>(context, listen: false);
@@ -425,9 +430,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
 
   bool _isLoading = true;
 
-  void autofillFormFields(int id) async {
+  void autofillFormFields() async {
     try {
-      final dataList = await fetchData(id);
+      final dataList = await fetchData();
       if (dataList.isNotEmpty) {
         final data = dataList.first;
 
@@ -540,9 +545,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
   }
 
 
-  Future<List<Catid>> fetchData(int id) async {
+  Future<List<Catid>> fetchData() async {
     var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=$id");
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_details_urgent_flat.php?P_id=${widget.propertyId.toString()}");
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
@@ -560,10 +565,10 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
   }
 
 
-  Future<void> fetchAndSetData(int id) async {
+  Future<void> fetchAndSetData() async {
     try {
       // 📥 Get API data
-      final apiDataList = await fetchData(id);
+      final apiDataList = await fetchData();
 
       if (apiDataList.isNotEmpty) {
         final apiData = apiDataList[0]; // Take first if list is not empty
@@ -633,7 +638,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
     'Security',
     'Terrace Garden',
     "Gas Pipeline "
-    ''
+        ''
   ];
   List<String> selectedFacilities = [];
 
@@ -3003,7 +3008,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
       await provider.fetchLatestPropertyId();
 
       final uri = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_upcoming_flat.php"
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/urgent_flat_update_api.php"
       );
 
       var request = http.MultipartRequest('POST', uri);

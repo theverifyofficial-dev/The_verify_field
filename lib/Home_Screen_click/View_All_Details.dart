@@ -374,14 +374,7 @@ class _View_DetailsState extends State<View_Details> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu, color: Colors.white),
             onSelected: (value) {
-              if (value == "reverse") {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ReverseInFutureProperty(id: widget.id),
-                  ),
-                );
-              } else if (value == "rented") {
+              if (value == "rented") {
                 // >>> correct the condition and guard null
                 if (firstProperty != null) {
                   final pid = firstProperty!.id.toString();
@@ -409,7 +402,6 @@ class _View_DetailsState extends State<View_Details> {
               }
             },
             itemBuilder: (context) => const [
-              PopupMenuItem(value: "reverse", child: Text("Reverse In Future Property")),
               PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
             ],
           ),
@@ -693,18 +685,25 @@ class _View_DetailsState extends State<View_Details> {
                             children: [
                               _FactChip(
                                 icon: Icons.install_desktop_sharp,
-                                label: "Property Id : "+ property.sourceId.toString(),
+                                label: "Property Id : "+ property.id.toString(),
                                 color: Colors.lightGreen,
                                 isDarkMode: isDarkMode,
                               ),
                               SizedBox(width: 8,),
                               _FactChip(
-                                icon: Icons.nineteen_mp_outlined,
+                                icon: Icons.apartment_sharp,
                                 label: "Building Id : "+ property.subid.toString(),
                                 color: Colors.lightBlue,
                                 isDarkMode: isDarkMode,
                               ),
                             ],
+                          ),
+
+                          _FactChip(
+                            icon: Icons.file_open,
+                            label: "Agreement : "+ property.sourceId.toString(),
+                            color: Colors.deepOrange,
+                            isDarkMode: isDarkMode,
                           ),
 
                           // Full Address

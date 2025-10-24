@@ -107,21 +107,6 @@ class _add_repet_numState extends State<add_repet_num> {
             ],
           ),
         ),
-        actions:  [
-          GestureDetector(
-            onTap: () {
-              // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MyHomePage()));
-            },
-            child: const Icon(
-              PhosphorIcons.image,
-              color: Colors.white,
-              size: 30,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

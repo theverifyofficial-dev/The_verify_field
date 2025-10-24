@@ -1379,7 +1379,7 @@ class PropertyCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
-          "ID: ${property.sourceId??""}",
+          "ID: ${property.id??""}",
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
             fontSize: 13,

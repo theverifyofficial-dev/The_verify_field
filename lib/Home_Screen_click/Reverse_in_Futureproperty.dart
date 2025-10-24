@@ -304,7 +304,7 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Main RealEstate id : ${widget.id}")),
+      appBar: AppBar(title: Text("Upcoming ID id : ${widget.id}")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -360,10 +360,6 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
                 ),
               ],
             ),
-
-
-
-
             const SizedBox(height: 20),
             Expanded(
               child: _loading

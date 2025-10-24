@@ -2840,7 +2840,7 @@ class _RegisterPropertyState extends State<AddComingFlats> {
       final propertyId = provider.latestPropertyId.toString();
       String? name = prefs.getString('name');
       String? number = prefs.getString('number');
-      final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_insert_api.php");
+      final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_urgent_flat.php");
       var request = http.MultipartRequest('POST', uri);
 
       request.fields['locations'] = _location ?? '';
@@ -2878,7 +2878,7 @@ class _RegisterPropertyState extends State<AddComingFlats> {
       request.fields['available_date'] = _flatAvailableDate?.toIso8601String() ?? '';
       request.fields['kitchen'] = _kitchenType ?? '';
       request.fields['bathroom'] = _bathroom ?? '';
-      request.fields['live_unlive'] = 'Live';
+      request.fields['live_unlive'] = 'Book';
       request.fields['lift'] = _lift ?? '';
       request.fields['Facility'] = _facilityController.text;
 // Map UI value -> backend value (change to 'Semi Furnished' / 'Fully Furnished' if your API wants full labels)

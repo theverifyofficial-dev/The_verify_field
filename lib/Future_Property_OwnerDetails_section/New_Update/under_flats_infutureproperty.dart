@@ -54,6 +54,7 @@ class Property {
   final String furnishedUnfurnished;
   final String fieldWarkarName;
   final String liveUnlive;
+  final String demoLiveUnlive;
   final String fieldWorkarNumber;
   final String registryAndGpa;
   final String loan;
@@ -103,6 +104,7 @@ class Property {
     required this.furnishedUnfurnished,
     required this.fieldWarkarName,
     required this.liveUnlive,
+    required this.demoLiveUnlive,
     required this.fieldWorkarNumber,
     required this.registryAndGpa,
     required this.loan,
@@ -117,106 +119,55 @@ class Property {
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
-      pId: json['P_id'],
-      propertyPhoto: json['property_photo'],
-      locations: json['locations'],
-      flatNumber: json['Flat_number'],
-      buyRent: json['Buy_Rent'],
-      residenceCommercial: json['Residence_Commercial'],
-      apartmentName: json['Apartment_name'],
-      apartmentAddress: json['Apartment_Address'],
-      typeofProperty: json['Typeofproperty'],
-      bhk: json['Bhk'],
-      showPrice: json['show_Price'],
-      lastPrice: json['Last_Price'],
-      askingPrice: json['asking_price'],
-      floor: json['Floor_'],
-      totalFloor: json['Total_floor'],
-      balcony: json['Balcony'],
-      squarefit: json['squarefit'],
-      maintance: json['maintance'],
-      parking: json['parking'],
-      ageOfProperty: json['age_of_property'].toString(), // Clean this if needed
-      fieldworkarAddress: json['fieldworkar_address'],
-      roadSize: json['Road_Size'],
-      metroDistance: json['metro_distance'],
-      highwayDistance: json['highway_distance'],
-      mainMarketDistance: json['main_market_distance'],
-      meter: json['meter'],
-      ownerName: json['owner_name'],
-      ownerNumber: json['owner_number'],
-      currentDates: json['current_dates'],
-      availableDate: json['available_date'],
-      kitchen: json['kitchen'],
-      bathroom: json['bathroom'],
-      lift: json['lift'],
-      facility: json['Facility'],
-      furnishedUnfurnished: json['furnished_unfurnished'],
-      fieldWarkarName: json['field_warkar_name'],
-      liveUnlive: json['live_unlive'],
-      fieldWorkarNumber: json['field_workar_number'],
-      registryAndGpa: json['registry_and_gpa'],
-      loan: json['loan'],
-      longitude: json['Longitude'],
-      latitude: json['Latitude'],
-      videoLink: json['video_link'],
-      fieldWorkerCurrentLocation: json['field_worker_current_location'],
-      careTakerName: json['care_taker_name'],
-      careTakerNumber: json['care_taker_number'],
+      pId: int.tryParse(json['P_id'].toString()) ?? 0,
+      propertyPhoto: json['property_photo'] ?? '',
+      locations: json['locations'] ?? '',
+      flatNumber: json['Flat_number'] ?? '',
+      buyRent: json['Buy_Rent'] ?? '',
+      residenceCommercial: json['Residence_Commercial'] ?? '',
+      apartmentName: json['Apartment_name'] ?? '',
+      apartmentAddress: json['Apartment_Address'] ?? '',
+      typeofProperty: json['Typeofproperty'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      showPrice: json['show_Price'] ?? '',
+      lastPrice: json['Last_Price'] ?? '',
+      askingPrice: json['asking_price'] ?? '',
+      floor: json['Floor_'] ?? '',
+      totalFloor: json['Total_floor'] ?? '',
+      balcony: json['Balcony'] ?? '',
+      squarefit: json['squarefit'] ?? '',
+      maintance: json['maintance'] ?? '',
+      parking: json['parking'] ?? '',
+      ageOfProperty: json['age_of_property'] ?? '',
+      fieldworkarAddress: json['fieldworkar_address'] ?? '',
+      roadSize: json['Road_Size'] ?? '',
+      metroDistance: json['metro_distance'] ?? '',
+      highwayDistance: json['highway_distance'] ?? '',
+      mainMarketDistance: json['main_market_distance'] ?? '',
+      meter: json['meter'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      currentDates: json['current_dates'] ?? '',
+      availableDate: json['available_date'] ?? '',
+      kitchen: json['kitchen'] ?? '',
+      bathroom: json['bathroom'] ?? '',
+      lift: json['lift'] ?? '',
+      facility: json['Facility'] ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
+      fieldWarkarName: json['field_warkar_name'] ?? '',
+      liveUnlive: json['live_unlive'] ?? '',
+      demoLiveUnlive: json['demo_live_unlive'] ?? '',
+      fieldWorkarNumber: json['field_workar_number'] ?? '',
+      registryAndGpa: json['registry_and_gpa'] ?? '',
+      loan: json['loan'] ?? '',
+      longitude: json['Longitude'] ?? '',
+      latitude: json['Latitude'] ?? '',
+      videoLink: json['video_link'] ?? '',
+      fieldWorkerCurrentLocation: json['field_worker_current_location'] ?? '',
+      careTakerName: json['care_taker_name'] ?? '',
+      careTakerNumber: json['care_taker_number'] ?? '',
       subid: json['subid'].toString(),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'P_id': pId,
-      'property_photo': propertyPhoto,
-      'locations': locations,
-      'Flat_number': flatNumber,
-      'Buy_Rent': buyRent,
-      'Residence_Commercial': residenceCommercial,
-      'Apartment_name': apartmentName,
-      'Apartment_Address': apartmentAddress,
-      'Typeofproperty': typeofProperty,
-      'Bhk': bhk,
-      'show_Price': showPrice,
-      'Last_Price': lastPrice,
-      'asking_price': askingPrice,
-      'Floor_': floor,
-      'Total_floor': totalFloor,
-      'Balcony': balcony,
-      'squarefit': squarefit,
-      'maintance': maintance,
-      'parking': parking,
-      'age_of_property': ageOfProperty,
-      'fieldworkar_address': fieldworkarAddress,
-      'Road_Size': roadSize,
-      'metro_distance': metroDistance,
-      'highway_distance': highwayDistance,
-      'main_market_distance': mainMarketDistance,
-      'meter': meter,
-      'owner_name': ownerName,
-      'owner_number': ownerNumber,
-      'current_dates': currentDates,
-      'available_date': availableDate,
-      'kitchen': kitchen,
-      'bathroom': bathroom,
-      'lift': lift,
-      'Facility': facility,
-      'furnished_unfurnished': furnishedUnfurnished,
-      'field_warkar_name': fieldWarkarName,
-      'live_unlive': liveUnlive,
-      'field_workar_number': fieldWorkarNumber,
-      'registry_and_gpa': registryAndGpa,
-      'loan': loan,
-      'Longitude': longitude,
-      'Latitude': latitude,
-      'video_link': videoLink,
-      'field_worker_current_location': fieldWorkerCurrentLocation,
-      'care_taker_name': careTakerName,
-      'care_taker_number': careTakerNumber,
-      'subid': subid,
-    };
   }
 }
 
@@ -332,7 +283,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   bool _isMainLoading = false;
   bool _isUpcomingLoading = false;
   Property? property;
-  String? _status; // value from liveUnlive key
+  String? estate_status; // value from liveUnlive key
+  String? Upcoming_status; // value from liveUnlive key
   Map<int, String> _statusMap = {}; // holds status for all IDs
 
   Future<void> _fetchData1() async {
@@ -345,7 +297,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       );
 
       setState(() {
-        _status = property.liveUnlive;
+        estate_status = property.liveUnlive;
+        Upcoming_status = property.demoLiveUnlive;
       });
     } catch (e) {
       debugPrint("Error fetching data: $e");
@@ -374,16 +327,25 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
   }
   Future<List<Property>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Property.fromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
+    var url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/detail_page_for_future_property_under_flat.php?P_id=${widget.id}");
+
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+
+      if (decoded['status'] == 'success' && decoded['data'] != null) {
+        List<dynamic> list = decoded['data'];
+        return list.map((e) => Property.fromJson(e)).toList();
+      } else {
+        throw Exception('No data found');
+      }
+    } else {
+      throw Exception('Unexpected error occurred!');
     }
   }
+
 // Step 1: Copy property to Real-Estate
   int tapCount = 0;
 
@@ -2788,9 +2750,9 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isMainLoading
                       ? Colors.grey
-                      : (_status == "Live"
+                      : (estate_status == "Live"
                       ? Colors.grey
-                      : _status == "Book"
+                      : estate_status == "Book"
                       ? Colors.red
                       : Colors.green),
                   shape: RoundedRectangleBorder(
@@ -2798,12 +2760,12 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 20),
                 ),
-                onPressed: _isMainLoading || _status == null
+                onPressed: _isMainLoading || estate_status == null
                     ? null
                     : () async {
                   setState(() => _isMainLoading = true);
                   try {
-                    if (_status == "Book") {
+                    if (estate_status == "Book") {
                       print("🔴 MOVE TO LIVE: ${widget.id}");
                       final updateResponse = await http.post(
                         Uri.parse(
@@ -2828,9 +2790,9 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             backgroundColor: Colors.green,
                           ),
                         );
-                        setState(() => _status = "Live");
+                        setState(() => estate_status = "Live");
                       }
-                    } else if (_status == "Live") {
+                    } else if (estate_status == "Live") {
                       print("🔵 MOVE TO BOOK (Unlive): ${widget.id}");
                       final updateResponse = await http.post(
                         Uri.parse(
@@ -2854,7 +2816,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             backgroundColor: Colors.blue,
                           ),
                         );
-                        setState(() => _status = "Book");
+                        setState(() => estate_status = "Book");
                       }
                     }
                   } catch (e) {
@@ -2886,9 +2848,9 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                   ],
                 )
                     : Text(
-                  _status == "Live"
+                  estate_status == "Live"
                       ? "Rent out / Book"
-                      : _status == "Book"
+                      : estate_status == "Book"
                       ? "Move to Live"
                       : "Loading...",
                   style: const TextStyle(
@@ -2907,18 +2869,18 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _isUpcomingLoading
                       ? Colors.grey
-                      : (_status == "Live" ? Colors.grey : Colors.orange),
+                      : (Upcoming_status == "Live" ? Colors.grey : Colors.orange),
                   shape:
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   padding: const EdgeInsets.symmetric(vertical: 20),
                 ),
-                onPressed: _isUpcomingLoading || _status == null
+                onPressed: _isUpcomingLoading || Upcoming_status == null
                     ? null
                     : () async {
                   setState(() => _isUpcomingLoading = true);
 
                   try {
-                    if (_status == "Book") {
+                    if (Upcoming_status == "Book") {
                       print("🟠 MOVE TO UPCOMING: ${widget.id}");
                       final updateResponse = await http.post(
                         Uri.parse(
@@ -2943,9 +2905,9 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             backgroundColor: Colors.orange,
                           ),
                         );
-                        setState(() => _status = "Live");
+                        setState(() => Upcoming_status = "Live");
                       }
-                    } else if (_status == "Live") {
+                    } else if (Upcoming_status == "Live") {
                       print("🔵 REMOVE FROM UPCOMING: ${widget.id}");
                       final updateResponse = await http.post(
                         Uri.parse(
@@ -2969,7 +2931,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             backgroundColor: Colors.blue,
                           ),
                         );
-                        setState(() => _status = "Book");
+                        setState(() => Upcoming_status = "Book");
                       }
                     }
                   } catch (e) {
@@ -2986,9 +2948,9 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                 child: Text(
                   _isUpcomingLoading
                       ? "Processing..."
-                      : _status == "Live"
+                      : Upcoming_status == "Live"
                       ? "Remove"
-                      : _status == "Book"
+                      : Upcoming_status == "Book"
                       ? "Move to Upcoming"
                       : "Loading...",
                   style: const TextStyle(

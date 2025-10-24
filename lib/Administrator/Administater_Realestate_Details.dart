@@ -771,7 +771,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                     _buildInfoRow('Show Price', abc.data![len].showPrice),
                                     _buildInfoRow('Ask Price', abc.data![len].askingPrice),
                                     _buildInfoRow('Last Price', abc.data![len].lastPrice),
-                                    _buildInfoRow('Property ID', abc.data![len].sourceId.toString(),),
+                                    _buildInfoRow('Property ID', abc.data![len].id.toString(),),
                                   ],
                                 ),
                               ],

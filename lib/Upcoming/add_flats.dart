@@ -3,19 +3,21 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Administrator/Admin_upcoming_details.dart';
 import '../model/upcoming_model.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'Upcoming_details.dart';
+import 'add_coming_flats.dart';
+import 'added_details.dart';
 
 
-class AllFlats extends StatefulWidget {
-  const AllFlats({super.key});
+class AddFlats extends StatefulWidget {
+  const AddFlats({super.key});
 
   @override
-  State<AllFlats> createState() => _Show_New_Real_EstateState();
+  State<AddFlats> createState() => _Show_New_Real_EstateState();
 }
 
-class _Show_New_Real_EstateState extends State<AllFlats> {
+class _Show_New_Real_EstateState extends State<AddFlats> {
 
   List<Upcoming_model> _allProperties = [];
   List<Upcoming_model> _filteredProperties = [];
@@ -80,7 +82,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
 
   Future<List<Upcoming_model>> fetchData(String number) async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_api_for_admin.php",
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_urgent_add_falt_by_feildworkar.php?field_workar_number=$number",
     );
 
     final response = await http.get(url);
@@ -157,6 +159,21 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
       print("❌ Error fetching data: $e");
       setState(() => _isLoading = false);
     }
+  }
+
+  void _setSearchText(String label, String text) {
+    setState(() {
+      selectedLabel = label;
+      _searchController.text = text;
+      _searchController.selection = TextSelection.fromPosition(
+        TextPosition(offset: _searchController.text.length),
+
+      );
+      // propertyCount = _getMockPropertyCount(text); // Mock or real count
+
+    });
+
+    print("Search for: $text");
   }
 
   bool get _isSearchActive {
@@ -348,7 +365,6 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                         "Total Floor": property.totalFloor,
                         "Residence/Commercial": property.typeOfProperty,
                         "Facility": property.facility,
-                        "Video": property.video,
                       };
 
                       final missingFields = fields.entries
@@ -373,7 +389,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AdminUpcomingDetails(id: _filteredProperties[index].pId??0),
+                                    builder: (context) => AddedDetails(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
                                 print(_filteredProperties[index].pId??0);
@@ -420,7 +436,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                                                 _buildFeatureItem(
                                                   context: context,
                                                   // icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].pId}",
+                                                  text: "Property ID: ${_filteredProperties[index].pId}",
                                                   borderColor: Colors.red.shade200,
                                                   backgroundColor: Colors.red.shade50,
                                                   textColor: Colors.red.shade700,
@@ -428,7 +444,7 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                                                 ),  _buildFeatureItem(
                                                   context: context,
                                                   // icon: Icons.king_bed,
-                                                  text: _filteredProperties[index].buyRent ?? "Property",
+                                                  text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
                                                   borderColor: Colors.blue.shade200,
                                                   backgroundColor: Colors.blue.shade50,
                                                   textColor: Colors.blue.shade700,
@@ -494,15 +510,6 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                                                 ),
                                                 _buildFeatureItem(
                                                   context: context,
-                                                  icon: Icons.receipt_rounded,
-                                                  text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                  borderColor: Colors.red.shade200,
-                                                  backgroundColor: Colors.red.shade50,
-                                                  textColor: Colors.red.shade700,
-                                                  shadowColor: Colors.red.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
                                                   icon: Icons.home_work,
                                                   text: _filteredProperties[index].typeOfProperty ?? "",
                                                   borderColor: Colors.orange.shade200,
@@ -512,20 +519,20 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                                                 ),
                                                 _buildFeatureItem(
                                                   context: context,
-                                                  text: " By :${_filteredProperties[index].fieldWorkerName}" ?? "",
-                                                  borderColor: Colors.blue.shade200,
-                                                  backgroundColor: Colors.blue.shade50,
-                                                  textColor: Colors.blue.shade700,
-                                                  shadowColor: Colors.blue.shade100,
+                                                  icon: Icons.receipt_rounded,
+                                                  text: "Flat No. ${_filteredProperties[index].flatNumber}",
+                                                  borderColor: Colors.red.shade200,
+                                                  backgroundColor: Colors.red.shade50,
+                                                  textColor: Colors.red.shade700,
+                                                  shadowColor: Colors.red.shade100,
                                                 ),
-
                                               ],
                                             ),
                                             if (hasMissingFields) ...[
                                               SizedBox(height: 20),
                                               Container(
                                                 width: double.infinity,
-                                                padding : const EdgeInsets.all(10),
+                                                padding: const EdgeInsets.all(10),
                                                 decoration: BoxDecoration(
                                                   color: Colors.red[50],
                                                   borderRadius: BorderRadius.circular(10),
@@ -553,14 +560,63 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
                       );
                     },
                   );
+
                 },
               ),
             ),
           ),
         ],
       ),
+
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(6),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.2),
+                blurRadius: 10,
+                offset: const Offset(0, 5),
+              ),
+            ],
+            gradient: LinearGradient(
+              colors: [Colors.blueAccent, Colors.lightBlueAccent],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ),
+          ),
+          child: ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddComingFlats()));
+            },
+            icon: const Icon(Icons.add, color: Colors.white),
+            label: const Text(
+              'Add Flats',
+              style: TextStyle(
+                fontSize: 17,
+                fontFamily: "PoppinsBold",
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+                color: Colors.white,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              elevation: 0, // Shadow handled by container
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+        ),
+      ),
     );
   }
+
+
 
   Widget _buildFeatureItem({
     required BuildContext context,
@@ -626,5 +682,4 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
       ),
     );
   }
-
 }

@@ -734,7 +734,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               _buildFeatureItem(
                                                 context: context,
                                                 // icon: Icons.king_bed,
-                                                text: "Property ID : ${_filteredProperties[index].sourceId}",
+                                                text: "Property ID : ${_filteredProperties[index].pId}",
                                                 borderColor: Colors.grey.shade700,
                                                 backgroundColor: Colors.white,
                                                 textColor: Colors.blue,
@@ -837,6 +837,14 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                                   : SizedBox.shrink(), // Empty widget if condition is not met
 
 
+                                              _buildFeatureItem(
+                                                context: context,
+                                                text: " Agreement: ${_filteredProperties[index].sourceId.toString()}",
+                                                borderColor: Colors.blue.shade400,
+                                                backgroundColor: Colors.blue.shade100,
+                                                textColor: Colors.blue.shade700,
+                                                shadowColor: Colors.blue.shade100,
+                                              )
 
                                             ],
                                           ),
@@ -880,52 +888,52 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
         ],
       ),
 
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(6),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
-            gradient: LinearGradient(
-              colors: [Colors.blueAccent, Colors.lightBlueAccent],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-          child: ElevatedButton.icon(
-            onPressed: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
-              // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
-            },
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text(
-              'Add Property',
-              style: TextStyle(
-                fontSize: 17,
-                fontFamily: "PoppinsBold",
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
-                color: Colors.white,
-              ),
-            ),
-            style: ElevatedButton.styleFrom(
-              elevation: 0, // Shadow handled by container
-              backgroundColor: Colors.transparent,
-              shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-            ),
-          ),
-        ),
-      ),
+      // bottomNavigationBar: Padding(
+      //   padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
+      //   child: Container(
+      //     decoration: BoxDecoration(
+      //       borderRadius: BorderRadius.circular(6),
+      //       boxShadow: [
+      //         BoxShadow(
+      //           color: Colors.black.withOpacity(0.2),
+      //           blurRadius: 10,
+      //           offset: const Offset(0, 5),
+      //         ),
+      //       ],
+      //       gradient: LinearGradient(
+      //         colors: [Colors.blueAccent, Colors.lightBlueAccent],
+      //         begin: Alignment.centerLeft,
+      //         end: Alignment.centerRight,
+      //       ),
+      //     ),
+      //     child: ElevatedButton.icon(
+      //       onPressed: () {
+      //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
+      //         // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
+      //       },
+      //       icon: const Icon(Icons.add, color: Colors.white),
+      //       label: const Text(
+      //         'Add Property',
+      //         style: TextStyle(
+      //           fontSize: 17,
+      //           fontFamily: "PoppinsBold",
+      //           fontWeight: FontWeight.w600,
+      //           letterSpacing: 0.5,
+      //           color: Colors.white,
+      //         ),
+      //       ),
+      //       style: ElevatedButton.styleFrom(
+      //         elevation: 0, // Shadow handled by container
+      //         backgroundColor: Colors.transparent,
+      //         shadowColor: Colors.transparent,
+      //         shape: RoundedRectangleBorder(
+      //           borderRadius: BorderRadius.circular(16),
+      //         ),
+      //         padding: const EdgeInsets.symmetric(vertical: 16),
+      //       ),
+      //     ),
+      //   ),
+      // ),
     );
   }
 

@@ -374,7 +374,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                   final List<Map<String, dynamic>> cardData = [
                     {
                       "image": AppImages.verify_Property,
-                      "title": "Live Property",
+                      "title": "Live\n Property",
                       "onTap": () =>
                           Navigator.push(
                           context,
@@ -382,12 +382,14 @@ class _Home_ScreenState extends State<Home_Screen> {
                               builder: (_) => Show_New_Real_Estate())),
                     },
                     {
-                      "image": AppImages.documents,
-                      "title": "Verification",
-                      "onTap": () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => ShowProperty())),
+                      "image": AppImages.realestatefeild,
+                      "title": "Upcoming\nFlats",
+                      "onTap": () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const ParentUpcoming()));
+                      },
                     },
 
                     {
@@ -445,15 +447,14 @@ class _Home_ScreenState extends State<Home_Screen> {
                       },
                     },
                     {
-                      "image": AppImages.realestatefeild,
-                      "title": "Upcoming\nFlats",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ParentUpcoming()));
-                      },
+                      "image": AppImages.documents,
+                      "title": "Verification\n Property",
+                      "onTap": () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => ShowProperty())),
                     },
+
 
                   ];
 

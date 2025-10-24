@@ -43,10 +43,14 @@ class _assign_demand_formState extends State<assign_demand_form> {
 
   void _generateDateTime() {
     setState(() {
-      _Time = DateFormat('d-MMMM-yyyy').format(DateTime.now());
-      _date = DateFormat('h:mm a').format(DateTime.now());
+      // ✅ Time (for FN)
+      _nameSherar = DateFormat('hh:mm a').format(DateTime.now());
+
+      // ✅ Date (for FNO)
+      _numberSherar = DateFormat('dd-MMMM-yyyy').format(DateTime.now());
     });
   }
+
 
   Future<void> fetchdata(FN,FNO,Name,Number,buyrent,Additional_Info,refrence,bhk) async{
     final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/add_assign_tanant_demand_2nd_table?fieldworkar_name=$FN&fieldworkar_number=$FNO&demand_name=$Name&demand_number=$Number&buy_rent=$buyrent&add_info=$Additional_Info&location_=$_location&reference=$refrence&feedback=Pending&looking_type=Blank&bhk=$bhk'));
@@ -75,6 +79,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
 
   void _showCountdownDialog() {
     int countdown = 5;
+    bool hasSent = false; // ✅ Prevent multiple calls
     Timer? timer;
 
     showDialog(
@@ -83,26 +88,28 @@ class _assign_demand_formState extends State<assign_demand_form> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
-            // ✅ Only create timer once
             timer ??= Timer.periodic(const Duration(seconds: 1), (t) {
               if (countdown > 1) {
                 setState(() => countdown--);
               } else {
                 t.cancel();
-                Navigator.of(context).pop(); // close dialog
+                if (!hasSent) {
+                  hasSent = true; // ✅ Mark as sent
+                  Navigator.of(context).pop(); // Close dialog
 
-                // Generate and send data only once
-                _generateDateTime();
-                fetchdata(
-                  _nameSherar,
-                  _numberSherar,
-                  _name.text,
-                  _number.text,
-                  _selectedItem.toString(),
-                  _Building_information.text,
-                  _Refrence.text,
-                  tempArray.join(', '),
-                );
+                  _generateDateTime(); // ✅ Generate updated time/date before sending
+
+                  fetchdata(
+                    _nameSherar,
+                    _numberSherar,
+                    _name.text,
+                    _number.text,
+                    _selectedItem.toString(),
+                    _Building_information.text,
+                    _Refrence.text,
+                    tempArray.join(', '),
+                  );
+                }
               }
             });
 
@@ -129,7 +136,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
         );
       },
     ).then((_) {
-      timer?.cancel(); // ✅ cleanup after dialog closes
+      timer?.cancel(); // Cleanup
     });
   }
 
@@ -411,6 +418,7 @@ class _assign_demand_formState extends State<assign_demand_form> {
                     );
                   }),
 
+              SizedBox(height: 10,),
               Center(
                 child: Container(
                   height: 50,

@@ -685,7 +685,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
                                     _buildIdBadge(
                                       context: context,
                                       label: "PROPERTY ID #",
-                                      value: item.sourceId.toString(),
+                                      value: item.id.toString(),
                                     ),
                                   ],
                                 ),

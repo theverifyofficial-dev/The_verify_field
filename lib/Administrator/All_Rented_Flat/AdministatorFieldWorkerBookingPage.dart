@@ -65,6 +65,8 @@ class Property {
   final String extraExpense;
   final String advancePayment;
   final String totalBalance;
+  final String secondAmount;
+  final String finalAmount;
 
   Property({
     required this.id,
@@ -119,6 +121,8 @@ class Property {
     required this.extraExpense,
     required this.advancePayment,
     required this.totalBalance,
+    required this.secondAmount,
+    required this.finalAmount,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -175,6 +179,8 @@ class Property {
       extraExpense: json["Extra_Expense"] ?? "",
       advancePayment: json["Advance_Payment"] ?? "",
       totalBalance: json["Total_Balance"] ?? "",
+      secondAmount: json["second_amount"] ?? "",
+      finalAmount: json["final_amount"] ?? "",
     );
   }
 }
@@ -376,6 +382,12 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
       throw Exception("Failed to fetch owner data");
     }
   }
+  double _toD(dynamic v) {
+    final s = (v ?? '').toString().trim();
+    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
+  }
+
+  String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -501,8 +513,18 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                               _buildDetailRow("Company Commission \nfrom Tenant", "₹ ${item.commission}"),
                               _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
                               _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
-
                               _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
+                              const Divider(thickness: 0.5, color: Colors.grey),
+                              _buildDetailRow(
+                                "Remaining Amount",
+                                _cur(
+                                  (_toD(item.totalBalance)
+                                      - _toD(item.advancePayment)
+                                      - _toD(item.secondAmount)
+                                      - _toD(item.finalAmount))
+                                      .clamp(0, double.infinity),
+                                ),
+                              ),
                             ],
                           ),
                         ),

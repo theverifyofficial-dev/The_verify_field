@@ -452,7 +452,7 @@ class _ADministaterShow_FuturePropertyState
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => SeeAll_FutureProperty(id: workerId)),
+                        builder: (_) => SeeAll_FutureProperty(number: workerId)),
                   ),
                   child: const Text("See All",
                       style: TextStyle(fontSize: 16, color: Colors.red))),

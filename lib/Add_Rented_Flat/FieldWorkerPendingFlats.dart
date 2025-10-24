@@ -60,6 +60,8 @@ class Property {
   final String videoLink;
   final String caretakerName;
   final String caretakerNumber;
+  final String statusForFinalPayment;
+  final String statusForSecondPayment;
   final dynamic subid;
 
   // ✅ New fields
@@ -126,7 +128,9 @@ class Property {
     required this.advancePayment,
     required this.totalBalance,
     required this.finalAmount,
-    required this.secondAmount
+    required this.secondAmount,
+    required this.statusForFinalPayment,
+    required this.statusForSecondPayment,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -185,6 +189,8 @@ class Property {
       totalBalance: json["Total_Balance"] ?? "",
       secondAmount: json["second_amount"] ?? "",
       finalAmount: json["final_amount"] ?? "",
+      statusForSecondPayment: json["status_for_second_payment"] ?? "",
+      statusForFinalPayment: json["status_for_final_payment"] ?? "",
     );
   }
 }
@@ -533,7 +539,7 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("✅ Response: $message"),
+            content: Text("✅ Update Successfully",style: TextStyle(color: Colors.white),),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 4),
           ),
@@ -595,6 +601,14 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
       fetchBookingData();
     });
   }
+  double _toD(dynamic v) {
+    final s = (v ?? '').toString().trim();
+    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
+  }
+
+  String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
+
+
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -621,6 +635,7 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
               itemCount: bookingList.length,
               itemBuilder: (context, index) {
                 final item = bookingList[index];
+
                 return GestureDetector(
                   onTap: (){
                     Navigator.of(context).push(MaterialPageRoute(builder: (context){
@@ -722,6 +737,17 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                               _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
                               _buildDetailRow("Second Amount", "₹ ${item.secondAmount}"),
                               _buildDetailRow("Final Payment", "₹ ${item.finalAmount}"),
+                              const Divider(thickness: 0.5, color: Colors.grey),
+                              _buildDetailRow(
+                                "Remaining Amount",
+                                _cur(
+                                  (_toD(item.totalBalance)
+                                      - _toD(item.advancePayment)
+                                      - _toD(item.secondAmount)
+                                      - _toD(item.finalAmount))
+                                      .clamp(0, double.infinity),
+                                ),
+                              ),
                               // --- Two Buttons (Open Sheets) ---
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -760,6 +786,21 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                           ),
                         ),
                         const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            if(item.statusForSecondPayment!=null&& item.statusForSecondPayment!="")
+                            _buildTag(item.statusForSecondPayment, Colors.green),
+                            if(item.statusForFinalPayment!=null&& item.statusForFinalPayment!="")
+
+                              _buildTag(item.statusForFinalPayment, Colors.deepOrangeAccent),
+                          ],
+                        ),
+
+                        const SizedBox(height: 8),
+
+
                         /// --- Tenant Details Section
                         FutureBuilder<List<Tenant>>(
                           future: fetchTenants(item.id),

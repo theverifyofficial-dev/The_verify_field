@@ -59,6 +59,8 @@ class Property {
   final String videoLink;
   final String caretakerName;
   final String caretakerNumber;
+  final String statusForFinalPayment;
+  final String statusForSecondPayment;
   final dynamic subid;
 
   // ✅ New fields
@@ -68,6 +70,8 @@ class Property {
   final String extraExpense;
   final String advancePayment;
   final String totalBalance;
+  final String secondAmount;
+  final String finalAmount;
 
   Property({
     required this.id,
@@ -122,6 +126,10 @@ class Property {
     required this.extraExpense,
     required this.advancePayment,
     required this.totalBalance,
+    required this.finalAmount,
+    required this.secondAmount,
+    required this.statusForFinalPayment,
+    required this.statusForSecondPayment,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -178,6 +186,10 @@ class Property {
       extraExpense: json["Extra_Expense"] ?? "",
       advancePayment: json["Advance_Payment"] ?? "",
       totalBalance: json["Total_Balance"] ?? "",
+      secondAmount: json["second_amount"] ?? "",
+      finalAmount: json["final_amount"] ?? "",
+      statusForSecondPayment: json["status_for_second_payment"] ?? "",
+      statusForFinalPayment: json["status_for_final_payment"] ?? "",
     );
   }
 }
@@ -546,7 +558,12 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       fetchBookingData();
     });
   }
+  double _toD(dynamic v) {
+    final s = (v ?? '').toString().trim();
+    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
+  }
 
+  String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
@@ -633,49 +650,111 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                         const SizedBox(height: 12),
 
                         /// --- Financial Details Box
+// ===================== FINANCIAL DETAILS EXPANSION TILE =====================
                         Container(
-                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade50,
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: Colors.grey.shade200),
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(12)
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    "Financial Details",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                  Text(
-                                    "ID: ${item.id}",
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.black87,
-                                    ),
-                                  ),
-                                ],
+                          // margin: const EdgeInsets.symmetric(horizontal: 8, ),
+
+                          child: ExpansionTile(
+                            initiallyExpanded: false,
+                            // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+                            backgroundColor: Colors.grey.shade200,
+                            collapsedBackgroundColor: Colors.grey.shade200,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            collapsedShape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            title: const Text(
+                              "Financial Details",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black87,
                               ),
-                              const Divider(thickness: 0.5, color: Colors.grey),
-
-                              _buildDetailRow("Rent", "₹ ${item.rent}"),
-                              _buildDetailRow("Security", "₹ ${item.security}"),
-                              _buildDetailRow("Tenant Commission", "₹ ${item.commission}"),
-                              _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
-                              _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
-                              _buildAdvancePayment("Advance Payment", "₹ ${item.advancePayment}"),
-
+                            ),
+                            trailing: Text(
+                              "ID: ${item.id}",
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black54,
+                              ),
+                            ),
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.grey.shade200),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildDetailRow("Rent", "₹ ${item.rent}"),
+                                    _buildDetailRow("Security", "₹ ${item.security}"),
+                                    _buildDetailRow("Tenant Commission", "₹ ${item.commission}"),
+                                    _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
+                                    _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
+                                    _buildAdvancePayment("Advance Payment", "₹ ${item.advancePayment}"),
+                                    _buildDetailRow("Second Amount ", "₹ ${item.secondAmount}"),
+                                    _buildDetailRow("Final Amount ", "₹ ${item.finalAmount}"),
+                                    const Divider(thickness: 0.5, color: Colors.grey),
+                                    _buildDetailRow(
+                                      "Remaining Amount",
+                                      _cur(
+                                        (_toD(item.totalBalance)
+                                            - _toD(item.advancePayment)
+                                            - _toD(item.secondAmount)
+                                            - _toD(item.finalAmount))
+                                            .clamp(0, double.infinity),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
+
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: [
+                            // STEP 2
+                            if (item.statusForSecondPayment=="2nd payment pending")
+                              _pillButton(
+                                label: "Accept 2nd Amount",
+                                color: Colors.blue,
+                                onPressed: () async {
+                                  final ok = await _changeSecondPaymentStatus(pId: item.id,);
+                                  if (!mounted) return;
+                                  _onRefresh();
+                                },
+                              ),
+
+                            if (item.statusForFinalPayment=="final payment pending")
+                              _pillButton(
+                                label: "Accept Final Amount",
+                                color: Colors.deepOrange,
+                                onPressed: () async {
+                                  final ok = await _changeFinishPaymentStatus(pId: item.id,);
+                                  if (!mounted) return;
+                                  _onRefresh();
+                                },
+                              ),
+
+                            // STEP 3 / FINAL
+                          ],
+                        ),
+
                         const SizedBox(height: 8),
                         /// --- Tenant Details Section
                         FutureBuilder<List<Tenant>>(
@@ -887,95 +966,23 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 
                           ],
                         ),
-                        const SizedBox(height: 20),
-
-                        FutureBuilder<List<FirstPaymentRecord>>(
-                          future: fetchFirstPaymentsBySubId(item.id), // returns list for this property/subid
-                          builder: (context, billingSnapshot) {
-                            if (billingSnapshot.connectionState == ConnectionState.waiting) {
-                              return const Center();
-                            }
-
-                            if (billingSnapshot.hasError) {
-                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
-                            }
-
-                            final list = billingSnapshot.data ?? const <FirstPaymentRecord>[];
-
-                            // No step-1 record yet -> show Add button
-                            if (list.isEmpty) {
-                              return Text("");
-                            }
-                            return Container(
-                              decoration: BoxDecoration(
-                                  color: Colors.grey.shade200,
-                                  borderRadius: BorderRadius.circular(10)
-                              ),
-                              padding: EdgeInsets.all(6),
-
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    "Step 1 Billing",
-                                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87),
-                                  ),
-                                  const SizedBox(height: 10),
-
-                                  // Map each record to a card. If you only want the latest shown, render [list.last] instead.
-                                  ...list.map((rec) => Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 6,
-                                        children: [
-                                          _buildTag("${rec.statusFirst ?? '—'}", Colors.deepPurple),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade50,
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: Colors.grey.shade200),
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            _buildDetailRow("Tenant Advance: ", "₹ ${rec.tenantAdvance}"),
-                                            _buildDetailRow("Give to Owner: ", "₹ ${rec.giveToOwnerAdvance}"),
-                                            _buildDetailRow("Office Hold: ", "₹ ${rec.officeHold}"),
-                                          ],
-                                        ),
-                                      ),
-                                      // const SizedBox(height: 8),
-
-                                      const SizedBox(height: 12),
-                                    ],
-                                  )),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
                         const SizedBox(height: 10),
 
+// ===================== SINGLE FUTURE BUILDER =====================
                         FutureBuilder<List<FirstPaymentRecord>>(
                           future: fetchFirstPaymentsBySubId(item.id),
-                          builder: (context, billingSnapshot) {
-                            if (billingSnapshot.connectionState == ConnectionState.waiting) {
+                          builder: (context, snap) {
+                            if (snap.connectionState == ConnectionState.waiting) {
                               return const SizedBox.shrink();
                             }
-
-                            if (billingSnapshot.hasError) {
+                            if (snap.hasError) {
                               return const Text("Billing data error", style: TextStyle(color: Colors.black54));
                             }
 
-                            final all = billingSnapshot.data ?? const <FirstPaymentRecord>[];
+                            final allRecords = snap.data ?? const <FirstPaymentRecord>[];
+                            if (allRecords.isEmpty) return const SizedBox.shrink();
 
-                            // Treat null/empty/zero as "no value"
+                            // Helper functions
                             bool _hasMid(dynamic v) {
                               if (v == null) return false;
                               if (v is num) return v != 0;
@@ -985,85 +992,9 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               return (n ?? 0) != 0;
                             }
 
-                            // Keep only records where Mid Payment To Owner has a value
-                            final list = all.where((r) => _hasMid(r.midPaymentToOwner)).toList();
-
-                            // If none have the field, show nothing at all
-                            if (list.isEmpty) return const SizedBox.shrink();
-
-                            return Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.all(6),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 8),
-                                      const Text(
-                                        "Step 2 Billing",
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87),
-                                      ),
-                                      const SizedBox(height: 10),
-
-                                      // Only mapped over records that actually have the field
-                                      ...list.map((rec) => Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 6,
-                                            children: [
-                                              _buildTag("${rec.statusSec ?? '—'}", Colors.deepPurple),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 10),
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade50,
-                                              borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(color: Colors.grey.shade200),
-                                            ),
-                                            child: Column(
-                                              children: [
-                                                _buildDetailRow("Mid Payment From Tenant: ", "₹ ${rec.midPaymentToOwner}"),
-                                                _buildDetailRow("Office Transfer Payment \nTo Owner: ", "₹ ${rec.midPaymentToOwner}"),
-                                              ],
-                                            ),
-                                          ),
-                                          const SizedBox(height: 12),
-                                        ],
-                                      )),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 10),
-
-                        FutureBuilder<List<FirstPaymentRecord>>(
-                          future: fetchFirstPaymentsBySubId(item.id),
-                          builder: (context, billingSnapshot) {
-                            if (billingSnapshot.connectionState == ConnectionState.waiting) {
-                              return const SizedBox.shrink();
-                            }
-                            if (billingSnapshot.hasError) {
-                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
-                            }
-
-                            final all = billingSnapshot.data ?? const <FirstPaymentRecord>[];
-
-                            // show value if it’s present (even "0"), hide only if null or empty string
                             bool _hasAny(dynamic v) {
                               if (v == null) return false;
-                              final s = v.toString().trim();
-                              return s.isNotEmpty;
+                              return v.toString().trim().isNotEmpty;
                             }
 
                             String _money(dynamic v) {
@@ -1072,13 +1003,12 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               return "₹ ${n.toStringAsFixed(0)}";
                             }
 
-                            // consider a record as having step 3 if ANY of these keys exist (old + new)
                             bool _hasStep3(FirstPaymentRecord r) =>
                                 _hasAny(r.tenantPayLastAmount) ||
                                     _hasAny(r.bothSideCompanyCommission) ||
                                     _hasAny(r.ownerReceivedFinalAmount) ||
                                     _hasAny(r.tenantTotalPay) ||
-                                    _hasAny(r.ownerTotalReceivedAmount) || // legacy
+                                    _hasAny(r.ownerTotalReceivedAmount) ||
                                     _hasAny(r.remainingHold) ||
                                     _hasAny(r.companyKeepComition) ||
                                     _hasAny(r.remainBalanceShareToOwner) ||
@@ -1086,77 +1016,133 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                     _hasAny(r.remaingFinalBalance) ||
                                     _hasAny(r.totalPayTenant);
 
-                            final filtered = all.where(_hasStep3).toList();
-                            if (filtered.isEmpty) return const SizedBox.shrink();
+                            // Filter records for each step
+                            final step1Records = allRecords.where((r) =>
+                            _hasAny(r.tenantAdvance) || _hasAny(r.giveToOwnerAdvance) || _hasAny(r.officeHold)).toList();
 
-                            // latest row only
-                            final rec = filtered.last;
+                            final step2Records = allRecords.where((r) => _hasMid(r.midPaymentToOwner)).toList();
 
-                            List<Widget> rows = [];
-                            void addRow(String k, dynamic v) {
-                              if (_hasAny(v)) rows.add(_buildDetailRow(k, _money(v)));
-                            }
-
-                            // Step 3 — use the CORRECT fields
-                            addRow("Last Payment From Tenant", rec.tenantPayLastAmount);
-                            addRow("Both-side Company Commission (Total)", rec.bothSideCompanyCommission);
-
-                            // NEW server keys
-                            addRow("Remaining Hold (Final + Hold)", rec.remainingHold);
-                            addRow("Company Keep Commission", rec.companyKeepComition);
-                            addRow("Owner Share From Pool", rec.remainBalanceShareToOwner);
-                            addRow("Owner Final Received", rec.finalRecivedAmountOwner);
-                            addRow("Remaining Final Balance", rec.remaingFinalBalance);
-                            addRow("Total Paid By Tenant", rec.totalPayTenant);
-
-                            // // Context (optional)
-                            // addRow("Mid Payment To Owner (Step 2)", rec.midPaymentToOwner);
-                            // addRow("Advance Given To Owner (Step 1)", rec.giveToOwnerAdvance);
-                            // addRow("Office Hold (Step 1)", rec.officeHold);
+                            final step3Records = allRecords.where(_hasStep3).toList();
 
                             return Column(
                               children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  padding: const EdgeInsets.all(6),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      const SizedBox(height: 8),
-                                      const Text(
-                                        "Step 3 Billing",
-                                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.black87),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Wrap(
-                                        spacing: 8,
-                                        runSpacing: 6,
-                                        children: [
-                                          _buildTag(rec.statusThird.isEmpty ? "—" : rec.statusThird, Colors.deepPurple),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade50,
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: Colors.grey.shade200),
+                                // ===================== STEP 1 =====================
+                                if (step1Records.isNotEmpty) ...[
+                                  _buildBillingStep(
+                                    title: "Step 1 Billing",
+                                    records: step1Records,
+                                    buildContent: (rec) => Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 6,
+                                          children: [
+                                            _buildTag("${rec.statusFirst ?? '—'}", Colors.deepPurple),
+                                          ],
                                         ),
-                                        child: Column(children: rows),
-                                      ),
-                                      const SizedBox(height: 12),
-                                    ],
+                                        const SizedBox(height: 10),
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade50,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.grey.shade300),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              _buildDetailRow("Tenant Advance: ", "₹ ${rec.tenantAdvance}"),
+                                              _buildDetailRow("Give to Owner: ", "₹ ${rec.giveToOwnerAdvance}"),
+                                              _buildDetailRow("Office Hold: ", "₹ ${rec.officeHold}"),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
+                                  const SizedBox(height: 10),
+                                ],
+
+                                // ===================== STEP 2 =====================
+                                if (step2Records.isNotEmpty) ...[
+                                  _buildBillingStep(
+                                    title: "Step 2 Billing",
+                                    records: step2Records,
+                                    buildContent: (rec) => Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 6,
+                                          children: [
+                                            _buildTag("${rec.statusSec ?? '—'}", Colors.deepPurple),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 10),
+                                        Container(
+                                          padding: const EdgeInsets.all(10),
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade50,
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.grey.shade300),
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              _buildDetailRow("Mid Payment From Tenant: ", "₹ ${rec.midPaymentToOwner}"),
+                                              _buildDetailRow("Office Transfer Payment To Owner: ", "₹ ${rec.midPaymentToOwner}"),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                ],
+
+                                // ===================== STEP 3 =====================
+                                if (step3Records.isNotEmpty) ...[
+                                  _buildBillingStep(
+                                    title: "Step 3 Billing",
+                                    records: step3Records,
+                                    isStep3: true,
+                                    buildContent: (rec) {
+                                      List<Widget> rows = [];
+                                      void addRow(String k, dynamic v) {
+                                        if (_hasAny(v)) rows.add(_buildDetailRow(k, _money(v)));
+                                      }
+
+                                      addRow("Last Payment From Tenant", rec.tenantPayLastAmount);
+                                      // addRow("Both-side Company Commission (Total)", rec.bothSideCompanyCommission);
+                                      addRow("Remaining Hold (Final + Hold)", rec.remainingHold);
+                                      addRow("Company Keep Commission Both-side", rec.companyKeepComition);
+                                      addRow("Remaining Balance Share \nTo Owner", rec.remainBalanceShareToOwner);
+                                      addRow("Owner Final Received", rec.finalRecivedAmountOwner);
+                                      addRow("Remaining Final Balance", rec.remaingFinalBalance);
+                                      addRow("Total Paid By Tenant", rec.totalPayTenant);
+
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(10),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade50,
+                                              borderRadius: BorderRadius.circular(10),
+                                              border: Border.all(color: Colors.grey.shade300),
+                                            ),
+                                            child: Column(children: rows),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                  // const SizedBox(height: 8),
+                                ],
                               ],
                             );
                           },
                         ),
-                        const SizedBox(height: 8),
+
                       ],
                     ),
                   ),
@@ -1168,6 +1154,113 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       ),
     );
   }
+  Future<bool> _changeSecondPaymentStatus({
+    required int pId,
+  }) async {
+    final sw = Stopwatch()..start();
+    try {
+      final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/Change_payment_2nd_status.php",
+      );
+
+      final res = await http.post(
+        url,
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: {
+          "P_id": pId.toString(),
+        },
+      );
+
+      // ---------- VERBOSE PRINTS ----------
+      debugPrint("—— Change_payment_2nd_status CALL ——");
+      debugPrint("URL: $url");
+      debugPrint("Body:  P_id: $pId");
+      debugPrint("Status: ${res.statusCode}  (${sw.elapsedMilliseconds} ms)");
+      debugPrint("Headers: ${res.headers}");
+      // Try to pretty-print JSON; fall back to raw text.
+      final raw = res.body;
+      try {
+        final j = json.decode(raw);
+        debugPrint("Response JSON: ${const JsonEncoder.withIndent('  ').convert(j)}");
+      } catch (_) {
+        debugPrint("Response Text: $raw");
+      }
+      debugPrint("—— END ——");
+
+      // Tiny toast so you see something in UI too
+      if (mounted) {
+        // final snippet = raw.length > 200 ? "${raw.substring(0, 200)}…" : raw;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Payment Confirm..")),
+        );
+      }
+
+      return res.statusCode == 200 && raw.toLowerCase().contains("success");
+    } catch (e) {
+      debugPrint("API ERROR: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("API error: $e")),
+        );
+      }
+      return false;
+    }
+  }
+
+  Future<bool> _changeFinishPaymentStatus({
+    required int pId,
+  }) async {
+    final sw = Stopwatch()..start();
+    try {
+      final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/change_final_amount.php",
+      );
+
+      final res = await http.post(
+        url,
+        headers: {"Content-Type": "application/x-www-form-urlencoded"},
+        body: {
+          "P_id": pId.toString(),
+        },
+      );
+
+      // ---------- VERBOSE PRINTS ----------
+      debugPrint("—— Change_payment_Final_status CALL ——");
+      debugPrint("URL: $url");
+      debugPrint("Body:  P_id: $pId");
+      debugPrint("Status: ${res.statusCode}  (${sw.elapsedMilliseconds} ms)");
+      debugPrint("Headers: ${res.headers}");
+      // Try to pretty-print JSON; fall back to raw text.
+      final raw = res.body;
+      try {
+        final j = json.decode(raw);
+        debugPrint("Response JSON: ${const JsonEncoder.withIndent('  ').convert(j)}");
+      } catch (_) {
+        debugPrint("Response Text: $raw");
+      }
+      debugPrint("—— END ——");
+
+      // Tiny toast so you see something in UI too
+      if (mounted) {
+        // final snippet = raw.length > 200 ? "${raw.substring(0, 200)}…" : raw;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Payment Confirm..")),
+        );
+      }
+
+      return res.statusCode == 200 && raw.toLowerCase().contains("success");
+    } catch (e) {
+      debugPrint("API ERROR: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("API error: $e")),
+        );
+      }
+      return false;
+    }
+  }
+
+
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -1175,6 +1268,145 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       _fieldworkarnumber = prefs.getString('number') ?? '';
     });
   }
+}
+
+Widget _pillButton({
+  required String label,
+  required Color color,
+  required VoidCallback onPressed,
+}) {
+  return ElevatedButton.icon(
+    onPressed: onPressed,
+    label: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+    style: ElevatedButton.styleFrom(
+      backgroundColor: color,
+      foregroundColor: Colors.white,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      minimumSize: const Size(0, 36),
+      shape: const StadiumBorder(),
+      elevation: 0,
+    ),
+  );
+}
+
+// Helper widget for billing steps
+Widget _buildBillingStep({
+  required String title,
+  required List<FirstPaymentRecord> records,
+  required Widget Function(FirstPaymentRecord) buildContent,
+  bool isStep3 = false,
+}) {
+  return StatefulBuilder(
+    builder: (context, setState) {
+      return Container(
+            decoration: BoxDecoration(
+                color: Colors.grey.shade200,
+                borderRadius: BorderRadius.circular(12)
+            ),
+        child: ExpansionTile(
+          iconColor: Colors.blue,
+          collapsedIconColor: Colors.black54,
+
+          initiallyExpanded: false,
+          // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
+          backgroundColor: Colors.grey.shade200,
+          collapsedBackgroundColor: Colors.grey.shade200,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          collapsedShape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+            ),
+          ),
+          subtitle: isStep3 && records.isNotEmpty
+              ? Wrap(
+            spacing: 6,
+            children: [
+              _buildTag(
+                (records.last.statusThird.isEmpty ? "—" : records.last.statusThird),
+                Colors.deepPurple,
+              ),
+            ],
+          )
+              : null,
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ...records.map((rec) => Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: buildContent(rec),
+                  )),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+// Your existing helper methods
+Widget _buildTag(String text, Color color) {
+  return Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    decoration: BoxDecoration(
+      color: color.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(6),
+      border: Border.all(color: color.withOpacity(0.3)),
+    ),
+    child: Text(
+      text,
+      style: TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+    ),
+  );
+}
+
+Widget _buildDetailRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
+            ),
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 Widget _buildTenantButton({
   required String label,
@@ -1184,7 +1416,7 @@ Widget _buildTenantButton({
   return GestureDetector(
     onTap: onTap,
     child: Container(
-      height: 40,
+      height: 30,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(10),
@@ -1205,32 +1437,6 @@ Widget _buildTenantButton({
   );
 }
 /// --- Helper Row for fields
-Widget _buildDetailRow(String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black54,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 Widget _buildAdvancePayment(String label, String value) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 6),
@@ -1254,32 +1460,6 @@ Widget _buildAdvancePayment(String label, String value) {
           ),
         ),
       ],
-    ),
-  );
-}
-Widget _buildTag(String text, Color color) {
-  return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(5),
-      border: Border.all(width: 1, color: color),
-      boxShadow: [
-        BoxShadow(
-          color: color.withOpacity(0.5),
-          blurRadius: 10,
-          offset: const Offset(0, 0),
-          blurStyle: BlurStyle.outer,
-        ),
-      ],
-    ),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 13,
-        color: Colors.black,
-        fontWeight: FontWeight.w500,
-        letterSpacing: 0.5,
-      ),
     ),
   );
 }

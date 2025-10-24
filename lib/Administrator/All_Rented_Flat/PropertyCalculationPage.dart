@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:ui' show FontFeature;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -591,9 +592,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     // Pool
     settlementPool = s1Hold + s3Tenant;
 
-    // Commission total: user-entered total or tenant commission from base
+// Commission total: 0 until user types something in the "Company commission (TOTAL)" field
+    final hasUserInput = s3CompanyTotalCtl.text.trim().isNotEmpty;
     final overrideTotal = _pc(s3CompanyTotalCtl);
-    companyCommissionTotal = overrideTotal > 0 ? overrideTotal : tenantComm;
+    companyCommissionTotal = hasUserInput ? overrideTotal.clamp(0, double.infinity) : 0;
 
     // Company keep, then owner share from pool
     companyKeepNow = companyCommissionTotal <= settlementPool ? companyCommissionTotal : settlementPool;
@@ -625,7 +627,21 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Billing")),
+      appBar: AppBar(
+          surfaceTintColor: Colors.black,
+          backgroundColor: Colors.black,
+          leading: InkWell(
+          onTap: (){
+            Navigator.pop(context,true);
+          },
+          child: Icon(CupertinoIcons.back)),
+          title: const Text("Add Billing",style: TextStyle(
+            fontFamily: "Poppins",
+            fontWeight: FontWeight.w600
+          ),
+
+          )
+      ),
       body: FutureBuilder<Property>(
         future: _futureProperty,
         builder: (ctx, snap) {

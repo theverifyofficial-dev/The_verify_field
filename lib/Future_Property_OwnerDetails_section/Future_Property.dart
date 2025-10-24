@@ -426,6 +426,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       print("Error fetching total flats: $e");
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -903,7 +904,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                           logg1 = snapshot.data!['loggValue1'];
                           logg2 = snapshot.data!['loggValue2'];
                           statusColor = snapshot.data!['statusColor'];
-                        } else if (snapshot.hasError) {
+                        }
+                        else if (snapshot.hasError) {
                           logg1 = "Error";
                           logg2 = "Error";
                           statusColor = Colors.grey;

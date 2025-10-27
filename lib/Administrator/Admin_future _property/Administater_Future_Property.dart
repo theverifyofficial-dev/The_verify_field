@@ -259,6 +259,24 @@ class _ADministaterShow_FuturePropertyState
       );
     }
   }
+  Future<String> _fetchTotalFlatsForBuilding(int subid) async {
+    try {
+      final res = await http.get(Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid',
+      ));
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body is List && body.isNotEmpty) {
+          // API usually returns [{ "logg": <int> }]
+          final v = body[0]['logg'];
+          return (v == null) ? "-" : v.toString();
+        }
+      }
+      return "-";
+    } catch (_) {
+      return "-";
+    }
+  }
 
   Widget _buildChip(String text, Color color, bool isDarkMode) {
     return Container(
@@ -299,7 +317,7 @@ class _ADministaterShow_FuturePropertyState
 
     return Container(
       key: _cardKeys[property.id.toString()],
-      width: 340,
+      width: 350,
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: isDarkMode ? Colors.grey[900] : Colors.white,
@@ -368,7 +386,6 @@ class _ADministaterShow_FuturePropertyState
                               }
                             }
                           }
-
                           if (anyLive) {
                             // If any flat is live, show live logs
                             final liveItem = data.firstWhere(
@@ -475,6 +492,30 @@ class _ADministaterShow_FuturePropertyState
                       ],
                     ],
                   ),
+                  // FutureBuilder<String>(
+                  //   future: _fetchTotalFlatsForBuilding(property.id),
+                  //   builder: (context, snap) {
+                  //     final totalFlats = snap.connectionState == ConnectionState.done && snap.hasData
+                  //         ? (snap.data ?? "-")
+                  //         : "..."; // loading state
+                  //
+                  //     return Padding(
+                  //       padding: const EdgeInsets.only(top: 8.0, bottom: 6.0),
+                  //       child: Row(
+                  //         children: [
+                  //           Expanded(
+                  //             child: _buildCompactDetailItem("Building ID", "${property.id}", context),
+                  //           ),
+                  //           const SizedBox(width: 8),
+                  //           Expanded(
+                  //             child: _buildCompactDetailItem("Total Flat", totalFlats, context),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     );
+                  //   },
+                  // ),
+
                   const SizedBox(height: 14),
                   Row(
                     children: [
@@ -488,6 +529,57 @@ class _ADministaterShow_FuturePropertyState
                 ],
               ),
             )
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildCompactDetailItem(String title, String value,BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // more space
+      decoration: BoxDecoration(
+        color:  Colors.grey.shade100,
+
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+
+          children: [
+            Text(
+              "$title: ",
+              style: TextStyle(
+                fontSize: 13, // bigger text
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.black
+                    : Colors.white,
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  color:
+                  Theme.of(context).brightness==Brightness.dark?
+                  Colors.black:
+                  Colors.white,
+                  // shadows: [
+                  //   Shadow(
+                  //     blurRadius: 1,
+                  //     // offset: Offset(2, 2),
+                  //     color: Theme.of(context).brightness == Brightness.dark
+                  //         ? Colors.amber
+                  //         : Colors.black87,
+                  //   )
+                  // ],
+                  fontSize: 15, // bigger text
+                  fontWeight: FontWeight.w700,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -536,7 +628,7 @@ class _ADministaterShow_FuturePropertyState
           )
         else
           SizedBox(
-            height: 520,
+            height: 540,
             child: ListView.builder(
               controller: controller,
               scrollDirection: Axis.horizontal,

@@ -752,31 +752,36 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                                    onPressed: () {
-                                      _openAmountSheet(
-                                        context,
-                                        item.id,
-                                        "Second Amount",
-                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
-                                        "second_amount",
-                                      );
-                                    },
-                                    child: const Text("Set 2nd Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                      onPressed: () {
+                                        _openAmountSheet(
+                                          context,
+                                          item.id,
+                                          "Second Amount",
+                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
+                                          "second_amount",
+                                        );
+                                      },
+                                      child: const Text("Set 2nd Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),overflow: TextOverflow.ellipsis,),
+                                    ),
                                   ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
-                                    onPressed: () {
-                                      _openAmountSheet(
-                                        context,
-                                        item.id,
-                                        "Final Amount",
-                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/final_amount.php",
-                                        "final_amount",
-                                      );
-                                    },
-                                    child: const Text("Set Final Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),),
+                                  SizedBox(width: 5,),
+                                  Expanded(
+                                    child: ElevatedButton(
+                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
+                                      onPressed: () {
+                                        _openAmountSheet(
+                                          context,
+                                          item.id,
+                                          "Final Amount",
+                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/final_amount.php",
+                                          "final_amount",
+                                        );
+                                      },
+                                      child: const Text("Set Final Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),overflow: TextOverflow.ellipsis,),
+                                    ),
                                   ),
                                 ],
                               ),

@@ -1,6 +1,9 @@
 class AppImages{
   static const vehicle = "assets/images/carshundred.png";
   static const documents = "assets/images/Documenthundred.png";
+  static const accounts = "assets/images/account.png";
+  static const pay = "assets/images/pay.png";
+  static const dividend = "assets/images/dividend.png";
   static const hotels = "assets/images/hotelhundred.png";
   static const insurance = "assets/images/insurancehundred.png";
   static const itAndDesigner = "assets/images/itdesignhundred.png";

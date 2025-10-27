@@ -6,6 +6,7 @@ import 'package:verify_feild_worker/Administrator/Administrator_HomeScreen.dart'
 import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
+import 'Accountant/Accountant_Home.dart';
 import 'ui_decoration_tools/app_images.dart';
 
 class Catid {
@@ -66,7 +67,11 @@ class _SplashState extends State<Splash> {
 
         if (role == "Administrator") {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
-        } else if (role == "FieldWorkar") {
+        } else if (role == "Accountant") {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
+          => AccountantHome(),
+          ));        }
+        else if (role == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);
         } else {
           // Unknown role fallback

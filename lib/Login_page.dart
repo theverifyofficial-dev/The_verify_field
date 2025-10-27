@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Reset_password/forget.dart';
+import 'Accountant/Accountant_Home.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Home_Screen.dart';
 import 'constant.dart';
@@ -254,7 +255,8 @@ class _Login_pageState extends State<Login_page> {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         prefs.setString('name', user["FName"]);
         prefs.setString('number', user["FNumber"]);
-        prefs.setString('location', user["FAadharCard"]);
+        prefs.setString('post', user["FAadharCard"]);
+        prefs.setString('location', user["F_Location"] ?? "");
         prefs.setString('fcmToken', user["FCM"]);
 
         Fluttertoast.showToast(
@@ -266,9 +268,16 @@ class _Login_pageState extends State<Login_page> {
         // Navigate by role
         if (user["FAadharCard"] == "Administrator") {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
-        } else if (user["FAadharCard"] == "FieldWorkar") {
+        }
+        else if (user["FAadharCard"] == "Accountant") {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
+              => AccountantHome(),
+          ));
+        }
+        else if (user["FAadharCard"] == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);
-        } else {
+        }
+        else {
           Fluttertoast.showToast(
             msg: "Unknown Role: ${user["FAadharCard"]}",
             backgroundColor: Colors.orange,

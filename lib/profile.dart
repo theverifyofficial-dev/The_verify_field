@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Login_page.dart';
 import 'model/Profile_model.dart';
+import 'main.dart'; // Import to access ThemeSwitcher
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -19,21 +18,19 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isLoading = true;
 
   Future<String?> getUserNumber() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     return prefs.getString('number');
   }
 
   Future<void> fetchUserProfile() async {
-    String? number = await getUserNumber();
+    final number = await getUserNumber();
 
-    // If still no number, logout for safety
     if (number == null || number.isEmpty) {
       _logout(context);
       return;
     }
 
-    final String url =
-        'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number';
+    final url = 'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number';
 
     try {
       final response = await http.get(Uri.parse(url));
@@ -64,25 +61,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  // Call this when logging out
   void _logout(BuildContext context) async {
-    // Clear any saved login/session data
     final prefs = await SharedPreferences.getInstance();
-    print("🚪 Logging out...");
-    print("Before clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
-
     await prefs.clear();
-
-    print("After clear → number: ${prefs.getString('number')}, name: ${prefs.getString('name')}");
-
-    // 🔥 Reset all GetX controllers (important!)
-    Get.reset();
-
-    // Navigate to the login page and remove all previous routes
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (context) => Login_page()),
-          (Route<dynamic> route) => false, // remove all previous routes
+      MaterialPageRoute(builder: (context) => const Login_page()),
+          (Route<dynamic> route) => false,
     );
   }
 
@@ -91,7 +76,6 @@ class _ProfilePageState extends State<ProfilePage> {
     final number = prefs.getString('number');
 
     if (number == null || number.isEmpty) {
-      // No user logged in → redirect to login
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -101,7 +85,6 @@ class _ProfilePageState extends State<ProfilePage> {
       return;
     }
 
-    // Reset UI state before fetching
     setState(() {
       _user = null;
       _isLoading = true;
@@ -120,308 +103,416 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final themeSwitcher = ThemeSwitcher.of(context);
 
     return Scaffold(
-      backgroundColor: isDark ? Colors.black : const Color(0xFFF2F2F7),
+      backgroundColor: isDark ? const Color(0xFF0A0A0A) : const Color(0xFFF8F9FA),
       appBar: AppBar(
-        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
-        elevation: 1,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         centerTitle: true,
         title: Text(
           "Profile",
           style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             fontFamily: "PoppinsBold",
-            color: isDark ? Colors.white : Colors.black,
+            color: isDark ? Colors.white : const Color(0xFF1A1A1A),
           ),
         ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.amber))
           : _user == null
-          ? const Center(child: Text("No user found"))
+          ? const Center(child: Text("No user found", style: TextStyle(color: Colors.grey)))
           : SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Avatar
+            // Premium Profile Picture with Gradient Border
             Container(
-              padding: const EdgeInsets.all(5),
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: isDark ? Colors.white10 : Colors.black12,
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
                 gradient: LinearGradient(
                   colors: isDark
-                      ? [Colors.deepPurple, Colors.purpleAccent]
-                      : [Colors.amberAccent, Colors.orangeAccent],
+                      ? [Colors.white.withOpacity(0.1), Colors.amber.withOpacity(0.2)]
+                      : [Colors.amber.withOpacity(0.2), Colors.white.withOpacity(0.1)],
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark ? Colors.black.withOpacity(0.3) : Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    spreadRadius: 1,
+                  ),
+                ],
               ),
               child: CircleAvatar(
                 radius: 50,
-                backgroundColor: Colors.white,
-                child: Image.asset(
-                  'assets/images/profile 2.png',
-                  fit: BoxFit.cover,
-                  height: 80,
-                ),
+                backgroundImage: const AssetImage('assets/images/profile 2.png'),
+                backgroundColor: isDark ? Colors.grey[900] : Colors.white,
               ),
             ),
-
-            const SizedBox(height: 14),
-
+            const SizedBox(height: 12),
+            // Premium Name with Shadow
             Text(
               _user!.name,
               style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w700,
                 fontFamily: "PoppinsBold",
-                color: isDark ? Colors.white : Colors.black87,
+                color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                shadows: [
+                  Shadow(
+                    color: isDark ? Colors.black.withOpacity(0.5) : Colors.black.withOpacity(0.1),
+                    offset: const Offset(0, 1),
+                    blurRadius: 3,
+                  ),
+                ],
               ),
             ),
-
-            const SizedBox(height: 4),
-
-            Text(
-              _user!.location,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontFamily: "Poppins",
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.grey[400] : Colors.grey[700],
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Profile Details
-            profileCard(theme, isDark),
-
-            const SizedBox(height: 50),
-
-            // Logout Button
-            ElevatedButton.icon(
-              onPressed: _showLogoutDialog,
-              icon: const Icon(Icons.logout),
-              label: const Text("Logout"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 36, vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+            const SizedBox(height: 20),
+            // Premium Personal Info Section with Gradient
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: isDark
+                      ? [Colors.grey[900]!, Colors.grey[800]!]
+                      : [Colors.white, const Color(0xFFF8F9FA)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: isDark ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.1),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Personal info",
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white70 : const Color(0xFF6B7280),
+                        ),
+                      ),
+                      Text(
+                        "Edit",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF3B82F6),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _buildInfoItem(Icons.person, "Name", _user!.name),
+                  _buildInfoItem(Icons.email, "E-mail", _user!.email.isNotEmpty ? _user!.email : "Not provided"),
+                  _buildInfoItem(Icons.phone, "Phone number", _user!.number),
+                  _buildInfoItem(Icons.home, "Home address", _user!.location),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Integrated Premium Theme Toggle (without label and box)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: _buildIntegratedThemeToggle(context, isDark, themeSwitcher),
+            ),
+            const SizedBox(height: 20),
+            // Premium Logout Button with Gradient
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.redAccent.withOpacity(0.3),
+                    blurRadius: 15,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: ElevatedButton(
+                onPressed: () => _showLogoutDialog(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 0,
+                ),
+                child: const Text(
+                  "Logout",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    fontFamily: "PoppinsBold",
+                  ),
                 ),
               ),
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
 
-
-  Widget buildProfileItem({
-    required IconData icon,
-    required String label,
-    required String value,
-    required ThemeData theme,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, color: theme.colorScheme.primary, size: 24),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: theme.colorScheme.onSurface.withOpacity(0.85),
+  Widget _buildIntegratedThemeToggle(BuildContext context, bool isDark, ThemeSwitcher? themeSwitcher) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tabWidth = (constraints.maxWidth - 0) / 2; // Adjusted for tighter padding
+        return Stack(
+          children: [
+            // Background Container
+            Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey[800] : Colors.grey[100],
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
+              ),
+            ),
+            // Sliding Indicator
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 300),
+              left: isDark ? tabWidth : 0,
+              top: 2,
+              bottom: 2,
+              child: Container(
+                width: tabWidth,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF3B82F6).withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  fontSize: 15.5,
-
-                  color: theme.brightness == Brightness.dark
-                      ? Colors.white70
-                      : Colors.grey[800],
+            ),
+            // Tabs
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    if (isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
+                  },
+                  child: Container(
+                    width: tabWidth,
+                    height: 40,
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.light_mode, size: 16, color: !isDark ? Colors.white : (isDark ? const Color(0xFF9CA3AF) : Colors.grey[600])),
+                        const SizedBox(width: 4),
+                        Text(
+                          "Light",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontWeight: FontWeight.w600,
+                            color: !isDark ? Colors.white : (isDark ? const Color(0xFF9CA3AF) : Colors.grey[600]),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-
-  Widget profileCard(ThemeData theme, bool isDark) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: isDark
-            ? const LinearGradient(
-          colors: [
-            Color(0x6F1F1F1F),
-            Color(0xFF1F1F1F),
-            Color(0x7F2C2C2C)
+                GestureDetector(
+                  onTap: () {
+                    if (!isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
+                  },
+                  child: Container(
+                    width: tabWidth,
+                    height: 40,
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.dark_mode, size: 16, color: isDark ? Colors.white : (isDark ? Colors.grey[600] : const Color(0xFF9CA3AF))),
+                        const SizedBox(width: 4),
+                        Text(
+                          "Dark",
+                          style: TextStyle(
+                            fontFamily: "Poppins",
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : (isDark ? Colors.grey[600] : const Color(0xFF9CA3AF)),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        )
-            : const LinearGradient(
-          colors: [Color(0xFFF9F9F9),
-            Color(0xFFEAEAEA)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: isDark ? Colors.black54 : Colors.grey.withOpacity(0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _infoTile(Icons.phone, "Phone Number", _user!.number),
-          _divider(),
-          _infoTile(Icons.email, "Email", _user!.email.isNotEmpty ? _user!.email : "Not provided"),
-          _divider(),
-          _infoTile(Icons.credit_card, "Account Holder", _user!.aadhar),
-          _divider(),
-          _infoTile(Icons.location_on, "Location", _user!.location),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _infoTile(IconData icon, String title, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.amber.withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.amber, size: 22),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style:  TextStyle(
-                  fontSize: 13,
-                  color:Theme.of(context).brightness==Brightness.dark ?Colors.grey: Colors.grey.shade700,
-                  fontFamily: "Poppins",
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                value,
-                style:  TextStyle(
-                  fontSize: 15,
-                  fontFamily: "PoppinsBold",
-                  color:Theme.of(context).brightness==Brightness.dark ?Colors.white:Colors.black,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildInfoItem(IconData icon, String label, String value) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
-  Widget _divider() {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Divider(color: Colors.grey.shade300, thickness: 1),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white.withOpacity(0.1) : Colors.grey[100],
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: isDark ? Colors.white70 : const Color(0xFF6B7280), size: 18),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: isDark ? Colors.white : const Color(0xFF1A1A1A),
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  void _showLogoutDialog() {
+  void _showLogoutDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => AlertDialog(
+      builder: (_) => Dialog(
+        backgroundColor: isDark ? Colors.grey[900] : Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
         ),
-        title: Row(
-          children: const [
-            Icon(Icons.logout, color: Colors.redAccent),
-            SizedBox(width: 10),
-            Text(
-              "Logout",
-              style: TextStyle(
-                fontFamily: "Poppins",
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(colors: [Colors.redAccent.withOpacity(0.1), Colors.red.withOpacity(0.05)]),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.logout, color: Colors.redAccent, size: 40),
               ),
-            ),
-          ],
-        ),
-        content: const Text(
-          "Are you sure you want to logout?",
-          style: TextStyle(fontSize: 16,fontFamily: "Poppins"),
-        ),
-        actionsPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey[600],
-              textStyle: const TextStyle(fontSize: 15),
-            ),
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _logout(context);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+              const SizedBox(height: 16),
+              Text(
+                "Logout",
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "PoppinsBold",
+                ),
               ),
-            ),
-            child: const Text(
-              "Logout",
-              style: TextStyle(fontWeight: FontWeight.w600,fontFamily: "Poppins"),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                "Are you sure you want to logout?",
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  fontFamily: "Poppins",
+                  color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        "Cancel",
+                        style: TextStyle(
+                          color: isDark ? Colors.grey[400] : const Color(0xFF6B7280),
+                          fontFamily: "Poppins",
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _logout(context);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: const Text(
+                        "Logout",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontFamily: "PoppinsBold",
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
-
 }

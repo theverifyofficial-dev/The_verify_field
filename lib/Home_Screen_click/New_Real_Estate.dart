@@ -243,7 +243,9 @@ class Show_New_Real_Estate extends StatefulWidget {
   State<Show_New_Real_Estate> createState() => _Show_New_Real_EstateState();
 }
 
-class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
+class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> with TickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
   List<NewRealEstateShowDateModel> _allProperties = [];
   List<NewRealEstateShowDateModel> _filteredProperties = [];
@@ -256,56 +258,74 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   Timer? _debounce;
 
   @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+
+    _searchController.addListener(_onSearchChanged);
+    _loaduserdata();
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     _debounce?.cancel();
+    _animationController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase();
-    final filtered = _allProperties.where((item) {
-      return (item.locations ?? '').toLowerCase().contains(query) ||
-          (item.apartmentAddress ?? '').toLowerCase().contains(query) ||
-          (item.pId ?? '').toString().toLowerCase().contains(query) ||
-          (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
-          (item.bhk ?? '').toLowerCase().contains(query) ||
-          (item.showPrice ?? '').toLowerCase().contains(query) ||
-          (item.floor ?? '').toLowerCase().contains(query) ||
-          (item.totalFloor ?? '').toLowerCase().contains(query) ||
-          (item.balcony ?? '').toLowerCase().contains(query) ||
-          (item.squarefit ?? '').toLowerCase().contains(query) ||
-          (item.maintance ?? '').toLowerCase().contains(query) ||
-          (item.parking ?? '').toLowerCase().contains(query) ||
-          (item.kitchen ?? '').toLowerCase().contains(query) ||
-          (item.bathroom ?? '').toLowerCase().contains(query) ||
-          (item.facility ?? '').toLowerCase().contains(query) ||
-          (item.furnishedUnfurnished ?? '').toLowerCase().contains(query) ||
-          (item.buyRent ?? '').toLowerCase().contains(query) ||
-          (item.longitude ?? '').toLowerCase().contains(query) ||
-          (item.latitude ?? '').toLowerCase().contains(query) ||
-          (item.propertyPhoto ?? '').toLowerCase().contains(query) ||
-          (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
-          (item.registryAndGpa ?? '').toLowerCase().contains(query) ||
-          (item.loan ?? '').toLowerCase().contains(query) ||
-          (item.flatNumber ?? '').toLowerCase().contains(query) ||
-          (item.currentDates ?? '').toLowerCase().contains(query) ||
-          (item.availableDate ?? '').toLowerCase().contains(query) ||
-          (item.ownerName ?? '').toLowerCase().contains(query) ||
-          (item.ownerNumber ?? '').toLowerCase().contains(query) ||
-          (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
-          (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
-          (item.careTakerName ?? '').toLowerCase().contains(query) ||
-          // (item. ?? '').toLowerCase().contains(query) ||
-          (item.careTakerNumber ?? '').toLowerCase().contains(query);
-    }).toList();
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      final query = _searchController.text.toLowerCase();
+      final filtered = _allProperties.where((item) {
+        return (item.locations ?? '').toLowerCase().contains(query) ||
+            (item.apartmentAddress ?? '').toLowerCase().contains(query) ||
+            (item.pId ?? '').toString().toLowerCase().contains(query) ||
+            (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
+            (item.bhk ?? '').toLowerCase().contains(query) ||
+            (item.showPrice ?? '').toLowerCase().contains(query) ||
+            (item.floor ?? '').toLowerCase().contains(query) ||
+            (item.totalFloor ?? '').toLowerCase().contains(query) ||
+            (item.balcony ?? '').toLowerCase().contains(query) ||
+            (item.squarefit ?? '').toLowerCase().contains(query) ||
+            (item.maintance ?? '').toLowerCase().contains(query) ||
+            (item.parking ?? '').toLowerCase().contains(query) ||
+            (item.kitchen ?? '').toLowerCase().contains(query) ||
+            (item.bathroom ?? '').toLowerCase().contains(query) ||
+            (item.facility ?? '').toLowerCase().contains(query) ||
+            (item.furnishedUnfurnished ?? '').toLowerCase().contains(query) ||
+            (item.buyRent ?? '').toLowerCase().contains(query) ||
+            (item.longitude ?? '').toLowerCase().contains(query) ||
+            (item.latitude ?? '').toLowerCase().contains(query) ||
+            (item.propertyPhoto ?? '').toLowerCase().contains(query) ||
+            (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
+            (item.registryAndGpa ?? '').toLowerCase().contains(query) ||
+            (item.loan ?? '').toLowerCase().contains(query) ||
+            (item.flatNumber ?? '').toLowerCase().contains(query) ||
+            (item.currentDates ?? '').toLowerCase().contains(query) ||
+            (item.availableDate ?? '').toLowerCase().contains(query) ||
+            (item.ownerName ?? '').toLowerCase().contains(query) ||
+            (item.ownerNumber ?? '').toLowerCase().contains(query) ||
+            (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
+            (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
+            (item.careTakerName ?? '').toLowerCase().contains(query) ||
+            (item.careTakerNumber ?? '').toLowerCase().contains(query);
+      }).toList();
 
-    setState(() {
-      _filteredProperties = filtered;
-      propertyCount = filtered.length;
+      setState(() {
+        _filteredProperties = filtered;
+        propertyCount = filtered.length;
+      });
     });
   }
-
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     final url = Uri.parse(
@@ -345,19 +365,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
         .toList();
   }
 
-  @override
-  void initState() {
-    super.initState();
-
-    _searchController = TextEditingController();
-    _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // fetch _number from SharedPreferences
-
-    _loaduserdata().then((_) {
-      _fetchInitialData(); // Call your API after loading user data
-    });
-  }
-
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
     _number = prefs.getString('number') ?? '';
@@ -379,636 +386,606 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     }
   }
 
-
-  Future<void> _fetchInitialData() async {
-    setState(() => _isLoading = true);
-    try {
-      final data = await fetchData(""); // Call your API
-      setState(() {
-        // _originalData = data;
-        // _filteredData = data;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("❌ Error fetching data: $e");
-      setState(() => _isLoading = false);
-    }
-  }
-
-
-
-
   void _setSearchText(String label, String text) {
     setState(() {
       selectedLabel = label;
       _searchController.text = text;
       _searchController.selection = TextSelection.fromPosition(
         TextPosition(offset: _searchController.text.length),
-
       );
-      // propertyCount = _getMockPropertyCount(text); // Mock or real count
-
     });
 
     print("Search for: $text");
   }
-  bool get _isSearchActive {
-    return _searchController.text.trim().isNotEmpty || selectedLabel!="";
-  }
 
+  bool get _isSearchActive {
+    return _searchController.text.trim().isNotEmpty || selectedLabel != null && selectedLabel!.isNotEmpty;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primaryColor = theme.colorScheme.primary;
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         centerTitle: true,
-        elevation: 0, // Make sure there's no shadow
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: Colors.transparent,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.black, Colors.black.withOpacity(0.8)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+        ),
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
+          onTap: () => Navigator.pop(context),
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.all(8),
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              PhosphorIcons.caret_left_bold,
+              color: Colors.white,
+              size: 24,
+            ),
           ),
         ),
       ),
-      body:
-      _isLoading
-          ? Center(child: Image.asset(AppImages.loader,height: 50,))
-          : Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: TextField(
-              controller: _searchController,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 16,
+      body: _isLoading
+          ? Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Loading properties...',
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodyLarge?.color),
+            ),
+          ],
+        ),
+      )
+          : FadeTransition(
+        opacity: _fadeAnimation,
+        child: Column(
+          children: [
+            // Premium Search Bar
+            Container(
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: theme.colorScheme.shadow.withOpacity(0.1),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              decoration: InputDecoration(
-                hintText: 'Search properties...',
-                hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 16,
-                ),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  color: Theme.of(context).iconTheme.color?.withOpacity(0.8),
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: Theme.of(context).iconTheme.color?.withOpacity(0.6),
+              child: TextField(
+                controller: _searchController,
+                style: theme.textTheme.bodyLarge?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
+                decoration: InputDecoration(
+                  hintText: 'Search properties by location, price, or features...',
+                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.hintColor,
+                    fontSize: 14,
                   ),
-                  onPressed: () => _searchController.clear(),
-                )
-                    : null,
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                    width: 1,
+                  prefixIcon: Icon(
+                    Icons.search_rounded,
+                    color: theme.iconTheme.color?.withOpacity(0.7),
+                    size: 24,
                   ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 1.5,
+                  suffixIcon: _searchController.text.isNotEmpty
+                      ? IconButton(
+                    icon: Icon(
+                      Icons.clear_rounded,
+                      color: theme.iconTheme.color?.withOpacity(0.6),
+                    ),
+                    onPressed: () {
+                      _searchController.clear();
+                      setState(() {
+                        selectedLabel = null;
+                        _filteredProperties = _allProperties;
+                        propertyCount = _allProperties.length;
+                      });
+                    },
+                  )
+                      : null,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(24),
+                    borderSide: BorderSide.none,
                   ),
+                  filled: true,
+                  fillColor: Colors.transparent,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Align(
-                alignment: Alignment.centerLeft, // 👈 Force start from left
+            // Filter Chips - Premium Style
+            Container(
+              height: 50,
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: ['Rent', 'Buy', 'Commercial'].map((label) {
+                  final bool isSelected = selectedLabel == label;
+                  return AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(
+                        label,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : theme.textTheme.bodyLarge?.color,
+                          fontFamily: "Poppins",
+                          fontSize: 14,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        ),
+                      ),
+                      selected: isSelected,
+                      onSelected: (_) => _setSearchText(label, label),
+                      backgroundColor: isSelected ? primaryColor.withOpacity(0.1) : theme.colorScheme.surfaceVariant.withOpacity(0.5),
+                      selectedColor: primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        side: BorderSide(
+                          color: isSelected ? primaryColor : theme.colorScheme.outline.withOpacity(0.3),
+                          width: isSelected ? 1.5 : 1,
+                        ),
+                      ),
+                      elevation: isSelected ? 4 : 0,
+                      shadowColor: primaryColor.withOpacity(0.2),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            // Property Count Badge
+            if (propertyCount > 0 && _isSearchActive)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.green.withOpacity(0.1), Colors.green.withOpacity(0.05)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.green.withOpacity(0.3)),
+                ),
                 child: Row(
-                  children: ['Rent', 'Buy', 'Commercial'].map((label) {
-                    final bool isSelected = label == selectedLabel;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: ElevatedButton(
-                        onPressed: () => _setSearchText(label, label),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                          isSelected ? Colors.blue : Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black,
-                            fontFamily: "Poppins",
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      "$propertyCount properties found",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.textTheme.bodyLarge?.color,
                       ),
-                    );
-                  }).toList(),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      onPressed: () {
+                        setState(() {
+                          _searchController.clear();
+                          selectedLabel = null;
+                          _filteredProperties = _allProperties;
+                          propertyCount = _allProperties.length;
+                        });
+                      },
+                      icon: Icon(Icons.close, size: 18, color: theme.iconTheme.color?.withOpacity(0.6)),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+                    ),
+                  ],
                 ),
               ),
-            ),
-          ),
-          if (propertyCount > 0 && _isSearchActive)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+            // List or Empty State
+            Expanded(
+              child: _filteredProperties.isEmpty
+                  ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.search_off, size: 80, color: theme.colorScheme.outline.withOpacity(0.4)),
+                    const SizedBox(height: 24),
+                    Text(
+                      "No properties found",
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface.withOpacity(0.6),
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
-                        const SizedBox(width: 6),
-                        Text(
-                          "$propertyCount properties found",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              _searchController.clear();
-                              selectedLabel = '';
-                              _filteredProperties = _allProperties;
-                              propertyCount = 0;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Icon(Icons.close, size: 18, color: Colors.grey[600]),
-                        ),
-                      ],
+                    const SizedBox(height: 8),
+                    Text(
+                      "Try adjusting your search or filters",
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface.withOpacity(0.5),
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            ),
-          _filteredProperties.isEmpty
-              ? Expanded(
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    "No properties found",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      onPressed: _fetchProperties,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Refresh'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Try a different search term",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          )
-              : Expanded(
-            child: RefreshIndicator(
-              onRefresh: _fetchProperties,
-              child: ListView.builder(
-                itemCount: _filteredProperties.length,
-                itemBuilder: (context, index) {
-                  final property = _filteredProperties[index];
-                  return StreamBuilder<http.Response>(
-                    stream: Stream.periodic(const Duration(seconds: 5))
-                        .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
-                    ))),
-                    builder: (context, snapshot) {
-                      bool isRedDot = false;
+                  ],
+                ),
+              )
+                  : RefreshIndicator(
+                onRefresh: _fetchProperties,
+                color: primaryColor,
+                child: ListView.builder(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  itemCount: _filteredProperties.length,
+                  itemBuilder: (context, index) {
+                    final property = _filteredProperties[index];
+                    return AnimatedOpacity(
+                      opacity: 1.0,
+                      duration: Duration(milliseconds: 300 + (index * 100)),
+                      child: StreamBuilder<http.Response>(
+                        stream: Stream.periodic(const Duration(seconds: 5))
+                            .asyncMap((_) => http.get(Uri.parse(
+                          "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId ?? 0}",
+                        ))),
+                        builder: (context, snapshot) {
+                          bool isRedDot = false;
+                          if (snapshot.hasData) {
+                            try {
+                              final body = jsonDecode(snapshot.data!.body);
+                              isRedDot = body is List && body.isNotEmpty && body[0]['logg'] == 0;
+                            } catch (_) {}
+                          }
 
-                      if (snapshot.hasData) {
-                        try {
-                          final body = jsonDecode(snapshot.data!.body);
-                          isRedDot = body is List && body.isNotEmpty && body[0]['logg'] == 0;
-                        } catch (_) {}
-                      }
+                          final Map<String, dynamic> fields = {
+                            "Images": property.propertyPhoto,
+                            "Owner Name": property.ownerName,
+                            "Owner Number": property.ownerNumber,
+                            "Caretaker Name": property.careTakerName,
+                            "Caretaker Number": property.careTakerNumber,
+                            "Place": property.locations,
+                            "Buy/Rent": property.buyRent,
+                            "Property Name/Address": property.apartmentAddress,
+                            "Property Address (Fieldworker)": property.fieldWorkerAddress,
+                            "Field Worker Name": property.fieldWorkerName,
+                            "Field Worker Number": property.fieldWorkerNumber,
+                            "Current Date": property.currentDates,
+                            "Longitude": property.longitude,
+                            "Latitude": property.latitude,
+                            "Road Size": property.roadSize,
+                            "Metro Distance": property.metroDistance,
+                            "Metro Name": property.highwayDistance,
+                            "Main Market Distance": property.mainMarketDistance,
+                            "Age of Property": property.ageOfProperty,
+                            "Lift": property.lift,
+                            "Parking": property.parking,
+                            "Total Floor": property.totalFloor,
+                            "Residence/Commercial": property.typeOfProperty,
+                            "Facility": property.facility,
+                            "Video": property.video,
+                          };
 
-                      final Map<String, dynamic> fields = {
-                        "Images": property.propertyPhoto,
-                        "Owner Name": property.ownerName,
-                        "Owner Number": property.ownerNumber,
-                        "Caretaker Name": property.careTakerName,
-                        "Caretaker Number": property.careTakerNumber,
-                        "Place": property.locations,
-                        "Buy/Rent": property.buyRent,
-                        "Property Name/Address": property.apartmentAddress,
-                        "Property Address (Fieldworker)":
-                        property.fieldWorkerAddress,
-                        // "Owner Vehicle Number": property.ownerVehicleNumber,
-                        // "Your Address": property.fieldWorkerCurrentLocation,
-                        "Field Worker Name": property.fieldWorkerName,
-                        "Field Worker Number": property.fieldWorkerNumber,
-                        "Current Date": property.currentDates,
-                        "Longitude": property.longitude,
-                        "Latitude": property.latitude,
-                        "Road Size": property.roadSize,
-                        "Metro Distance": property.metroDistance,
-                        "Metro Name": property.highwayDistance,
-                        "Main Market Distance": property.mainMarketDistance,
-                        "Age of Property": property.ageOfProperty,
-                        "Lift": property.lift,
-                        "Parking": property.parking,
-                        "Total Floor": property.totalFloor,
-                        "Residence/Commercial": property.typeOfProperty,
-                        "Facility": property.facility,
-                        "Video": property.video,
-                      };
+                          final missingFields = fields.entries
+                              .where((entry) {
+                            final value = entry.value;
+                            if (value == null) return true;
+                            if (value is String && value.trim().isEmpty) return true;
+                            return false;
+                          })
+                              .map((entry) => entry.key)
+                              .toList();
 
-                      final missingFields = fields.entries
-                          .where((entry) {
-                        final value = entry.value;
-                        if (value == null) return true;
-                        if (value is String && value.trim().isEmpty) return true;
-                        return false;
-                      })
-                          .map((entry) => entry.key)
-                          .toList();
-
-                      final hasMissingFields = missingFields.isNotEmpty;
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              SharedPreferences prefs = await SharedPreferences.getInstance();
-                              prefs.setInt('id_Building', _filteredProperties[index].pId??0);
-                              prefs.setString('id_Longitude', _filteredProperties[index].longitude.toString());
-                              prefs.setString('id_Latitude', _filteredProperties[index].latitude.toString());
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => View_Details(id: _filteredProperties[index].pId??0),
-                                ),
-                              );
-                              print(_filteredProperties[index].pId??0);
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-
-                              child: Card(
-                              elevation: 4, // ✅ elevation added
-                              shadowColor:  Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black,
-                              shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              ),
-                              color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
-                              child:
-                               Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          height: 450,
-                                          width: double.infinity,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).highlightColor,
-                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                          final hasMissingFields = missingFields.isNotEmpty;
+                          return Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            elevation: 8,
+                            shadowColor: theme.colorScheme.shadow.withOpacity(0.2),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: InkWell(
+                              onTap: () async {
+                                SharedPreferences prefs = await SharedPreferences.getInstance();
+                                prefs.setInt('id_Building', property.pId ?? 0);
+                                prefs.setString('id_Longitude', property.longitude.toString());
+                                prefs.setString('id_Latitude', property.latitude.toString());
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => View_Details(id: property.pId ?? 0),
+                                  ),
+                                );
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Premium Image Section with Gradient Overlay
+                                  Stack(
+                                    children: [
+                                      Container(
+                                        height: 240,
+                                        width: double.infinity,
+                                        child: CachedNetworkImage(
+                                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) => Container(
+                                            color: theme.colorScheme.surfaceVariant,
+                                            child: const Center(
+                                              child: CircularProgressIndicator(strokeWidth: 2),
+                                            ),
                                           ),
-                                          child: Image.network(
-                                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) => Center(
-                                              child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
+                                          errorWidget: (context, url, error) => Container(
+                                            color: theme.colorScheme.surfaceVariant,
+                                            child: Icon(
+                                              Icons.home_outlined,
+                                              size: 60,
+                                              color: theme.colorScheme.onSurface.withOpacity(0.3),
                                             ),
                                           ),
                                         ),
+                                      ),
+                                      // Gradient Overlay
+                                      Container(
+                                        height: 240,
+                                        width: double.infinity,
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Colors.transparent,
+                                              Colors.black.withOpacity(0.3),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      // Badges
+                                      Positioned(
+                                        top: 12,
+                                        right: 12,
+                                        left: 12,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            _buildPremiumBadge(
+                                              context: context,
+                                              text: "ID: ${property.pId}",
+                                              icon: Icons.confirmation_number_outlined,
+                                              backgroundColor: primaryColor.withOpacity(0.9),
+                                              textColor: Colors.white,
+                                            ),
+                                            _buildPremiumBadge(
+                                              context: context,
+                                              text: "For: ${property.buyRent ?? 'Sale'}",
+                                              icon: Icons.trending_up,
+                                              backgroundColor: Colors.green.withOpacity(0.9),
+                                              textColor: Colors.white,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      if (isRedDot)
                                         Positioned(
                                           top: 12,
-                                          right: 12,
-                                          child: Wrap(
-                                            spacing: 8, // space between the two containers
-                                            children: [
-                                              _buildFeatureItem(
-                                                context: context,
-                                                // icon: Icons.king_bed,
-                                                text: "Property ID : ${_filteredProperties[index].pId}",
-                                                borderColor: Colors.grey.shade700,
-                                                backgroundColor: Colors.white,
-                                                textColor: Colors.blue,
-                                                shadowColor: Colors.white60,
-                                              ),  _buildFeatureItem(
-                                                context: context,
-                                                // icon: Icons.king_bed,
-                                                text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
-                                                borderColor: Colors.green.shade400,
-                                                backgroundColor: Colors.green.shade100,
-                                                textColor: Colors.green.shade700,
-                                                shadowColor: Colors.green.shade100,
-                                              ),
-
-                                            ],
+                                          left: 12,
+                                          child: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.notifications_active,
+                                              color: Colors.white,
+                                              size: 16,
+                                            ),
                                           ),
-                                        )
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                     "₹${_filteredProperties[index].showPrice??"-"
-                                                         ".0"}"
-                                                  ,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  fontFamily: "PoppinsBold",
-                                                  color: Colors.black,
-                                                ),
+                                        ),
+                                    ],
+                                  ),
+                                  // Content Section
+                                  Container(
+                                    padding: const EdgeInsets.all(20),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Price and Location
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "₹${property.showPrice ?? '-'}",
+                                              style: theme.textTheme.headlineSmall?.copyWith(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 24,
+                                                fontFamily: "PoppinsBold",
+                                                color: theme.colorScheme.onSurface,
                                               ),
-                                              Text(
-                                                _filteredProperties[index].locations ?? "",
-                                                style: TextStyle(
-                                                  fontFamily: "PoppinsBold",
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 4, // horizontal spacing between items
-                                            runSpacing: 8, // vertical spacing between lines
-                                            alignment: WrapAlignment.start,
-                                            children: [
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.king_bed,
-                                                text: "${_filteredProperties[index].bhk}",
-                                                borderColor: Colors.purple.shade200,
-                                                backgroundColor: Colors.purple.shade50,
-                                                textColor: Colors.purple.shade700,
-                                                shadowColor: Colors.purple.shade100,
-                                              ),
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.apartment,
-                                                text: "${_filteredProperties[index].floor}",
-                                                borderColor: Colors.teal.shade200,
-                                                backgroundColor: Colors.teal.shade50,
-                                                textColor: Colors.teal.shade700,
-                                                shadowColor: Colors.teal.shade100,
-                                              ),
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.receipt_rounded,
-                                                text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                borderColor: Colors.red.shade200,
-                                                backgroundColor: Colors.red.shade50,
-                                                textColor: Colors.red.shade700,
-                                                shadowColor: Colors.red.shade100,
-                                              ),
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.home_work,
-                                                text: _filteredProperties[index].typeOfProperty ?? "",
-                                                borderColor: Colors.orange.shade200,
-                                                backgroundColor: Colors.orange.shade50,
-                                                textColor: Colors.orange.shade700,
-                                                shadowColor: Colors.orange.shade100,
-                                              ),
-
-                                              _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
-                                                  ? _buildFeatureItem(
-                                                context: context,
-                                                text: " Building: ${_filteredProperties[index].sId.toString()}",
-                                                borderColor: Colors.deepOrange.shade400,
-                                                backgroundColor: Colors.deepOrange.shade100,
-                                                textColor: Colors.deepOrange.shade700,
-                                                shadowColor: Colors.deepOrange.shade100,
-                                              )
-                                                  : SizedBox.shrink(), // Empty widget if condition is not met
-
-
-                                              _buildFeatureItem(
-                                                context: context,
-                                                text: " Agreement: ${_filteredProperties[index].sourceId.toString()}",
-                                                borderColor: Colors.blue.shade400,
-                                                backgroundColor: Colors.blue.shade100,
-                                                textColor: Colors.blue.shade700,
-                                                shadowColor: Colors.blue.shade100,
-                                              )
-
-                                            ],
-                                          ),
-                                          if (hasMissingFields) ...[
-                                            SizedBox(height: 20),
+                                            ),
                                             Container(
-                                              width: double.infinity,
-                                              padding: const EdgeInsets.all(10),
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                               decoration: BoxDecoration(
-                                                color: Colors.red[50],
-                                                borderRadius: BorderRadius.circular(10),
-                                                border: Border.all(color: Colors.redAccent, width: 1),
+                                                color: _getPropertyTypeColor(property.buyRent ?? '').withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(12),
                                               ),
                                               child: Text(
-                                                "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                style: const TextStyle(
-                                                  fontSize: 12,
+                                                property.locations ?? '',
+                                                style: theme.textTheme.bodyMedium?.copyWith(
                                                   fontWeight: FontWeight.w600,
-                                                  color: Colors.redAccent,
+                                                  color: _getPropertyTypeColor(property.buyRent ?? ''),
+                                                  fontFamily: "PoppinsBold",
                                                 ),
                                               ),
                                             ),
-                                          ]
+                                          ],
+                                        ),
+                                        const SizedBox(height: 16),
+                                        // Feature Chips - Premium
+                                        Wrap(
+                                          spacing: 8,
+                                          runSpacing: 8,
+                                          children: [
+                                            _buildPremiumChip(
+                                              context: context,
+                                              icon: Icons.king_bed_outlined,
+                                              text: property.bhk ?? '',
+                                              color: Colors.purple,
+                                            ),
+                                            _buildPremiumChip(
+                                              context: context,
+                                              icon: Icons.layers_outlined,
+                                              text: "${property.floor} / ${property.totalFloor}",
+                                              color: Colors.teal,
+                                            ),
+                                            _buildPremiumChip(
+                                              context: context,
+                                              icon: Icons.home_outlined,
+                                              text: "Flat ${property.flatNumber}",
+                                              color: Colors.red,
+                                            ),
+                                            _buildPremiumChip(
+                                              context: context,
+                                              icon: Icons.business_outlined,
+                                              text: property.typeOfProperty ?? '',
+                                              color: Colors.orange,
+                                            ),
+                                            if (property.sId != null && property.sId != 0)
+                                              _buildPremiumChip(
+                                                context: context,
+                                                icon: Icons.apartment_outlined,
+                                                text: "Bldg: ${property.sId}",
+                                                color: Colors.deepOrange,
+                                              ),
+                                            _buildPremiumChip(
+                                              context: context,
+                                              icon: Icons.description_outlined,
+                                              text: "Agr: ${property.sourceId}",
+                                              color: Colors.blue,
+                                            ),
+                                          ],
+                                        ),
+                                        // Missing Fields Warning
+                                        if (hasMissingFields) ...[
+                                          const SizedBox(height: 16),
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                colors: [Colors.red.withOpacity(0.1), Colors.red.withOpacity(0.05)],
+                                              ),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.red.withOpacity(0.3)),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.warning_amber_outlined, color: Colors.red, size: 20),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    "Incomplete: ${missingFields.take(3).join(", ")}${missingFields.length > 3 ? '...' : ''}",
+                                                    style: theme.textTheme.bodySmall?.copyWith(
+                                                      fontWeight: FontWeight.w600,
+                                                      color: Colors.red,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ],
-                                      ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                      ]
-                      );
-                    },
-                  );
-
-                },
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       borderRadius: BorderRadius.circular(6),
-      //       boxShadow: [
-      //         BoxShadow(
-      //           color: Colors.black.withOpacity(0.2),
-      //           blurRadius: 10,
-      //           offset: const Offset(0, 5),
-      //         ),
-      //       ],
-      //       gradient: LinearGradient(
-      //         colors: [Colors.blueAccent, Colors.lightBlueAccent],
-      //         begin: Alignment.centerLeft,
-      //         end: Alignment.centerRight,
-      //       ),
-      //     ),
-      //     child: ElevatedButton.icon(
-      //       onPressed: () {
-      //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
-      //         // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
-      //       },
-      //       icon: const Icon(Icons.add, color: Colors.white),
-      //       label: const Text(
-      //         'Add Property',
-      //         style: TextStyle(
-      //           fontSize: 17,
-      //           fontFamily: "PoppinsBold",
-      //           fontWeight: FontWeight.w600,
-      //           letterSpacing: 0.5,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       style: ElevatedButton.styleFrom(
-      //         elevation: 0, // Shadow handled by container
-      //         backgroundColor: Colors.transparent,
-      //         shadowColor: Colors.transparent,
-      //         shape: RoundedRectangleBorder(
-      //           borderRadius: BorderRadius.circular(16),
-      //         ),
-      //         padding: const EdgeInsets.symmetric(vertical: 16),
-      //       ),
-      //     ),
-      //   ),
-      // ),
     );
   }
-
 
   Color _getPropertyTypeColor(String? type) {
     switch (type?.toLowerCase()) {
       case 'rent':
         return Colors.green;
       case 'buy':
-        return Colors.blueAccent;
-      case 'lease':
-        return Colors.purple;
-      default:
         return Colors.blue;
+      case 'commercial':
+        return Colors.orange;
+      default:
+        return Colors.transparent;
     }
   }
 
-  Widget _buildFeatureItem({
+  Widget _buildPremiumBadge({
     required BuildContext context,
     required String text,
-    required Color borderColor,
-    IconData? icon, // 👈 optional now
-    Color? backgroundColor,
-    Color? textColor,
-    Color? shadowColor,
+    required IconData icon,
+    required Color backgroundColor,
+    required Color textColor,
   }) {
-    final width = MediaQuery.of(context).size.width;
-
-    // Scale text, padding, and icon size relative to screen width
-    double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
-    double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
-    double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
-    double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
-
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalPadding,
-      ),
-      margin: const EdgeInsets.all(6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.transparent,
-        border: Border.all(color: borderColor, width: 2),
-        borderRadius: BorderRadius.circular(10),
+        gradient: LinearGradient(
+          colors: [backgroundColor, backgroundColor.withOpacity(0.8)],
+        ),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: (shadowColor ?? borderColor).withOpacity(0.10),
-            blurRadius: 6,
-            spreadRadius: 2,
-            offset: const Offset(0, 3),
+            color: backgroundColor.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (icon != null) ...[ // 👈 only shows if passed
-            Icon(
-              icon,
-              size: iconSize,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
-            ),
-            const SizedBox(width: 4),
-          ],
+          Icon(icon, size: 16, color: textColor),
+          const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
+              color: textColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
               fontFamily: "Poppins",
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
             ),
           ),
         ],
@@ -1016,4 +993,28 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     );
   }
 
+  Widget _buildPremiumChip({
+    required BuildContext context,
+    required IconData icon,
+    required String text,
+    required Color color,
+  }) {
+    return Chip(
+      avatar: Icon(icon, size: 16, color: color),
+      label: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          fontFamily: "Poppins",
+        ),
+      ),
+      backgroundColor: color.withOpacity(0.1),
+      side: BorderSide(color: color.withOpacity(0.3)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 2,
+      shadowColor: color.withOpacity(0.2),
+    );
+  }
 }

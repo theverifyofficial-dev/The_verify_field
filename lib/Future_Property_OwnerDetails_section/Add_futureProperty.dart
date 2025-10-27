@@ -374,7 +374,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   // }
 
 
-
   @override
   Widget build(BuildContext context) {
 
@@ -383,7 +382,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         centerTitle: true,
-        title: Image.asset(AppImages.verify, height: 75),
+        title: Image.asset(AppImages.transparent, height: 50),
         leading: IconButton(
           icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
           onPressed: () => Navigator.pop(context),
@@ -399,7 +398,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text("Add Building",style: TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
+                  Text("Add Building",style: TextStyle(
+                      color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,
+                      fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
                 ],
               ),
               SizedBox(height: 5,),

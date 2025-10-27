@@ -14,6 +14,7 @@ class AppImages{
   static const services = "assets/images/serviceshundred.png";
   static const trucksAndJcb = "assets/images/truckshundred.png";
   static const eventsAndWeeding = "assets/images/weedinghundred.png";
+  static const transparent = "assets/images/transparent.png";
   static const verify = "assets/images/nim_lopgo.png";
   static const verify_again = "assets/images/nim_lopgo.png";
   static const logo = "assets/images/VerifyLogo.png";

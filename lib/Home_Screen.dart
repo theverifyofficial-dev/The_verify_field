@@ -24,8 +24,6 @@ import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
-import 'Statistics/Progressbar.dart';
-import 'Statistics/Target_MainPage.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
 import 'add_properties_firstpage.dart';
@@ -96,7 +94,7 @@ class Home_Screen extends StatefulWidget {
   State<Home_Screen> createState() => _Home_ScreenState();
 }
 
-class _Home_ScreenState extends State<Home_Screen> {
+class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin {
 
   late String formattedDate;
   DateTime now = DateTime.now();
@@ -106,14 +104,52 @@ class _Home_ScreenState extends State<Home_Screen> {
   String? userName;
   String? userNumber;
 
+  int rentPropertiesCount = 0;
+  int agreementCount = 0;
+
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+    _slideAnimation = Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
     _loaduserdata();
     loadUserName();
     _requestLocationPermissionAndGetLocation();
-    //initializeService();
+    _loadStats();
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadStats() async {
+    try {
+      final rentData = await fetchData();
+      final agreementData = await fetchData_aggrement();
+      if (mounted) {
+        setState(() {
+          rentPropertiesCount = rentData.isNotEmpty ? rentData.first.id : 0;
+          agreementCount = agreementData.isNotEmpty ? agreementData.first.id : 0;
+        });
+      }
+    } catch (e) {
+      print('Error loading stats: $e');
+    }
   }
 
   double? _latitude;
@@ -130,32 +166,32 @@ class _Home_ScreenState extends State<Home_Screen> {
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
-      setState(() {
-        _latitude = position.latitude;
-        _longitude = position.longitude;
-        print("Latitude: ${position.latitude}");
-        print("Longitude: ${position.longitude}");
-
-      });
+      if (mounted) {
+        setState(() {
+          _latitude = position.latitude;
+          _longitude = position.longitude;
+          print("Latitude: ${position.latitude}");
+          print("Longitude: ${position.longitude}");
+        });
+      }
       await _saveLocationToPrefs(_latitude!, _longitude!);
-
     } else if (status.isDenied) {
       showDialog(
         context: context,
         builder: (_) => AlertDialog(
-          title: Text("Permission Required"),
-          content: Text("Location permission is required to proceed."),
+          title: const Text("Permission Required"),
+          content: const Text("Location permission is required to proceed."),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text("Cancel"),
+              child: const Text("Cancel"),
             ),
             TextButton(
               onPressed: () async {
                 Navigator.pop(context);
                 await Permission.location.request();
               },
-              child: Text("Allow"),
+              child: const Text("Allow"),
             ),
           ],
         ),
@@ -194,7 +230,7 @@ class _Home_ScreenState extends State<Home_Screen> {
 
   Future<List<Catid>> fetchData_aggrement() async{
     formattedDate = "${now.month}/${now.year}";
-    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=asda&random_text=asda");
+    var url=Uri.parse("https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$_fieldworkarnumber&random_text=${formattedDate.toString()}");
     final responce=await http.get(url);
     if(responce.statusCode==200){
       print(_fieldworkarnumber.toString());
@@ -226,9 +262,11 @@ class _Home_ScreenState extends State<Home_Screen> {
         print('Upload failed: ${response.statusCode}');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error occurred: $e')),
+        );
+      }
       Fluttertoast.showToast(
           msg: "Error",
           toastLength: Toast.LENGTH_LONG,
@@ -265,98 +303,322 @@ class _Home_ScreenState extends State<Home_Screen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      // backgroundColor: Colors.black,
-      appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            //Navigator.pop(context);
-            //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> ProfileDashboard()));
-            Navigator.of(context).push(MaterialPageRoute(builder: (context)=>
-            // UserSearchPage()
-            ProfilePage()
-            ));
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(height: 8,),
-              Icon(
-                PhosphorIcons.user_circle,
-                color: Colors.white,
-                size: 30,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('${userName}',style: TextStyle(color: Colors.white,fontSize: 8,fontWeight: FontWeight.bold),),
-                ],
-              ),
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
 
-            ],
+    // Responsive values
+    final horizontalPadding = isTablet ? 32.0 : 20.0;
+    final verticalSpacing = isTablet ? 16.0 : 12.0;
+    final cardAspectRatio = screenWidth < 400 ? 1.2 : 1.0; // Slightly taller for premium feel
+    final gridCrossAxisCount = isTablet ? 3 : 2; // Responsive grid columns
+
+    // Premium theme: Enhanced gradients, shadows, and colors
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primaryGradient = LinearGradient(
+      colors: [Colors.purple.shade700, Colors.indigo.shade800, Colors.blue.shade900],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
+
+    // Different gradients for each card
+    final List<LinearGradient> cardGradients = [
+      LinearGradient(colors: [Colors.blue.shade600, Colors.blue.shade900]),
+      LinearGradient(colors: [Colors.green.shade600, Colors.green.shade900]),
+      LinearGradient(colors: [Colors.orange.shade900, Colors.orange.shade900]),
+      LinearGradient(colors: [Colors.purple.shade900, Colors.purple.shade600]),
+      LinearGradient(colors: [Colors.red.shade900, Colors.red.shade900]),
+      LinearGradient(colors: [Colors.teal.shade600, Colors.indigo.shade300]),
+      LinearGradient(colors: [Colors.indigo.shade600, Colors.indigo.shade900]),
+      LinearGradient(colors: [Colors.blueAccent, Colors.blueAccent]),
+      LinearGradient(colors: [Colors.grey.shade600, Colors.grey.shade600]),
+    ];
+
+    final List<Map<String, dynamic>> cardData = [
+      {
+        "image": AppImages.verify_Property,
+        "title": "Live Property",
+        "onTap": () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const Show_New_Real_Estate())),
+        "gradient": cardGradients[0],
+      },
+      {
+        "image": AppImages.documents,
+        "title": "Verification",
+        "onTap": () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => const ShowProperty())),
+        "gradient": cardGradients[1],
+      },
+      {
+        "image": AppImages.futureProperty,
+        "title": "Future Property",
+        "onTap": () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const FrontPage_FutureProperty(),
           ),
         ),
-        actions:  [
-          IconButton(
-            icon: Icon(
-              ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-              color: Colors.yellow
+        "gradient": cardGradients[2],
+      },
+      {
+        "image": AppImages.tenant,
+        "title": "Tenant Demands",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const MainPage_TenandDemand()));
+        },
+        "gradient": cardGradients[3],
+      },
+      {
+        "image": AppImages.agreement,
+        "title": "Property Agreement",
+        "onTap": () => Navigator.push(context, MaterialPageRoute(
+            builder: (context) => const HistoryTab()
+        )),
+        "gradient": cardGradients[4],
+      },
+      {
+        "image": AppImages.police,
+        "title": "All Rented Flat",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const AddRentedFlatTabbar()));
+        },
+        "gradient": cardGradients[5],
+      },
+      {
+        "image": AppImages.websiteIssue,
+        "title": "Web Query",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const WebQueryPage()));
+        },
+        "gradient": cardGradients[6],
+      },
+      {
+        "image": AppImages.realestatefeild,
+        "title": "Upcoming Flats",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const ParentUpcoming()));
+        },
+        "gradient": cardGradients[7],
+      },
+      // {
+      //   "image": AppImages.websiteIssue,
+      //   "title": "Link",
+      //   "onTap": () {
+      //     Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const LinksPage()));
+      //   },
+      //   "gradient": cardGradients[8],
+      // },
+    ];
 
-            ),
-            onPressed: () {
-              ThemeSwitcher.of(context)?.toggleTheme();
-            },
-          ),
-          SizedBox(width: 5,),
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
-            },
-            child: Column(
-              children: [
-                SizedBox(height: 10,),
-                Row(
-                  children: [
-                    const Text('🌐'),
-                  ],
-                ),
-                const Text('Web'),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Animated Header
-            AnimationConfiguration.synchronized(
-              duration: const Duration(milliseconds: 500),
-              child: SlideAnimation(
-                horizontalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: Row(
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: Column(
+        children: [
+          // Top Header without curve - straight container with gradient
+          SizedBox(
+            height: 250, // Fixed height to prevent overflow
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(gradient: primaryGradient),
+              child: SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 0),
+                  child: Column(
                     children: [
-                      Text(
-                        "Dashboard",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontFamily: "Poppins",
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
+                      // Top Row: Profile, Logo with premium styling
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Enhanced Profile with glow effect
+                            Hero(
+                              tag: 'profile',
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [Colors.white.withOpacity(0.1), Colors.transparent],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.white.withOpacity(0.2),
+                                        blurRadius: 20,
+                                        spreadRadius: 0,
+                                      ),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    PhosphorIcons.user_circle,
+                                    color: Colors.white,
+                                    size: 32,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Premium Logo with subtle animation
+                            Expanded(
+                              child: Center(
+                                child: TweenAnimationBuilder<double>(
+                                  tween: Tween(begin: 0.0, end: 1.0),
+                                  duration: const Duration(milliseconds: 1000),
+                                  builder: (context, value, child) {
+                                    return Transform.scale(
+                                      scale: value,
+                                      child: Opacity(
+                                        opacity: value,
+                                        child: Image.asset(AppImages.transparent, height: 40,),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            // Notification icon on right for balance and premium touch
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  colors: [Colors.white.withOpacity(0.1), Colors.transparent],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.white.withOpacity(0.2),
+                                    blurRadius: 20,
+                                    spreadRadius: 0,
+                                  ),
+                                ],
+                              ),
+                              child: IconButton(
+                                  onPressed: (){
+                                    Navigator.push(
+                                        context, MaterialPageRoute(
+                                        builder: (context) => LinksPage()));
+                                  },
+                                  icon: const Icon(
+                                      PhosphorIcons.globe_stand,
+                                      color: Colors.white, size: 24)),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 1),
+                      // Enhanced Stats Row with premium cards - Compact without greeting
+                      Expanded(
+                        child: ClipRect(
+                          child: FadeTransition(
+                            opacity: _fadeAnimation,
+                            child: SlideTransition(
+                              position: _slideAnimation,
+                              child: Container(
+                                width: double.infinity,
+                                margin: const EdgeInsets.symmetric(horizontal: 10),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.white.withOpacity(0.15),
+                                      Colors.transparent,
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.2),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 15,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                      children: [
+                                        _PremiumStatCard(
+                                          icon: Icons.home_outlined,
+                                          label: 'Properties Sold',
+                                          value: rentPropertiesCount.toString(),
+                                          gradient: LinearGradient(
+                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                                          ),
+                                        ),
+                                        _PremiumStatCard(
+                                          icon: Icons.home_outlined,
+                                          label: 'Properties Sold',
+                                          value: rentPropertiesCount.toString(),
+                                          gradient: LinearGradient(
+                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                                          ),
+                                        ),
+                                        _PremiumStatCard(
+                                          icon: Icons.home_outlined,
+                                          label: 'Properties Sold',
+                                          value: rentPropertiesCount.toString(),
+                                          gradient: LinearGradient(
+                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        _PremiumStatCard(
+                                          icon: Icons.description_outlined,
+                                          label: 'Agreements',
+                                          value: agreementCount.toString(),
+                                          gradient: LinearGradient(
+                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        _PremiumStatCard(
+                                          icon: Icons.trending_up_outlined,
+                                          label: 'Targets',
+                                          value: '85%',
+                                          gradient: LinearGradient(
+                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -364,136 +626,65 @@ class _Home_ScreenState extends State<Home_Screen> {
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+          ),
+          // Dashboard Section with 16 padding - Now in Expanded for scrolling grid
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 12), // Space after header
+                  Text(
+                    'Dashboard',
+                    style: theme.textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: theme.textTheme.bodyLarge?.color,
+                      letterSpacing: 0.8,
 
-            // Your original card grid with enhanced animations
-            AnimationLimiter(
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: List.generate(9, (index) {
-                  // Keep your original cardData list exactly as you had it
-                  final List<Map<String, dynamic>> cardData = [
-                    {
-                      "image": AppImages.verify_Property,
-                      "title": "Live\n Property",
-                      "onTap": () =>
-                          Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => Show_New_Real_Estate())),
-                    },
-                    {
-                      "image": AppImages.realestatefeild,
-                      "title": "Upcoming\nFlats",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ParentUpcoming()));
-                      },
-                    },
+                    ),
+                  ),
+                  // Enhanced Grid with better animations and shadows - Now scrollable
+                  Expanded(
+                    child: AnimationLimiter(
+                      child: GridView.count(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        crossAxisCount: gridCrossAxisCount, // Responsive crossAxisCount
+                        crossAxisSpacing: verticalSpacing,
+                        mainAxisSpacing: verticalSpacing,
+                        childAspectRatio: cardAspectRatio,
+                        children: List.generate(8, (index) {
+                          final item = cardData[index];
 
-                    {
-                      "image": AppImages.futureProperty,
-                      "title": "Future\n Property",
-                      "onTap": () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FrontPage_FutureProperty(),
-                          ),
-                        );
-                      },
-                    },
-
-                    {
-                      "image": AppImages.tenant,
-                      "title": "Tenant\n Demands",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const MainPage_TenandDemand()));
-                      },
-                    },
-
-                    {
-                      "image": AppImages.agreement,
-                      "title": "Property Agreement",
-                      "onTap": () =>
-                          //_AgreementURL(),
-                    Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => HistoryTab()
-                    )),
-                    },
-
-                    {
-                      "image": AppImages.police,
-                      "title": "All Rented \nFlat",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AddRentedFlatTabbar()));
-                      },
-                    },
-                    {
-                      "image": AppImages.websiteIssue,
-                      "title": "Web \nQuery",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WebQueryPage()));
-                      },
-                    },
-                    {
-                      "image": AppImages.documents,
-                      "title": "Verification\n Property",
-                      "onTap": () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => ShowProperty())),
-                    },
-                    {
-                      "image": AppImages.target,
-                      "title": "Target",
-                      "onTap": () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => Target_MainPage())),
-                    },
-
-
-                  ];
-
-                  final item = cardData[index];
-
-                  return AnimationConfiguration.staggeredGrid(
-                    position: index,
-                    duration: const Duration(milliseconds: 500),
-                    columnCount: 2,
-                    child: ScaleAnimation(
-                      scale: 0.5,
-                      child: FadeInAnimation(
-                        child: SlideAnimation(
-                          verticalOffset: 50.0,
-                          child: _AnimatedDashboardCard(
-                            context: context,
-                            image: item["image"],
-                            title: item["title"],
-                            onTap: item["onTap"],
-                          ),
-                        ),
+                          return AnimationConfiguration.staggeredGrid(
+                            position: index,
+                            duration: const Duration(milliseconds: 600),
+                            columnCount: gridCrossAxisCount, // Match responsive column count for animation
+                            child: ScaleAnimation(
+                              scale: 0.8,
+                              child: FadeInAnimation(
+                                child: SlideAnimation(
+                                  horizontalOffset: 30.0,
+                                  verticalOffset: 0.0,
+                                  child: _PremiumDashboardCard(
+                                    image: item["image"],
+                                    title: item["title"],
+                                    onTap: item["onTap"],
+                                    gradient: item["gradient"],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
                       ),
                     ),
-                  );
-                }),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -505,95 +696,201 @@ class _Home_ScreenState extends State<Home_Screen> {
     setState(() {
       _fieldworkarnumber = prefs.getString('number') ?? '';
     });
-
-
   }
 }
 
+class _PremiumStatCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Gradient gradient;
 
-class _AnimatedDashboardCard extends StatefulWidget {
-  final BuildContext context;
-  final String image;
-  final String title;
-  final VoidCallback onTap;
-
-  const _AnimatedDashboardCard({
-    required this.context,
-    required this.image,
-    required this.title,
-    required this.onTap,
+  const _PremiumStatCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.gradient,
   });
 
   @override
-  _AnimatedDashboardCardState createState() => _AnimatedDashboardCardState();
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 60, // Fixed width to prevent overflow
+      child: Container(
+        padding: const EdgeInsets.all(8), // Reduced padding for compactness
+        decoration: BoxDecoration(
+          gradient: gradient,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withOpacity(0)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 20, shadows: [
+              Shadow(
+                color: Colors.black.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ]),
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.5,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.8),
+                fontSize: 10,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
-class _AnimatedDashboardCardState extends State<_AnimatedDashboardCard> {
+class _PremiumDashboardCard extends StatefulWidget {
+  final String image;
+  final String title;
+  final VoidCallback onTap;
+  final Gradient gradient;
+
+  const _PremiumDashboardCard({
+    required this.image,
+    required this.title,
+    required this.onTap,
+    required this.gradient,
+  });
+
+  @override
+  _PremiumDashboardCardState createState() => _PremiumDashboardCardState();
+}
+
+class _PremiumDashboardCardState extends State<_PremiumDashboardCard> {
   bool _isPressed = false;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accentColor = widget.gradient.colors.first;
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        transform: Matrix4.identity()
-          ..scale(_isPressed ? 0.95 : 1.0),
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeInOut,
+        transform: Matrix4.identity()..scale(_isPressed ? 0.96 : 1.0),
         child: Container(
-          width: MediaQuery.of(context).size.width * 0.42,
-          padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white12
-                : Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: widget.gradient.colors.map((c) => c.withOpacity(0.40)).toList(),
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 10,
-                offset: const Offset(2, 4),
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 15,
+                offset: const Offset(0, 6),
+                spreadRadius: 0,
               ),
+              if (_isPressed)
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 10,
+                  offset: const Offset(0, 3),
+                ),
             ],
+            border: Border.all(
+              color: accentColor.withOpacity(0.3),
+              width: 1,
+            ),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                height: 65,
-                width: 65,
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  color: Colors.white10,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white12
-                        : Colors.grey.shade400,
-                    width: 1,
-                  ),
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(50),
-                  child: Image.asset(widget.image, fit: BoxFit.cover),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              splashColor: accentColor.withOpacity(0.2),
+              highlightColor: Colors.white.withOpacity(0.1),
+              onTap: widget.onTap,
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Enhanced Image Container with glow
+                    Container(
+                      height: 50,
+                      width: 50,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: widget.gradient.colors.map((c) => c.withOpacity(0.2)).toList(),
+                        ),
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: accentColor.withOpacity(0.3),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(25),
+                        child: Image.asset(
+                          widget.image,
+                          fit: BoxFit.contain,
+                          width: 42,
+                          height: 42,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    // Premium Title with better typography
+                    Text(
+                      widget.title,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.textTheme.bodyLarge?.color,
+                        fontSize: 12,
+                        letterSpacing: 0.3,
+                        height: 1.2,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                widget.title,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: "Poppins",
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

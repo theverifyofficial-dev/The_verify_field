@@ -736,7 +736,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         child: Container(
           padding: padding ?? const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.12),
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.9) : Colors.white.withOpacity(0.80),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.08), width: 1),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 8))],
@@ -750,6 +750,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   InputDecoration _fieldDecoration(String label) {
     return InputDecoration(
       labelText: label,
+      labelStyle: TextStyle(color: Colors.black),
       floatingLabelBehavior: FloatingLabelBehavior.auto,
       isDense: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -799,7 +800,12 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     validator: validator,
                     onFieldSubmitted: onFieldSubmitted,
                     inputFormatters: inputFormatters,
-                    decoration: InputDecoration(labelText: label,  errorMaxLines: 2,),
+                    style: const TextStyle(
+                      color: Colors.black, // ✅ make entered text visible (white on black)
+                    ),
+                    decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(
+                      color: Colors.black, // ✅ label text color
+                    ),  errorMaxLines: 2,),
                     onChanged: (v) {
                       if (showInWords) setState(() {});
                       if (onChanged != null) onChanged(v);  // forward to caller
@@ -958,10 +964,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       elevation: 8,
       margin: const EdgeInsets.only(bottom: 20),
       shadowColor: Colors.black.withOpacity(0.15),
+      color: Colors.white,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Property Image
+          // 🔸 Property Image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: Image.network(
@@ -975,113 +982,105 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   width: double.infinity,
                   color: Colors.grey[200],
                   alignment: Alignment.center,
-                  child: const Text("No Image",
-                      style: TextStyle(color: Colors.black54)),
+                  child: const Text(
+                    "No Image",
+                    style: TextStyle(color: Colors.black54),
+                  ),
                 );
               },
             ),
           ),
 
-          // Details
+          // 🔸 Details
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // BHK + Floor
+                // 💰 Price + BHK + Floor
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     Text(
                       "₹${data['show_Price'] ?? "--"}",
                       style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: Colors.redAccent, // changed from green for light contrast
                       ),
                     ),
-
                     Text(
                       data['Bhk'] ?? "",
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black,
                       ),
                     ),
                     Text(
-                      data['Floor_'] ?? "--",
-                      style: TextStyle(
+                      "Floor: ${data['Floor_'] ?? "--"}",
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: Colors.black54,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
 
-                // Price + Meter
+                const SizedBox(height: 10),
+
+                // 👷 Field Worker + Location
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     Text(
                       "Name: ${data['field_warkar_name'] ?? "--"}",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: Colors.black87,
                       ),
                     ),
-
                     Text(
                       "Location: ${data['locations'] ?? "--"}",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: Colors.black87,
                       ),
                     ),
-
                   ],
                 ),
+
                 const SizedBox(height: 10),
 
-                // // Availability
-                // Text(
-                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
-                //   style: const TextStyle(
-                //     fontSize: 15,
-                //     fontWeight: FontWeight.w500,
-                //   ),
-                // ),
-                // const SizedBox(height: 6),
+                // ⚡ Meter + 🚗 Parking
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       "Meter: ${data['meter'] ?? "--"}",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: Colors.black87,
                       ),
                     ),
-
                     Text(
                       "Parking: ${data['parking'] ?? "--"}",
-                      style: TextStyle(
-                        fontSize: 15,
-                        color: Colors.grey[100],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
                       ),
                     ),
                   ],
                 ),
+
                 const SizedBox(height: 6),
 
-                // Maintenance
+                // 🧾 Maintenance
                 Text(
                   "Maintenance: ${data['maintance'] ?? "--"}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[100],
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.black87,
                   ),
                 ),
               ],
@@ -1095,18 +1094,42 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _buildBackground(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        gradient: isDark
-            ? const LinearGradient(colors: [Color(0xFF07102B), Color(0xFF0B0C14)])
-            : const LinearGradient(colors: [Color(0xFFE6F0FF), Color(0xFFFAFAFF)]),
+        gradient: LinearGradient(
+          colors: isDark
+              ? const [
+            Color(0xFF2B0A4E), // deep royal purple
+            Color(0xFF081442), // dark navy blue
+          ]
+              : const [
+            Color(0xFF7E57C2), // soft purple (light)
+            Color(0xFF2196F3), // light blue (light)
+          ],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
       ),
-      child: Stack(children: [
-        // soft glowing blobs
-        Positioned(top: -80, left: -40, child: _glowCircle(220, Colors.purpleAccent.withOpacity(isDark ? 0.14 : 0.14))),
-        Positioned(bottom: -120, right: -40, child: _glowCircle(280, Colors.tealAccent.withOpacity(isDark ? 0.08 : 0.08))),
-        // faint grid or pattern could be added here
-      ]),
+      child: Stack(
+        children: [
+          Positioned(
+            top: -100,
+            left: -60,
+            child: _glowCircle(260, const Color(0xFF4B2E83).withOpacity(0.3)),
+          ),
+          Positioned(
+            bottom: -140,
+            right: -60,
+            child: _glowCircle(320, const Color(0xFF0D47A1).withOpacity(0.25)),
+          ),
+          Positioned(
+            top: 220,
+            left: 80,
+            child: _glowCircle(200, const Color(0xFF311B92).withOpacity(0.2)),
+          ),
+        ],
+      ),
     );
   }
+
 
   Future<void> fetchPropertyDetails() async {
     final propertyId = propertyID.text.trim();  // propertyID is your controller
@@ -1173,70 +1196,182 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   Widget _fancyStepHeader() {
     final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
     final stepIcons = [Icons.person, Icons.person_outline, Icons.home, Icons.preview];
+
     return Row(
       children: [
         Expanded(
           child: SizedBox(
             height: 94,
-            child: LayoutBuilder(builder: (context, constraints) {
-              final gap = (constraints.maxWidth - 64) / (stepLabels.length - 1);
-              return Stack(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final gap = (constraints.maxWidth - 64) / (stepLabels.length - 1);
+                final isDark = Theme.of(context).brightness == Brightness.dark;
+
+                // ❤️ Fiery red to violet-red gradient (strong + modern)
+                const gradientColors = [
+                  Color(0xFF8B1E1E), // rich crimson red
+                  Color(0xFFB71C1C), // medium blood red
+                  Color(0xFFE53935), // brighter vivid red (adds warmth)
+                ];
+
+
+                return Stack(
                   children: [
-                Positioned(top: 50, left: 32, right: 5, child: Container(height: 5, decoration: BoxDecoration(color: Colors.grey.shade600, borderRadius: BorderRadius.circular(6)))),
-
-                Positioned(
-                  top: 50,
-                  left: 32,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 450),
-                    height: 6,
-                    width: gap * _currentStep,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(6),
-                      gradient: const LinearGradient(colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
-                    ),
-                  ),
-                ),
-
-                ...List.generate(stepLabels.length, (i) {
-                  final left = 0 + gap * i;
-                  final isActive = i == _currentStep;
-                  final isDone = i < _currentStep;
-                  return Positioned(
-                    left: left,
-                    top: 0,
-                    child: GestureDetector(
-                      onTap: () => _jumpToStep(i),
-                      child: Column(children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 350),
-                          width: isActive ? 56 : 48,
-                          height: isActive ? 56 : 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: isDone || isActive
-                                ? const LinearGradient(colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)])
-                                : null,
-                            color: isDone || isActive ? null : Colors.transparent,
-                            border: Border.all(color: isActive ? const Color(0xFF8A5CFF) : Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.grey, width: 1.4),
-                            boxShadow: isActive ? [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 18, offset: const Offset(0, 6))] : null,
-                          ),
-                          child: Center(child: isDone ? const Icon(Icons.check, color: Colors.white) : Icon(stepIcons[i], color: isActive ? Colors.white : Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.grey,)),
+                    // Base line
+                    Positioned(
+                      top: 50,
+                      left: 32,
+                      right: 5,
+                      child: Container(
+                        height: 5,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? Colors.grey.shade800
+                              : Colors.grey.shade300,
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                        const SizedBox(height: 8),
-                        SizedBox(width: 84, child: Text(stepLabels[i], textAlign: TextAlign.center, style: TextStyle(color: i == _currentStep ?  Colors.purple: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black, fontSize: 12))),
-                      ]),
+                      ),
                     ),
-                  );
-                }),
-              ]);
-            }),
+
+                    // Progress line
+                    Positioned(
+                      top: 50,
+                      left: 32,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 450),
+                        height: 6,
+                        width: gap * _currentStep,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(6),
+                          gradient: LinearGradient(
+                            colors: gradientColors,
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: gradientColors.last.withOpacity(0.45),
+                              blurRadius: 14,
+                              offset: const Offset(0, 3),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    // Steps
+                    ...List.generate(stepLabels.length, (i) {
+                      final left = 0 + gap * i;
+                      final isActive = i == _currentStep;
+                      final isDone = i < _currentStep;
+
+                      return Positioned(
+                        left: left,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () => _jumpToStep(i),
+                          child: Column(
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Glow ring for active step
+                                  if (isActive)
+                                    Container(
+                                      width: 74,
+                                      height: 74,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: RadialGradient(
+                                          colors: [
+                                            gradientColors.last.withOpacity(0.55),
+                                            Colors.transparent,
+                                          ],
+                                          stops: const [0.0, 1.0],
+                                        ),
+                                      ),
+                                    ),
+
+                                  // Step circle
+                                  AnimatedContainer(
+                                    duration: const Duration(milliseconds: 350),
+                                    width: isActive ? 56 : 48,
+                                    height: isActive ? 56 : 48,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      gradient: isDone || isActive
+                                          ? LinearGradient(
+                                        colors: gradientColors,
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      )
+                                          : null,
+                                      color: isDone || isActive
+                                          ? null
+                                          : isDark
+                                          ? const Color(0xFF1A0E0E)
+                                          : Colors.white,
+                                      border: Border.all(
+                                        color: isActive
+                                            ? gradientColors.last
+                                            : isDark
+                                            ? Colors.white70
+                                            : Colors.black54,
+                                        width: 1.4,
+                                      ),
+                                      boxShadow: isActive
+                                          ? [
+                                        BoxShadow(
+                                          color: gradientColors.last
+                                              .withOpacity(0.5),
+                                          blurRadius: 18,
+                                          offset: const Offset(0, 6),
+                                        ),
+                                      ]
+                                          : null,
+                                    ),
+                                    child: Center(
+                                      child: isDone
+                                          ? const Icon(Icons.check,
+                                          color: Colors.white)
+                                          : Icon(
+                                        stepIcons[i],
+                                        color: isActive
+                                            ? Colors.white
+                                            : isDark
+                                            ? Colors.white
+                                            : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                width: 84,
+                                child: Text(
+                                  stepLabels[i],
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : Colors.black,
+                                    fontSize: 13,
+                                    fontWeight: i == _currentStep
+                                        ? FontWeight.w600
+                                        : FontWeight.w400,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              },
+            ),
           ),
         ),
       ],
@@ -1249,25 +1384,52 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
             Align(
               alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                onPressed: () => _fetchOwnerData(),
-                icon: const Icon(Icons.search, color: Colors.white),
-                label: const Text(
-                  'Auto fetch',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+              child:Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF8B1E1E), // crimson
+                      Color(0xFFB71C1C), // deep red
+                      Color(0xFFE53935), // warm highlight
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
                   ),
-                  elevation: 4,
-                  backgroundColor: Colors.purple.shade900, // needed for gradient
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-              ),
+                child:ElevatedButton.icon(
+                  onPressed: () => _fetchOwnerData(),
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  label: const Text(
+                    'Auto fetch',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+
+              )
+
             ),
           ],
         ),
@@ -1325,10 +1487,33 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
               Expanded(
                 child: DropdownButtonFormField<String>(
                   value: ownerRelation,
-                  items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                  items: const ['S/O', 'D/O', 'W/O', 'C/O']
+                      .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(
+                      e,
+                      style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                    ),
+                  ))
+                      .toList(),
                   onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
-                  decoration: _fieldDecoration('Relation'),
+                  decoration: _fieldDecoration('Relation').copyWith(
+                    labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                    hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                    ),
+                  ),
+                  iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                  dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                  style: const TextStyle(color: Colors.black), // ✅ selected text black
                 ),
+
               ),
               const SizedBox(width: 12),
               Expanded(child: _glowTextField(controller: ownerRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
@@ -1341,7 +1526,19 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(file: ownerAadhaarFront, url: ownerAadharFrontUrl, hint: 'Front'),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
+                  ElevatedButton.icon(
+                    onPressed: () => _pickImage('ownerFront'),
+                    icon: const Icon(Icons.upload_file, color: Colors.white),
+                    label: const Text('Aadhaar Front', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black, // button color
+                      foregroundColor: Colors.white, // ripple color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12), // optional: rounded corners
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    ),
+                  ),
                 ],
               ),
 
@@ -1350,7 +1547,14 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(file: ownerAadhaarBack, url: ownerAadharBackUrl, hint: 'Back'),
                   const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
+                  ElevatedButton.icon(onPressed: () => _pickImage('ownerBack'),style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black, // button color
+                      foregroundColor: Colors.white, // ripple color
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12), // optional: rounded corners
+                      ),
+                  ),
+                      icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
                 ],
               ),
             ]),
@@ -1367,9 +1571,29 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
             Align(
               alignment: Alignment.centerRight,
+              child:Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFF8B1E1E), // crimson
+                      Color(0xFFB71C1C), // deep red
+                      Color(0xFFE53935), // warm highlight
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.15),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
+                ),
               child: ElevatedButton.icon(
                 onPressed: () => _fetchTenantData(),
                 icon: const Icon(Icons.search, color: Colors.white),
@@ -1383,9 +1607,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     borderRadius: BorderRadius.circular(12),
                   ),
                   elevation: 4,
-                  backgroundColor: Colors.purple.shade900, // needed for gradient
+                  backgroundColor: Colors.transparent, // needed for gradient
                 ),
               ),
+            ),
             ),
           ],
         ),
@@ -1444,9 +1669,23 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   value: tenantRelation,
                   items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => tenantRelation = v ?? 'S/O'),
-                  decoration: _fieldDecoration('Relation'),
+              decoration: _fieldDecoration('Relation').copyWith(
+                labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Colors.black, width: 1.5),
                 ),
               ),
+              iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+              dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+              style: const TextStyle(color: Colors.black), // ✅ selected text black
+            ),
+                ),
               const SizedBox(width: 12),
               Expanded(child: _glowTextField(controller: tenantRelationPerson, label: 'Person Name', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
             ]),
@@ -1454,33 +1693,82 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             _glowTextField(controller: tenantAddress, label: 'Permanent Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 12),
 
-            Column(children: [
-              Row(
-                children: [
-                  _imageTile(file: tenantAadhaarFront, url: tenantAadharFrontUrl, hint: 'Front'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantFront'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Front')),
-                ],
-              ),
+            Column(
+              children: [
+                Row(
+                  children: [
+                    _imageTile(
+                      file: tenantAadhaarFront,
+                      url: tenantAadharFrontUrl,
+                      hint: 'Front',
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black, // 🔥 black background
+                        foregroundColor: Colors.white, // white text & icon
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      onPressed: () => _pickImage('tenantFront'),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Aadhaar Front'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _imageTile(
+                      file: tenantAadhaarBack,
+                      url: tenantAadharBackUrl,
+                      hint: 'Back',
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      onPressed: () => _pickImage('tenantBack'),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Aadhaar Back'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    _imageTile(
+                      file: tenantImage,
+                      url: tenantPhotoUrl,
+                      hint: 'Tenant Photo',
+                    ),
+                    const SizedBox(width: 12),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      ),
+                      onPressed: () => _pickImage('tenantImage'),
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload Photo'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
 
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  _imageTile(file: tenantAadhaarBack, url: tenantAadharBackUrl, hint: 'Back'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantBack'), icon: const Icon(Icons.upload_file), label: const Text('Aadhaar Back')),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
-                  const SizedBox(width: 12),
-                  ElevatedButton.icon(onPressed: () => _pickImage('tenantImage'), icon: const Icon(Icons.upload_file), label: const Text('Upload Photo')),
-                ],
-              ),
-            ]),
 
             const SizedBox(height: 12),
           ]),
@@ -1498,26 +1786,48 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
-        Align(
-          alignment: Alignment.centerRight,
-          child: ElevatedButton.icon(
-            onPressed: () => fetchPropertyDetails(),
-            icon: const Icon(Icons.search, color: Colors.white),
-            label: const Text(
-              'Auto fetch',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-            ),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+            Text('Property Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFD50000), Color(0xFFB71C1C)], // deep red → dark crimson
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.red.shade900.withOpacity(0.4),
+                      blurRadius: 8,
+                      offset: const Offset(2, 3),
+                    ),
+                  ],
+                ),
+                child: ElevatedButton.icon(
+                  onPressed: () => fetchPropertyDetails(),
+                  icon: const Icon(Icons.search, color: Colors.white),
+                  label: const Text(
+                    'Auto fetch',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    elevation: 0,
+                    backgroundColor: Colors.transparent, // must be transparent for gradient to show
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
               ),
-              elevation: 4,
-              backgroundColor: Colors.purple.shade900, // needed for gradient
             ),
-          ),
-        ),
+
           ],
         ),
         const SizedBox(height: 12),
@@ -1554,57 +1864,165 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
             ]),
             const SizedBox(height: 8),
-            CheckboxListTile(value: securityInstallment, onChanged: (v) => setState(() => securityInstallment = v ?? false), title: const Text('Pay security in installments?')),
-            if (securityInstallment) _glowTextField(controller: installmentAmount, label: 'Installment Amount (INR)', keyboard: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                showInWords: true,onChanged: (v) {
+            CheckboxListTile(
+              value: securityInstallment,
+              onChanged: (v) => setState(() => securityInstallment = v ?? false),
+              title: const Text(
+                'Pay security in installments?',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              activeColor: Colors.redAccent,
+              checkColor: Colors.white,
+              side: const BorderSide(color: Colors.black54, width: 1.5),
+            ),
+
+            if (securityInstallment)
+              _glowTextField(
+                controller: installmentAmount,
+                label: 'Installment Amount (INR)',
+                keyboard: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6)
+                ],
+                showInWords: true,
+                onChanged: (v) {
                   setState(() {
-                    installmentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                    installmentAmountInWords =
+                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
                   });
-                }, validator: (v) {
+                },
+                validator: (v) {
                   if (securityInstallment && (v == null || v.trim().isEmpty)) return 'Required';
                   return null;
-                }),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(value: meterInfo, items: const ['As per Govt. Unit', 'Custom Unit (Enter Amount)'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'), decoration: _fieldDecoration('Meter Info')),
-            if (meterInfo.startsWith('Custom')) _glowTextField(controller: customUnitAmount, label: 'Custom Unit Amount (INR)', keyboard: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                showInWords: true,onChanged: (v) {
-                  setState(() {
-                    customUnitAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                  });
-                }, validator: (v) {
-                  if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty)) return 'Required';
-                  return null;
-                }),
-            const SizedBox(height: 12),
-            ListTile(contentPadding: EdgeInsets.zero, title: Text(shiftingDate == null ? 'Select Shifting Date' : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}'), trailing: const Icon(Icons.calendar_today), onTap: () async {
-              final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-              if (picked != null) setState(() => shiftingDate = picked);
-            }),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike','Both','No'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
+                },
+              ),
 
-            DropdownButtonFormField<String>(value: maintenance, items: const ['Including', 'Excluding'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => maintenance = v ?? 'Including'), decoration: _fieldDecoration('Maintenance')),
+            const SizedBox(height: 12),
+
+            DropdownButtonFormField<String>(
+              value: meterInfo,
+              items: const [
+                'As per Govt. Unit',
+                'Custom Unit (Enter Amount)'
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'),
+              decoration: _fieldDecoration('Meter Info'),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              iconEnabledColor: Colors.black,
+            ),
+
+            if (meterInfo.startsWith('Custom'))
+              _glowTextField(
+                controller: customUnitAmount,
+                label: 'Custom Unit Amount (INR)',
+                keyboard: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6)
+                ],
+                showInWords: true,
+                onChanged: (v) {
+                  setState(() {
+                    customUnitAmountInWords =
+                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                },
+                validator: (v) {
+                  if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty))
+                    return 'Required';
+                  return null;
+                },
+              ),
+
+            const SizedBox(height: 12),
+
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                shiftingDate == null
+                    ? 'Select Shifting Date'
+                    : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              trailing: const Icon(Icons.calendar_today, color: Colors.black87),
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (picked != null) setState(() => shiftingDate = picked);
+              },
+            ),
+
+            const SizedBox(height: 12),
+
+            DropdownButtonFormField<String>(
+              value: parking,
+              items: const ['Car', 'Bike', 'Both', 'No']
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) => setState(() => parking = v ?? 'Car'),
+              decoration: _fieldDecoration('Parking'),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              iconEnabledColor: Colors.black,
+            ),
+
+            DropdownButtonFormField<String>(
+              value: maintenance,
+              items: const ['Including', 'Excluding']
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) => setState(() => maintenance = v ?? 'Including'),
+              decoration: _fieldDecoration('Maintenance'),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              iconEnabledColor: Colors.black,
+            ),
+
             if (maintenance.startsWith('Excluding'))
               _glowTextField(
                 controller: customMaintanceAmount,
                 label: 'Custom Maintenance Amount (INR)',
                 keyboard: TextInputType.number,
                 showInWords: true,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6)
+                ],
                 onChanged: (v) {
                   setState(() {
-                    customMaintanceAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                    customMaintanceAmountInWords =
+                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
                   });
                 },
                 validator: (v) {
-                  if (maintenance.startsWith('Excluding') && (v == null || v.trim().isEmpty)) return 'Required';
+                  if (maintenance.startsWith('Excluding') &&
+                      (v == null || v.trim().isEmpty)) return 'Required';
                   return null;
                 },
               ),
+
             const SizedBox(height: 12),
-            const Text('Tip: These values will appear in the final agreement preview.'),
+
+            const Text(
+              'Tip: These values will appear in the final agreement preview.',
+              style: TextStyle(
+                color: Colors.black87,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+
           ]
           ),
         ),
@@ -1647,7 +2065,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: () => _jumpToStep(0), child: const Text('Edit')),
+              TextButton(onPressed: () => _jumpToStep(0), child: const Text('Edit',)),
             ],
           )
 
@@ -1715,7 +2133,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w700,color: Colors.black)),
         const SizedBox(height: 8),
         _glassContainer(child: Column(children: children), padding: const EdgeInsets.all(14)),
       ]),
@@ -1726,7 +2144,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     if (v.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600))), Expanded(child: Text(v))]),
+      child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black))), Expanded(child: Text(v, style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black)))]),
     );
   }
 }
@@ -1735,7 +2153,13 @@ class ElevatedGradientButton extends StatelessWidget {
   final String text;
   final IconData icon;
   final VoidCallback onPressed;
-  const ElevatedGradientButton({required this.text, required this.icon, required this.onPressed, super.key});
+
+  const ElevatedGradientButton({
+    required this.text,
+    required this.icon,
+    required this.onPressed,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1744,16 +2168,40 @@ class ElevatedGradientButton extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [Color(0xFF4CA1FF), Color(0xFF8A5CFF)]),
+          gradient: const LinearGradient(
+            colors: [
+              Color(0xFF8B1E1E), // crimson
+              Color(0xFFB71C1C), // blood red
+              Color(0xFFE53935), // lighter red edge
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.18), blurRadius: 16, offset: const Offset(0, 8))],
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFD32F2F).withOpacity(0.3),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
+            ),
+          ],
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(width: 12),
-          Text(text, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-        ]),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.6,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

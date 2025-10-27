@@ -318,7 +318,7 @@ class _Home_ScreenState extends State<Home_Screen> {
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
             },
-            child: Column(
+            child: Column(   
               children: [
                 SizedBox(height: 10,),
                 Row(

@@ -24,6 +24,8 @@ import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
+import 'Statistics/Progressbar.dart';
+import 'Statistics/Target_MainPage.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
 import 'add_properties_firstpage.dart';
@@ -369,7 +371,7 @@ class _Home_ScreenState extends State<Home_Screen> {
               child: Wrap(
                 spacing: 16,
                 runSpacing: 16,
-                children: List.generate(8, (index) {
+                children: List.generate(9, (index) {
                   // Keep your original cardData list exactly as you had it
                   final List<Map<String, dynamic>> cardData = [
                     {
@@ -453,6 +455,14 @@ class _Home_ScreenState extends State<Home_Screen> {
                           context,
                           MaterialPageRoute(
                               builder: (_) => ShowProperty())),
+                    },
+                    {
+                      "image": AppImages.target,
+                      "title": "Target",
+                      "onTap": () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => Target_MainPage())),
                     },
 
 

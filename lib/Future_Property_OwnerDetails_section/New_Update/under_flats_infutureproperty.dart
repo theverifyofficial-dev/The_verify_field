@@ -2765,71 +2765,111 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                     : () async {
                   setState(() => _isMainLoading = true);
                   try {
+                    final url = Uri.parse(
+                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php",
+                    );
+
                     if (estate_status == "Book") {
+                      // MOVE TO LIVE
                       print("🔴 MOVE TO LIVE: ${widget.id}");
-                      final updateResponse = await http.post(
-                        Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                        body: {"action": "update", "P_id": widget.id.toString()},
-                      );
-                      final moveResponse = await http.post(
-                        Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                        body: {"action": "copy", "P_id": widget.id.toString()},
-                      );
 
-                      print("🟢 Update: ${updateResponse.statusCode}");
-                      print("🟢 Copy: ${moveResponse.statusCode}");
+                      // 1) update
+                      final updateBody = {"action": "update", "P_id": widget.id.toString()};
+                      print("➡️ POST update BODY: $updateBody");
+                      final updateResponse = await http.post(url, body: updateBody);
+                      print("⬅️ RESP update ${updateResponse.statusCode} ${updateResponse.body}");
 
-                      if (updateResponse.statusCode == 200 &&
-                          moveResponse.statusCode == 200) {
+                      // 2) copy
+                      final copyBody = {"action": "copy", "P_id": widget.id.toString()};
+                      print("➡️ POST copy   BODY: $copyBody");
+                      final moveResponse = await http.post(url, body: copyBody);
+                      print("⬅️ RESP copy   ${moveResponse.statusCode} ${moveResponse.body}");
+
+                      if (updateResponse.statusCode == 200 && moveResponse.statusCode == 200) {
+                        // 3) edit_date ONLY in Book → Live
+                        final now = DateTime.now();
+                        final formattedNow =
+                            "${now.year}-${now.month.toString().padLeft(2,'0')}-${now.day.toString().padLeft(2,'0')}";
+
+                        final editDateBody = {
+                          "action": "edit_date",
+                          "source_id": widget.id.toString(),
+                          "date_for_target": formattedNow, // YYYY-MM-DD
+                        };
+                        print("➡️ POST edit_date BODY: $editDateBody");
+                        final editDateRes = await http.post(url, body: editDateBody);
+                        print("⬅️ RESP edit_date ${editDateRes.statusCode} ${editDateRes.body}");
+
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Property moved to Live successfully!",
-                                style: TextStyle(color: Colors.white)),
+                            content: Text(
+                              "Property moved to Live successfully!",
+                              style: TextStyle(color: Colors.white),
+                            ),
                             backgroundColor: Colors.green,
                           ),
                         );
                         setState(() => estate_status = "Live");
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Move to Live failed. Update: ${updateResponse.statusCode}, Copy: ${moveResponse.statusCode}",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
                       }
                     } else if (estate_status == "Live") {
+                      // MOVE TO BOOK (UNLIVE)
                       print("🔵 MOVE TO BOOK (Unlive): ${widget.id}");
-                      final updateResponse = await http.post(
-                        Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                        body: {"action": "reupdate", "P_id": widget.id.toString()},
-                      );
-                      final deleteResponse = await http.post(
-                        Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php"),
-                        body: {"action": "delete", "source_id": widget.id.toString()},
-                      );
 
-                      print("🟡 Reupdate: ${updateResponse.statusCode}");
-                      print("🟡 Delete: ${deleteResponse.statusCode}");
+                      // 1) reupdate
+                      final reupdateBody = {"action": "reupdate", "P_id": widget.id.toString()};
+                      print("➡️ POST reupdate BODY: $reupdateBody");
+                      final reupdateResponse = await http.post(url, body: reupdateBody);
+                      print("⬅️ RESP reupdate ${reupdateResponse.statusCode} ${reupdateResponse.body}");
+
+                      // 2) delete
+                      final deleteBody = {"action": "delete", "source_id": widget.id.toString()};
+                      print("➡️ POST delete   BODY: $deleteBody");
+                      final deleteResponse = await http.post(url, body: deleteBody);
+                      print("⬅️ RESP delete   ${deleteResponse.statusCode} ${deleteResponse.body}");
 
                       if (deleteResponse.statusCode == 200) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Property UnLived successfully!",
-                                style: TextStyle(color: Colors.white)),
+                            content: Text(
+                              "Property UnLived successfully!",
+                              style: TextStyle(color: Colors.white),
+                            ),
                             backgroundColor: Colors.blue,
                           ),
                         );
                         setState(() => estate_status = "Book");
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              "Unlive failed. Reupdate: ${reupdateResponse.statusCode}, Delete: ${deleteResponse.statusCode}",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            backgroundColor: Colors.redAccent,
+                          ),
+                        );
                       }
                     }
                   } catch (e) {
                     print("❌ Error Main: $e");
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content: Text("Error: $e"),
-                          backgroundColor: Colors.red),
+                      SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red),
                     );
                   } finally {
                     setState(() => _isMainLoading = false);
                   }
                 },
+
                 child: _isMainLoading
                     ? const Row(
                   mainAxisAlignment: MainAxisAlignment.center,

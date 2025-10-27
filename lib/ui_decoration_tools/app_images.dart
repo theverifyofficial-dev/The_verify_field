@@ -46,6 +46,7 @@ class AppImages{
   static const loader = 'assets/images/loading.gif';
   static const loadingHand = 'assets/images/loadingHand.json';
   static const websiteIssue = 'assets/images/websiteIssue.png';
+  static const target = 'assets/images/target.png';
 
 
 

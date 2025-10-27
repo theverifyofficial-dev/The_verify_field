@@ -327,19 +327,81 @@ class _ADministaterShow_FuturePropertyState
           children: [
             if (property.images != null)     // if (property.typeOfProperty != null)
             //   _buildChip(property.typeOfProperty!, greenColor, isDarkMode),
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: CachedNetworkImage(
-                  imageUrl:
-                  "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images}",
-                  height: 220,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      Container(height: 220, color: Colors.grey[200]),
-                  errorWidget: (context, url, error) =>
-                      Container(height: 220, color: Colors.grey[300]),
-                ),
+
+              Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                    child: CachedNetworkImage(
+                      imageUrl:
+                      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images}",
+                      height: 220,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          Container(height: 220, color: Colors.grey[200]),
+                      errorWidget: (context, url, error) =>
+                          Container(height: 220, color: Colors.grey[300]),
+                    ),
+                  ),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: FutureBuilder(
+                      future: http.get(Uri.parse(
+                          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${property.id}')),
+                      builder: (context, snapshot) {
+                        String label = "Unlive: 0"; // default text
+                        Color color = Colors.red.withOpacity(0.8); // default color
+
+                        if (snapshot.connectionState == ConnectionState.done &&
+                            snapshot.hasData &&
+                            !snapshot.hasError) {
+                          final data = jsonDecode(snapshot.data!.body);
+
+                          bool anyLive = false;
+                          if (data is List && data.isNotEmpty) {
+                            for (var item in data) {
+                              if (item['live_unlive'] == 'Live' && (item['logs'] as num) > 0) {
+                                anyLive = true;
+                                break; // any single live is enough
+                              }
+                            }
+                          }
+
+                          if (anyLive) {
+                            // If any flat is live, show live logs
+                            final liveItem = data.firstWhere(
+                                  (item) => item['live_unlive'] == 'Live',
+                              orElse: () => null,
+                            );
+                            label = "Live: ${liveItem?['logs'] ?? 0}";
+                            color = Colors.green.withOpacity(0.8);
+                          } else {
+                            // If no flat is live, always show Unlive: 0
+                            label = "Unlive: 0";
+                            color = Colors.red.withOpacity(0.8);
+                          }
+                        }
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: color,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  )
+                ],
               ),
             Padding(
               padding: const EdgeInsets.all(16),

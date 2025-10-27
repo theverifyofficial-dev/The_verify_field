@@ -70,11 +70,9 @@ class _ActionFormState extends State<ActionForm> {
     final extraExpense = extraExpenseController.text.replaceAll(',', '');
     final advance = advanceController.text.replaceAll(',', '');
     final totalBalance = balanceController.text.replaceAll('₹', '').replaceAll(',', '').trim();
-
     final uri = Uri.parse(
       'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_update_api_for_field_workar.php',
     );
-
     try {
       final response = await http.post(
         uri,

@@ -137,7 +137,7 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          "Wed Inquiries",
+          "Web Query",
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 20,

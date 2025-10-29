@@ -275,7 +275,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                                   10)),
                               child: Container(
                                 height: 190,
-                                width: 350,
+                                width: MediaQuery.of(context).size.width * 0.80,
                                 child:
                                 CachedNetworkImage(
                                   imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +

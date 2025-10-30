@@ -743,7 +743,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         child: Container(
           padding: padding ?? const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.05) : Colors.white.withOpacity(0.12),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.08), width: 1),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 8))],
@@ -806,7 +806,12 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                     validator: validator,
                     onFieldSubmitted: onFieldSubmitted,
                     inputFormatters: inputFormatters,
-                    decoration: InputDecoration(labelText: label),
+                    style: const TextStyle(
+                      color: Colors.black, // ✅ make entered text visible (white on black)
+                    ),
+                    decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(
+                      color: Colors.black, // ✅ label text color
+                    ),  errorMaxLines: 2,),
                     onChanged: (v) {
                       if (showInWords) setState(() {});
                       if (onChanged != null) onChanged(v);  // forward to caller
@@ -961,24 +966,63 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       decoration: BoxDecoration(
         gradient: isDark
             ? const LinearGradient(
-          colors: [Color(0xFF07102B), Color(0xFF0B0C14)],
+          colors: [
+            Color(0xFF0A1938), // Deep navy
+            Color(0xFF0E1330), // Midnight indigo
+            Color(0xFF05080F), // Blackish blue base
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         )
             : const LinearGradient(
-          colors: [Color(0xFFE6F0FF), Color(0xFFFAFAFF)],
+          colors: [
+            Color(0xFFDCE9FF), // soft sky
+            Color(0xFFBFD4FF), // mild blue
+            Color(0xFFE6F0FF), // base tone
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
       ),
-      child: Stack(children: [
-        Positioned(
-          top: -80,
-          left: -40,
-          child: _glowCircle(220, Colors.blueAccent.withOpacity(isDark ? 0.14 : 0.14)),
-        ),
-        Positioned(
-          bottom: -120,
-          right: -40,
-          child: _glowCircle(280, Colors.cyanAccent.withOpacity(isDark ? 0.08 : 0.08)),
-        ),
-      ]),
+      child: Stack(
+        children: [
+          // Top glow — rich blue radiance
+          Positioned(
+            top: -100,
+            left: -50,
+            child: _glowCircle(
+              250,
+              isDark
+                  ? Colors.indigoAccent.withOpacity(0.22)
+                  : Colors.blueAccent.withOpacity(0.18),
+            ),
+          ),
+
+          // Bottom glow — cyan shimmer
+          Positioned(
+            bottom: -120,
+            right: -60,
+            child: _glowCircle(
+              320,
+              isDark
+                  ? Colors.cyanAccent.withOpacity(0.20)
+                  : Colors.lightBlueAccent.withOpacity(0.20),
+            ),
+          ),
+
+          // Center glow — luminous pulse
+          Positioned(
+            top: 200,
+            right: 100,
+            child: _glowCircle(
+              180,
+              isDark
+                  ? Colors.deepPurpleAccent.withOpacity(0.12)
+                  : Colors.indigoAccent.withOpacity(0.10),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -986,9 +1030,28 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     return Container(
       width: size,
       height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [color, color.withOpacity(0.02)])),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withOpacity(0.5), // stronger center light
+            color.withOpacity(0.05), // soft edge diffusion
+            Colors.transparent, // natural fade out
+          ],
+          stops: const [0.0, 0.5, 1.0],
+          center: Alignment.center,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.25),
+            blurRadius: size * 0.4,
+            spreadRadius: size * 0.1,
+          ),
+        ],
+      ),
     );
   }
+
 
   Widget _fancyStepHeader() {
     final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
@@ -1116,7 +1179,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text('Owner Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
 
             Container(
               decoration: BoxDecoration(
@@ -1212,9 +1275,31 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                   Expanded(
                     child: DropdownButtonFormField<String>(
                       value: ownerRelation,
-                      items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                      items: const ['S/O', 'D/O', 'W/O', 'C/O']
+                          .map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e,
+                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                        ),
+                      ))
+                          .toList(),
                       onChanged: (v) => setState(() => ownerRelation = v ?? 'S/O'),
-                      decoration: _fieldDecoration('Relation'),
+                      decoration: _fieldDecoration('Relation').copyWith(
+                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        ),
+                      ),
+                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                      style: const TextStyle(color: Colors.black), // ✅ selected text black
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1256,7 +1341,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+            Text('Tenant Details', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
 
             Container(
               decoration: BoxDecoration(
@@ -1352,7 +1437,21 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                   value: tenantRelation,
                   items: const ['S/O', 'D/O', 'W/O','C/O'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
                   onChanged: (v) => setState(() => tenantRelation = v ?? 'S/O'),
-                  decoration: _fieldDecoration('Relation'),
+                  decoration: _fieldDecoration('Relation').copyWith(
+                    labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                    hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                    ),
+                  ),
+                  iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                  dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                  style: const TextStyle(color: Colors.black), // ✅ selected text black
                 ),
               ),
               const SizedBox(width: 12),
@@ -1438,57 +1537,126 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                     }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
                 ]),
             const SizedBox(height: 8),
-            CheckboxListTile(value: securityInstallment, onChanged: (v) => setState(() => securityInstallment = v ?? false), title: const Text('Pay security in installments?')),
-            if (securityInstallment) _glowTextField(controller: installmentAmount, label: 'Installment Amount (INR)', keyboard: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                showInWords: true,onChanged: (v) {
-                  setState(() {
-                    installmentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                  });
-                }, validator: (v) {
-                  if (securityInstallment && (v == null || v.trim().isEmpty)) return 'Required';
-                  return null;
-                }),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(value: meterInfo, items: const ['As per Govt. Unit', 'Custom Unit (Enter Amount)'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'), decoration: _fieldDecoration('Meter Info')),
-            if (meterInfo.startsWith('Custom')) _glowTextField(controller: customUnitAmount, label: 'Custom Unit Amount (INR)', keyboard: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                showInWords: true,onChanged: (v) {
-                  setState(() {
-                    customUnitAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                  });
-                }, validator: (v) {
-                  if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty)) return 'Required';
-                  return null;
-                }),
-            const SizedBox(height: 12),
-            ListTile(contentPadding: EdgeInsets.zero, title: Text(shiftingDate == null ? 'Select Shifting Date' : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}'), trailing: const Icon(Icons.calendar_today), onTap: () async {
-              final picked = await showDatePicker(context: context, initialDate: DateTime.now(), firstDate: DateTime(2000), lastDate: DateTime(2100));
-              if (picked != null) setState(() => shiftingDate = picked);
-            }),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(value: parking, items: const ['Car', 'Bike','Both','No'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => parking = v ?? 'Car'), decoration: _fieldDecoration('Parking')),
+            DropdownButtonFormField<String>(
+              value: meterInfo,
+              items: const [
+                'As per Govt. Unit',
+                'Custom Unit (Enter Amount)'
+              ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+              onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'),
+              decoration: _fieldDecoration('Meter Info'),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              iconEnabledColor: Colors.black,
+            ),
 
-            DropdownButtonFormField<String>(value: maintenance, items: const ['Including', 'Excluding'].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(), onChanged: (v) => setState(() => maintenance = v ?? 'Including'), decoration: _fieldDecoration('Maintenance')),
+            if (meterInfo.startsWith('Custom'))
+              _glowTextField(
+                controller: customUnitAmount,
+                label: 'Custom Unit Amount (INR)',
+                keyboard: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6)
+                ],
+                showInWords: true,
+                onChanged: (v) {
+                  setState(() {
+                    customUnitAmountInWords =
+                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                  });
+                },
+                validator: (v) {
+                  if (meterInfo.startsWith('Custom') && (v == null || v.trim().isEmpty))
+                    return 'Required';
+                  return null;
+                },
+              ),
+
+            const SizedBox(height: 12),
+
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                shiftingDate == null
+                    ? 'Select Shifting Date'
+                    : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              trailing: const Icon(Icons.calendar_today, color: Colors.black87),
+              onTap: () async {
+                final picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(2000),
+                  lastDate: DateTime(2100),
+                );
+                if (picked != null) setState(() => shiftingDate = picked);
+              },
+            ),
+
+            const SizedBox(height: 12),
+
+            DropdownButtonFormField<String>(
+              value: parking,
+              items: const ['Car', 'Bike', 'Both', 'No']
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) => setState(() => parking = v ?? 'Car'),
+              decoration: _fieldDecoration('Parking'),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              iconEnabledColor: Colors.black,
+            ),
+
+            DropdownButtonFormField<String>(
+              value: maintenance,
+              items: const ['Including', 'Excluding']
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                  .toList(),
+              onChanged: (v) => setState(() => maintenance = v ?? 'Including'),
+              decoration: _fieldDecoration('Maintenance'),
+              dropdownColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              iconEnabledColor: Colors.black,
+            ),
+
             if (maintenance.startsWith('Excluding'))
               _glowTextField(
                 controller: customMaintanceAmount,
                 label: 'Custom Maintenance Amount (INR)',
                 keyboard: TextInputType.number,
                 showInWords: true,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(6)
+                ],
                 onChanged: (v) {
                   setState(() {
-                    customMaintanceAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                    customMaintanceAmountInWords =
+                        convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
                   });
                 },
                 validator: (v) {
-                  if (maintenance.startsWith('Excluding') && (v == null || v.trim().isEmpty)) return 'Required';
+                  if (maintenance.startsWith('Excluding') &&
+                      (v == null || v.trim().isEmpty)) return 'Required';
                   return null;
                 },
               ),
+
             const SizedBox(height: 12),
-            const Text('Tip: These values will appear in the final agreement preview.'),
+
+            const Text(
+              'Tip: These values will appear in the final agreement preview.',
+              style: TextStyle(
+                color: Colors.black87,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+
           ]
           ),
         ),
@@ -1531,7 +1699,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: () => _jumpToStep(0), child: const Text('Edit')),
+              TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
+                foregroundColor: Colors.blue, // text color
+              ), child: const Text('Edit')),
             ],
           )
 
@@ -1564,7 +1734,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                 children: [
                   _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
                   const SizedBox(width: 100),
-                  TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit'))
+                  TextButton(onPressed: () => _jumpToStep(1),style: TextButton.styleFrom(
+                    foregroundColor: Colors.blue, // text color
+                  ), child: const Text('Edit'))
                 ],
               ),
             ],
@@ -1587,19 +1759,20 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
 
           const SizedBox(height: 8),
-          Row(children: [const Spacer(), TextButton(onPressed: () => _jumpToStep(2), child: const Text('Edit'))])
+          Row(children: [const Spacer(), TextButton(onPressed: () => _jumpToStep(2),style: TextButton.styleFrom(
+            foregroundColor: Colors.blue, // text color
+          ), child: const Text('Edit'))])
         ]),
         const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
       ]),
     );
   }
-
   Widget _kv(String k, String v) {
     if (v.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600))), Expanded(child: Text(v))]),
+      child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black))), Expanded(child: Text(v,style: TextStyle(color: Colors.black),))]),
     );
   }
 
@@ -1608,7 +1781,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        Text(title, style: const TextStyle(fontWeight: FontWeight.w700,color: Colors.black)),
         const SizedBox(height: 8),
         _glassContainer(child: Column(children: children), padding: const EdgeInsets.all(14)),
       ]),

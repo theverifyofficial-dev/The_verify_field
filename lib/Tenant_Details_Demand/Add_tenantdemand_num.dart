@@ -1,15 +1,13 @@
 import 'dart:convert';
-
+import 'package:flutter/services.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../constant.dart';
 import 'Add_TenantDemands.dart';
 import 'SHow_Add_Demand_Data.dart';
-import 'Visit_By_date/Show_Visit_Details.dart';
 
 class Catid {
   final int id;
@@ -138,14 +136,37 @@ class _add_Tenant_numState extends State<add_Tenant_num> {
               borderRadius: BorderRadius.circular(15),
               // boxShadow: K.boxShadow,
             ),
-            child: TextField(
-              style: TextStyle(color: Colors.black),
+            child: TextFormField(
               controller: _number,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                  hintText: "Number",
-                  hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),
-                  border: InputBorder.none),
+              maxLength: 12,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(12),
+              ],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Number is required';
+                } else if (value.length != 10) {
+                  return 'Enter exactly 10 digits';
+                }
+                return null;
+              },
+              style: const TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: const InputDecoration(
+                counterText: "", // hide maxLength counter
+                prefixIcon: Icon(Icons.phone, color: Colors.red),
+                hintText: "Enter 10-digit phone number",
+                hintStyle: TextStyle(
+                  color: Colors.grey,
+                  fontFamily: 'Poppins',
+                ),
+                border: InputBorder.none,
+                errorStyle: TextStyle(color: Colors.red),
+              ),
             ),
           ),
 
@@ -159,36 +180,18 @@ class _add_Tenant_numState extends State<add_Tenant_num> {
                   backgroundColor: Colors.red
               ),
               onPressed: () async {
-                //fetchData();
                 final responce_Official_table = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
-                //final responce_Assign_Table = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/assign_tenant_demand_count_api_?demand_number=${_number.text}"));
 
                 print(responce_Official_table.body);
 
                 if (responce_Official_table.body == '[{"logg":0}]') {
-
-                  //fetchData();
-
-                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Add_TenantDemands(number_Back: '${_number.text}', pending_id: '0',),), (route) => route.isFirst);
-
-                  // Successful login
-                  //
-                  // print("Login successful");
-                } /*else if (responce_Assign_Table.body == '[{"logg":1}]') {
-
-                  Fluttertoast.showToast(
-                      msg: "Number Found in Assign table",
-                      toastLength: Toast.LENGTH_LONG,
-                      gravity: ToastGravity.BOTTOM,
-                      timeInSecForIosWeb: 1,
-                      backgroundColor: Colors.grey,
-                      textColor: Colors.white,
-                      fontSize: 16.0
-                  );
-                  // Successful login
-                  print("Login successful");
-                }*/ else {
-                  // Failed login
+                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(
+                    builder: (context) =>
+                        Add_TenantDemands(
+                          number_Back: '${_number.text}', pending_id: '0',),), (
+                      route) => route.isFirst);
+                }
+                else {
 
                   Fluttertoast.showToast(
                       msg: "Number Found in Tenant Demand table",

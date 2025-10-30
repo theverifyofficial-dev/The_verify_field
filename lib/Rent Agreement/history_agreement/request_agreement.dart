@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -105,179 +106,344 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
       setState(() => isLoading = false);
     }
   }
+
   Widget _buildAgreementCard(AgreementData agreement) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final status = agreement.status?.toLowerCase() ?? '';
+    final bool isRejected = status == "rejected";
+    final bool isUpdated = status == "fields updated";
+
+    final Color glowColor = isRejected
+        ? Colors.redAccent
+        : isUpdated
+        ? Colors.greenAccent
+        : Colors.blueAccent;
+
+    final size = MediaQuery.of(context).size;
+    final double textScale = size.width < 360
+        ? 0.85
+        : size.width < 420
+        ? 0.95
+        : 1.0;
+
+    final baseTextColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white70 : Colors.black54;
+
+    final Color primaryGlow = Colors.blueAccent;
+    final Color secondaryGlow = Colors.purpleAccent.shade100;
+
+
+
+    return Container(
+      margin: EdgeInsets.symmetric(
+        horizontal: size.width * 0.04,
+        vertical: size.height * 0.012,
+      ),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: isDark
+              ? [
+            primaryGlow.withOpacity(0.07),
+            secondaryGlow.withOpacity(0.05),
+            Colors.black.withOpacity(0.25),
+          ]
+              : [
+            Colors.white,
+            secondaryGlow.withOpacity(0.05),
+            primaryGlow.withOpacity(0.08),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+
+        border: Border.all(
+          color: isDark
+              ? glowColor.withOpacity(0.4)
+              : glowColor.withOpacity(0.2),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: glowColor.withOpacity(0.3),
+            blurRadius: 15,
+            spreadRadius: 1,
+            offset: const Offset(0, 6),
+          ),
+          BoxShadow(
+            color: Colors.white.withOpacity(isDark ? 0.05 : 0.2),
+            blurRadius: 4,
+            spreadRadius: -2,
+            offset: const Offset(-1, -1),
+          ),
+        ],
+
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Padding(
+            padding: EdgeInsets.all(size.width * 0.04),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: Text(
-                    "Owner: ${agreement.ownerName}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                // HEADER
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return constraints.maxWidth < 330
+                        ? Wrap(
+                      runSpacing: 6,
+                      spacing: 12,
+                      children: [
+                        _neonText("Owner: ${agreement.ownerName}",
+                            glowColor, textScale, baseTextColor),
+                        _neonText("Tenant: ${agreement.tenantName}",
+                            glowColor, textScale, baseTextColor),
+                      ],
+                    )
+                        : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: _neonText(
+                              "Owner: ${agreement.ownerName}",
+                              glowColor,
+                              textScale,
+                              baseTextColor),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: _neonText(
+                                "Tenant: ${agreement.tenantName}",
+                                glowColor,
+                                textScale,
+                                baseTextColor),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    "Tenant: ${agreement.tenantName}",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.right,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Property Address: ${agreement.rentedAddress}",
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 6),
+                SizedBox(height: size.height * 0.012),
 
-            // Shifting date
-            Text(
-              "Shifting Date: ${agreement.shiftingDate.toLocal().toString().split(' ')[0]}",
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 6),
-
-            // ✅ Status + message info
-            // ✅ Status + message info
-            if (agreement.status != null) ...[
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Status: ",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      Text(
-                        agreement.status!,
+                // PROPERTY INFO
+                Row(
+                  children: [
+                    Icon(Icons.location_on_rounded,
+                        color: subTextColor, size: 18),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        agreement.rentedAddress,
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: agreement.status!.toLowerCase() == "rejected"
-                              ? Colors.red
-                              : Colors.green,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      const Text(
-                        "Message: ",
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                      ),
-                      // 👇 Flexible allows the message text to wrap when long
-                      Expanded(
-                        child: Text(
-                          agreement.messages ?? '',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: agreement.status!.toLowerCase() == "fields updated"
-                                ? Colors.green
-                                : Colors.red,
-                          ),
-                          softWrap: true,
-                          overflow: TextOverflow.visible,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Show message + Edit button (only for rejected)
-                  if (agreement.status!.toLowerCase() == "rejected" &&
-                      agreement.messages != null &&
-                      agreement.messages!.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: ElevatedButton(
-                        onPressed: () => _navigateToEditForm(context, agreement),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        child: const Text(
-                          "Edit",
-                          style: TextStyle(color: Colors.white),
+                          color: subTextColor,
+                          fontSize: 13.5 * textScale,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ],
-                ],
-              ),
-            ],
+                ),
+                SizedBox(height: size.height * 0.006),
 
-            const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(Icons.schedule_rounded,
+                        color: subTextColor, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      "Shifting: ${agreement.shiftingDate.toLocal().toString().split(' ')[0]}",
+                      style: TextStyle(
+                        color: subTextColor,
+                        fontSize: 13.5 * textScale,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: size.height * 0.016),
 
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(agreement.Type,style: TextStyle(fontSize: 12,color: Colors.blue),),
-
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                // STATUS BAR
+                Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: size.width * 0.03,
+                    vertical: size.height * 0.012,
                   ),
-                  onPressed: () {
-                    print(agreement.id);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => AgreementDetailPage(
-                          agreementId: agreement.id,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    gradient: LinearGradient(
+                      colors: [
+                        glowColor.withOpacity(isDark ? 0.15 : 0.08),
+                        glowColor.withOpacity(isDark ? 0.05 : 0.03),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        isRejected
+                            ? Icons.cancel_rounded
+                            : isUpdated
+                            ? Icons.auto_fix_high
+                            : Icons.verified_rounded,
+                        color: glowColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          "${agreement.status ?? 'Pending'} • ${agreement.messages ?? ''}",
+                          style: TextStyle(
+                            color: glowColor,
+                            fontSize: 13.5 * textScale,
+                            fontWeight: FontWeight.w600,
+                            shadows: [
+                              Shadow(
+                                color: glowColor.withOpacity(0.4),
+                                blurRadius: 8,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    );
-                  },
-                  icon: const Icon(Icons.visibility,
-                      size: 18, color: Colors.white),
-                  label: const Text("View Details",
-                      style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                SizedBox(height: size.height * 0.016),
+
+                // ACTION BUTTONS
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: size.width * 0.03,
+                          vertical: size.height * 0.008,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: Colors.red.withOpacity(0.7),
+                          boxShadow: [
+                            BoxShadow(
+                              color: glowColor.withOpacity(0.3),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            agreement.Type.toUpperCase(),
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12 * textScale,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red.withOpacity(0.7),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          elevation: 6,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: size.width * 0.04,
+                            vertical: size.height * 0.012,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => AgreementDetailPage(
+                                agreementId: agreement.id,
+                              ),
+                            ),
+                          );
+                        },
+                        icon: Icon(Icons.visibility,
+                            size: 18 * textScale, color: Colors.white),
+                        label: Text(
+                          "View Details",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13 * textScale,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-          ],
+          ),
         ),
       ),
     );
   }
 
+
+  Widget _neonText(
+      String text, Color glowColor, double textScale, Color baseColor) {
+    return ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 180),
+      child: Text(
+        text.toUpperCase(),
+        style: TextStyle(
+          fontSize: 13 * textScale,
+          fontWeight: FontWeight.bold,
+          color: baseColor,
+          shadows: [
+            Shadow(color: glowColor.withOpacity(0.5), blurRadius: 8),
+            Shadow(color: glowColor.withOpacity(0.2), blurRadius: 16),
+          ],
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : agreements.isEmpty
-          ? const Center(child: Text("No agreements found"))
-          : ListView.builder(
-        itemCount: agreements.length,
-        itemBuilder: (context, index) {
-          return _buildAgreementCard(agreements[index]);
-        },
+          ? const Center(
+        child: Text(
+          "No agreements found",
+          style: TextStyle(color: Colors.white70),
+        ),
+      )
+          : RefreshIndicator(
+        onRefresh: _refreshAgreements,
+        child: ListView.builder(
+          padding: EdgeInsets.only(bottom: size.height * 0.02),
+          itemCount: agreements.length,
+          itemBuilder: (context, index) =>
+              _buildAgreementCard(agreements[index]),
+        ),
       ),
     );
   }
+
 }

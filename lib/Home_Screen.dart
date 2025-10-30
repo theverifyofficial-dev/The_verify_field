@@ -20,6 +20,7 @@ import 'Add_Rented_Flat/Field_Worker_Target.dart';
 import 'Administrator/agreement_details.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
+import 'Home_Screen_click/live_tabbar.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
@@ -381,7 +382,7 @@ class _Home_ScreenState extends State<Home_Screen> {
                           Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => Show_New_Real_Estate())),
+                              builder: (_) => LiveTabbar())),
                     },
                     {
                       "image": AppImages.realestatefeild,

@@ -736,7 +736,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         child: Container(
           padding: padding ?? const EdgeInsets.all(18),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.9) : Colors.white.withOpacity(0.80),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withOpacity(0.06) : Colors.white.withOpacity(0.08), width: 1),
             boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 20, offset: const Offset(0, 8))],
@@ -830,8 +830,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
-
-  // small image tile
   Widget _imageTile({File? file, String? url, required String hint}) {
     return Container(
       width: 120,
@@ -840,7 +838,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         borderRadius: BorderRadius.circular(8),
         color: Colors.grey.shade200,
       ),
-      child: ClipRRect(
+       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
         child: file != null
             ? Image.file(file, fit: BoxFit.cover)
@@ -858,8 +856,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   }
 
 
-
-  // ---------- Build UI ----------
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1098,32 +1094,77 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           colors: isDark
               ? const [
             Color(0xFF2B0A4E), // deep royal purple
-            Color(0xFF081442), // dark navy blue
+            Color(0xFF0E1038), // muted indigo-black
           ]
               : const [
-            Color(0xFF7E57C2), // soft purple (light)
-            Color(0xFF2196F3), // light blue (light)
+            Color(0xFFD7C2FF), // pale lavender
+            Color(0xFFF1E4FF), // soft cloudy white with lilac hue
           ],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
       ),
       child: Stack(
         children: [
+          // Top left glow
           Positioned(
-            top: -100,
-            left: -60,
-            child: _glowCircle(260, const Color(0xFF4B2E83).withOpacity(0.3)),
+            top: -120,
+            left: -80,
+            child: _glowCircle(
+              300,
+              isDark
+                  ? const Color(0xFFB388FF) // bright purple core
+                  : const Color(0xFFCE93D8), // lavender-pink for light
+            ),
           ),
+
+          // Bottom right glow
           Positioned(
-            bottom: -140,
-            right: -60,
-            child: _glowCircle(320, const Color(0xFF0D47A1).withOpacity(0.25)),
+            bottom: -160,
+            right: -80,
+            child: _glowCircle(
+              360,
+              isDark
+                  ? const Color(0xFF7C4DFF)
+                  : const Color(0xFFB39DDB),
+            ),
           ),
+
+          // Center accent glow
           Positioned(
-            top: 220,
-            left: 80,
-            child: _glowCircle(200, const Color(0xFF311B92).withOpacity(0.2)),
+            top: 180,
+            left: 100,
+            child: _glowCircle(
+              240,
+              isDark
+                  ? const Color(0xFF9C6BFF)
+                  : const Color(0xFFD1B2FF),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _glowCircle(double size, Color color) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withOpacity(0.7), // bright inner
+            color.withOpacity(0.05), // fade ring
+            Colors.transparent, // full fade out
+          ],
+          stops: const [0.0, 0.6, 1.0],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.35),
+            blurRadius: size * 0.5,
+            spreadRadius: size * 0.1,
           ),
         ],
       ),
@@ -1164,8 +1205,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 : (data['parking'].toString().toLowerCase().contains("car"))
                 ? "Car"
                 : (data['parking'].toString().toLowerCase().contains("both")) ?
-                "Both"
-            : "No";
+            "Both"
+                : "No";
             maintenance = (data['maintance'].toString().toLowerCase().contains("include"))
                 ? "Including"
                 : "Excluding";
@@ -1185,13 +1226,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     }
   }
 
-  Widget _glowCircle(double size, Color color) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, gradient: RadialGradient(colors: [color, color.withOpacity(0.02)])),
-    );
-  }
 
   Widget _fancyStepHeader() {
     final stepLabels = ['Owner', 'Tenant', 'Property', 'Preview'];
@@ -1308,8 +1342,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                           : null,
                                       color: isDone || isActive
                                           ? null
-                                          : isDark
-                                          ? const Color(0xFF1A0E0E)
                                           : Colors.white,
                                       border: Border.all(
                                         color: isActive
@@ -1339,7 +1371,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                                         color: isActive
                                             ? Colors.white
                                             : isDark
-                                            ? Colors.white
+                                            ? Colors.black
                                             : Colors.black,
                                       ),
                                     ),
@@ -1391,9 +1423,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [
-                      Color(0xFF8B1E1E), // crimson
-                      Color(0xFFB71C1C), // deep red
-                      Color(0xFFE53935), // warm highlight
+                      Color(0xFF6E0D0D), // ancient deep red – base tone
+                      Color(0xFF8F1D14), // royal crimson – mid tone
+                      Color(0xFFB3261E), // faded blood red – highlight
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -2065,7 +2097,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              TextButton(onPressed: () => _jumpToStep(0), child: const Text('Edit',)),
+              TextButton(onPressed: () => _jumpToStep(0),style: TextButton.styleFrom(
+                foregroundColor: Colors.red, // text color
+              ), child: const Text('Edit',)),
             ],
           )
 
@@ -2098,7 +2132,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 children: [
                   _imageTile(file: tenantImage, url: tenantPhotoUrl, hint: 'Tenant Photo'),
                   const SizedBox(width: 100),
-                  TextButton(onPressed: () => _jumpToStep(1), child: const Text('Edit'))
+                  TextButton(onPressed: () => _jumpToStep(1),style: TextButton.styleFrom(
+                    foregroundColor: Colors.red, // text color
+                  ), child: const Text('Edit'))
                 ],
               ),
             ],
@@ -2121,7 +2157,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           if (maintenance.startsWith('Excluding')) _kv('Maintenance', '${customMaintanceAmount.text} (${customMaintanceAmountInWords})'),
 
           const SizedBox(height: 8),
-          Row(children: [const Spacer(), TextButton(onPressed: () => _jumpToStep(2), child: const Text('Edit'))])
+          Row(children: [const Spacer(), TextButton(onPressed: () => _jumpToStep(2),style: TextButton.styleFrom(
+            foregroundColor: Colors.red, // text color
+          ), child: const Text('Edit'))])
         ]),
         const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),

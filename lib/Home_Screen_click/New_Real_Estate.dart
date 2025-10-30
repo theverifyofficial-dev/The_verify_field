@@ -420,30 +420,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        elevation: 0, // Make sure there's no shadow
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
-        ),
-      ),
       body:
       _isLoading
           ? Center(child: Image.asset(AppImages.loader,height: 50,))

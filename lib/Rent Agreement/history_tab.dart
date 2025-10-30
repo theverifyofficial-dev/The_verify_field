@@ -16,8 +16,6 @@ class HistoryTab extends StatefulWidget {
 }
 
 class _parent_TenandDemandState extends State<HistoryTab> {
-
-
   _launchURL() async {
     final Uri url = Uri.parse('https://theverify.in/example.html');
     if (!await launchUrl(url)) {
@@ -25,75 +23,73 @@ class _parent_TenandDemandState extends State<HistoryTab> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
+        elevation: 5,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context, true);
-
-          },
+          onTap: () => Navigator.pop(context, true),
           child: const Row(
             children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
+              SizedBox(width: 3),
+              Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
             ],
           ),
         ),
-        actions:  [
+        actions: [
           GestureDetector(
-            onTap: () {
-              _launchURL();
-            },
-            child: Row(
-              children: [
-                const Icon(
-                  PhosphorIcons.share,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ],
-            ),
+            onTap: _launchURL,
+            child: const Icon(PhosphorIcons.share, color: Colors.white, size: 28),
           ),
-          const SizedBox(
-            width: 20,
-          ),
+          const SizedBox(width: 20),
         ],
       ),
+
       body: DefaultTabController(
         length: 3,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 5,),
+            const SizedBox(height: 8),
+            // --- 🔹 TabBar Container with Subtle Glow ---
             Container(
-              margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-              height: 50,
+              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
-                color: Colors.grey[800],
-                borderRadius: BorderRadius.circular(10),
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.blueAccent.withOpacity(0.15),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               child: TabBar(
                 indicator: BoxDecoration(
-                  color: Colors.blue,
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade600, Colors.blue.shade400],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blueAccent.withOpacity(0.4),
+                      blurRadius: 8,
+                      spreadRadius: 1,
+                    ),
+                  ],
                 ),
                 labelColor: Colors.white,
                 unselectedLabelColor: Colors.white70,
-                labelStyle: TextStyle(fontWeight: FontWeight.bold),
-                unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
-                indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
+                labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+                indicatorSize: TabBarIndicatorSize.tab,
                 tabs: const [
                   Tab(text: 'Pending'),
                   Tab(text: 'Accepted'),
@@ -103,40 +99,62 @@ class _parent_TenandDemandState extends State<HistoryTab> {
             ),
 
             Expanded(
-              child: TabBarView(children: [
-                RequestAgreementsPage(),
-                AcceptAgreement(),
-                AllAgreement(),
-              ]),
-            )
+              child: TabBarView(
+                children: [
+                  RequestAgreementsPage(),
+                  AcceptAgreement(),
+                  AllAgreement(),
+                ],
+              ),
+            ),
           ],
         ),
       ),
 
+      // --- 🔹 Bottom Add Button with Neon Edge ---
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.shade700,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+          padding: const EdgeInsets.all(14.0),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent.shade400, Colors.blue.shade700],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(14),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueAccent.withOpacity(0.3),
+                  blurRadius: 15,
+                  offset: const Offset(0, 6),
+                ),
+              ],
             ),
-            onPressed: () {
-              // 👉 Navigate to Add Agreements page
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AgreementDashboard()));
-            },
-            icon: const Icon(Icons.add_circle, color: Colors.white),
-            label: const Text(
-              "Add Agreements",
-              style: TextStyle(fontSize: 18, color: Colors.white),
+            child: ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AgreementDashboard()),
+                );
+              },
+              icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+              label: const Text(
+                "Add Agreements",
+                style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.w600),
+              ),
             ),
           ),
         ),
       ),
     );
   }
-
 }

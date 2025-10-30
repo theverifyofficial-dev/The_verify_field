@@ -195,17 +195,17 @@ class Catid {
   }
 }
 
-class View_Details extends StatefulWidget {
+class AllViewDetails extends StatefulWidget {
 
   final int id;
 
-  const View_Details({super.key, required this.id});
+  const AllViewDetails({super.key, required this.id});
 
   @override
-  State<View_Details> createState() => _View_DetailsState();
+  State<AllViewDetails> createState() => _View_DetailsState();
 }
 
-class _View_DetailsState extends State<View_Details> {
+class _View_DetailsState extends State<AllViewDetails> {
 
   Future<void> Book_property() async{
 
@@ -305,11 +305,11 @@ class _View_DetailsState extends State<View_Details> {
     }
   }
 
- // final result = await fetchData();
+  // final result = await fetchData();
 
   List<String> name = [];
 
- // late final int iid;
+  // late final int iid;
 
   int _id = 0;
 
@@ -370,42 +370,6 @@ class _View_DetailsState extends State<View_Details> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onSelected: (value) {
-              if (value == "rented") {
-                // >>> correct the condition and guard null
-                if (firstProperty != null) {
-                  final pid = firstProperty!.id.toString();
-                  final sid = firstProperty!.subid.toString();
-                  debugPrint('P_id : $pid');
-                  debugPrint('Subid : $sid');
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => RentedPropertyPage(
-                        id: pid,
-                        subid: sid,
-                      ),
-                    ),
-                  );
-                } else {
-                  debugPrint('P_id : ${firstProperty!.id.toString()}');
-                  debugPrint('Subid : ${firstProperty!.subid.toString()}');
-                  // either still loading or API returned nothing
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Property not loaded yet.")),
-                  );
-                }
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
-            ],
-          ),
-        ],
 
         centerTitle: true,
         backgroundColor: Colors.black,
@@ -529,25 +493,6 @@ class _View_DetailsState extends State<View_Details> {
                           ],
                         ),
 
-                        // ➕ Show button if no video
-                        if (property.videoLink == null || property.videoLink!.isEmpty) ...[
-                          SizedBox(height: 10),
-                          ElevatedButton.icon(
-                            icon: Icon(Icons.video_call, size: 20),
-                            label: Text("Add Video"),
-                            style: ElevatedButton.styleFrom(
-                              padding: EdgeInsets.symmetric(horizontal: 18, vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 3,
-                              backgroundColor: Theme.of(context).colorScheme.primary,   // primary color
-                              foregroundColor: Theme.of(context).colorScheme.onPrimary, // text & icon color
-                            ),
-                            onPressed: () => _showAddVideoSheet(context, property.id),
-                          ),
-
-                        ],
                       ],
                     ),
 
@@ -592,9 +537,9 @@ class _View_DetailsState extends State<View_Details> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
 
-                              Text(
-                                '₹ ${property.showPrice ?? ""}',
-                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  Text(
+                                    '₹ ${property.showPrice ?? ""}',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       fontFamily: "PoppinsBold",
                                     ),
@@ -642,45 +587,9 @@ class _View_DetailsState extends State<View_Details> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 4),
-                          // Contact Information
-                          _SectionHeader(
-                            title: "Contact Information",
-                            isDarkMode: isDarkMode,
-                          ),
-                          _ContactCard(
-                            name: property.ownerName,
-                            phone: property.ownerNumber,
-                            role: "Owner",
-                            color: Colors.amber,
-                            onCall: () => _showCallConfirmation(
-                              context,
-                              property.ownerName,
-                              property.ownerNumber,
-                            ),
-                            isDarkMode: isDarkMode,
-                          ),
-                          SizedBox(height: 12),
-                          _ContactCard(
-                            name: property.caretakerName,
-                            phone: property.caretakerNumber,
-                            role: "Caretaker",
-                            color: Colors.purpleAccent,
-                            onCall: () => _showCallConfirmation(
-                              context,
-                              property.caretakerName,
-                              property.caretakerNumber,
-                            ),
-                            isDarkMode: isDarkMode,
-                          ),
 
                           SizedBox(height: 10),
 
-                          // Property Details
-                          _SectionHeader(
-                            title: "Property Details",
-                            isDarkMode: isDarkMode,
-                          ),
                           Row(
                             children: [
                               _FactChip(
@@ -689,117 +598,10 @@ class _View_DetailsState extends State<View_Details> {
                                 color: Colors.lightGreen,
                                 isDarkMode: isDarkMode,
                               ),
-                              SizedBox(width: 8,),
-                              _FactChip(
-                                icon: Icons.apartment_sharp,
-                                label: "Building Id : "+ property.subid.toString(),
-                                color: Colors.lightBlue,
-                                isDarkMode: isDarkMode,
-                              ),
-                            ],
+                            ]
                           ),
 
-                          _FactChip(
-                            icon: Icons.file_open,
-                            label: "Agreement : "+ property.sourceId.toString(),
-                            color: Colors.deepOrange,
-                            isDarkMode: isDarkMode,
-                          ),
-
-                          // Full Address
-                          _SectionHeader(
-                            title: "Full Address",
-                            isDarkMode: isDarkMode,
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                            child: Text(
-                              property.apartmentAddress,
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
-                              ),
-                            ),
-                          ),
                           SizedBox(height: 10,),
-                          if(property.fieldWorkerCurrentLocation!=""&&property.fieldWorkerCurrentLocation!=null)
-                          InkWell(
-                            onTap: () async {
-                              final address = property.fieldWorkerCurrentLocation;
-                              final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
-
-                              if (await canLaunchUrl(url)) {
-                                await launchUrl(url, mode: LaunchMode.externalApplication);
-                              } else {
-                                throw 'Could not launch $url';
-                              }
-                            },
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.location_on, color: Colors.red, size: 25),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: [
-                                         TextSpan(
-                                          text: "Current Location : ",
-                                          style: TextStyle(
-                                            color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
-
-                                            fontFamily: "Poppins",
-                                              fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: property.fieldWorkerCurrentLocation,
-                                          style: const TextStyle(
-                                            color: Colors.blue,
-                                            fontFamily: "Poppins",
-                                            decoration: TextDecoration.underline,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                          else
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.location_on, color: Colors.red, size: 25),
-                                const SizedBox(width: 15),
-                                Expanded(
-                                  child: RichText(
-                                    text: TextSpan(
-                                      children: [
-                                         TextSpan(
-                                          text: "Current Location : ",
-                                          style: TextStyle(
-                                            color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
-                                            fontFamily: "Poppins",
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        TextSpan(
-                                          text: "Not Available",
-                                          style:  TextStyle(
-                                            color: Colors.blue,
-                                            fontFamily: "Poppins",
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-
-                          SizedBox(height: 8),
-
                           _DetailRow(
                             icon: Icons.construction,
                             title: "Facilities",
@@ -812,14 +614,14 @@ class _View_DetailsState extends State<View_Details> {
                             title: "Lift Availability",
                             value:
                             "${property.lift.toLowerCase() == 'yes' ? 'Available' : 'Not Available'}",
-                            color: Colors.deepPurpleAccent,
+                            color: Colors.green,
                             isDarkMode: isDarkMode,
                           ),
                           _DetailRow(
                             icon: Icons.gas_meter_rounded,
                             title: "Meter Type",
-                            value:  "${property.meter}/- per unit",
-                          color: Colors.deepPurpleAccent,
+                            value:  "${property.meter}/- per unit.",
+                            color: Colors.deepPurpleAccent,
                             isDarkMode: isDarkMode,
                           ),
                           _DetailRow(
@@ -853,17 +655,11 @@ class _View_DetailsState extends State<View_Details> {
                           _DetailRow(
                             icon: Icons.train,
                             title: "Near Metro & Metro Distance",
-                            value:  property.metroDistance + " | "+property.highwayDistance,
+                            value:  "${property.metroDistance} Metro walking distance is ${property.highwayDistance}",
                             color: Colors.amber,
                             isDarkMode: isDarkMode,
                           ),
-                          _DetailRow(
-                            icon: Icons.home,
-                            title: "Flat Number & Total Floor",
-                            value:  property.flatNumber+" | "+property.totalFloor ,
-                            color: Colors.cyanAccent,
-                            isDarkMode: isDarkMode,
-                          ),
+
                           _DetailRow(
                             icon: Icons.real_estate_agent_rounded,
                             title: "Age of Property & Road Size",
@@ -950,7 +746,7 @@ class _View_DetailsState extends State<View_Details> {
                                             borderRadius: BorderRadiusGeometry.circular(10),
                                             child: CachedNetworkImage(
                                               imageUrl:
-                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
+                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
                                               fit: BoxFit.fill,
                                               placeholder: (context, url) => Container(
                                                 color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
@@ -994,24 +790,10 @@ class _View_DetailsState extends State<View_Details> {
                             isDarkMode: isDarkMode,
                           ),
                           _DetailRow(
-                            icon: Icons.location_history,
-                            title: "Worker Address",
-                            value: property.fieldWorkerAddress,
-                            color: Colors.cyan,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
                             icon: Icons.pages_outlined,
                             title: "Property Added Date",
                             value: formatDate(property.availableDate),
                             color: Colors.orangeAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.price_change_sharp,
-                            title: "Property Ask & Last",
-                            value: "₹ ${property.askingPrice}"+" | " + "₹ ${property.lastPrice}",
-                            color: Colors.greenAccent,
                             isDarkMode: isDarkMode,
                           ),
                         ],
@@ -1024,178 +806,10 @@ class _View_DetailsState extends State<View_Details> {
           },
         ),
       ),
-      // bottomNavigationBar: _BottomActionBar(
-      //
-      //   onAddImages: () {
-      //     // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImageCompressor(id: _id.toString(),)));
-      //     Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImagePickerPage(propertyId: _id,)));
-      //
-      //   }, onEdit: () {
-      //   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>  UpdateRealEstateProperty(propertyId: _id,)));
-      //
-      // },
-      // ),
+
     );
   }
 
-  // Place this inside your _View_DetailsState class
-  void _showAddVideoSheet(BuildContext context, int propertyId) {
-    final TextEditingController _videoController = TextEditingController();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) {
-        bool isLoading = false;
-
-        return StatefulBuilder(
-          builder: (context, setModalState) {
-            Future<void> _submit() async {
-              final link = _videoController.text.trim();
-
-              if (link.isEmpty) {
-                ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  SnackBar(content: Text("Please enter a video link.")),
-                );
-                return;
-              }
-
-              final uri = Uri.tryParse(link);
-              if (uri == null ||
-                  !(uri.hasScheme &&
-                      (uri.scheme == 'http' || uri.scheme == 'https'))) {
-                ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  SnackBar(content: Text("Please enter a valid http/https URL.")),
-                );
-                return;
-              }
-
-              setModalState(() => isLoading = true);
-
-              try {
-                final apiUrl = Uri.parse(
-                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_video_in_main_realetstae.php");
-                final response = await http.post(apiUrl, body: {
-                  "P_id": propertyId.toString(),
-                  "video_link": link,
-                });
-
-                if (response.statusCode == 200) {
-                  Navigator.of(sheetContext).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Video added successfully.")),
-                  );
-
-                  setState(() {
-                    _propertyFuture = fetchData(propertyId);
-                  });
-                } else {
-                  ScaffoldMessenger.of(sheetContext).showSnackBar(
-                    SnackBar(
-                        content: Text(
-                            "Failed to add video. (${response.statusCode})")),
-                  );
-                }
-              } catch (e) {
-                ScaffoldMessenger.of(sheetContext).showSnackBar(
-                  SnackBar(content: Text("Error: $e")),
-                );
-              } finally {
-                setModalState(() => isLoading = false);
-              }
-            }
-
-            return Padding(
-              padding: EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 16,
-                bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 20,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Drag handle
-                  Container(
-                    width: 40,
-                    height: 4,
-                    margin: EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).dividerColor.withOpacity(0.6),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-
-                  Text(
-                    "Add Video Link",
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-
-                  TextField(
-                    controller: _videoController,
-                    keyboardType: TextInputType.url,
-                    decoration: InputDecoration(
-                      hintText: "Paste YouTube or video URL",
-                      prefixIcon: Icon(Icons.video_library_outlined),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => Navigator.of(sheetContext).pop(),
-                        style: TextButton.styleFrom(
-                          foregroundColor:
-                          Theme.of(context).colorScheme.secondary,
-                        ),
-                        child: Text("Cancel"),
-                      ),
-                      SizedBox(width: 12),
-                      ElevatedButton(
-                        onPressed: isLoading ? null : _submit,
-                        style: ElevatedButton.styleFrom(
-                          padding:
-                          EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: isLoading
-                            ? SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                            AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                            : Text("Submit"),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
   Future<bool> _checkCallPermission() async {
 
@@ -1335,7 +949,6 @@ class _View_DetailsState extends State<View_Details> {
 
               const SizedBox(height: 16),
 
-              // Cancel Button
               TextButton(
                 onPressed: () => Navigator.pop(dialogContext),
                 child: Text(
@@ -1715,7 +1328,7 @@ class _BottomActionBar extends StatelessWidget {
                   icon: const Icon(Icons.add_photo_alternate,size: 25,),
                   label: const Text('Add Images',style: TextStyle(fontFamily: "PoppinsBold",fontSize: 15),),
                   onPressed:
-                    onAddImages,
+                  onAddImages,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.transparent,
                     shadowColor: Colors.transparent,

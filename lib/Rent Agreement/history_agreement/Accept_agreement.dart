@@ -35,33 +35,32 @@ class _AgreementDetailsState extends State<AcceptAgreement> {
     }
   }
 
+  String? errorMessage;
+
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(Uri.parse(
-          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_accpet_agreement_for_fieldsworkar.php?Fieldwarkarnumber=$mobileNumber '));
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_accpet_agreement_for_fieldsworkar.php?Fieldwarkarnumber=$mobileNumber'
+      ));
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
-
         if (decoded is List) {
           setState(() {
-            agreements = decoded
-                .map((e) => StringIdModel.fromJson(e))
-                .toList()
-                .reversed
-                .toList();
+            agreements = decoded.map((e) => StringIdModel.fromJson(e)).toList().reversed.toList();
             isLoading = false;
-          }
-          );
+          });
         } else {
           throw Exception('Invalid data format');
         }
       } else {
-        throw Exception('Failed to load data');
+        throw Exception('Server Error: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching data: $e');
-      setState(() => isLoading = false);
+      setState(() {
+        isLoading = false;
+        errorMessage = 'Failed to load agreements. Please try again later.';
+      });
     }
   }
   _launchURL(String pdf_url) async {

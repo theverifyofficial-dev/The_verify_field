@@ -721,6 +721,7 @@ class _View_DetailsState extends State<View_Details> {
                             ),
                           ),
                           SizedBox(height: 10,),
+                          if(property.fieldWorkerCurrentLocation!=""&&property.fieldWorkerCurrentLocation!=null)
                           InkWell(
                             onTap: () async {
                               final address = property.fieldWorkerCurrentLocation;
@@ -741,10 +742,12 @@ class _View_DetailsState extends State<View_Details> {
                                   child: RichText(
                                     text: TextSpan(
                                       children: [
-                                        const TextSpan(
-                                          text: "Current Location: ",
+                                         TextSpan(
+                                          text: "Current Location : ",
                                           style: TextStyle(
-                                              fontFamily: "Poppins",
+                                            color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
+
+                                            fontFamily: "Poppins",
                                               fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -762,7 +765,38 @@ class _View_DetailsState extends State<View_Details> {
                                 ),
                               ],
                             ),
-                          ),
+                          )
+                          else
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.location_on, color: Colors.red, size: 25),
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                         TextSpan(
+                                          text: "Current Location : ",
+                                          style: TextStyle(
+                                            color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
+                                            fontFamily: "Poppins",
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: "Not Available",
+                                          style:  TextStyle(
+                                            color: Colors.blue,
+                                            fontFamily: "Poppins",
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
 
                           SizedBox(height: 8),
 

@@ -141,10 +141,12 @@ class _WebQueryPageState extends State<WebQueryPage> with SingleTickerProviderSt
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 20,
+              color: Colors.white
           ),
         ),
         centerTitle: true,
         elevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,
         actions: [

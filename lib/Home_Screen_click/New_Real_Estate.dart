@@ -734,7 +734,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               _buildFeatureItem(
                                                 context: context,
                                                 // icon: Icons.king_bed,
-                                                text: "Property ID : ${_filteredProperties[index].pId}",
+                                                text: "Live Property ID : ${_filteredProperties[index].pId}",
                                                 borderColor: Colors.grey.shade700,
                                                 backgroundColor: Colors.white,
                                                 textColor: Colors.blue,
@@ -828,7 +828,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                                               _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
                                                   ? _buildFeatureItem(
                                                 context: context,
-                                                text: " Building: ${_filteredProperties[index].sId.toString()}",
+                                                text: "Building ID : ${_filteredProperties[index].sId.toString()}",
                                                 borderColor: Colors.deepOrange.shade400,
                                                 backgroundColor: Colors.deepOrange.shade100,
                                                 textColor: Colors.deepOrange.shade700,
@@ -839,7 +839,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
                                               _buildFeatureItem(
                                                 context: context,
-                                                text: " Agreement: ${_filteredProperties[index].sourceId.toString()}",
+                                                text: "Building Flat ID : ${_filteredProperties[index].sourceId.toString()}",
                                                 borderColor: Colors.blue.shade400,
                                                 backgroundColor: Colors.blue.shade100,
                                                 textColor: Colors.blue.shade700,
@@ -973,7 +973,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
         horizontal: horizontalPadding,
         vertical: verticalPadding,
       ),
-      margin: const EdgeInsets.all(6),
+      margin: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: backgroundColor ?? Colors.transparent,
         border: Border.all(color: borderColor, width: 2),

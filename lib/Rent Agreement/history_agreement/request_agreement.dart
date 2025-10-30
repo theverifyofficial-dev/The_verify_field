@@ -242,6 +242,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   onPressed: () {
+                    print(agreement.id);
                     Navigator.push(
                       context,
                       MaterialPageRoute(

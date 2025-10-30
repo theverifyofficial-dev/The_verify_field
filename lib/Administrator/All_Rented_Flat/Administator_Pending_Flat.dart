@@ -1051,9 +1051,9 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                           ),
                                           child: Column(
                                             children: [
-                                              _buildDetailRow("Tenant Advance: ", "₹ ${rec.tenantAdvance}"),
-                                              _buildDetailRow("Give to Owner: ", "₹ ${rec.giveToOwnerAdvance}"),
-                                              _buildDetailRow("Office Hold: ", "₹ ${rec.officeHold}"),
+                                              _amountRow("Tenant Advance", rec.tenantAdvance, Polarity.credit,context),
+                                              _amountRow("Give to Owner", rec.giveToOwnerAdvance, Polarity.debit,context),
+                                              _amountRow("Office Hold", rec.officeHold, Polarity.credit,context),
                                             ],
                                           ),
                                         ),
@@ -1088,8 +1088,9 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                           ),
                                           child: Column(
                                             children: [
-                                              _buildDetailRow("Mid Payment From Tenant: ", "₹ ${rec.midPaymentToOwner}"),
-                                              _buildDetailRow("Office Transfer Payment To Owner: ", "₹ ${rec.midPaymentToOwner}"),
+                                              _amountRow("Mid Payment From Tenant", rec.midPaymentToOwner, Polarity.credit,context),
+                                              _amountRow("Office Transfer Payment To Owner", rec.midPaymentToOwner, Polarity.debit,context),
+
                                             ],
                                           ),
                                         ),
@@ -1106,33 +1107,24 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                     records: step3Records,
                                     isStep3: true,
                                     buildContent: (rec) {
-                                      List<Widget> rows = [];
-                                      void addRow(String k, dynamic v) {
-                                        if (_hasAny(v)) rows.add(_buildDetailRow(k, _money(v)));
-                                      }
+                                      final rows = <Widget>[
+                                        _amountRow("Last Payment From Tenant", rec.tenantPayLastAmount, Polarity.credit,context),
+                                        _amountRow("Remaining Hold (Final + Hold)", rec.remainingHold, Polarity.credit,context),
+                                        _amountRow("Company Keep Commission Both-side", rec.companyKeepComition, Polarity.debit,context),
+                                        _amountRow("Remaining Balance Share To Owner", rec.remainBalanceShareToOwner, Polarity.debit,context),
+                                        _amountRow("Owner Final Received", rec.finalRecivedAmountOwner, Polarity.debit,context),
+                                        _amountRow("Remaining Final Balance", rec.remaingFinalBalance, Polarity.neutral,context),
+                                        _amountRow("Total Paid By Tenant", rec.totalPayTenant, Polarity.credit,context),
+                                      ];
 
-                                      addRow("Last Payment From Tenant", rec.tenantPayLastAmount);
-                                      // addRow("Both-side Company Commission (Total)", rec.bothSideCompanyCommission);
-                                      addRow("Remaining Hold (Final + Hold)", rec.remainingHold);
-                                      addRow("Company Keep Commission Both-side", rec.companyKeepComition);
-                                      addRow("Remaining Balance Share \nTo Owner", rec.remainBalanceShareToOwner);
-                                      addRow("Owner Final Received", rec.finalRecivedAmountOwner);
-                                      addRow("Remaining Final Balance", rec.remaingFinalBalance);
-                                      addRow("Total Paid By Tenant", rec.totalPayTenant);
-
-                                      return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(10),
-                                            decoration: BoxDecoration(
-                                              color: Colors.grey.shade50,
-                                              borderRadius: BorderRadius.circular(10),
-                                              border: Border.all(color: Colors.grey.shade300),
-                                            ),
-                                            child: Column(children: rows),
-                                          ),
-                                        ],
+                                      return Container(
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey.shade50,
+                                          borderRadius: BorderRadius.circular(10),
+                                          border: Border.all(color: Colors.grey.shade300),
+                                        ),
+                                        child: Column(children: rows),
                                       );
                                     },
                                   ),
@@ -1376,6 +1368,51 @@ Widget _buildTag(String text, Color color) {
         fontWeight: FontWeight.w600,
         color: color,
       ),
+    ),
+  );
+}
+enum Polarity { credit, debit, neutral }
+
+bool _isEmpty(dynamic v) => v == null || v.toString().trim().isEmpty;
+
+num _numVal(dynamic v) =>
+    num.tryParse(v.toString().replaceAll(RegExp(r'[^\d\.\-]'), '')) ?? 0;
+
+String _moneySigned(dynamic v, Polarity p) {
+  if (_isEmpty(v)) return "—";
+  final n = _numVal(v).abs(); // always show magnitude
+  final sign = p == Polarity.credit ? "+" : p == Polarity.debit ? "-" : "";
+  return "$sign ₹ ${n.toStringAsFixed(0)}";
+}
+
+Color _amtColor(BuildContext c, Polarity p) {
+  switch (p) {
+    case Polarity.credit: return Colors.green;           // money IN
+    case Polarity.debit:  return Colors.red;             // money OUT
+    case Polarity.neutral:return Theme.of(c).hintColor;  // balances
+  }
+}
+
+Widget _amountRow(String label, dynamic value, Polarity p,BuildContext context) {
+  if (_isEmpty(value)) return const SizedBox.shrink();
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black)),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _moneySigned(value, p),
+          style: TextStyle(
+            fontFeatures: const [FontFeature.tabularFigures()],
+            fontWeight: FontWeight.w700,
+            color: _amtColor(context, p),
+          ),
+        ),
+      ],
     ),
   );
 }

@@ -63,6 +63,7 @@ class _ActionFormState extends State<ActionForm> {
 
   String _calculationText = "";
 
+
   Future<void> sendData() async {
     final rent = rentController.text.replaceAll(',', '');
     final security = securityController.text.replaceAll(',', '');
@@ -70,9 +71,16 @@ class _ActionFormState extends State<ActionForm> {
     final extraExpense = extraExpenseController.text.replaceAll(',', '');
     final advance = advanceController.text.replaceAll(',', '');
     final totalBalance = balanceController.text.replaceAll('₹', '').replaceAll(',', '').trim();
+
+    // Get current date and time
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyy-MM-dd').format(now);
+    final formattedTime = DateFormat('HH:mm:ss').format(now);
+
     final uri = Uri.parse(
       'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_update_api_for_field_workar.php',
     );
+
     try {
       final response = await http.post(
         uri,
@@ -84,12 +92,14 @@ class _ActionFormState extends State<ActionForm> {
           'Extra_Expense': extraExpense,
           'Advance_Payment': advance,
           'Total_Balance': totalBalance,
+          'dates': formattedDate,
+          'tims': formattedTime,
         },
       );
 
       if (response.statusCode == 200) {
         print("API Response: ${response.body}");
-        Navigator.pop(context,true);
+        Navigator.pop(context, true);
       } else {
         print("Failed with status: ${response.statusCode}");
       }

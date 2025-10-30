@@ -152,9 +152,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   double tenantPaid = 0, ownerReceivedTotal = 0, remaining = 0;
 
   static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php";
-  static const _step1Endpoint   = "https://verifyserve.social/Second%20PHP%20FILE/Payment/paymet_inset.php";
   static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php";
   bool _s2Submitting = false;
+
+  static const _step1Endpoint   = "https://verifyserve.social/Second%20PHP%20FILE/Payment/paymet_inset.php";
 
   static const _step2Endpoint =
       "https://verifyserve.social/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
@@ -419,9 +420,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     _recalc();
   }
 
-  // -----------------------------------------------------
-  // STEP 1 POST
-  // -----------------------------------------------------
   void _logLine([String msg = ""]) => debugPrint(msg);
 
   void _logBlock(String title, Map<String, dynamic> data) {
@@ -430,6 +428,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     data.forEach((k, v) => _logLine("  $k: $v"));
     _logLine("—" * 50);
   }
+// --- tiny helpers: no intl needed
+  String _two(int n) => n.toString().padLeft(2, '0');
+  String _date(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
+  String _time(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}:${_two(d.second)}';
 
   Future<bool> _postStep1({
     required double tenantAdvance,
@@ -438,6 +440,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     required int subid,
   }) async {
     final sw = Stopwatch()..start();
+    final now = DateTime.now();
+
     try {
       setState(() => _s1Submitting = true);
 
@@ -447,6 +451,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
         "give_to_owner_advance": _intStr(giveToOwnerAdvance),
         "office_hold": _intStr(officeHold),
         "subid": subid.toString(),
+        "dates": _date(now),
+        "times": _time(now),
       };
 
       _logBlock("STEP1 REQUEST", {
@@ -477,18 +483,23 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       if (mounted) setState(() => _s1Submitting = false);
     }
   }
+
   Future<bool> _postStep2({
     required int id,
     required double midPaymentToOwner,
   }) async {
     final sw = Stopwatch()..start();
+    final now = DateTime.now();
+
     try {
       setState(() => _s2Submitting = true);
 
       final url = Uri.parse(_step2Endpoint);
       final req = http.MultipartRequest('POST', url)
         ..fields['id'] = id.toString()
-        ..fields['mid_payment_to_owner'] = _intStr(midPaymentToOwner);
+        ..fields['mid_payment_to_owner'] = _intStr(midPaymentToOwner)
+        ..fields['dates_2nd'] = _date(now)
+        ..fields['times_2nd'] = _time(now);
 
       _logBlock("STEP2 REQUEST", {
         "method": "POST (multipart/form-data)",
@@ -515,6 +526,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       if (mounted) setState(() => _s2Submitting = false);
     }
   }
+
   Future<bool> _postStep3({
     required int id,
     required double tenantPayLastAmount,
@@ -526,6 +538,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     required double remainingFinalBalance,   // remaing_final_balance
   }) async {
     final sw = Stopwatch()..start();
+    final now = DateTime.now();
+
     try {
       setState(() => _s3Submitting = true);
 
@@ -539,7 +553,9 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
         ..fields['remain_balance_share_to_owner'] = _intStr(remainBalanceShareToOwner)
         ..fields['final_recived_amount_owner']    = _intStr(ownerRecivedFinalAmount)
         ..fields['total_pay_tenant']              = _intStr(tenantTotalPay)
-        ..fields['remaing_final_balance']         = _intStr(remainingFinalBalance);
+        ..fields['remaing_final_balance']         = _intStr(remainingFinalBalance)
+        ..fields['dates_3rd']                         = _date(now)
+        ..fields['times_3rd']                         = _time(now);
 
       _logBlock("STEP3 REQUEST", {
         "method": "POST (multipart/form-data)",
@@ -566,6 +582,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       if (mounted) setState(() => _s3Submitting = false);
     }
   }
+
 
 
 

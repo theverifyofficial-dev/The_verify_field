@@ -68,6 +68,8 @@ class Property {
   final String totalBalance;
   final String secondAmount;
   final String finalAmount;
+  final String dates;
+  final String tims;
 
   Property({
     required this.id,
@@ -124,6 +126,8 @@ class Property {
     required this.totalBalance,
     required this.secondAmount,
     required this.finalAmount,
+    required this.dates,
+    required this.tims,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -182,6 +186,8 @@ class Property {
       totalBalance: json["Total_Balance"] ?? "",
       secondAmount: json["second_amount"] ?? "",
       finalAmount: json["final_amount"] ?? "",
+      dates: json["dates"] ?? "",
+      tims: json["tims"] ?? "",
     );
   }
 }
@@ -450,6 +456,7 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
                                 _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
                                 _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
                                 _buildDetailRow("Advance Payment", "₹ ${item.advancePayment}"),
+                                _buildDetailRow("Date/Time", "${item.dates}\n${item.tims}"),
                                 const Divider(thickness: 0.5, color: Colors.grey),
                                 _buildDetailRow(
                                   "Remaining Amount",
@@ -710,7 +717,7 @@ Widget _buildDetailRow(String label, String value) {
             fontWeight: FontWeight.w600,
             color: Colors.black,
           ),
-        ),
+        textAlign: TextAlign.end,),
       ],
     ),
   );

@@ -23,15 +23,24 @@ class _RentedPropertyPageState extends State<RentedPropertyPage> {
       _responseMessage = "";
     });
 
+    // --- build current IST date/time strings once, reuse everywhere ---
+    String _2(int n) => n < 10 ? '0$n' : '$n';
+    final nowUtc = DateTime.now().toUtc();
+    final ist = nowUtc.add(const Duration(hours: 5, minutes: 30)); // Asia/Kolkata
+    final bookingDate = '${ist.year}-${_2(ist.month)}-${_2(ist.day)}';       // YYYY-MM-DD
+    final bookingTime = '${_2(ist.hour)}:${_2(ist.minute)}:${_2(ist.second)}'; // HH:MM:SS
+
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php",
     );
 
     try {
-      // 1. Copy
+      // 1. Copy (now with real date/time)
       final copyResponse = await http.post(url, body: {
         "action": "copy",
         "p_id": widget.id,
+        "booking_date": bookingDate,
+        "booking_time": bookingTime,
       });
 
       _responseMessage += copyResponse.statusCode == 200

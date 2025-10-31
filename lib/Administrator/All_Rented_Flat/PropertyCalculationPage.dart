@@ -225,12 +225,14 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
     return match;
   }
+
+  bool _changed = false;
+
   Future<void> _saveStep2() async {
     if (!(s1Saved || step1Done)) {
       _toast(context, "Save Step 1 first.");
       return;
     }
-
     if (_status == null || _status!.id == 0) {
       _toast(context, "Cannot add Step 2: first payment record not found.");
       return;
@@ -253,8 +255,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     _recalc();
     _toast(context, "Step 2 saved.");
 
+    _changed = true; // mark dirty
     await _refreshStatus(widget.propertyId);
   }
+
   Future<void> _saveStep1() async {
     final t = _pc(s1TenantCtl);
     final g = _pc(s1GiveCtl);
@@ -282,6 +286,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     _recalc();
     _toast(context, "Step 1 saved.");
 
+    _changed = true; // mark dirty
     await _refreshStatus(widget.propertyId);
   }
 
@@ -301,24 +306,21 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       return;
     }
 
-    // Lock UI values locally and recompute so numbers are fresh
+    // lock UI + recompute
     s3Saved = true;
     s3Tenant = t;
     _recalc();
 
-    // New API field names (no statusThree)
     final ok = await _postStep3(
       id: _status!.id,
-      tenantPayLastAmount: s3Tenant,                 // step-3 tenant payment
+      tenantPayLastAmount: s3Tenant,
       bothSideCompanyComition: companyCommissionTotal,
       remainingHold: settlementPool,
-      remainBalanceShareToOwner: ownerFinalNow,      // step-3 owner share from pool (this step)
-      ownerRecivedFinalAmount: s1Give + s2Tenant + ownerFinalNow, // <-- cumulative total to owner = 17000
+      remainBalanceShareToOwner: ownerFinalNow,
+      ownerRecivedFinalAmount: s1Give + s2Tenant + ownerFinalNow,
       tenantTotalPay: tenantPaid,
       remainingFinalBalance: remaining,
     );
-
-
 
     if (!ok) {
       _toast(context, "Step 3 save failed.");
@@ -326,13 +328,13 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     }
 
     _toast(context, "Step 3 saved.");
+
+    // optional: refresh local screen state before leaving
     await _refreshStatus(widget.propertyId);
+
+    // tell previous page to refresh
+    if (mounted) Navigator.pop(context, true);
   }
-
-
-  // -----------------------------------------------------
-  // FETCH STATUS
-  // -----------------------------------------------------
   Future<void> _refreshStatus(int subid) async {
     setState(() => _loadingStatus = true);
     try {
@@ -643,153 +645,160 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   // -----------------------------------------------------
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-          surfaceTintColor: Colors.black,
-          backgroundColor: Colors.black,
-          leading: InkWell(
-          onTap: (){
-            Navigator.pop(context,true);
-          },
-          child: Icon(CupertinoIcons.back)),
-          title: const Text("Add Billing",style: TextStyle(
-            fontFamily: "Poppins",
-            fontWeight: FontWeight.w600
-          ),
-
-          )
-      ),
-      body: FutureBuilder<Property>(
-        future: _futureProperty,
-        builder: (ctx, snap) {
-          if (snap.connectionState == ConnectionState.waiting || _loadingStatus) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snap.hasError) {
-            return Center(child: Text("Error: ${snap.error}"));
-          }
-          final property = snap.data!;
-          final poolDetail = "${_cur(settlementPool)} = ${_cur(s3Tenant)} (final) + ${_cur(s1Hold)} (hold)";
-
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("${property.locations} • ${property.flatNumber}",
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Text("Total Due: ${_cur(totalDue)}",
-                    style: const TextStyle(fontWeight: FontWeight.w700)),
-                const SizedBox(height: 12),
-
-                LayoutBuilder(
-                  builder: (ctx, cons) {
-                    final w = cons.maxWidth;
-                    final threeCol = w >= 960;
-                    final itemW = threeCol ? (w - 24) / 3 : w;
-
-                    return Wrap(
-                      spacing: 12,
-                      runSpacing: 12,
-                      children: [
-                        // STEP 1
-                        SizedBox(
-                          width: itemW,
-                          child: _panel(
-                            title: "Step 1 • Advance",
-                            body: Column(
-                              children: [
-                                _tf("Tenant pays", s1TenantCtl, enabled: !(s1Saved || step1Done)),
-                                _tf("Give to Owner", s1GiveCtl, enabled: !(s1Saved || step1Done)),
-                                _tf("Office Hold", s1HoldCtl, enabled: false),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: (s1Saved || step1Done || _s1Submitting) ? null : _saveStep1,
-                                  child: Text(_s1Submitting
-                                      ? "Saving..."
-                                      : (step1Done ? "Saved" : "Save Step 1")),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // STEP 2
-                        SizedBox(
-                          width: itemW,
-                          child: _panel(
-                            title: "Step 2 • Mid Payment",
-                            body: Column(
-                              children: [
-                                _tf("Tenant pays", s2TenantCtl,
-                                    enabled: (s1Saved || step1Done) && !(s2Saved || step2Done)),
-                                const SizedBox(height: 8),
-                                _kv("Office → Owner", _cur(s2Saved || step2Done ? s2Tenant : _pc(s2TenantCtl))),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: (!(s1Saved || step1Done) || s2Saved || step2Done || _s2Submitting)
-                                      ? null
-                                      : _saveStep2,
-                                  child: Text(_s2Submitting
-                                      ? "Saving..."
-                                      : (step2Done ? "Saved" : "Save Step 2")),
-                                ),
-
-                              ],
-                            ),
-                          ),
-                        ),
-
-                        // STEP 3
-                        SizedBox(
-                          width: itemW,
-                          child: _panel(
-                            title: "Step 3 • Close Out",
-                            body: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _tf("Tenant pays (final)", s3TenantCtl,
-                                    enabled: (s1Saved || step1Done) && !(s3Saved || step3Done)),
-                                _tf("Company commission (TOTAL)", s3CompanyTotalCtl,
-                                    enabled: (s1Saved || step1Done) && !(s3Saved || step3Done),
-                                    hint: "Enter both-side total (e.g. 6000)"),
-                                const SizedBox(height: 8),
-                                _kv("Remaining + Hold", _cur(settlementPool)),
-                                Text("Breakdown: $poolDetail",
-                                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                                _kv("Company Commission Keep", _cur(companyKeepNow)),
-                                _kv("Remaining Share to Owner", _cur(ownerFinalNow)),
-                                const SizedBox(height: 8),
-                                ElevatedButton(
-                                  onPressed: (!(s1Saved || step1Done) ||
-                                          s3Saved ||
-                                          step3Done ||
-                                          _s3Submitting)
-                                      ? null
-                                      : _saveFinal,
-                                  child: Text(_s3Submitting
-                                      ? "Saving..."
-                                      : (step3Done ? "Saved" : "Save Final")),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-
-                const Divider(),
-                _kv("Tenant Paid", _cur(tenantPaid)),
-                _kv("Owner Received (total)", _cur(ownerReceivedTotal)),
-                _kv("Remaining (tenant)", _cur(remaining)),
-                SizedBox(height: 30,)
-              ],
+    return WillPopScope(
+      onWillPop: () async {
+        // returning true here just allows the pop; but pass a result:
+        Navigator.pop(context, s3Saved); // true if saved, else null/false
+        return false; // we've handled it
+      },
+      child: Scaffold(
+        appBar: AppBar(
+            surfaceTintColor: Colors.black,
+            backgroundColor: Colors.black,
+            leading: InkWell(
+            onTap: (){
+              Navigator.pop(context,true);
+            },
+            child: Icon(CupertinoIcons.back)),
+            title: const Text("Add Billing",style: TextStyle(
+              fontFamily: "Poppins",
+              fontWeight: FontWeight.w600
             ),
-          );
-        },
+
+            )
+        ),
+        body: FutureBuilder<Property>(
+          future: _futureProperty,
+          builder: (ctx, snap) {
+            if (snap.connectionState == ConnectionState.waiting || _loadingStatus) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snap.hasError) {
+              return Center(child: Text("Error: ${snap.error}"));
+            }
+            final property = snap.data!;
+            final poolDetail = "${_cur(settlementPool)} = ${_cur(s3Tenant)} (final) + ${_cur(s1Hold)} (hold)";
+
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("${property.locations} • ${property.flatNumber}",
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 6),
+                  Text("Total Due: ${_cur(totalDue)}",
+                      style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 12),
+
+                  LayoutBuilder(
+                    builder: (ctx, cons) {
+                      final w = cons.maxWidth;
+                      final threeCol = w >= 960;
+                      final itemW = threeCol ? (w - 24) / 3 : w;
+
+                      return Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          // STEP 1
+                          SizedBox(
+                            width: itemW,
+                            child: _panel(
+                              title: "Step 1 • Advance",
+                              body: Column(
+                                children: [
+                                  _tf("Tenant pays", s1TenantCtl, enabled: !(s1Saved || step1Done)),
+                                  _tf("Give to Owner", s1GiveCtl, enabled: !(s1Saved || step1Done)),
+                                  _tf("Office Hold", s1HoldCtl, enabled: false),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: (s1Saved || step1Done || _s1Submitting) ? null : _saveStep1,
+                                    child: Text(_s1Submitting
+                                        ? "Saving..."
+                                        : (step1Done ? "Saved" : "Save Step 1")),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // STEP 2
+                          SizedBox(
+                            width: itemW,
+                            child: _panel(
+                              title: "Step 2 • Mid Payment",
+                              body: Column(
+                                children: [
+                                  _tf("Tenant pays", s2TenantCtl,
+                                      enabled: (s1Saved || step1Done) && !(s2Saved || step2Done)),
+                                  const SizedBox(height: 8),
+                                  _kv("Office → Owner", _cur(s2Saved || step2Done ? s2Tenant : _pc(s2TenantCtl))),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: (!(s1Saved || step1Done) || s2Saved || step2Done || _s2Submitting)
+                                        ? null
+                                        : _saveStep2,
+                                    child: Text(_s2Submitting
+                                        ? "Saving..."
+                                        : (step2Done ? "Saved" : "Save Step 2")),
+                                  ),
+
+                                ],
+                              ),
+                            ),
+                          ),
+
+                          // STEP 3
+                          SizedBox(
+                            width: itemW,
+                            child: _panel(
+                              title: "Step 3 • Close Out",
+                              body: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _tf("Tenant pays (final)", s3TenantCtl,
+                                      enabled: (s1Saved || step1Done) && !(s3Saved || step3Done)),
+                                  _tf("Company commission (TOTAL)", s3CompanyTotalCtl,
+                                      enabled: (s1Saved || step1Done) && !(s3Saved || step3Done),
+                                      hint: "Enter both-side total (e.g. 6000)"),
+                                  const SizedBox(height: 8),
+                                  _kv("Remaining + Hold", _cur(settlementPool)),
+                                  Text("Breakdown: $poolDetail",
+                                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                                  _kv("Company Commission Keep", _cur(companyKeepNow)),
+                                  _kv("Remaining Share to Owner", _cur(ownerFinalNow)),
+                                  const SizedBox(height: 8),
+                                  ElevatedButton(
+                                    onPressed: (!(s1Saved || step1Done) ||
+                                            s3Saved ||
+                                            step3Done ||
+                                            _s3Submitting)
+                                        ? null
+                                        : _saveFinal,
+                                    child: Text(_s3Submitting
+                                        ? "Saving..."
+                                        : (step3Done ? "Saved" : "Save Final")),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+
+                  const Divider(),
+                  _kv("Tenant Paid", _cur(tenantPaid)),
+                  _kv("Owner Received (total)", _cur(ownerReceivedTotal)),
+                  _kv("Remaining (tenant)", _cur(remaining)),
+                  SizedBox(height: 30,)
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

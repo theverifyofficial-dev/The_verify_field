@@ -685,7 +685,7 @@ class _View_DetailsState extends State<View_Details> {
                             children: [
                               _FactChip(
                                 icon: Icons.install_desktop_sharp,
-                                label: "Property Id : "+ property.id.toString(),
+                                label: "Live Property Id : "+ property.id.toString(),
                                 color: Colors.lightGreen,
                                 isDarkMode: isDarkMode,
                               ),
@@ -701,7 +701,7 @@ class _View_DetailsState extends State<View_Details> {
 
                           _FactChip(
                             icon: Icons.file_open,
-                            label: "Agreement : "+ property.sourceId.toString(),
+                            label: "Building Flat Id : "+ property.sourceId.toString(),
                             color: Colors.deepOrange,
                             isDarkMode: isDarkMode,
                           ),

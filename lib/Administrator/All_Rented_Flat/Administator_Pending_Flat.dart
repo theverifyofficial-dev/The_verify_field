@@ -314,14 +314,16 @@ class OwnerData {
     "status": status,
   };
 }
+// FirstPaymentRecord.dart
+
 class FirstPaymentRecord {
   final int id;
   final String subid;
 
-  // statuses
-  final String statusFirst;   // status_fist
-  final String statusSec;     // status_tow
-  final String statusThird;   // status_three
+  // statuses (backend keys: status_fist, status_tow, status_three)
+  final String statusFirst;
+  final String statusSec;
+  final String statusThird;
 
   // step 1
   final String tenantAdvance;        // tenant_advance
@@ -332,20 +334,28 @@ class FirstPaymentRecord {
   final String? midPaymentToOwner;         // mid_payment_to_owner
   final String? ownerReceivedPaymentInMid; // owner_reccived_payment_in_mid
 
-  // step 3 (old set you already had)
+  // step 3 (legacy set you already had)
   final String? tenantPayLastAmount;         // tenant_pay_last_amount
   final String? bothSideCompanyCommission;   // bothside_company_comition
   final String? ownerReceivedFinalAmount;    // owner_recived_final_amount
   final String? tenantTotalPay;              // tenant_tatal_pay
   final String? ownerTotalReceivedAmount;    // owner_total_recived_amount
 
-  // step 3 (NEW keys to add)
-  final String? remainingHold;                 // remaining_hold
-  final String? companyKeepComition;           // company_keep_comition
-  final String? remainBalanceShareToOwner;     // remain_balance_share_to_owner
-  final String? finalRecivedAmountOwner;       // final_recived_amount_owner
-  final String? remaingFinalBalance;           // remaing_final_balance
-  final String? totalPayTenant;                // total_pay_tenant
+  // step 3 (new keys to add)
+  final String? remainingHold;               // remaining_hold
+  final String? companyKeepComition;         // company_keep_comition
+  final String? remainBalanceShareToOwner;   // remain_balance_share_to_owner
+  final String? finalRecivedAmountOwner;     // final_recived_amount_owner
+  final String? remaingFinalBalance;         // remaing_final_balance
+  final String? totalPayTenant;              // total_pay_tenant
+
+  // timestamps from backend
+  final String? dates;       // 1st step date: "YYYY-MM-DD"
+  final String? times;       // 1st step time: "HH:MM:SS"
+  final String? dates2nd;    // dates_2nd
+  final String? times2nd;    // times_2nd
+  final String? dates3rd;    // dates_3rd
+  final String? times3rd;    // times_3rd
 
   FirstPaymentRecord({
     required this.id,
@@ -363,46 +373,157 @@ class FirstPaymentRecord {
     this.ownerReceivedFinalAmount,
     this.tenantTotalPay,
     this.ownerTotalReceivedAmount,
-    // new ones
     this.remainingHold,
     this.companyKeepComition,
     this.remainBalanceShareToOwner,
     this.finalRecivedAmountOwner,
     this.remaingFinalBalance,
     this.totalPayTenant,
+    this.dates,
+    this.times,
+    this.dates2nd,
+    this.times2nd,
+    this.dates3rd,
+    this.times3rd,
   });
 
-  factory FirstPaymentRecord.fromJson(Map<String, dynamic> j) => FirstPaymentRecord(
-    id: int.tryParse(j['id']?.toString() ?? '') ?? 0,
-    subid: (j['subid'] ?? '').toString(),
+  factory FirstPaymentRecord.fromJson(Map<String, dynamic> j) {
+    String? _s(String key) => j.containsKey(key) ? j[key]?.toString() : null;
 
-    statusFirst: (j['status_fist'] ?? '').toString(),
-    statusSec: (j['status_tow'] ?? '').toString(),
-    statusThird: (j['status_three'] ?? '').toString(),
+    return FirstPaymentRecord(
+      id: int.tryParse(j['id']?.toString() ?? '') ?? 0,
+      subid: (j['subid'] ?? '').toString(),
 
-    tenantAdvance: (j['tenant_advance'] ?? '').toString(),
-    giveToOwnerAdvance: (j['give_to_owner_advance'] ?? '').toString(),
-    officeHold: (j['office_hold'] ?? '').toString(),
+      statusFirst: (j['status_fist'] ?? '').toString(),
+      statusSec: (j['status_tow'] ?? '').toString(),
+      statusThird: (j['status_three'] ?? '').toString(),
 
-    midPaymentToOwner: j['mid_payment_to_owner']?.toString(),
-    ownerReceivedPaymentInMid: j['owner_reccived_payment_in_mid']?.toString(),
+      tenantAdvance: (j['tenant_advance'] ?? '').toString(),
+      giveToOwnerAdvance: (j['give_to_owner_advance'] ?? '').toString(),
+      officeHold: (j['office_hold'] ?? '').toString(),
 
-    // existing step-3 fields
-    tenantPayLastAmount: j['tenant_pay_last_amount']?.toString(),
-    bothSideCompanyCommission: j['bothside_company_comition']?.toString(),
-    ownerReceivedFinalAmount: j['owner_recived_final_amount']?.toString(),
-    tenantTotalPay: j['tenant_tatal_pay']?.toString(),
-    ownerTotalReceivedAmount: j['owner_total_recived_amount']?.toString(),
+      midPaymentToOwner: _s('mid_payment_to_owner'),
+      ownerReceivedPaymentInMid: _s('owner_reccived_payment_in_mid'),
 
-    // NEW fields (exact keys from new payload)
-    remainingHold: j['remaining_hold']?.toString(),
-    companyKeepComition: j['company_keep_comition']?.toString(),
-    remainBalanceShareToOwner: j['remain_balance_share_to_owner']?.toString(),
-    finalRecivedAmountOwner: j['final_recived_amount_owner']?.toString(),
-    remaingFinalBalance: j['remaing_final_balance']?.toString(),
-    totalPayTenant: j['total_pay_tenant']?.toString(),
-  );
+      tenantPayLastAmount: _s('tenant_pay_last_amount'),
+      bothSideCompanyCommission: _s('bothside_company_comition'),
+      ownerReceivedFinalAmount: _s('owner_recived_final_amount'),
+      tenantTotalPay: _s('tenant_tatal_pay'),
+      ownerTotalReceivedAmount: _s('owner_total_recived_amount'),
+
+      remainingHold: _s('remaining_hold'),
+      companyKeepComition: _s('company_keep_comition'),
+      remainBalanceShareToOwner: _s('remain_balance_share_to_owner'),
+      finalRecivedAmountOwner: _s('final_recived_amount_owner'),
+      remaingFinalBalance: _s('remaing_final_balance'),
+      totalPayTenant: _s('total_pay_tenant'),
+
+      dates: _s('dates'),
+      times: _s('times'),
+      dates2nd: _s('dates_2nd'),
+      times2nd: _s('times_2nd'),
+      dates3rd: _s('dates_3rd'),
+      times3rd: _s('times_3rd'),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'subid': subid,
+    'status_fist': statusFirst,
+    'status_tow': statusSec,
+    'status_three': statusThird,
+    'tenant_advance': tenantAdvance,
+    'give_to_owner_advance': giveToOwnerAdvance,
+    'office_hold': officeHold,
+    'mid_payment_to_owner': midPaymentToOwner,
+    'owner_reccived_payment_in_mid': ownerReceivedPaymentInMid,
+    'tenant_pay_last_amount': tenantPayLastAmount,
+    'bothside_company_comition': bothSideCompanyCommission,
+    'owner_recived_final_amount': ownerReceivedFinalAmount,
+    'tenant_tatal_pay': tenantTotalPay,
+    'owner_total_recived_amount': ownerTotalReceivedAmount,
+    'remaining_hold': remainingHold,
+    'company_keep_comition': companyKeepComition,
+    'remain_balance_share_to_owner': remainBalanceShareToOwner,
+    'final_recived_amount_owner': finalRecivedAmountOwner,
+    'remaing_final_balance': remaingFinalBalance,
+    'total_pay_tenant': totalPayTenant,
+    'dates': dates,
+    'times': times,
+    'dates_2nd': dates2nd,
+    'times_2nd': times2nd,
+    'dates_3rd': dates3rd,
+    'times_3rd': times3rd,
+  };
+
+  FirstPaymentRecord copyWith({
+    int? id,
+    String? subid,
+    String? statusFirst,
+    String? statusSec,
+    String? statusThird,
+    String? tenantAdvance,
+    String? giveToOwnerAdvance,
+    String? officeHold,
+    String? midPaymentToOwner,
+    String? ownerReceivedPaymentInMid,
+    String? tenantPayLastAmount,
+    String? bothSideCompanyCommission,
+    String? ownerReceivedFinalAmount,
+    String? tenantTotalPay,
+    String? ownerTotalReceivedAmount,
+    String? remainingHold,
+    String? companyKeepComition,
+    String? remainBalanceShareToOwner,
+    String? finalRecivedAmountOwner,
+    String? remaingFinalBalance,
+    String? totalPayTenant,
+    String? dates,
+    String? times,
+    String? dates2nd,
+    String? times2nd,
+    String? dates3rd,
+    String? times3rd,
+  }) {
+    return FirstPaymentRecord(
+      id: id ?? this.id,
+      subid: subid ?? this.subid,
+      statusFirst: statusFirst ?? this.statusFirst,
+      statusSec: statusSec ?? this.statusSec,
+      statusThird: statusThird ?? this.statusThird,
+      tenantAdvance: tenantAdvance ?? this.tenantAdvance,
+      giveToOwnerAdvance: giveToOwnerAdvance ?? this.giveToOwnerAdvance,
+      officeHold: officeHold ?? this.officeHold,
+      midPaymentToOwner: midPaymentToOwner ?? this.midPaymentToOwner,
+      ownerReceivedPaymentInMid:
+      ownerReceivedPaymentInMid ?? this.ownerReceivedPaymentInMid,
+      tenantPayLastAmount: tenantPayLastAmount ?? this.tenantPayLastAmount,
+      bothSideCompanyCommission:
+      bothSideCompanyCommission ?? this.bothSideCompanyCommission,
+      ownerReceivedFinalAmount:
+      ownerReceivedFinalAmount ?? this.ownerReceivedFinalAmount,
+      tenantTotalPay: tenantTotalPay ?? this.tenantTotalPay,
+      ownerTotalReceivedAmount:
+      ownerTotalReceivedAmount ?? this.ownerTotalReceivedAmount,
+      remainingHold: remainingHold ?? this.remainingHold,
+      companyKeepComition: companyKeepComition ?? this.companyKeepComition,
+      remainBalanceShareToOwner:
+      remainBalanceShareToOwner ?? this.remainBalanceShareToOwner,
+      finalRecivedAmountOwner:
+      finalRecivedAmountOwner ?? this.finalRecivedAmountOwner,
+      remaingFinalBalance: remaingFinalBalance ?? this.remaingFinalBalance,
+      totalPayTenant: totalPayTenant ?? this.totalPayTenant,
+      dates: dates ?? this.dates,
+      times: times ?? this.times,
+      dates2nd: dates2nd ?? this.dates2nd,
+      times2nd: times2nd ?? this.times2nd,
+      dates3rd: dates3rd ?? this.dates3rd,
+      times3rd: times3rd ?? this.times3rd,
+    );
+  }
 }
+
 extension FirstPaymentNums on FirstPaymentRecord {
   num _n(String? s) {
     if (s == null) return 0;
@@ -423,14 +544,29 @@ extension FirstPaymentNums on FirstPaymentRecord {
   num get nTenantTotalPayLegacy => _n(tenantTotalPay);
   num get nOwnerTotalReceivedAmount => _n(ownerTotalReceivedAmount);
 
-  // new ones
   num get nRemainingHold => _n(remainingHold);
   num get nCompanyKeepComition => _n(companyKeepComition);
   num get nRemainBalanceShareToOwner => _n(remainBalanceShareToOwner);
   num get nFinalRecivedAmountOwner => _n(finalRecivedAmountOwner);
   num get nRemaingFinalBalance => _n(remaingFinalBalance);
   num get nTotalPayTenant => _n(totalPayTenant);
+
+  /// Convenience: combine "YYYY-MM-DD" + "HH:MM:SS" into DateTime if possible.
+  DateTime? _dt(String? d, String? t) {
+    if ((d ?? '').isEmpty) return null;
+    final s = t == null || t.isEmpty ? d! : '$d $t';
+    return DateTime.tryParse(s);
+  }
+
+  DateTime? get firstAt => _dt(dates, times);
+  DateTime? get secondAt => _dt(dates2nd, times2nd);
+  DateTime? get thirdAt => _dt(dates3rd, times3rd);
+
+  bool get isStep1Done => statusFirst.toLowerCase().contains('done');
+  bool get isStep2Done => statusSec.toLowerCase().contains('done');
+  bool get isStep3Done => statusThird.toLowerCase().contains('done');
 }
+
 
 class AdministatiorFieldWorkerPendingFlats extends StatefulWidget {
   const AdministatiorFieldWorkerPendingFlats({super.key});
@@ -890,6 +1026,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               label: "Add Billing",
                               color: Colors.blue,
                               onTap: () async {
+
                                 // wherever you have the current property's id:
                                 final int propertyId = item.id; // or however you get it
 
@@ -1054,6 +1191,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                               _amountRow("Tenant Advance", rec.tenantAdvance, Polarity.credit,context),
                                               _amountRow("Give to Owner", rec.giveToOwnerAdvance, Polarity.debit,context),
                                               _amountRow("Office Hold", rec.officeHold, Polarity.credit,context),
+                                              _buildDetailRow("Date/Time ", "${rec.dates??""},${rec.times??""}"),
                                             ],
                                           ),
                                         ),
@@ -1090,6 +1228,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                             children: [
                                               _amountRow("Mid Payment From Tenant", rec.midPaymentToOwner, Polarity.credit,context),
                                               _amountRow("Office Transfer Payment To Owner", rec.midPaymentToOwner, Polarity.debit,context),
+                                              _buildDetailRow("Date/Time ", "${rec.dates2nd??""},${rec.times2nd??""}"),
 
                                             ],
                                           ),
@@ -1115,6 +1254,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                                         _amountRow("Owner Final Received", rec.finalRecivedAmountOwner, Polarity.debit,context),
                                         _amountRow("Remaining Final Balance", rec.remaingFinalBalance, Polarity.neutral,context),
                                         _amountRow("Total Paid By Tenant", rec.totalPayTenant, Polarity.credit,context),
+                                        _buildDetailRow("Date/Time ", "${rec.dates3rd??""},${rec.times3rd??""}"),
                                       ];
 
                                       return Container(
@@ -1380,16 +1520,16 @@ num _numVal(dynamic v) =>
 
 String _moneySigned(dynamic v, Polarity p) {
   if (_isEmpty(v)) return "—";
-  final n = _numVal(v).abs(); // always show magnitude
+  final n = _numVal(v).abs();
   final sign = p == Polarity.credit ? "+" : p == Polarity.debit ? "-" : "";
   return "$sign ₹ ${n.toStringAsFixed(0)}";
 }
 
 Color _amtColor(BuildContext c, Polarity p) {
   switch (p) {
-    case Polarity.credit: return Colors.green;           // money IN
-    case Polarity.debit:  return Colors.red;             // money OUT
-    case Polarity.neutral:return Theme.of(c).hintColor;  // balances
+    case Polarity.credit: return Colors.green;
+    case Polarity.debit:  return Colors.red;
+    case Polarity.neutral:return Colors.black;
   }
 }
 

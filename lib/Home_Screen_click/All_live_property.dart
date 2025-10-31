@@ -398,7 +398,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                                               children: [
                                                 _buildFeatureItem(
                                                   context: context,
-                                                  text: "Property ID : ${_filteredProperties[index].pId}",
+                                                  text: "Live Property ID : ${_filteredProperties[index].pId}",
                                                   borderColor: Colors.grey.shade700,
                                                   backgroundColor: Colors.white,
                                                   textColor: Colors.blue,

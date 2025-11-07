@@ -40,6 +40,7 @@ class AppImages{
   static const call="assets/images/call.png";
   static const agreement='assets/images/deals.png';
   static const agreement_details='assets/images/search.png';
+  static const transparent="assets/images/transparent.png";
 
 
 
@@ -51,6 +52,7 @@ class AppImages{
   static const static6 = "assets/images/lease.jpg";
   static const static7 = "assets/images/salecars.jpg";
   static const static8 = "assets/images/tenent.jpg";
+
 }
 
 List<String> staticImages = [

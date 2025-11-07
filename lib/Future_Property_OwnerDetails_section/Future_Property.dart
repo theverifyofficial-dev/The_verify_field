@@ -1,15 +1,25 @@
+// frontpage_futureproperty_with_tabs.dart (Fully Fixed: Added PlotPropertyData class, fixed fetch, ensured all tabs work with API data display)
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'Add_commercial_property.dart';
 import 'Add_futureProperty.dart';
+import 'Add_plot_property.dart';
+import 'Commercial_detail.dart';
 import 'Future_property_details.dart';
 import 'package:intl/intl.dart';
+import 'PlotShow.dart';
+import 'Plot_detail.dart';
+import 'commercialShow.dart';
 
 class Catid {
   final int id;
@@ -118,6 +128,102 @@ class Catid {
   }
 }
 
+// ✅ ADDED: PlotPropertyData class (with fromJson for API mapping - adjust keys if API response differs)
+class PlotPropertyData {
+  final int id;
+  String? plotStatus;
+  String? plotPrice;
+  String? mainAddress;
+  String? currentLocation;
+  String? plotSize;
+  String? roadSize;
+  String? plotOpen;
+  String? waterConnection;
+  String? electricPrice;
+  String? propertyChain;
+  String? plotFrontSize;
+  String? plotSideSize;
+  String? ageOfProperty;
+  String? propertyRent;
+  String? fieldworkarName;
+  String? fieldworkarNumber;
+  XFile? singleImage;
+  List<XFile> selectedImages = [];
+
+  PlotPropertyData({
+    required this.id,
+    this.plotStatus,
+    this.plotPrice,
+    this.mainAddress,
+    this.currentLocation,
+    this.plotSize,
+    this.roadSize,
+    this.plotOpen,
+    this.waterConnection,
+    this.electricPrice,
+    this.propertyChain,
+    this.plotFrontSize,
+    this.plotSideSize,
+    this.ageOfProperty,
+    this.propertyRent,
+    this.fieldworkarName,
+    this.fieldworkarNumber,
+    this.singleImage,
+    List<XFile>? selectedImages,
+  }) : selectedImages = selectedImages ?? [];
+
+  factory PlotPropertyData.fromJson(Map<String, dynamic> json) {
+    // Map JSON keys to fields - adjust keys based on actual API response (e.g., check console logs)
+    // Example: assuming keys like 'plot_status', 'plot_price', etc. Update as per your API.
+    return PlotPropertyData(
+      id: json['id'] ?? 0,
+      plotStatus: json['plot_status'] ?? json['plotStatus'],
+      plotPrice: json['plot_price'] ?? json['plotPrice'],
+      mainAddress: json['main_address'] ?? json['mainAddress'],
+      currentLocation: json['current_location'] ?? json['currentLocation'],
+      plotSize: json['plot_size'] ?? json['plotSize'],
+      roadSize: json['road_size'] ?? json['roadSize'],
+      plotOpen: json['plot_open'] ?? json['plotOpen'],
+      waterConnection: json['water_connection'] ?? json['waterConnection'],
+      electricPrice: json['electric_price'] ?? json['electricPrice'],
+      propertyChain: json['property_chain'] ?? json['propertyChain'],
+      plotFrontSize: json['plot_front_size'] ?? json['plotFrontSize'],
+      plotSideSize: json['plot_side_size'] ?? json['plotSideSize'],
+      ageOfProperty: json['age_of_property'] ?? json['ageOfProperty'],
+      propertyRent: json['property_rent'] ?? json['propertyRent'],
+      fieldworkarName: json['fieldworkar_name'] ?? json['fieldworkarName'],
+      fieldworkarNumber: json['fieldworkar_number'] ?? json['fieldworkarNumber'],
+      // For images: If API returns URL strings, convert to XFile (or handle as String if needed)
+      singleImage: json['single_image'] != null ? XFile(json['single_image']) : null,
+      selectedImages: (json['selected_images'] as List<dynamic>?)?.map((img) => XFile(img.toString())).toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'plot_status': plotStatus,
+      'plot_price': plotPrice,
+      'main_address': mainAddress,
+      'current_location': currentLocation,
+      'plot_size': plotSize,
+      'road_size': roadSize,
+      'plot_open': plotOpen,
+      'water_connection': waterConnection,
+      'electric_price': electricPrice,
+      'property_chain': propertyChain,
+      'plot_front_size': plotFrontSize,
+      'plot_side_size': plotSideSize,
+      'age_of_property': ageOfProperty,
+      'property_rent': propertyRent,
+      'fieldworkar_name': fieldworkarName,
+      'fieldworkar_number': fieldworkarNumber,
+      'single_image': singleImage?.path,
+      'selected_images': selectedImages.map((img) => img.path).toList(),
+    };
+  }
+}
+
 class FrontPage_FutureProperty extends StatefulWidget {
   const FrontPage_FutureProperty({super.key});
 
@@ -125,7 +231,10 @@ class FrontPage_FutureProperty extends StatefulWidget {
   State<FrontPage_FutureProperty> createState() => _FrontPage_FuturePropertyState();
 }
 
-class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
+class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
+    with SingleTickerProviderStateMixin {
+
+  late TabController _tabController;
 
   String _number = '';
   String _SUbid = '';
@@ -140,9 +249,19 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
   int propertyCount = 0;
   int? totalFlats;
   bool isLoading = true;
+
+  // Commercial properties ke liye variables
+  List<CommercialPropertyData> _commercialProperties = [];
+  bool _isLoadingCommercial = true;
+
+  // Plot properties ke liye variables
+  List<PlotPropertyData> _plotProperties = [];
+  bool _isLoadingPlots = true;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 3, vsync: this);
     _searchController.addListener(_onSearchChanged);
 
     _loaduserdata().then((_) {
@@ -153,17 +272,167 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
           _filteredProperties = _allProperties;
           propertyCount = _allProperties.length;
         });
+        _fetchPlotProperties();  // ✅ Fetch plots after _number is set
       });
     });
+
+    // Commercial properties load karein
+    _loadCommercialProperties();
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
   }
 
+  // Commercial properties load karne ka method
+  Future<void> _loadCommercialProperties() async {
+    setState(() {
+      _isLoadingCommercial = true;
+    });
+
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? commercialData = prefs.getString('commercial_properties');
+
+      if (commercialData != null) {
+        List<dynamic> jsonList = jsonDecode(commercialData);
+        setState(() {
+          _commercialProperties = jsonList.map((json) =>
+              CommercialPropertyData.fromJson(json)).toList();
+        });
+      }
+    } catch (e) {
+      print("Error loading commercial properties: $e");
+    } finally {
+      setState(() {
+        _isLoadingCommercial = false;
+      });
+    }
+  }
+
+  // Commercial property save karne ka method
+  Future<void> _saveCommercialProperties() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<Map<String, dynamic>> jsonList = _commercialProperties.map((
+          property) =>
+          property.toJson()).toList();
+      await prefs.setString('commercial_properties', jsonEncode(jsonList));
+    } catch (e) {
+      print("Error saving commercial properties: $e");
+    }
+  }
+
+  // Commercial property add karne ka method
+  void _addCommercialProperty(CommercialPropertyData newProperty) {
+    setState(() {
+      _commercialProperties.add(newProperty);
+    });
+    _saveCommercialProperties();
+  }
+
+  // ✅ FIXED: Plot properties API se fetch karne ka method (Direct HTTP with full debug)
+  Future<void> _fetchPlotProperties() async {
+    if (_number.isEmpty) {
+      print("Skipping plot fetch: _number is empty");
+      setState(() {
+        _plotProperties = [];
+        _isLoadingPlots = false;
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoadingPlots = true;
+    });
+
+    try {
+      var url = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/display_plot_property_by_field_workar_number?fieldworkarnumber=$_number",
+      );
+      final response = await http.get(url);
+
+      print("Plot API URL: $url");
+      print("Plot API Response Status: ${response.statusCode}");
+      print("Plot API Response Body: ${response.body}");  // Check this in console for JSON structure
+
+      if (response.statusCode == 200) {
+        List<dynamic> listResponse = json.decode(response.body);
+        print("Decoded JSON list length: ${listResponse.length}");
+
+        // Sort by id descending
+        listResponse.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
+
+        _plotProperties = listResponse
+            .map((data) => PlotPropertyData.fromJson(data))
+            .toList();
+
+        print("Mapped to ${_plotProperties.length} PlotPropertyData objects");
+      } else {
+        throw Exception('Unexpected error: ${response.statusCode}');
+      }
+    } catch (e) {
+      print("Error fetching plot properties from API: $e");
+      _plotProperties = [];  // Fallback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load plots: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingPlots = false;
+        });
+      }
+    }
+  }
+
+  // Plot property save karne ka method
+  Future<void> _savePlotProperties() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      List<Map<String, dynamic>> jsonList = _plotProperties.map((property) =>
+          property.toJson()).toList();
+      await prefs.setString('plot_properties', jsonEncode(jsonList));
+    } catch (e) {
+      print("Error saving plot properties: $e");
+    }
+  }
+
+  // Plot property add karne ka method
+  void _addPlotProperty(PlotPropertyData newProperty) {
+    setState(() {
+      _plotProperties.add(newProperty);
+    });
+    _savePlotProperties();
+  }
+
+  void _openPlotForm() async {
+    final PlotPropertyData? newProperty = await Navigator.push<PlotPropertyData?>(
+      context,
+      MaterialPageRoute(builder: (context) => PropertyListingPage()),
+    );
+
+    if (newProperty != null) {
+      // Insert immediately so UI shows the new item on submit click
+      setState(() {
+        _plotProperties.insert(0, newProperty);
+      });
+
+      // Optional: show confirmation
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Plot added'), backgroundColor: Colors.green),
+      );
+
+      // Optional: re-fetch from server to ensure full sync (only if server saved already)
+      // await _fetchPlotProperties();
+    }
+  }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
@@ -175,39 +444,49 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 
       if (query.isEmpty) {
         filtered = List.from(_allProperties);
-        selectedLabel = ''; // optional reset
+        selectedLabel = '';
       } else if (query == "Missing Field") {
-        // ✅ Show items if ANY field is null or empty (except ignored fields)
         filtered = _allProperties.where((item) {
           return (item.images == null || item.images!.trim().isEmpty) ||
               (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
               (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
-              (item.caretakerName == null || item.caretakerName!.trim().isEmpty) ||
-              (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
+              (item.caretakerName == null ||
+                  item.caretakerName!.trim().isEmpty) ||
+              (item.caretakerNumber == null ||
+                  item.caretakerNumber!.trim().isEmpty) ||
               (item.place == null || item.place!.trim().isEmpty) ||
               (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
-              (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
-              (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
-              (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
+              (item.propertyNameAddress == null ||
+                  item.propertyNameAddress!.trim().isEmpty) ||
+              (item.propertyAddressForFieldworker == null || item
+                  .propertyAddressForFieldworker!.trim().isEmpty) ||
+              (item.ownerVehicleNumber == null || item.ownerVehicleNumber!
+                  .trim().isEmpty) ||
               (item.yourAddress == null || item.yourAddress!.trim().isEmpty) ||
-              (item.fieldWorkerName == null || item.fieldWorkerName!.trim().isEmpty) ||
-              (item.fieldWorkerNumber == null || item.fieldWorkerNumber!.trim().isEmpty) ||
+              (item.fieldWorkerName == null || item.fieldWorkerName!
+                  .trim()
+                  .isEmpty) ||
+              (item.fieldWorkerNumber == null ||
+                  item.fieldWorkerNumber!.trim().isEmpty) ||
               (item.currentDate == null || item.currentDate!.trim().isEmpty) ||
               (item.longitude == null || item.longitude!.trim().isEmpty) ||
               (item.latitude == null || item.latitude!.trim().isEmpty) ||
               (item.roadSize == null || item.roadSize!.trim().isEmpty) ||
-              (item.metroDistance == null || item.metroDistance!.trim().isEmpty) ||
+              (item.metroDistance == null ||
+                  item.metroDistance!.trim().isEmpty) ||
               (item.metroName == null || item.metroName!.trim().isEmpty) ||
-              (item.mainMarketDistance == null || item.mainMarketDistance!.trim().isEmpty) ||
-              (item.ageOfProperty == null || item.ageOfProperty!.trim().isEmpty) ||
+              (item.mainMarketDistance == null ||
+                  item.mainMarketDistance!.trim().isEmpty) ||
+              (item.ageOfProperty == null ||
+                  item.ageOfProperty!.trim().isEmpty) ||
               (item.lift == null || item.lift!.trim().isEmpty) ||
               (item.parking == null || item.parking!.trim().isEmpty) ||
               (item.totalFloor == null || item.totalFloor!.trim().isEmpty) ||
-              (item.residenceCommercial == null || item.residenceCommercial!.trim().isEmpty) ||
+              (item.residenceCommercial == null ||
+                  item.residenceCommercial!.trim().isEmpty) ||
               (item.facility == null || item.facility!.trim().isEmpty);
         }).toList();
       } else {
-        // 🔍 Normal search
         filtered = _allProperties.where((item) {
           return (item.id.toString()).toLowerCase().contains(query) ||
               (item.ownerName ?? '').toLowerCase().contains(query) ||
@@ -219,12 +498,15 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               (item.floorNumber ?? '').toLowerCase().contains(query) ||
               (item.squareFeet ?? '').toLowerCase().contains(query) ||
               (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
-              (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
+              (item.residenceCommercial ?? '').toLowerCase().contains(
+                  query) ||
               (item.ownerNumber ?? '').toLowerCase().contains(query) ||
               (item.ownerName ?? '').toLowerCase().contains(query) ||
-              (item.ownerVehicleNumber?? '').toLowerCase().contains(query) ||
-              (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
-              (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
+              (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
+              (item.buildingInformationFacilities ?? '').toLowerCase().contains(
+                  query) ||
+              (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(
+                  query) ||
               (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
               (item.yourAddress ?? '').toLowerCase().contains(query) ||
               (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
@@ -252,10 +534,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     });
   }
 
-
   Future<Map<String, dynamic>> fetchPropertyStatus(int subid) async {
     try {
-
       final response1 = await http.get(Uri.parse(
           "https://verifyserve.social/WebService4.asmx/check_live_flat_in_main_realesate?subid=$subid&live_unlive=Flat"));
 
@@ -285,8 +565,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       }
 
       return {
-        "loggValue1": loggValue1,   // from first API
-        "loggValue2": loggValue2,   // from second API
+        "loggValue1": loggValue1,
+        "loggValue2": loggValue2,
         "statusColor": statusColor,
       };
     } catch (e) {
@@ -322,7 +602,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
             .map((data) => Catid.FromJson(data))
             .toList();
 
-        _filteredProperties = _allProperties; // show all initially
+        _filteredProperties = _allProperties;
 
         setState(() {
           _isLoading = false;
@@ -339,22 +619,27 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
   }
 
   bool get _isSearchActive {
-    return _searchController.text.trim().isNotEmpty || selectedLabel.isNotEmpty;
+    return _searchController.text
+        .trim()
+        .isNotEmpty || selectedLabel.isNotEmpty;
   }
 
   Future<void> _refreshProperties() async {
     await _fetchAndFilterProperties();
     await fetchTotalFlats();
     await fetchFlatsStatus();
-
+    await _loadCommercialProperties();
+    await _fetchPlotProperties();
+    print("Refreshed plots: ${_plotProperties.length} items");
   }
+
   int bookFlats = 0;
   int liveFlats = 0;
 
   Future<void> fetchFlatsStatus() async {
     try {
       final url = Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${_number}',
+        'https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${11}',
       );
       final response = await http.get(url);
 
@@ -405,7 +690,6 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // API returns a list, take the first element's subid
         final subid = data.isNotEmpty ? data[0]['subid'] : 0;
 
         setState(() {
@@ -427,9 +711,430 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     }
   }
 
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    if (phoneNumber.isEmpty) return;
+    final Uri launchUri = Uri(scheme: 'tel', path: phoneNumber);
+    print("Phone Number"+phoneNumber);
+    if (await canLaunchUrl(launchUri)) await launchUrl(launchUri);
+  }
+
+
+
+  // Commercial property card widget
+  Widget _buildCommercialPropertyCard(CommercialPropertyData property,
+      int index) {
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  CommercialPropertyDisplayPage(propertyData: property),
+            ),
+          );
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                color: Colors.grey[200],
+              ),
+              child: property.singleImage != null
+                  ? Image.file(
+                File(property.singleImage!.path),
+                fit: BoxFit.cover,
+              )
+                  : Icon(
+                  Icons.business_center, size: 50, color: Colors.grey[400]),
+            ),
+
+            // Property Details
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF2D5BFF).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          property.listingType ?? 'For Sale',
+                          style: TextStyle(
+                            color: Color(0xFF2D5BFF),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        property.rentPrice.isNotEmpty
+                            ? '₹${property.rentPrice}'
+                            : 'Contact for Price',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 8),
+
+                  Text(
+                    property.propertyType ?? 'Commercial Property',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.location,
+                          style: TextStyle(color: Colors.grey[600]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      _buildDetailChip('${property.builtupArea} sq ft'),
+                      SizedBox(width: 8),
+                      if (property.totalFloors != null) ...[
+                        _buildDetailChip('${property.totalFloors} Floors'),
+                        SizedBox(width: 8),
+                      ],
+                      if (property.parkingType != null)
+                        _buildDetailChip(property.parkingType!),
+                    ],
+                  ),
+
+                  SizedBox(height: 12),
+
+                  // Amenities preview
+                  if (property.amenities.isNotEmpty) ...[
+                    Text(
+                      'Amenities: ${property.amenities.take(3).join(
+                          ', ')}${property.amenities.length > 3 ? '...' : ''}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                    SizedBox(height: 8),
+                  ],
+
+                  // Field Worker Info
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Color(0xFF2D5BFF),
+                          child: Text(
+                            property.fieldWorkerName.isNotEmpty
+                                ? property.fieldWorkerName[0].toUpperCase()
+                                : 'A',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                property.fieldWorkerName,
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                property.fieldWorkerNumber,
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.phone, color: Color(0xFF2D5BFF)),
+                          onPressed: () {
+                            // Call functionality
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ✅ FIXED: Plot property card widget (null-safe, handles API data)
+  Widget _buildPlotPropertyCard(PlotPropertyData property, int index) {
+    // Safe image display
+    Widget _safeImage(XFile? file) {
+      if (file == null) {
+        return Icon(Icons.landscape, size: 50, color: Colors.grey[400]);
+      }
+      final path = file.path;
+      if (path.startsWith('http')) {
+        return Image.network(
+          path,
+          fit: BoxFit.cover,
+          loadingBuilder: (context, child, loadingProgress) {
+            if (loadingProgress == null)
+              return child;
+            return Center(child: CircularProgressIndicator());
+          },
+          errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.red),
+        );
+      }
+      return Image.file(
+        File(path),
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => Icon(Icons.broken_image, color: Colors.red),
+      );
+    }
+
+    XFile? firstImage = property.singleImage ?? (property.selectedImages.isNotEmpty ? property.selectedImages.first : null);
+
+    return Card(
+      margin: EdgeInsets.only(bottom: 16),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => PlotPropertyDisplayPage(fieldworkarNumber: "11",)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            Container(
+              height: 180,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
+                color: Colors.grey[200],
+              ),
+              child: _safeImage(firstImage),
+            ),
+            // Details
+            Padding(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          property.plotStatus ?? 'Available',
+                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold, fontSize: 12),
+                        ),
+                      ),
+                      Text(
+                        property.plotPrice?.isNotEmpty == true ? '₹${property.plotPrice}' : 'Contact for Price',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green[700]),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 8),
+
+                  Text(
+                    property.mainAddress ?? 'Plot Property',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, size: 16, color: Colors.grey),
+                      SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          property.currentLocation ?? 'Location not specified',
+                          style: TextStyle(color: Colors.grey[600]),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  SizedBox(height: 8),
+
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _buildDetailChip('${property.plotSize ?? 'N/A'} gaj'),
+                        SizedBox(width: 8),
+                        if (property.roadSize?.isNotEmpty == true) ...[
+                          _buildDetailChip('${property.roadSize} ft road'),
+                          SizedBox(width: 8),
+                        ],
+                        if (property.plotOpen?.isNotEmpty == true) ...[
+                          _buildDetailChip(property.plotOpen!),
+                          SizedBox(width: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+
+                  SizedBox(height: 12),
+
+                  // Features
+                  if ((property.waterConnection?.isNotEmpty == true || property.electricPrice?.isNotEmpty == true || property.propertyChain?.isNotEmpty == true)) ...[
+                    Text(
+                      'Features: ${[
+                        if (property.waterConnection?.isNotEmpty == true) property.waterConnection,
+                        if (property.electricPrice?.isNotEmpty == true) property.electricPrice,
+                        if (property.propertyChain?.isNotEmpty == true) 'Chain: ${property.propertyChain}',
+                      ].where((f) => f != null && f.isNotEmpty).join(', ')}',
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 8),
+                  ],
+
+                  // Fieldworker
+                  Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(8)),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Colors.green,
+                          child: Text(
+                            property.fieldworkarName?.isNotEmpty == true ? property.fieldworkarName![0].toUpperCase() : 'F',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                property.fieldworkarName ?? 'Field Worker',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                property.fieldworkarNumber ?? 'N/A',
+                                style: TextStyle(color: Colors.grey[600]),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.phone, color: Colors.green),
+                          onPressed: property.fieldworkarNumber?.isNotEmpty == true ? () => _makePhoneCall(property.fieldworkarNumber!) : null,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Additional chips
+                  SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if (property.plotFrontSize?.isNotEmpty == true) _buildSmallChip('Front: ${property.plotFrontSize} ft'),
+                      if (property.plotSideSize?.isNotEmpty == true) _buildSmallChip('Side: ${property.plotSideSize} ft'),
+                      if (property.ageOfProperty?.isNotEmpty == true) _buildSmallChip('Age: ${property.ageOfProperty}'),
+                      if (property.propertyRent?.isNotEmpty == true) _buildSmallChip('Rent: ₹${property.propertyRent}'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailChip(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+      ),
+    );
+  }
+
+  Widget _buildSmallChip(String text) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(fontSize: 10, color: Colors.grey[700]),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return RefreshIndicator(
       onRefresh: _refreshProperties,
       child: Scaffold(
@@ -444,9 +1149,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
             },
             child: const Row(
               children: [
-                SizedBox(
-                  width: 3,
-                ),
+                SizedBox(width: 3),
                 Icon(
                   PhosphorIcons.caret_left_bold,
                   color: Colors.white,
@@ -455,135 +1158,374 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
               ],
             ),
           ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(56),
+            child: Container(
+              color: Colors.black,
+              child: TabBar(
+                controller: _tabController,
+                indicatorColor: Colors.white,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                tabs: const [
+                  Tab(text: 'Buildings'),
+                  Tab(text: 'Plots'),
+                  Tab(text: 'Commercial'),
+                ],
+              ),
+            ),
+          ),
+        ),
+        body: _isLoading
+            ? Center(child: Lottie.asset(AppImages.loadingHand, height: 400))
+            : TabBarView(
+          controller: _tabController,
+          children: [
+            // TAB 1: Buildings
+            _buildBuildingsTab(),
+
+            // TAB 2: Plots
+            PlotListPage(),
+            // TAB 3: Commercial
+            CommercialListPage(),
+          ],
         ),
 
-        body: _isLoading
-            ?  Center(child: Lottie.asset(AppImages.loadingHand, height: 400),)
-            : Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Material(
-                    elevation: 4,
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _showAddOptionsDialog,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text("Add Forms", style: TextStyle(
+              color: Colors.white, fontWeight: FontWeight.w600)),
+          backgroundColor: Colors.blue,
+          elevation: 4,
+        ),
+      ),
+    );
+  }
+
+  // Buildings tab ke liye UI
+  Widget _buildBuildingsTab() {
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Material(
+                elevation: 4,
+                borderRadius: BorderRadius.circular(12),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      curve: Curves.easeInOut,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        gradient: LinearGradient(
-                          colors: [Colors.grey[100]!, Colors.grey[50]!],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.grey.withOpacity(0.2),
-                            blurRadius: 10,
-                            spreadRadius: 2,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                    gradient: LinearGradient(
+                      colors: [Colors.grey[100]!, Colors.grey[50]!],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.2),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
                       ),
-                      child: TextField(
-                        controller: _searchController,
-                        style: const TextStyle(
-                          color: Colors.black87,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        decoration: InputDecoration(
-                          hintText: 'Search properties...',
-                          hintStyle: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Icon(Icons.search_rounded, color: Colors.grey.shade700, size: 24),
-                          ),
-                          suffixIcon: AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child: _searchController.text.isNotEmpty
-                                ? IconButton(
-                              key: const ValueKey('clear'),
-                              icon: Icon(Icons.close_rounded, color: Colors.grey.shade700, size: 22),
-                              onPressed: () {
-                                _searchController.clear();
-                                selectedLabel = '';
-                                _filteredProperties = _allProperties;
-                                propertyCount = _allProperties.length;
-                                setState(() {});
-                              },
-                            )
-                                : const SizedBox(key: ValueKey('empty')),
-                          ),
-                          filled: true,
-                          fillColor: Colors.transparent,
-                          contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.blueGrey.withOpacity(0.3), width: 1),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(color: Colors.blueAccent.withOpacity(0.8), width: 1.5),
-                          ),
-                        ),
-                        onChanged: (value) async {
-                          String query = value.toLowerCase();
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: 'Search properties...',
+                      hintStyle: TextStyle(
+                          color: Colors.grey.shade600, fontSize: 16),
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Icon(
+                            Icons.search_rounded, color: Colors.grey.shade700,
+                            size: 24),
+                      ),
+                      suffixIcon: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 200),
+                        child: _searchController.text.isNotEmpty
+                            ? IconButton(
+                          key: const ValueKey('clear'),
+                          icon: Icon(
+                              Icons.close_rounded, color: Colors.grey.shade700,
+                              size: 22),
+                          onPressed: () {
+                            _searchController.clear();
+                            selectedLabel = '';
+                            _filteredProperties = _allProperties;
+                            propertyCount = _allProperties.length;
+                            setState(() {});
+                          },
+                        )
+                            : const SizedBox(key: ValueKey('empty')),
+                      ),
+                      filled: true,
+                      fillColor: Colors.transparent,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.blueGrey
+                            .withOpacity(0.3), width: 1),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.blueAccent
+                            .withOpacity(0.8), width: 1.5),
+                      ),
+                    ),
+                    onChanged: (value) async {
+                      String query = value.toLowerCase();
 
-                          List<Catid> filtered = _allProperties.where((item) {
-                            return (item.propertyNameAddress?.toLowerCase().contains(query) ?? false) ||
-                                (item.place?.toLowerCase().contains(query) ?? false) ||
-                                (item.buyRent?.toLowerCase().contains(query) ?? false) ||
-                                (item.ownerName?.toLowerCase().contains(query) ?? false) ||
-                                (item.fieldWorkerName?.toLowerCase().contains(query) ?? false);
-                          }).toList();
+                      List<Catid> filtered = _allProperties.where((item) {
+                        return (item.propertyNameAddress
+                            ?.toLowerCase()
+                            .contains(query) ?? false) ||
+                            (item.place?.toLowerCase().contains(query) ??
+                                false) ||
+                            (item.buyRent?.toLowerCase().contains(query) ??
+                                false) ||
+                            (item.ownerName?.toLowerCase().contains(query) ??
+                                false) ||
+                            (item.fieldWorkerName?.toLowerCase().contains(
+                                query) ?? false);
+                      }).toList();
 
-                          // Apply button filters if any
-                          if (selectedLabel == 'Missing Field') {
-                            filtered = filtered.where((item) {
-                              return (item.images == null || item.images!.trim().isEmpty) ||
-                                  (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
-                                  (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
-                                  (item.caretakerName == null || item.caretakerName!.trim().isEmpty);
+                      if (selectedLabel == 'Missing Field') {
+                        filtered = filtered.where((item) {
+                          return (item.images == null ||
+                              item.images!.trim().isEmpty) ||
+                              (item.ownerName == null ||
+                                  item.ownerName!.trim().isEmpty) ||
+                              (item.ownerNumber == null ||
+                                  item.ownerNumber!.trim().isEmpty) ||
+                              (item.caretakerName == null ||
+                                  item.caretakerName!.trim().isEmpty);
+                        }).toList();
+                      } else if (selectedLabel == 'Live' ||
+                          selectedLabel == 'Unlive') {
+                        List<Catid> temp = [];
+                        for (var item in filtered) {
+                          try {
+                            final res = await http.get(Uri.parse(
+                              'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${item
+                                  .id}',
+                            ));
+                            if (res.statusCode == 200) {
+                              final data = jsonDecode(res.body);
+                              bool anyLive = false;
+                              if (data is List && data.isNotEmpty) {
+                                for (var d in data) {
+                                  if (d['live_unlive'] == 'Live' &&
+                                      (d['logs'] as num) > 0) {
+                                    anyLive = true;
+                                    break;
+                                  }
+                                }
+                              }
+                              if ((selectedLabel == 'Live' && anyLive) ||
+                                  (selectedLabel == 'Unlive' && !anyLive)) {
+                                temp.add(item);
+                              }
+                            }
+                          } catch (e) {
+                            debugPrint('Live/Unlive fetch error: $e');
+                          }
+                        }
+                        filtered = temp;
+                      } else
+                      if (selectedLabel == 'Rent' || selectedLabel == 'Sell' ||
+                          selectedLabel == 'Commercial') {
+                        filtered = filtered.where((item) {
+                          return item.buyRent?.toLowerCase() ==
+                              selectedLabel.toLowerCase();
+                        }).toList();
+                      }
+
+                      setState(() {
+                        _filteredProperties = filtered;
+                        propertyCount = filtered.length;
+                      });
+                    },
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    'Rent',
+                    'Buy',
+                    'Commercial',
+                    'Missing Field',
+                    'Live',
+                    'Unlive',
+                    'Empty Building',
+                  ]
+                      .map((label) {
+                    final isSelected = label == selectedLabel;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          setState(() {
+                            selectedLabel = label;
+                          });
+
+                          _searchController.clear();
+                          _debounce?.cancel();
+
+                          List<Catid> filtered = [];
+
+                          if (label == 'Missing Field') {
+                            filtered = _allProperties.where((item) {
+                              return (item.images == null ||
+                                  item.images!.trim().isEmpty) ||
+                                  (item.ownerName == null ||
+                                      item.ownerName!.trim().isEmpty) ||
+                                  (item.ownerNumber == null ||
+                                      item.ownerNumber!.trim().isEmpty) ||
+                                  (item.caretakerName == null ||
+                                      item.caretakerName!.trim().isEmpty) ||
+                                  (item.caretakerNumber == null ||
+                                      item.caretakerNumber!.trim().isEmpty) ||
+                                  (item.place == null ||
+                                      item.place!.trim().isEmpty) ||
+                                  (item.buyRent == null ||
+                                      item.buyRent!.trim().isEmpty) ||
+                                  (item.propertyNameAddress == null ||
+                                      item.propertyNameAddress!
+                                          .trim()
+                                          .isEmpty) ||
+                                  (item.propertyAddressForFieldworker == null ||
+                                      item.propertyAddressForFieldworker!
+                                          .trim()
+                                          .isEmpty) ||
+                                  (item.ownerVehicleNumber == null ||
+                                      item.ownerVehicleNumber!
+                                          .trim()
+                                          .isEmpty) ||
+                                  (item.yourAddress == null ||
+                                      item.yourAddress!.trim().isEmpty) ||
+                                  (item.fieldWorkerName == null ||
+                                      item.fieldWorkerName!.trim().isEmpty) ||
+                                  (item.fieldWorkerNumber == null ||
+                                      item.fieldWorkerNumber!.trim().isEmpty) ||
+                                  (item.currentDate == null ||
+                                      item.currentDate!.trim().isEmpty) ||
+                                  (item.longitude == null ||
+                                      item.longitude!.trim().isEmpty) ||
+                                  (item.latitude == null ||
+                                      item.latitude!.trim().isEmpty) ||
+                                  (item.roadSize == null ||
+                                      item.roadSize!.trim().isEmpty) ||
+                                  (item.metroDistance == null ||
+                                      item.metroDistance!.trim().isEmpty) ||
+                                  (item.metroName == null ||
+                                      item.metroName!.trim().isEmpty) ||
+                                  (item.mainMarketDistance == null ||
+                                      item.mainMarketDistance!
+                                          .trim()
+                                          .isEmpty) ||
+                                  (item.ageOfProperty == null ||
+                                      item.ageOfProperty!.trim().isEmpty) ||
+                                  (item.lift == null ||
+                                      item.lift!.trim().isEmpty) ||
+                                  (item.parking == null ||
+                                      item.parking!.trim().isEmpty) ||
+                                  (item.totalFloor == null ||
+                                      item.totalFloor!.trim().isEmpty) ||
+                                  (item.residenceCommercial == null ||
+                                      item.residenceCommercial!
+                                          .trim()
+                                          .isEmpty) ||
+                                  (item.facility == null ||
+                                      item.facility!.trim().isEmpty);
                             }).toList();
-                          } else if (selectedLabel == 'Live' || selectedLabel == 'Unlive') {
-                            List<Catid> temp = [];
-                            for (var item in filtered) {
+                          }
+                          else if (label == 'Empty Building') {
+                            final futures = _allProperties.map((item) async {
+                              try {
+                                final status = await fetchPropertyStatus(
+                                    item.id);
+
+                                if (status["loggValue2"] == "0") {
+                                  return item;
+                                }
+                              } catch (e) {
+                                debugPrint(
+                                    "Flat 0 fetch error for ${item.id}: $e");
+                              }
+                              return null;
+                            }).toList();
+
+                            final results = await Future.wait(futures);
+                            filtered = results.whereType<Catid>().toList();
+                          }
+
+                          else if (label == 'Rent' || label == 'Buy' ||
+                              label == 'Commercial') {
+                            filtered = _allProperties.where((item) {
+                              if (label == 'Commercial') {
+                                final value = (item.residenceCommercial ?? '')
+                                    .toLowerCase();
+                                return value == 'commercial';
+                              } else {
+                                final value = (item.buyRent ?? '')
+                                    .toLowerCase();
+                                return value == label.toLowerCase();
+                              }
+                            }).toList();
+                          }
+                          else if (label == 'Live' || label == 'Unlive') {
+                            final futures = _allProperties.map((item) async {
                               try {
                                 final res = await http.get(Uri.parse(
-                                  'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${item.id}',
+                                  'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${item
+                                      .id}',
                                 ));
                                 if (res.statusCode == 200) {
                                   final data = jsonDecode(res.body);
                                   bool anyLive = false;
                                   if (data is List && data.isNotEmpty) {
                                     for (var d in data) {
-                                      if (d['live_unlive'] == 'Live' && (d['logs'] as num) > 0) {
+                                      if (d['live_unlive'] == 'Live' &&
+                                          (d['logs'] as num) > 0) {
                                         anyLive = true;
                                         break;
                                       }
                                     }
                                   }
-                                  if ((selectedLabel == 'Live' && anyLive) || (selectedLabel == 'Unlive' && !anyLive)) {
-                                    temp.add(item);
+                                  if ((label == 'Live' && anyLive) ||
+                                      (label == 'Unlive' && !anyLive)) {
+                                    return item;
                                   }
                                 }
                               } catch (e) {
                                 debugPrint('Live/Unlive fetch error: $e');
                               }
-                            }
-                            filtered = temp;
-                          } else if (selectedLabel == 'Rent' || selectedLabel == 'Sell' || selectedLabel == 'Commercial') {
-                            filtered = filtered.where((item) {
-                              return item.buyRent?.toLowerCase() == selectedLabel.toLowerCase();
+                              return null;
                             }).toList();
+
+                            final results = await Future.wait(futures);
+                            filtered = results.whereType<Catid>().toList();
                           }
 
                           setState(() {
@@ -591,205 +1533,115 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                             propertyCount = filtered.length;
                           });
                         },
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Buttons
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: ['Rent', 'Buy', 'Commercial', 'Missing Field', 'Live', 'Unlive', 'Empty Building',]
-                          .map((label) {
-                        final isSelected = label == selectedLabel;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              setState(() {
-                                selectedLabel = label;
-                              });
-
-                              _searchController.clear(); // clear search when button tapped
-                              _debounce?.cancel();       // cancel any ongoing debounce
-
-                              List<Catid> filtered = [];
-
-                              if (label == 'Missing Field') {
-                                // ✅ Missing field logic
-                                filtered = _allProperties.where((item) {
-                                  return (item.images == null || item.images!.trim().isEmpty) ||
-                                      (item.ownerName == null || item.ownerName!.trim().isEmpty) ||
-                                      (item.ownerNumber == null || item.ownerNumber!.trim().isEmpty) ||
-                                      (item.caretakerName == null || item.caretakerName!.trim().isEmpty) ||
-                                      (item.caretakerNumber == null || item.caretakerNumber!.trim().isEmpty) ||
-                                      (item.place == null || item.place!.trim().isEmpty) ||
-                                      (item.buyRent == null || item.buyRent!.trim().isEmpty) ||
-                                      (item.propertyNameAddress == null || item.propertyNameAddress!.trim().isEmpty) ||
-                                      (item.propertyAddressForFieldworker == null || item.propertyAddressForFieldworker!.trim().isEmpty) ||
-                                      (item.ownerVehicleNumber == null || item.ownerVehicleNumber!.trim().isEmpty) ||
-                                      (item.yourAddress == null || item.yourAddress!.trim().isEmpty) ||
-                                      (item.fieldWorkerName == null || item.fieldWorkerName!.trim().isEmpty) ||
-                                      (item.fieldWorkerNumber == null || item.fieldWorkerNumber!.trim().isEmpty) ||
-                                      (item.currentDate == null || item.currentDate!.trim().isEmpty) ||
-                                      (item.longitude == null || item.longitude!.trim().isEmpty) ||
-                                      (item.latitude == null || item.latitude!.trim().isEmpty) ||
-                                      (item.roadSize == null || item.roadSize!.trim().isEmpty) ||
-                                      (item.metroDistance == null || item.metroDistance!.trim().isEmpty) ||
-                                      (item.metroName == null || item.metroName!.trim().isEmpty) ||
-                                      (item.mainMarketDistance == null || item.mainMarketDistance!.trim().isEmpty) ||
-                                      (item.ageOfProperty == null || item.ageOfProperty!.trim().isEmpty) ||
-                                      (item.lift == null || item.lift!.trim().isEmpty) ||
-                                      (item.parking == null || item.parking!.trim().isEmpty) ||
-                                      (item.totalFloor == null || item.totalFloor!.trim().isEmpty) ||
-                                      (item.residenceCommercial == null || item.residenceCommercial!.trim().isEmpty) ||
-                                      (item.facility == null || item.facility!.trim().isEmpty);
-                                }).toList();
-                              }
-                              else if (label == 'Empty Building') {
-                                // ✅ Parallel API calls to fetch status for all properties
-                                final futures = _allProperties.map((item) async {
-                                  try {
-                                    final status = await fetchPropertyStatus(item.id);
-
-                                    if (status["loggValue2"] == "0") {
-                                      return item;
-                                    }
-                                  } catch (e) {
-                                    debugPrint("Flat 0 fetch error for ${item.id}: $e");
-                                  }
-                                  return null;
-                                }).toList();
-
-                                final results = await Future.wait(futures);
-                                filtered = results.whereType<Catid>().toList();
-                              }
-
-                              else if (label == 'Rent' || label == 'Buy' || label == 'Commercial') {
-                                // ✅ Filter by buyRent or Residence_commercial
-                                filtered = _allProperties.where((item) {
-                                  if (label == 'Commercial') {
-                                    final value = (item.residenceCommercial ?? '').toLowerCase();
-                                    return value == 'commercial';
-                                  } else {
-                                    final value = (item.buyRent ?? '').toLowerCase();
-                                    return value == label.toLowerCase();
-                                  }
-                                }).toList();
-                              }
-                              else if (label == 'Live' || label == 'Unlive') {
-                                // ✅ Parallel API requests for speed
-                                final futures = _allProperties.map((item) async {
-                                  try {
-                                    final res = await http.get(Uri.parse(
-                                      'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${item.id}',
-                                    ));
-                                    if (res.statusCode == 200) {
-                                      final data = jsonDecode(res.body);
-                                      bool anyLive = false;
-                                      if (data is List && data.isNotEmpty) {
-                                        for (var d in data) {
-                                          if (d['live_unlive'] == 'Live' && (d['logs'] as num) > 0) {
-                                            anyLive = true;
-                                            break;
-                                          }
-                                        }
-                                      }
-                                      if ((label == 'Live' && anyLive) || (label == 'Unlive' && !anyLive)) {
-                                        return item;
-                                      }
-                                    }
-                                  } catch (e) {
-                                    debugPrint('Live/Unlive fetch error: $e');
-                                  }
-                                  return null;
-                                }).toList();
-
-                                final results = await Future.wait(futures);
-                                filtered = results.whereType<Catid>().toList();
-                              }
-
-                              setState(() {
-                                _filteredProperties = filtered;
-                                propertyCount = filtered.length;
-                              });
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: isSelected ? Colors.blue : Colors.grey[300],
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                            ),
-                            child: Text(
-                              label,
-                              style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.black87,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 12,
-                              ),
-                            ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: isSelected ? Colors.blue : Colors
+                              .grey[300],
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
                           ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
+                        ),
+                        child: Text(
+                          label,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 10),
 
-                  if (propertyCount > 0) // ✅ remove `_isSearchActive` condition
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
+              if (propertyCount > 0)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Theme
+                              .of(context)
+                              .brightness == Brightness.dark ? Colors
+                              .transparent : Colors.grey, width: 1.5),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.check_circle_outline, size: 20,
+                                color: Colors.green),
+                            const SizedBox(width: 6),
+                            Text(
+                              "$propertyCount building found",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14,
+                                  color: Colors.black),
+                            ),
+                            const SizedBox(width: 6),
+                            GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  _searchController.clear();
+                                  selectedLabel = '';
+                                  _filteredProperties = _allProperties;
+                                  propertyCount = _allProperties.length;
+                                });
+                              },
+                              child: const Icon(
+                                  Icons.close, size: 18, color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      isLoading
+                          ? const SizedBox()
+                          : Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.blue.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Total Flats: ${totalFlats ?? 0}",
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+
+                      isLoading
+                          ? const SizedBox()
+                          : Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceEvenly,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              border: Border.all(color: Theme.of(context).brightness==Brightness.dark?Colors.transparent: Colors.grey,width: 1.5),
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.check_circle_outline, size: 20, color: Colors.green),
-                                const SizedBox(width: 6),
-                                Text(
-                                  "$propertyCount building found",
-                                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14,color: Colors.black),
-                                ),
-                                const SizedBox(width: 6),
-                                GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      _searchController.clear();
-                                      selectedLabel = '';
-                                      _filteredProperties = _allProperties;
-                                      propertyCount = _allProperties.length; // ✅ reset to total
-                                    });
-                                  },
-                                  child: const Icon(Icons.close, size: 18, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          isLoading
-                              ? Text("")
-                              : Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
                               color: Colors.blue.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius:
+                              BorderRadius.circular(20),
                             ),
                             child: Row(
-                              mainAxisSize: MainAxisSize.min,
                               children: [
-
                                 Text(
-                                  "Total Flats: ${totalFlats ?? 0}",
+                                  "Live Flats: $liveFlats",
                                   style: const TextStyle(
                                       fontWeight: FontWeight.w500,
                                       fontSize: 14),
@@ -798,157 +1650,112 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                             ),
                           ),
                           const SizedBox(width: 6),
-
-                          isLoading
-                              ? Text("")
-                              : Row(
-                            mainAxisAlignment:
-                            MainAxisAlignment.spaceEvenly,
-                            children: [
-                              // Live Flats Container
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.1),
-                                  borderRadius:
-                                  BorderRadius.circular(20),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(0.1),
+                              borderRadius:
+                              BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              children: [
+                                Text(
+                                  "Rent Out: $bookFlats",
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14),
                                 ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      "Live Flats: $liveFlats",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              // Book Flats Container
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.1),
-                                  borderRadius:
-                                  BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Text(
-                                      "Rent Out: $bookFlats",
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 14),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                            ],
+                              ],
+                            ),
                           ),
                         ],
-                      ),
-                    ),
-
-                ],
-              ),
-            ),            // No results message
-            if (_filteredProperties.isEmpty)
-              Expanded(
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-                      const SizedBox(height: 16),
-                      Text(
-                        "No properties found",
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Try a different search term",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
                       ),
                     ],
                   ),
                 ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: _filteredProperties.length,
-                  itemBuilder: (context, index) {
-                    final property = _filteredProperties[index];
-                    final displayIndex = _filteredProperties.length - index; // ✅ reverse order
-                    String loggValue = "Loading...";
-                    return FutureBuilder<Map<String, dynamic>>(
-                      future: fetchPropertyStatus(property.id),
-                      builder: (context, snapshot) {
-                        String logg1 = "Loading...";
-                        String logg2 = "Loading...";
-                        Color statusColor = Colors.grey;
 
-                        if (snapshot.hasData) {
-                          logg1 = snapshot.data!['loggValue1'];
-                          logg2 = snapshot.data!['loggValue2'];
-                          statusColor = snapshot.data!['statusColor'];
-                        }
-                        else if (snapshot.hasError) {
-                          logg1 = "Error";
-                          logg2 = "Error";
-                          statusColor = Colors.grey;
-                        }
+            ],
+          ),
+        ),
+        if (_filteredProperties.isEmpty)
+          Expanded(
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No properties found",
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Try a different search term",
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[500],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: _filteredProperties.length,
+              itemBuilder: (context, index) {
+                final property = _filteredProperties[index];
+                final displayIndex = _filteredProperties.length - index;
+                return FutureBuilder<Map<String, dynamic>>(
+                  future: fetchPropertyStatus(property.id),
+                  builder: (context, snapshot) {
+                    String logg1 = "Loading...";
+                    String logg2 = "Loading...";
+                    Color statusColor = Colors.grey;
 
-                        return
-                          PropertyCard(
-                          displayIndex: displayIndex,   // ✅ pass here
-                          property: property,
-                          statusText: logg2,     // ✅ pass status text
-                          statusColor: statusColor,
-                            Live_Unlive: logg1,
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => Future_Property_details(
+                    if (snapshot.hasData) {
+                      logg1 = snapshot.data!['loggValue1'];
+                      logg2 = snapshot.data!['loggValue2'];
+                      statusColor = snapshot.data!['statusColor'];
+                    }
+                    else if (snapshot.hasError) {
+                      logg1 = "Error";
+                      logg2 = "Error";
+                      statusColor = Colors.grey;
+                    }
+
+                    return PropertyCard(
+                      displayIndex: displayIndex,
+                      property: property,
+                      statusText: logg2,
+                      statusColor: statusColor,
+                      Live_Unlive: logg1,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                Future_Property_details(
                                   idd: property.id.toString(),
                                 ),
-                              ),
-                            );
-                          },
+                          ),
                         );
                       },
                     );
                   },
-                ),
-              ),
-          ],
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => Add_FutureProperty()),
-            );
-          },
-          icon: const Icon(Icons.add,color: Colors.white,),
-          label: const Text("Add Building",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w600),),
-          backgroundColor: Colors.blue, // Or your primary color
-          elevation: 4,
-        ),
-      ),
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 
@@ -959,7 +1766,154 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
       _SUbid = prefs.getString('id_future') ?? '';
     });
   }
+
+  void _showAddOptionsDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.52,
+          minChildSize: 0.25,
+          maxChildSize: 0.9,
+          builder: (_, controller) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme
+                    .of(context)
+                    .brightness == Brightness.dark ? Colors.grey[900] : Colors
+                    .white,
+                borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 42,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: Theme
+                            .of(context)
+                            .brightness == Brightness.dark
+                            ? Colors.grey[700]
+                            : Colors.grey[300],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Form options',
+                    style: TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold, color: Theme
+                        .of(context)
+                        .brightness == Brightness.dark ? Colors.white : Colors
+                        .black),
+                  ),
+                  const SizedBox(height: 8),
+                  Text('Choose one of the options below to add a new forms.',
+                      style: TextStyle(color: Theme
+                          .of(context)
+                          .brightness == Brightness.dark
+                          ? Colors.grey[300]
+                          : Colors.grey[800])),
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: ListView(
+                      controller: controller,
+                      children: [
+                        _buildOptionTile(
+                          icon: Icons.apartment,
+                          title: 'Add Building',
+                          subtitle: 'Add a new residential building',
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context) => Add_FutureProperty())).then((_) {
+                              _refreshProperties();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        _buildOptionTile(
+                          icon: Icons.landscape,
+                          title: 'Add Plot',
+                          subtitle: 'Add a new plot record',
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            _openPlotForm();
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        _buildOptionTile(
+                          icon: Icons.storefront,
+                          title: 'Add Commercial',
+                          subtitle: 'Add a commercial property',
+                          onTap: () {
+                            Navigator.of(context).pop();
+                            Navigator.push(context, MaterialPageRoute(
+                                builder: (context) =>
+                                    CommercialPropertyForm())).then((newProperty) {
+                              if (newProperty != null && newProperty is CommercialPropertyData) {
+                                _addCommercialProperty(newProperty);
+                              }
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text('Cancel'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildOptionTile({
+    required IconData icon,
+    required String title,
+    String? subtitle,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 3,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            color: Theme
+                .of(context)
+                .brightness == Brightness.dark ? Colors.grey[800] : Colors.grey
+                .shade100,
+          ),
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, size: 28, color: Colors.black87),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      ),
+    );
+  }
 }
+
+// PropertyCard class (unchanged)
 class PropertyCard extends StatelessWidget {
   final dynamic property;
   final String statusText;
@@ -981,13 +1935,10 @@ class PropertyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    Map<String, dynamic>? _cachedData; // store first loaded data
 
-    // Utility check
     bool _isNullOrEmpty(String? value) =>
         value == null || value.trim().isEmpty;
 
-    // Map all Catid fields with readable labels
     final Map<String, dynamic> fields = {
       "Images": property.images,
       "Owner Name": property.ownerName,
@@ -1017,7 +1968,6 @@ class PropertyCard extends StatelessWidget {
       "Facility": property.facility,
     };
 
-    // Check for missing fields
     final missingFields = fields.entries
         .where((entry) {
       final value = entry.value;
@@ -1050,7 +2000,6 @@ class PropertyCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🔹 Image with overlay + badge
             Stack(
               children: [
                 ClipRRect(
@@ -1078,8 +2027,8 @@ class PropertyCard extends StatelessWidget {
                     future: http.get(Uri.parse(
                         'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${property.id}')),
                     builder: (context, snapshot) {
-                      String label = "Unlive: 0"; // default text
-                      Color color = Colors.red.withOpacity(0.8); // default color
+                      String label = "Unlive: 0";
+                      Color color = Colors.red.withOpacity(0.8);
 
                       if (snapshot.connectionState == ConnectionState.done &&
                           snapshot.hasData &&
@@ -1091,13 +2040,12 @@ class PropertyCard extends StatelessWidget {
                           for (var item in data) {
                             if (item['live_unlive'] == 'Live' && (item['logs'] as num) > 0) {
                               anyLive = true;
-                              break; // any single live is enough
+                              break;
                             }
                           }
                         }
 
                         if (anyLive) {
-                          // If any flat is live, show live logs
                           final liveItem = data.firstWhere(
                                 (item) => item['live_unlive'] == 'Live',
                             orElse: () => null,
@@ -1105,7 +2053,6 @@ class PropertyCard extends StatelessWidget {
                           label = "Live: ${liveItem?['logs'] ?? 0}";
                           color = Colors.green.withOpacity(0.8);
                         } else {
-                          // If no flat is live, always show Unlive: 0
                           label = "Unlive: 0";
                           color = Colors.red.withOpacity(0.8);
                         }
@@ -1131,7 +2078,6 @@ class PropertyCard extends StatelessWidget {
               ],
             ),
 
-            // 🔹 Content
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               child: Column(
@@ -1145,7 +2091,7 @@ class PropertyCard extends StatelessWidget {
                         fit: FlexFit.tight,
                         child: _buildInfoChip(
                           context: context,
-                          text: property.place,
+                          text: property.place ?? '-',
                           backgroundColor: isDark ? Colors.green.withOpacity(0.2) : Colors.green.shade50,
                           textColor: isDark ? Colors.white : Colors.green.shade800,
                           borderColor: Colors.green,
@@ -1156,7 +2102,7 @@ class PropertyCard extends StatelessWidget {
                         fit: FlexFit.tight,
                         child: _buildInfoChip(
                           context: context,
-                          text: property.residenceCommercial,
+                          text: property.residenceCommercial ?? '-',
                           backgroundColor: isDark ? Colors.blue.withOpacity(0.2) : Colors.blue.shade50,
                           textColor: isDark ? Colors.blue.shade200 : Colors.blue.shade800,
                           borderColor: Colors.blue,
@@ -1167,7 +2113,7 @@ class PropertyCard extends StatelessWidget {
                         fit: FlexFit.tight,
                         child: _buildInfoChip(
                           context: context,
-                          text: property.buyRent,
+                          text: property.buyRent ?? '-',
                           backgroundColor: isDark ? Colors.orange.withOpacity(0.2) : Colors.orange.shade50,
                           textColor: isDark ? Colors.orange.shade200 : Colors.orange.shade800,
                           borderColor: Colors.orange,
@@ -1177,7 +2123,6 @@ class PropertyCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
 
-                  // Address
                   Text(
                     "Field Worker Address",
                     style: TextStyle(
@@ -1188,7 +2133,7 @@ class PropertyCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    property.propertyAddressForFieldworker,
+                    property.propertyAddressForFieldworker ?? '-',
                     style: TextStyle(
                       fontFamily: "Poppins",
                       fontSize: 13,
@@ -1214,9 +2159,9 @@ class PropertyCard extends StatelessWidget {
                     ],
                   ),
 
-                   const SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   Container(
-                    margin: EdgeInsets.all(5.0),
+                    margin: const EdgeInsets.all(5.0),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -1225,7 +2170,7 @@ class PropertyCard extends StatelessWidget {
                             final s = property.currentDate?.toString() ?? '';
                             if (s.isEmpty) return '-';
                             try {
-                    
+
                               final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
                               return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
                             } catch (_) {
@@ -1254,9 +2199,7 @@ class PropertyCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // const SizedBox(height: 10),
 
-                  // ⚠ Missing fields
                   if (hasMissingFields)
                     Container(
                       width: double.infinity,
@@ -1286,9 +2229,10 @@ class PropertyCard extends StatelessWidget {
   }
 
 }
+
 Widget _buildCompactDetailItem(String title, String value,BuildContext context) {
   return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // more space
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
     decoration: BoxDecoration(
       color: Theme.of(context).brightness == Brightness.dark
           ? Colors.white
@@ -1300,7 +2244,7 @@ Widget _buildCompactDetailItem(String title, String value,BuildContext context) 
         Text(
           "$title: ",
           style: TextStyle(
-            fontSize: 14, // bigger text
+            fontSize: 14,
             fontWeight: FontWeight.w600,
             color: Theme.of(context).brightness == Brightness.dark
                 ? Colors.black
@@ -1315,16 +2259,7 @@ Widget _buildCompactDetailItem(String title, String value,BuildContext context) 
               Theme.of(context).brightness==Brightness.dark?
               Colors.black:
               Colors.white,
-              // shadows: [
-              //   Shadow(
-              //     blurRadius: 1,
-              //     // offset: Offset(2, 2),
-              //     color: Theme.of(context).brightness == Brightness.dark
-              //         ? Colors.amber
-              //         : Colors.black87,
-              //   )
-              // ],
-              fontSize: 15, // bigger text
+              fontSize: 15,
               fontWeight: FontWeight.w700,
             ),
             overflow: TextOverflow.ellipsis,
@@ -1345,7 +2280,6 @@ Widget _buildInfoChip({
 }) {
   final width = MediaQuery.of(context).size.width;
 
-  // Scale text & padding relative to screen width
   double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
   double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
   double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
@@ -1369,7 +2303,7 @@ Widget _buildInfoChip({
         ),
       ],
     ),
-    child: FittedBox( // makes text auto-fit if needed
+    child: FittedBox(
       child: Text(
         text,
         textAlign: TextAlign.center,

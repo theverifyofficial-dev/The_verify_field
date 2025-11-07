@@ -12,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
@@ -418,14 +419,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[7],
       },
-      // {
-      //   "image": AppImages.websiteIssue,
-      //   "title": "Link",
-      //   "onTap": () {
-      //     Navigator.of(context).push(MaterialPageRoute(builder: (context)=> const LinksPage()));
-      //   },
-      //   "gradient": cardGradients[8],
-      // },
     ];
 
     return Scaffold(

@@ -325,7 +325,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
                 _buildStatCard(
                   keyLabel: 'booked-flats',
-                  title: 'Booked Flats',
+                  title: 'Unlive Flats',
                   value: _bookedFlats,
                   icon: Icons.assignment_turned_in,
                   color: colors['blue']!,
@@ -335,7 +335,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
                 _buildStatCard(
                   keyLabel: 'booked-com',
-                  title: 'Booked Commercial',
+                  title: 'Unlive Commercial',
                   value: _bookedCommercial,
                   icon: Icons.business,
                   color: colors['purple']!,

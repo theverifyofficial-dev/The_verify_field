@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <string name="gcm_defaultSenderId" translatable="false">1000380642541</string>
-    <string name="google_api_key" translatable="false">AIzaSyAk1o0SSochuCddo7ax2EPqUEkP3-LEdMo</string>
-    <string name="google_app_id" translatable="false">1:1000380642541:android:8cae74531921c27d5288e4</string>
-    <string name="google_crash_reporting_api_key" translatable="false">AIzaSyAk1o0SSochuCddo7ax2EPqUEkP3-LEdMo</string>
-    <string name="google_storage_bucket" translatable="false">pushnotification-6899a.firebasestorage.app</string>
-    <string name="project_id" translatable="false">pushnotification-6899a</string>
-</resources>

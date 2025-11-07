@@ -50,6 +50,7 @@ class AppImages{
   static const loadingHand = 'assets/images/loadingHand.json';
   static const websiteIssue = 'assets/images/websiteIssue.png';
   static const target = 'assets/images/target.png';
+  static const dashboard = 'assets/images/dashboard.png';
 
 
 

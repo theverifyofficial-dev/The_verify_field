@@ -269,9 +269,9 @@ class _Login_pageState extends State<Login_page> {
         if (user["FAadharCard"] == "Administrator") {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
         }
-        else if (user["FAadharCard"] == "Accountant") {
+        else if (user["FAadharCard"] == "Sub Administrator") {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
-              => AccountantHome(),
+              => SubAdminHomeScreen(),
           ));
         }
         else if (user["FAadharCard"] == "FieldWorkar") {

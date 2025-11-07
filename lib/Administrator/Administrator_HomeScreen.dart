@@ -7,22 +7,19 @@ import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import 'package:verify_feild_worker/Administrator/agreement_details.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import 'package:verify_feild_worker/Login_page.dart';
+import '../Dashboard/Dashoard.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Social_Media_links.dart';
 import '../Statistics/Target_MainPage.dart';
-import '../Tenant_Details_Demand/Parent_class_TenantDemand.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../administrator/Administator_Realestate.dart';
 import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
-import '../profile.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
-import 'Administater_TenanDemand.dart';
 import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
-import 'Administator_Realestate.dart' hide ThemeSwitcher, ADministaterShow_realestete;
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 class AdministratorHome_Screen extends StatefulWidget {
@@ -376,7 +373,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 6,
+                        itemCount: 8,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -387,6 +384,18 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   context,
                                   MaterialPageRoute(
                                     builder: (_) => const AdminDashboard(),
+                                  ),
+                                );
+                              },
+                            },
+                            {
+                              "image": AppImages.dashboard,
+                              "title": "Dashboard",
+                              "onTap": () async {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>  DashboardScreen(),
                                   ),
                                 );
                               },
@@ -440,7 +449,14 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                         builder: (_) => const AdminUpcoming()));
                               },
                             },
-
+                            {
+                              "image": AppImages.target,
+                              "title": "Target",
+                              "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => Target_MainPage())),
+                            },
                           ];
 
                           final item = featureItems[index];

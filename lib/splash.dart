@@ -69,7 +69,7 @@ class _SplashState extends State<Splash> {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
         } else if (role == "Accountant") {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
-          => AccountantHome(),
+          => SubAdminHomeScreen(),
           ));        }
         else if (role == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);

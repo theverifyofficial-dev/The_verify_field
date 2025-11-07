@@ -5,6 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
+
 class MonthlyTargetResult {
   final DateTime periodStartUtc;
   final DateTime periodEndExclUtc;
@@ -97,7 +98,8 @@ class _Target_MainPageState extends State<Target_MainPage> {
 
   String? _ytStartRaw, _ytEndExclRaw; // exact strings from API
   int _ytAchieved = 0;
-  static const int _ytTarget = 60;
+  static const int _ytTarget = 5;
+  static const int _ytTargetRent = 60;
   @override
   void initState() {
     super.initState();
@@ -137,9 +139,13 @@ class _Target_MainPageState extends State<Target_MainPage> {
       _fetchCommercialLiveCount(),
       _fetchAgreementCount(),
       _fetchBuildingCount(),
-    _loadMonthlyTarget(),
+      _loadMonthlyTarget(),
+
       _loadYearlyTarget(),
-      _loadYearlyLiveRent()
+      _loadYearlyLiveRent(),
+      _loadYearlyLiveBuy(),
+      _loadYearlyCommercial(),
+      _loadYearlyAgreements()
     ]);
 
     if (!mounted) return;
@@ -286,8 +292,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchBuyLiveCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php'
-            '?field_workar_number=${_number}',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=${_number}',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) {
@@ -321,8 +326,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
 
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php'
-            '?field_workar_number=${_number}',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=${_number}',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -355,8 +359,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchCommercialLiveCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php'
-            '?field_workar_number=${_number}',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=${_number}',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) {
@@ -385,8 +388,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchAgreementCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php'
-            '?Fieldwarkarnumber=${_number}', // note the param casing and number
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=${_number}', // note the param casing and number
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) {
@@ -422,8 +424,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
     setState(() { _yrRentLoading = true; _yrRentError = null; });
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php'
-            '?field_workar_number=$_number',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$_number',
       );
 
       final resp = await http.get(uri);
@@ -457,6 +458,135 @@ class _Target_MainPageState extends State<Target_MainPage> {
       if (mounted) setState(() { _yrRentLoading = false; });
     }
   }
+
+  bool _yrBuyLoading = false;
+  String? _yrBuyError;
+  String? _yrBuyStartRaw, _yrBuyEndExclRaw;
+  int _yrBuyAchieved = 0;
+  Map<String, dynamic>? _yrBuyData;
+
+  Future<void> _loadYearlyLiveBuy() async {
+    setState(() { _yrBuyLoading = true; _yrBuyError = null; });
+    try {
+      final uri = Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_buy_live_flat_yearly.php?field_workar_number=$_number',
+      );
+      final resp = await http.get(uri);
+      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
+
+      final root = json.decode(resp.body) as Map<String, dynamic>;
+      if (root['success'] != true) throw Exception('API returned success=false');
+
+      final d = (root['data'] as Map?) ?? const {};
+      final start   = ((d['period_start'] as Map?)?['date'] ?? '').toString();
+      final endExcl = ((d['period_end_excl'] as Map?)?['date'] ?? '').toString();
+
+      // note: response key is 'total_live_rent_flat' even for BUY API; using as-is
+      final achieved = (d['total_live_rent_flat'] as num?)?.toInt() ?? 0;
+
+      if (!mounted) return;
+      setState(() {
+        _yrBuyStartRaw   = start;
+        _yrBuyEndExclRaw = endExcl;
+        _yrBuyAchieved   = achieved;
+        _yrBuyData       = Map<String, dynamic>.from(d);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _yrBuyError = e.toString(); });
+    } finally {
+      if (mounted) setState(() { _yrBuyLoading = false; });
+    }
+  }
+
+  bool _yrComLoading = false;
+  String? _yrComError;
+  String? _yrComStartRaw, _yrComEndExclRaw;
+  int _yrComAchieved = 0;
+  Map<String, dynamic>? _yrComData;
+
+  Future<void> _loadYearlyCommercial() async {
+    setState(() { _yrComLoading = true; _yrComError = null; });
+    try {
+      final uri = Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/commerical_count_yearly.php?field_workar_number=$_number',
+      );
+      final resp = await http.get(uri);
+      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
+
+      final root = json.decode(resp.body) as Map<String, dynamic>;
+      if (root['success'] != true) throw Exception('API returned success=false');
+
+      final d = (root['data'] as Map?) ?? const {};
+
+      final startMap = d['period_start'] as Map?;
+      final endMap   = d['period_end_excl'] as Map?;
+
+      final start   = startMap?['date']?.toString() ?? '';
+      final endExcl = endMap?['date']?.toString() ?? '';
+
+      // Try multiple key names because the backend is “creative”
+      num? _pick(dynamic v) => (v is num) ? v : num.tryParse(v?.toString() ?? '');
+      final achieved =
+          _pick(d['total_live_commercial']) ??
+              _pick(d['total_commercial']) ??
+              _pick(d['total_live_rent_flat']) ??  // seen on the BUY yearly API
+              _pick(d['logg']) ??
+              _pick(d['achieved']) ??
+              _pick(d['total_booked']) ??
+              0;
+
+      if (!mounted) return;
+      setState(() {
+        _yrComStartRaw   = start;
+        _yrComEndExclRaw = endExcl;
+        _yrComAchieved   = achieved.toInt();
+        _yrComData       = Map<String, dynamic>.from(d);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _yrComError = e.toString(); });
+    } finally {
+      if (mounted) setState(() { _yrComLoading = false; });
+    }
+  }
+
+  bool _yrAgrLoading = false;
+  String? _yrAgrError;
+  String? _yrAgrStartRaw, _yrAgrEndExclRaw;
+  int _yrAgrAchieved = 0;
+  Map<String, dynamic>? _yrAgrData;
+  Future<void> _loadYearlyAgreements() async {
+    setState(() { _yrAgrLoading = true; _yrAgrError = null; });
+    try {
+      final uri = Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_agreement_yarly.php?Fieldwarkarnumber=$_number',
+      );
+      final resp = await http.get(uri);
+      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
+      final root = json.decode(resp.body) as Map<String, dynamic>;
+      if (root['success'] != true) throw Exception('API returned success=false');
+
+      final d = (root['data'] as Map?) ?? const {};
+      final start   = ((d['period_start'] as Map?)?['date'] ?? '').toString();
+      final endExcl = ((d['period_end_excl'] as Map?)?['date'] ?? '').toString();
+      final achieved = (d['total_agreements'] as num?)?.toInt() ?? 0;
+
+      if (!mounted) return;
+      setState(() {
+        _yrAgrStartRaw   = start;
+        _yrAgrEndExclRaw = endExcl;
+        _yrAgrAchieved   = achieved;
+        _yrAgrData       = Map<String, dynamic>.from(d);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _yrAgrError = e.toString(); });
+    } finally {
+      if (mounted) setState(() { _yrAgrLoading = false; });
+    }
+  }
+
 
   int get _mtBuy  => (_mtData?['buy_count']  as num?)?.toInt() ?? 0;
   int get _mtRent => (_mtData?['rent_count'] as num?)?.toInt() ?? 0;
@@ -496,58 +626,10 @@ class _Target_MainPageState extends State<Target_MainPage> {
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _sectionHeader('Flat Booked'),
+
+              const _HighlightBar(color: Colors.yellow, label: "Flat Booked For Rent"),
+
               const SizedBox(height: 8),
-
-              if (_mtLoading)
-                const SizedBox(
-                    height: 140,
-                    child: Center(child: CircularProgressIndicator()))
-              else if (_mtError != null)
-                ListTile(
-                  leading: const Icon(Icons.error_outline),
-                  title: const Text('Monthly Target 5'),
-                  subtitle: Text(_mtError!,
-                      maxLines: 2, overflow: TextOverflow.ellipsis),
-                  trailing: IconButton(
-                      icon: const Icon(Icons.refresh),
-                      onPressed: _loadMonthlyTarget),
-                )
-              else ...[
-                  if ((_mtStartRaw ?? '').isNotEmpty &&
-                      (_mtEndExclRaw ?? '').isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 6, left: 4),
-                      child: Text(
-                        'Cycle: ${_apiDay(_mtStartRaw)} → ${_apiDay(_mtEndExclRaw)}',
-                        style: Theme.of(context).textTheme.bodySmall,
-                        textAlign: TextAlign.start,
-                      ),
-                    ),
-                  _PieKpiCard(
-                    title: 'Monthly Target 5',
-                    liveCount: _mtAchieved,
-                    target: _mtTarget,
-                    colorLive: Colors.teal,
-                    colorRemain: Colors.grey.shade700,
-                    totalThisMonth: _mtAchieved,
-                  ),
-                ],
-              const SizedBox(height: 8),
-              const SizedBox(height: 12),
-
-// Buy monthly pie
-              _PieKpiCard(
-                title: 'Monthly Buy',
-                liveCount: _mtBuy,
-                target: _mtTarget,                 // same monthly target (5) unless you change it
-                colorLive: Colors.deepPurple,      // distinct color so it doesn’t look like Rent
-                colorRemain: Colors.grey.shade700,
-                totalThisMonth: _mtBuy,            // show raw in the pill
-              ),
-
-              const SizedBox(height: 12),
-
 // Rent monthly pie
               _PieKpiCard(
                 title: 'Monthly Rent',
@@ -557,60 +639,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
                 colorRemain: Colors.grey.shade700,
                 totalThisMonth: _mtRent,
               ),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.shopping_bag_outlined, size: 18),
-                          const SizedBox(width: 8),
-                          const Text('Buy'),
-                          const Spacer(),
-                          Text('${(_mtData?['buy_count'] as num?)?.toInt() ?? 0}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.25),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.3),
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.key_outlined, size: 18),
-                          const SizedBox(width: 8),
-                          const Text('Rent'),
-                          const Spacer(),
-                          Text('${(_mtData?['rent_count'] as num?)?.toInt() ?? 0}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
+              const SizedBox(height: 8),
 
               if (_ytLoading)
                 const SizedBox(height: 140, child: Center(child: CircularProgressIndicator()))
@@ -628,14 +657,14 @@ class _Target_MainPageState extends State<Target_MainPage> {
                       child: Text(
                         // exact API dates, end is exclusive; we print them exactly as provided
                         'Cycle: ${_apiDay(_ytStartRaw)} → ${_apiDay(_ytEndExclRaw)}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: TextStyle(fontWeight: FontWeight.w600),
                         textAlign: TextAlign.start,
                       ),
                     ),
                   _PieKpiCard(
                     title: 'Yearly Target 60',
-                    liveCount: _ytAchieved,
-                    target: _ytTarget,
+                    liveCount: _mtRent,
+                    target: _ytTargetRent,
                     colorLive: Colors.yellow.shade700,
                     colorRemain: Colors.grey.shade700,
                   ),
@@ -655,19 +684,59 @@ class _Target_MainPageState extends State<Target_MainPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.shopping_bag_outlined, size: 18),
+                          const Icon(Icons.key_outlined, size: 18),
                           const SizedBox(width: 8),
-                          const Text('Buy'),
+                          const Text('Rent',style: TextStyle(fontWeight: FontWeight.w600),),
                           const Spacer(),
                           Text(
-                            '${(_ytData?['buy_count'] as num?)?.toInt() ?? 0}',
+                            '${(_ytData?['rent_count'] as num?)?.toInt() ?? 0}',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
+                ],
+              ),
+              // ===================== Flat Booked For Buy =====================
+
+              const SizedBox(height: 16),
+
+              const _HighlightBar(color: Color(0xff006466), label: "Flat Booked For Buy"),
+
+              const SizedBox(height: 8),
+
+              if (_ytLoading)
+                const SizedBox(height: 140, child: Center(child: CircularProgressIndicator()))
+              else if (_ytError != null)
+                ListTile(
+                  leading: const Icon(Icons.error_outline),
+                  title: const Text('Yearly Target 5'),
+                  subtitle: Text(_ytError!, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  trailing: IconButton(icon: const Icon(Icons.refresh), onPressed: _loadYearlyTarget),
+                )
+              else ...[
+                  if ((_ytStartRaw ?? '').isNotEmpty && (_ytEndExclRaw ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6, left: 4),
+                      child: Text(
+                        // exact API dates, end is exclusive; we print them exactly as provided
+                        'Cycle: ${_apiDay(_ytStartRaw)} → ${_apiDay(_ytEndExclRaw)}',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  _PieKpiCard(
+                    title: 'Yearly Target 5',
+                    liveCount: _mtBuy,
+                    target: _ytTarget,
+                    colorLive: Color(0xff006466),
+                    colorRemain: Colors.grey.shade700,
+                  ),
+                ],
+              const SizedBox(height: 8),
+              Row(
+                children: [
                   Expanded(
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -680,28 +749,53 @@ class _Target_MainPageState extends State<Target_MainPage> {
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.key_outlined, size: 18),
+                          const Icon(Icons.shopping_bag_outlined, size: 18),
                           const SizedBox(width: 8),
-                          const Text('Rent'),
+                          const Text('Buy',style: TextStyle(fontWeight: FontWeight.w600),),
                           const Spacer(),
                           Text(
-                            '${(_ytData?['rent_count'] as num?)?.toInt() ?? 0}',
+                            '${(_ytData?['buy_count'] as num?)?.toInt() ?? 0}',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
                           ),
                         ],
                       ),
                     ),
                   ),
+                  // const SizedBox(width: 8),
+                  // Expanded(
+                  //   child: Container(
+                  //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  //     decoration: BoxDecoration(
+                  //       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.25),
+                  //       borderRadius: BorderRadius.circular(10),
+                  //       border: Border.all(
+                  //         color: Theme.of(context).colorScheme.outlineVariant.withOpacity(0.3),
+                  //       ),
+                  //     ),
+                  //     child: Row(
+                  //       children: [
+                  //         const Icon(Icons.key_outlined, size: 18),
+                  //         const SizedBox(width: 8),
+                  //         const Text('Rent'),
+                  //         const Spacer(),
+                  //         Text(
+                  //           '${(_ytData?['rent_count'] as num?)?.toInt() ?? 0}',
+                  //           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  //         ),
+                  //       ],
+                  //     ),
+                  //   ),
+                  // ),
                 ],
               ),
 
 
 
                     // ===================== RENT SECTION =====================
-              _sectionDivider(),
-              _sectionHeader('Live Flats (Rent)'),
-              const SizedBox(height: 8),
-// Monthly (unchanged: still uses your existing _liveCount source)
+              const SizedBox(height: 16),
+
+              const _HighlightBar(color: Colors.blue, label: "Live Flats (Rent)"),
+              // const SizedBox(height: 8),
               _PieKpiCard(
                 title: 'Monthly Target 15',
                 liveCount: _liveCount,
@@ -727,7 +821,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
                       padding: const EdgeInsets.only(bottom: 6, left: 4),
                       child: Text(
                         'Cycle: ${_yrRentStartRaw!.split(' ').first} → ${_yrRentEndExclRaw!.split(' ').first}',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: TextStyle(fontWeight: FontWeight.w600),
                         textAlign: TextAlign.start,
                       ),
                     ),
@@ -740,20 +834,13 @@ class _Target_MainPageState extends State<Target_MainPage> {
                   ),
                 ],
 
-              _sectionDivider(),
+              // _sectionDivider(),
+              const SizedBox(height: 16),
 
               // ===================== BUY SECTION =====================
-              _sectionHeader('Live Flats (Buy)'),
-              const SizedBox(height: 8),
+              const _HighlightBar(color: Colors.deepPurple, label: "Live Flats (Buy)"),
 
-              _PieKpiCard(
-                title: 'Yearly Target 60',
-                liveCount: _buyLiveCount,
-                target: _moreYearlyTarget,
-                colorLive: Colors.deepPurple,
-                colorRemain: Colors.grey.shade700,
-              ),
-              const SizedBox(height: 16),
+              // const SizedBox(height: 8),
 
               _PieKpiCard(
                 title: 'Monthly Target 5',
@@ -763,23 +850,46 @@ class _Target_MainPageState extends State<Target_MainPage> {
                 colorRemain: Colors.grey.shade700,
                 totalThisMonth: _buyLiveCount,
               ),
-
-              const SizedBox(height: 16),
-              _sectionDivider(),
-
-              // ===================== Commercial Live Spaces =====================
-              _sectionHeader('Live Flats (Commercial)'),
               const SizedBox(height: 8),
 
-// Commercial Yearly 60
-              _PieKpiCard(
-                title: 'Yearly Target 60',
-                liveCount: _commercialLiveCount,
-                target: _commercialYearlyTarget,
-                colorLive: Colors.cyan.shade400,
-                colorRemain: Colors.grey.shade700,
-              ),
+// Yearly (BUY) from new API
+              if (_yrBuyLoading)
+                const SizedBox(height: 140, child: Center(child: CircularProgressIndicator()))
+              else if (_yrBuyError != null)
+                ListTile(
+                  leading: const Icon(Icons.error_outline),
+                  title: const Text('Yearly Target 60'),
+                  subtitle: Text(_yrBuyError!, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  trailing: IconButton(icon: const Icon(Icons.refresh), onPressed: _loadYearlyLiveBuy),
+                )
+              else ...[
+                  if ((_yrBuyStartRaw ?? '').isNotEmpty && (_yrBuyEndExclRaw ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6, left: 4),
+                      child: Text(
+                        'Cycle: ${(_yrBuyStartRaw ?? '').split(' ').first} → ${(_yrBuyEndExclRaw ?? '').split(' ').first}',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  _PieKpiCard(
+                    title: 'Yearly Target 60',
+                    liveCount: _yrBuyAchieved,     // <-- from new BUY yearly API
+                    target: _moreYearlyTarget,
+                    colorLive: Colors.deepPurple,
+                    colorRemain: Colors.grey.shade700,
+                  ),
+                ],
+
+
+
+              // ===================== BUY SECTION =====================
               const SizedBox(height: 16),
+
+              const _HighlightBar(color: Colors.cyan, label: "Live Flats (Commercial)"),
+
+
+
 // Commercial Monthly 5
               _PieKpiCard(
                 title: 'Monthly Target 5',
@@ -789,22 +899,40 @@ class _Target_MainPageState extends State<Target_MainPage> {
                 colorRemain: Colors.grey.shade700,
                 totalThisMonth: _commercialLiveCount,
               ),
-
-              _sectionDivider(),
-
-              // ===================== Agreements =====================
-              _sectionHeader('Agreements'),
               const SizedBox(height: 8),
 
-// Agreements (Yearly 180)
-              _PieKpiCard(
-                title: 'Yearly Target 180',
-                liveCount: _agreementCount,
-                target: _agreementYearlyTarget,
-                colorLive: Colors.redAccent,
-                colorRemain: Colors.grey.shade700,
-              ),
+              if (_yrComLoading)
+                const SizedBox(height: 140, child: Center(child: CircularProgressIndicator()))
+              else if (_yrComError != null)
+                ListTile(
+                  leading: const Icon(Icons.error_outline),
+                  title: const Text('Yearly Target 60'),
+                  subtitle: Text(_yrComError!, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  trailing: IconButton(icon: const Icon(Icons.refresh), onPressed: _loadYearlyCommercial),
+                )
+              else ...[
+                  if ((_yrComStartRaw ?? '').isNotEmpty && (_yrComEndExclRaw ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6, left: 4),
+                      child: Text(
+                        'Cycle: ${(_yrComStartRaw ?? '').split(' ').first} → ${(_yrComEndExclRaw ?? '').split(' ').first}',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  _PieKpiCard(
+                    title: 'Yearly Target 60',
+                    liveCount: _yrComAchieved,                 // from the new Commercial yearly API
+                    target: _commercialYearlyTarget,           // you already defined 60
+                    colorLive: Colors.cyan.shade400,
+                    colorRemain: Colors.grey.shade700,
+                  ),
+                ],
+
+              // ===================== Agreements =====================
               const SizedBox(height: 16),
+
+              const _HighlightBar(color: Colors.redAccent, label: "Agreements"),
 
 // Agreements (Monthly 15)
 
@@ -816,25 +944,43 @@ class _Target_MainPageState extends State<Target_MainPage> {
                 colorRemain: Colors.grey.shade700,
                 totalThisMonth: _agreementCount,
               ),
-
-
-              // ===================== Agreements =====================
-
-              _sectionDivider(),
-              _sectionHeader('Buildings'),
-              const SizedBox(height: 8),
-
-// Buildings (Yearly 204)
-              _PieKpiCard(
-                title: 'Yearly Target 204',
-                liveCount: _buildingCount,
-                target: _buildingYearlyTarget,
-                colorLive: Colors.pinkAccent,         // your call
-                colorRemain: Colors.grey.shade700,
-              ),
               const SizedBox(height: 16),
 
-// Buildings (Monthly 17)
+// Agreements — Yearly (from API)
+              if (_yrAgrLoading)
+                const SizedBox(height: 140, child: Center(child: CircularProgressIndicator()))
+              else if (_yrAgrError != null)
+                ListTile(
+                  leading: const Icon(Icons.error_outline),
+                  title: const Text('Yearly Target 180'),
+                  subtitle: Text(_yrAgrError!, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  trailing: IconButton(icon: const Icon(Icons.refresh), onPressed: _loadYearlyAgreements),
+                )
+              else ...[
+                  if ((_yrAgrStartRaw ?? '').isNotEmpty && (_yrAgrEndExclRaw ?? '').isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6, left: 4),
+                      child: Text(
+                        'Cycle: ${(_yrAgrStartRaw ?? '').split(' ').first} → ${(_yrAgrEndExclRaw ?? '').split(' ').first}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                        textAlign: TextAlign.start,
+                      ),
+                    ),
+                  _PieKpiCard(
+                    title: 'Yearly Target 180',
+                    liveCount: _yrAgrAchieved,
+                    target: _agreementYearlyTarget,
+                    colorLive: Colors.redAccent,
+                    colorRemain: Colors.grey.shade700,
+                  ),
+                ],
+
+              // ===================== Buildings =====================
+              const SizedBox(height: 16),
+
+              const _HighlightBar(color: Colors.pinkAccent, label: "Buildings"),
+
+
               _PieKpiCard(
                 title: 'Monthly Target 17',
                 liveCount: _buildingCount,
@@ -843,7 +989,15 @@ class _Target_MainPageState extends State<Target_MainPage> {
                 colorRemain: Colors.grey.shade700,
                 totalThisMonth: _buildingCount,       // show raw in the pill
               ),
+              const SizedBox(height: 16),
 
+              _PieKpiCard(
+                title: 'Yearly Target 204',
+                liveCount: _buildingCount,
+                target: _buildingYearlyTarget,
+                colorLive: Colors.pinkAccent,         // your call
+                colorRemain: Colors.grey.shade700,
+              ),
             ],
           ),
         ),
@@ -852,36 +1006,64 @@ class _Target_MainPageState extends State<Target_MainPage> {
   }
 
 }
-Widget _sectionHeader(String title) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Row(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    ),
-  );
-}
+class _HighlightBar extends StatelessWidget {
+  final Color color;
+  final Color? textcolor; // optional
+  final String label;
 
-Widget _sectionDivider() {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 8.0),
-    child: Divider(color: Colors.grey, height: 1),
-  );
+  const _HighlightBar({
+    required this.color,
+    this.textcolor,
+    required this.label,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // If user gave a textcolor manually, use it.
+    // Otherwise pick a nice adaptive one based on theme
+    final resolvedTextColor = textcolor ??
+        (isDark
+            ?  Colors.white.withOpacity(0.95)
+            : Colors.black.withOpacity(0.85));
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: isDark
+              ? [color.withOpacity(0.50), color.withOpacity(0.14)]
+              : [color.withOpacity(0.40), color.withOpacity(0.04)],
+        ),
+
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: color.withOpacity(isDark ? 0.7 : 0.45),
+          width: isDark?1:1.5,
+        ),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: resolvedTextColor,
+          letterSpacing: 0.6,
+        ),
+      ),
+    );
+  }
 }
 
 class _PieKpiCard extends StatelessWidget {
   final String title;
   final int liveCount;
   final int target;
-  final Color colorLive;      // <- drives both pie + legend for "Live"
-  final Color colorRemain;    // <- drives both pie + legend for "Remaining"
+  final Color colorLive;
+  final Color colorRemain;
   final int? totalThisMonth;
 
   const _PieKpiCard({
@@ -900,7 +1082,7 @@ class _PieKpiCard extends StatelessWidget {
     final pct = target == 0 ? 0.0 : live / target;
 
     return Card(
-      color: Theme.of(context).brightness==Brightness.dark?Colors.white12:Colors.grey.shade100,
+      color: Theme.of(context).brightness==Brightness.dark?Colors.white12:Colors.grey.shade200,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Row(

@@ -26,16 +26,11 @@ class Add_FutureProperty extends StatefulWidget {
 }
 
 class _Add_FuturePropertyState extends State<Add_FutureProperty> {
-
-
-
-
   bool _isLoading = false;
   List<File> _multipleImages = [];
   final _formKey = GlobalKey<FormState>();
 
   DateTime uploadDate = DateTime.now();
-  //String formattedDate = DateFormat('yyyy-MM-dd').format(uploadDate);
 
   List<Map<String, dynamic>> nearbyHospitals = [];
   List<Map<String, dynamic>> nearbySchools = [];
@@ -43,7 +38,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   List<Map<String, dynamic>> nearbyMalls = [];
   List<Map<String, dynamic>> nearbyParks = [];
   List<Map<String, dynamic>> nearbyCinemas = [];
-
 
   final TextEditingController _Ownername = TextEditingController();
   final TextEditingController _Owner_number = TextEditingController();
@@ -60,7 +54,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   String _number = '';
   String _name = '';
-  List<String> selectedFacilities=[];
+  List<String> selectedFacilities = [];
 
   @override
   void initState() {
@@ -73,7 +67,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   String? selectedRoadSize;
   String? selectedMetroDistance;
   String? metro_name;
-  // String? selectedHighwayDistance;
   String? selectedMarketDistance;
   String? _ageOfProperty;
   String? _totalFloor;
@@ -99,39 +92,23 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   String _date = '';
   String _Time = '';
 
+  // Premium Color Scheme
+  final Color primaryColor = Color(0xFF2D5BFF);
+  final Color secondaryColor = Color(0xFF6C63FF);
+  final Color accentColor = Color(0xFF00D4AA);
+  final Color backgroundColor = Color(0xFFF8FAFF);
+  final Color cardColor = Colors.white;
+  final Color textColor = Color(0xFF2D3748);
+
   void _generateDateTime() {
     setState(() {
       _date = DateFormat('d-MMMM-yyyy').format(DateTime.now());
       _Time = DateFormat('h:mm a').format(DateTime.now());
     });
   }
-  // Format the date as you like
-
-  // Future<void> _getCurrentLocation() async {
-  //   if (await _checkLocationPermission()) {
-  //     Position position = await Geolocator.getCurrentPosition(
-  //       desiredAccuracy: LocationAccuracy.high,
-  //     );
-  //
-  //     setState(() {
-  //       lat = position.latitude.toString();
-  //       long = position.longitude.toString();
-  //       _Latitude.text = lat;
-  //       _Longitude.text = long;
-  //     });
-  //
-  //     print("Current Location -> lat: ${position.latitude}, long: ${position.longitude}");
-  //
-  //     // await fetchNearbyFacilities(position); // pass the Position object
-  //   } else {
-  //     await _requestLocationPermission();
-  //   }
-  // }
 
   Future<void> _getCurrentLocation() async {
-    // Check for location permissions
     if (await _checkLocationPermission()) {
-      // Get the current location
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
@@ -154,10 +131,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   Future<void> _requestLocationPermission() async {
     var status = await Permission.location.request();
     if (status == PermissionStatus.granted) {
-      // Permission granted, try getting the location again
       await _getCurrentLocation();
     } else {
-      // Permission denied, handle accordingly
       print('Location permission denied');
     }
   }
@@ -202,21 +177,20 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       });
     }
   }
+
   String? _selectedPropertyType;
   final List<String> propertyTypes = ['Residential', 'Commercial'];
-
 
   Future<void> uploadImageWithTitle(File imageFile) async {
     String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_images.php';
 
     FormData formData = FormData();
 
-    // Single image
     formData.files.add(MapEntry(
       "images",
       await MultipartFile.fromFile(imageFile.path, filename: imageFile.path.split('/').last),
     ));
-    // Text Fields
+
     formData.fields.addAll([
       MapEntry("ownername", _Ownername.text ?? ''),
       MapEntry("ownernumber", _Owner_number.text ?? ''),
@@ -248,7 +222,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("facility", selectedFacilities.join(', ')),
     ]);
 
-    // Multiple images
     for (var image in _multipleImages) {
       formData.files.add(MapEntry(
         "img[]",
@@ -287,7 +260,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     }
   }
 
-
   Future<void> _handleUpload() async {
     if (!_formKey.currentState!.validate()) {
       Fluttertoast.showToast(msg: "Please fill all required fields.");
@@ -303,6 +275,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
     await uploadImageWithTitle(_imageFile!);
   }
+
   String? _selectedItem;
   final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj','Ghitorni'];
   String? _selectedLift;
@@ -322,955 +295,1317 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   String googleApiKey = "AIzaSyAFB2UEvMTcgeH2MrlX2oUq08yVWPVlVr0";
 
-
-
-
-
-  // Future<List<Map<String, dynamic>>> getNearbyPlaces(
-  //     double latitude, double longitude, String placeType) async {
-  //
-  //   final url =
-  //       "https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=$latitude,$longitude&radius=2000&type=$placeType&key=$googleApiKey";
-  //
-  //   final response = await http.get(Uri.parse(url));
-  //   print("Google Places API Response for $placeType: ${response.body}");
-  //
-  //   if (response.statusCode == 200) {
-  //     final data = jsonDecode(response.body);
-  //     final results = data['results'] as List<dynamic>;
-  //     return results.map((e) => e as Map<String, dynamic>).toList();
-  //   } else {
-  //     throw Exception("Failed to fetch places");
-  //   }
-  // }
-  //
-  // Future<void> fetchNearbyFacilities(Position position) async {
-  //   double latitude = position.latitude;
-  //   double longitude = position.longitude;
-  //
-  //   print("Fetching nearby places for lat: $latitude, long: $longitude");
-  //
-  //   try {
-  //     var hospitals = await getNearbyPlaces(latitude, longitude, "hospital");
-  //     var schools = await getNearbyPlaces(latitude, longitude, "school");
-  //     var metros = await getNearbyPlaces(latitude, longitude, "subway_station");
-  //     var malls = await getNearbyPlaces(latitude, longitude, "shopping_mall");
-  //     var parks = await getNearbyPlaces(latitude, longitude, "park");
-  //     var cinemas = await getNearbyPlaces(latitude, longitude, "movie_theater");
-  //
-  //     setState(() {
-  //       nearbyHospitals = hospitals;
-  //       nearbySchools = schools;
-  //       nearbyMetros = metros;
-  //       nearbyMalls = malls;
-  //       nearbyParks = parks;
-  //       nearbyCinemas = cinemas;
-  //
-  //       if (metros.isNotEmpty) metro_name = metros.first['name'];
-  //     });
-  //   } catch (e) {
-  //     print("Error fetching nearby facilities: $e");
-  //   }
-  // }
-
-
-
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color backgroundColor = isDarkMode ? Color(0xFF121212) : Color(0xFFF8FAFF);
+    final Color cardColor = isDarkMode ? Color(0xFF1E1E1E) : Colors.white;
+    final Color textColor = isDarkMode ? Colors.white : Color(0xFF2D3748);
+    final Color secondaryTextColor = isDarkMode ? Colors.white70 : Color(0xFF2D3748).withOpacity(0.6);
 
     return Scaffold(
+      backgroundColor: backgroundColor,
       appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        centerTitle: true,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
-          onPressed: () => Navigator.pop(context),
+        backgroundColor: primaryColor,
+        title: Image.asset(
+          AppImages.transparent,
+          height: 45,
+          errorBuilder: (context, error, stackTrace) {
+            return Text(
+              'Add Building',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            );
+          },
         ),
+        iconTheme: IconThemeData(color: Colors.white),
+        centerTitle: true,
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Add Building",style: TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
-                ],
-              ),
-              SizedBox(height: 5,),
-              _buildSectionCard(
-                title: 'Upload Main Image',
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton.icon(
-                      icon: const Icon(Icons.upload, color: Colors.white),
-                      label: const Text('Pick Image', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                      onPressed: () async {
-                        XFile? pickedXFile = await pickAndCompressImage();
-                        File? pickedImage = pickedXFile != null ? File(pickedXFile.path) : null;
-                        if (pickedImage != null) {
-                          setState(() {
-                            _imageFile = pickedImage;
-                          });
-                        }
-                      },
-                    ),
-                    _imageFile != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.file(_imageFile!, width: 150, height: 120, fit: BoxFit.cover),
-                    )
-                        : const Text('No image selected', style: TextStyle()),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20,),
-          _buildSectionCard(
-            title: 'Upload Multiple Images',
-            child: Column(
-              children: [
-                ElevatedButton.icon(
-                  icon: const Icon(Icons.collections, color: Colors.white),
-                  label: const Text('Pick Images', style: TextStyle(color: Colors.white)),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                  onPressed: pickMultipleImages,
-                ),
-                const SizedBox(height: 10),
-
-                // Show selected images count
-                Text(
-                  "Selected Images: ${_multipleImages.length}",
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500, ),
-                ),
-
-                const SizedBox(height: 10),
-                _multipleImages.isNotEmpty
-                    ? SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _multipleImages.length,
-                    itemBuilder: (context, index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                _multipleImages[index],
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                            Positioned(
-                              right: 0,
-                              top: 0,
-                              child: GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _multipleImages.removeAt(index);
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(4),
-                                  decoration: const BoxDecoration(
-                                    color: Colors.black54,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.close, size: 16, color: Colors.white),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                )
-                    : const Text('No images selected', style: TextStyle()),
-              ],
-            ),
-          ),
-          Row(
-                children: [
-                  Expanded(
-                    child:
-                    _buildDropdownRow('Place', _items, _selectedItem, (val) => setState(() => _selectedItem = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select a Place' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child:
-                    _buildDropdownRow('Buy / Rent', _items1, _selectedItem1, (val) => setState(() => _selectedItem1 = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select a Buy/Rent' : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDropdownRow('Total floor', _items_floor2, _totalFloor, (val) => setState(() => _totalFloor = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
-                    ),
-                  ),
-                  SizedBox(width: 6,),
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Property Type',
-                      propertyTypes,
-                      _selectedPropertyType,
-                          (val) => setState(() => _selectedPropertyType = val),
-                      validator: (val) =>
-                      val == null || val.isEmpty ? 'Select Property Type' : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 10),
-
-              buildTextInput('Owner Name (Optional)', _Ownername,),
-              buildTextInput('Owner No. (Optional)', _Owner_number, keyboardType: TextInputType.phone, validateLength: true),
-              buildTextInput('CareTaker Name (Optional)', _CareTaker_name,),
-              buildTextInput('CareTaker No. (Optional)', _CareTaker_number,keyboardType: TextInputType.phone,validateLength: true),
-
-
-              _buildTextInput('Property Name & Address', _address),
-              _buildSectionCard(
-                child: TextFormField(
-                    controller: _facilityController,
-                    readOnly: true, // Prevents manual editing
-                    onTap: _showFacilitySelectionDialog, // Opens the selection dialog
-                  style:  TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Select Facilities',
-                    hintStyle:  TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-                    filled: true,
-
-                    // ✅ Error text style
-                    errorStyle: const TextStyle(
-                      color: Colors.redAccent, // deep red text
-                      fontSize: 13,
-                      fontWeight: FontWeight.bold,
-                    ),
-
-                    // ✅ Error border (deep red)
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: Colors.redAccent,
-                        width: 2,
-                      ),
-                    ),
-
-                    // ✅ Focused border when error
-                    focusedErrorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: const BorderSide(
-                        color: Colors.redAccent,
-                        width: 2,
-                      ),
-                    ),
-
-                  ),
-                   validator: (val) =>
-                    val == null || val.isEmpty
-                        ? "Select facilities"
-                        : null,
-                ), title: 'Facility',
-              ),
-
-              const SizedBox(height: 10,),
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Road width (in ft)',
-                      roadSizeOptions,
-                      selectedRoadSize,
-                          (val) => setState(() => selectedRoadSize = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select road size' : null,
-                    ),
-                  ),
-                  SizedBox(width: 6,),
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Age of property',
-                      Age_Options,
-                      _ageOfProperty,
-                          (val) => setState(() => _ageOfProperty = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select market distance' : null,
-                    ),
-                  ),
-                ],
-              ),
-
-              Row(
-                children: [
-                  Expanded(
-                    child:
-                    _buildDropdownRow(
-                      'Metro Name',
-                      metro_nameOptions,
-                      metro_name,
-                          (val) => setState(() => metro_name = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select metro Name' : null,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child:
-                    _buildDropdownRow(
-                      'Metro Distance',
-                      metroDistanceOptions,
-                      selectedMetroDistance,
-                          (val) => setState(() => selectedMetroDistance = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select metro distance' : null,
-                    ),
-                  ),
-                ],
-              ),
-              // _buildDropdownRow(
-              //   'Highway Distance (in m)',
-              //   highwayDistanceOptions,
-              //   selectedHighwayDistance,
-              //       (val) => setState(() => selectedHighwayDistance = val),
-              //   validator: (val) => val == null || val.isEmpty ? 'Please select highway distance' : null,
-              // ),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Market Distance',
-                      marketDistanceOptions,
-                      selectedMarketDistance,
-                          (val) => setState(() => selectedMarketDistance = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select market distance' : null,
-                    ),
-                  ),
-                  SizedBox(width: 6,),
-                  Expanded(
-                    child: _buildDropdownRow(
-                      'Lift Availability',
-                      lift_options,
-                      _selectedLift,
-                          (val) => setState(() => _selectedLift = val),
-                      validator: (val) =>
-                      val == null || val.isEmpty ? 'Lift Availability' : null,
-                    ),
-                  ),
-                ],
-              ),
-              _buildDropdownRow(
-                'Parking',
-                parkingOptions,
-                _selectedParking,
-                    (val) => setState(() => _selectedParking = val),
-                validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
-              ),
-
-              _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
-              UpperCase(  'Owner Vehicle Number (Optional)', _vehicleno, keyboardType: TextInputType.text, toUpperCase: true,),
-
-              const SizedBox(height: 20),
-
-              buildNearbyCard('Nearby Hospitals', nearbyHospitals),
-              buildNearbyCard('Nearby Schools', nearbySchools),
-              buildNearbyCard('Nearby Metro Stations', nearbyMetros),
-              buildNearbyCard('Nearby Malls', nearbyMalls),
-              buildNearbyCard('Nearby Parks', nearbyParks),
-              buildNearbyCard('Nearby Cinemas', nearbyCinemas),
-
-              const SizedBox(height: 8),
-
-
-              _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
-              const SizedBox(height: 8),
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(width: 1, color: Colors.grey.shade600),
-                ),
-                child: Text.rich(
-                    TextSpan(
-                        text: 'Note :',
-                        style: TextStyle(fontSize: 14,fontWeight: FontWeight.w600,fontFamily: 'Poppins',letterSpacing: 0),
-                        children: <InlineSpan>[
-                          TextSpan(
-                            text: ' Enter Address manually or get your current Address from one tap on location icon.',
-                            style: TextStyle(fontSize: 14,fontWeight: FontWeight.w500,fontFamily: 'Poppins',letterSpacing: 0),
-                          )
-                        ]
-                    )),
-              ),
+              _buildPremiumHeader(isDarkMode),
+              SizedBox(height: 32),
+              _buildImageUploadSection(isDarkMode, cardColor, textColor),
               SizedBox(height: 20),
-              InkWell(
-                // onTap: ()async {
-                //
-                //   // double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
-                //   // double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
-                //
-                //   double? latitude = double.tryParse(long);
-                //   double? longitude = double.tryParse(lat);
-                //
-                //   if (latitude == null || longitude == null) {
-                //     print("Invalid coordinates! long: $long, lat: $lat");
-                //     return; // stop execution
-                //   }
-                //
-                //   print("Placemark lookup for lat: $latitude, long: $longitude");
-                //
-                //   placemarkFromCoordinates(latitude, longitude).then((placemarks) {
-                //
-                //     var output = 'Unable to fetch location';
-                //     if (placemarks.isNotEmpty) {
-                //       final place = placemarks.first;
-                //
-                //       // Collect all available parts, ignoring null or empty ones
-                //       List<String> parts = [
-                //         place.street,
-                //         place.subLocality,
-                //         place.locality,
-                //         place.subAdministrativeArea,
-                //         place.administrativeArea,
-                //         place.postalCode,
-                //         place.country,
-                //       ].whereType<String>() // 👈 filters out null automatically
-                //           .where((e) => e.trim().isNotEmpty) // 👈 removes empty strings
-                //           .toList();
-                //
-                //       // Join them with commas
-                //       output = parts.join(', ');
-                //     }
-                //
-                //     setState(() {
-                //       full_address = output;
-                //
-                //       _Google_Location.text = full_address;
-                //
-                //       print('Your Current Address:- $full_address');
-                //     });
-                //
-                //   });
-                // },
-
-                onTap: ()async {
-
-                  // double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
-                  // double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
-
-                    double? latitude = double.tryParse(long);
-                    double? longitude = double.tryParse(lat);
-
-                  placemarkFromCoordinates(latitude!, longitude!).then((placemarks) {
-
-                    var output = 'Unable to fetch location';
-                    if (placemarks.isNotEmpty) {
-                      final place = placemarks.first;
-
-                      // Collect all available parts, ignoring null or empty ones
-                      List<String> parts = [
-                        place.street,
-                        place.subLocality,
-                        place.locality,
-                        place.subAdministrativeArea,
-                        place.administrativeArea,
-                        place.postalCode,
-                        place.country,
-                      ].whereType<String>() // 👈 filters out null automatically
-                          .where((e) => e.trim().isNotEmpty) // 👈 removes empty strings
-                          .toList();
-
-                      // Join them with commas
-                      output = parts.join(', ');
-                    }
-                    setState(() {
-                      full_address = output;
-
-                      _Google_Location.text = full_address;
-
-                      print('Your Current Address:- $full_address');
-                    });
-
-                  });
-                },
-
-
-                child: Container(
-
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.only(topRight: Radius.circular(0),topLeft: Radius.circular(0),bottomRight: Radius.circular(10),bottomLeft: Radius.circular(10)),
-                    border: Border.all(width: 1, color: Colors.blue),
-                    color: Colors.blue.shade600
-                  ),
-                  child: Center(child: Text('Get Current Location',style: TextStyle(fontSize: 13,fontWeight: FontWeight.w400,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 1),)),
-                ),
-              ),
-
-              const SizedBox(height: 30),
-
-              Center(
-                child: ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () async {
-                    // 🔹 Validate form first
-                    if (!_formKey.currentState!.validate()) {
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text(
-                            "Form Incomplete",
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          content: const Text(
-                            "Please fill all the required fields before submitting.",
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              child: const Text("OK"),
-                            )
-                          ],
-                        ),
-                      );
-                      return; // ❌ Stop here if empty fields
-                    }
-
-                    setState(() {
-                      _isLoading = true;
-                    });
-
-                    int countdown = 3;
-
-                    // Show dialog
-                    await showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) {
-                        return StatefulBuilder(
-                          builder: (context, setStateDialog) {
-                            Future.delayed(const Duration(seconds: 1), () async {
-                              if (countdown > 1) {
-                                setStateDialog(() {
-                                  countdown--;
-                                });
-                              } else {
-                                // ✅ When countdown ends, show verified
-                                setStateDialog(() {
-                                  countdown = 0;
-                                });
-
-                                await Future.delayed(const Duration(seconds: 1));
-                                if (Navigator.of(context).canPop()) {
-                                  Navigator.of(context).pop(); // close dialog
-                                }
-
-                                // Run your upload logic
-                                await _handleUpload();
-
-                                if (!mounted) return;
-
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text("✅ Submitted Successfully!"),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              }
-                            });
-
-                            return AlertDialog(
-                              backgroundColor:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[900]
-                                  : Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              title: const Text(
-                                "Submitting...",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  AnimatedSwitcher(
-                                    duration: const Duration(milliseconds: 500),
-                                    transitionBuilder: (child, animation) =>
-                                        ScaleTransition(scale: animation, child: child),
-                                    child: countdown > 0
-                                        ? Text(
-                                      "$countdown",
-                                      key: ValueKey<int>(countdown),
-                                      style: TextStyle(
-                                        fontSize: 40,
-                                        fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                            ? Colors.red[300]
-                                            : Colors.red,
-                                      ),
-                                    )
-                                        : const Icon(
-                                      Icons.verified_rounded,
-                                      key: ValueKey<String>("verified"),
-                                      color: Colors.green,
-                                      size: 60,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  Text(
-                                    countdown > 0 ? "Please wait..." : "Verified!",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                      color: Theme.of(context).brightness ==
-                                          Brightness.dark
-                                          ? Colors.white
-                                          : Colors.black,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      },
-                    );
-
-                    setState(() {
-                      _isLoading = false;
-                    });
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade700,
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: _isLoading
-                      ? Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      SizedBox(
-                        width: 18,
-                        height: 30,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Text(
-                        "Processing...",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ],
-                  )
-                      : const Text(
-                    "Submit",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 50),
+              _buildBasicInfoSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+              SizedBox(height: 20),
+              _buildContactInfoSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+              SizedBox(height: 20),
+              _buildPropertyDetailsSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+              SizedBox(height: 20),
+              _buildLocationSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+              SizedBox(height: 20),
+              _buildNearbyFacilitiesSection(isDarkMode, cardColor, textColor),
+              SizedBox(height: 40),
+              _buildPremiumSubmitButton(),
+              SizedBox(height: 50),
             ],
           ),
         ),
       ),
     );
   }
-  TextInputFormatter upperCaseTextFormatter() {
-    return TextInputFormatter.withFunction(
-          (oldValue, newValue) {
-        return TextEditingValue(
-          text: newValue.text.toUpperCase(),
-          selection: newValue.selection,
-        );
-      },
+
+  Widget _buildPremiumHeader(bool isDarkMode) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor, secondaryColor],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.3),
+            blurRadius: 25,
+            offset: Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.add_home_work_rounded, size: 32, color: Colors.white),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Add Building',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                SizedBox(height: 6),
+                Text(
+                  'List your property with premium features',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.9),
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Container(
+                    height: 2,
+                    width: 198,
+                    decoration: BoxDecoration(
+                        color: Colors.amber[400],
+                        borderRadius: BorderRadius.circular(2)
+                    )
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
-  Widget UpperCase(
-      String label,
-      TextEditingController controller, {
-        IconData? icon,
-        TextInputType? keyboardType,
-        bool toUpperCase = false,
-      }) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,
-        // style: const TextStyle(color: Colors.black),
-        textCapitalization:
-        toUpperCase ? TextCapitalization.characters : TextCapitalization.none,
-        inputFormatters:
-        toUpperCase ? [upperCaseTextFormatter()] : null,
-        decoration: InputDecoration(
-          hintText: 'Enter $label',
-          // hintStyle: const TextStyle(color: Colors.grey),
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-          border: const OutlineInputBorder(
-              borderRadius: BorderRadius.all(Radius.circular(10))),
-          filled: true,
-          // fillColor: Colors.grey.shade100,
+
+  Widget _buildPremiumCard({required Widget child, required Color cardColor}) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: Offset(0, 5),
+          ),
+        ],
+        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildSectionHeader(String title, IconData icon, Color textColor) {
+    return Padding(
+      padding: EdgeInsets.all(24),
+      child: Row(
+        children: [
+          Container(
+            padding: EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primaryColor.withOpacity(0.1), secondaryColor.withOpacity(0.1)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: primaryColor),
+          ),
+          SizedBox(width: 12),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: textColor,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageUploadSection(bool isDarkMode, Color cardColor, Color textColor) {
+    return _buildPremiumCard(
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  padding: EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primaryColor.withOpacity(0.1), secondaryColor.withOpacity(0.1)],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(Icons.photo_library_rounded, size: 18, color: primaryColor),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Property Images',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: textColor,
+                  ),
+                ),
+                Spacer(),
+                if (_multipleImages.isNotEmpty)
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: accentColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Text(
+                      '${1 + _multipleImages.length} images',
+                      style: TextStyle(
+                        color: accentColor,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
+              children: [
+                // Main Image with Gallery in Row
+                Row(
+                  children: [
+                    // Main Image
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          XFile? pickedXFile = await pickAndCompressImage();
+                          File? pickedImage = pickedXFile != null ? File(pickedXFile.path) : null;
+                          if (pickedImage != null) {
+                            setState(() {
+                              _imageFile = pickedImage;
+                            });
+                          }
+                        },
+                        child: Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: _imageFile == null ? Colors.grey.withOpacity(0.3) : primaryColor,
+                              width: _imageFile == null ? 1 : 2,
+                            ),
+                            borderRadius: BorderRadius.circular(10),
+                            color: _imageFile == null ? Colors.grey.withOpacity(0.03) : primaryColor.withOpacity(0.02),
+                          ),
+                          child: _imageFile == null
+                              ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.camera_alt_rounded, size: 24, color: Colors.grey),
+                              SizedBox(height: 4),
+                              Text(
+                                'Cover Photo',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          )
+                              : Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _imageFile!,
+                                  width: double.infinity,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 4,
+                                left: 4,
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withOpacity(0.7),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: Text(
+                                    'Main',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(width: 12),
+
+                    // Gallery Images
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: pickMultipleImages,
+                        child: Container(
+                          height: 100,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1),
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey.withOpacity(0.02),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.collections_rounded, size: 28, color: Colors.grey.withOpacity(0.6)),
+                              SizedBox(height: 4),
+                              Text(
+                                _multipleImages.isEmpty ? 'Add More' : '+${_multipleImages.length}',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              if (_multipleImages.isNotEmpty)
+                                Text(
+                                  'photos',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey.withOpacity(0.6),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                // Quick Actions Row
+                SizedBox(height: 12),
+                Row(
+                  children: [
+                    _buildImageActionButton(
+                      icon: Icons.camera_alt_rounded,
+                      label: 'Take Photo',
+                      onTap: () async {
+                        final picker = ImagePicker();
+                        final pickedFile = await picker.pickImage(source: ImageSource.camera);
+                        if (pickedFile != null) {
+                          setState(() {
+                            _imageFile = File(pickedFile.path);
+                          });
+                        }
+                      },
+                    ),
+                    SizedBox(width: 8),
+                    _buildImageActionButton(
+                      icon: Icons.photo_library_rounded,
+                      label: 'From Gallery',
+                      onTap: pickMultipleImages,
+                    ),
+                    SizedBox(width: 8),
+                    if (_multipleImages.isNotEmpty)
+                      _buildImageActionButton(
+                        icon: Icons.delete_outline_rounded,
+                        label: 'Clear All',
+                        onTap: () {
+                          setState(() {
+                            _multipleImages.clear();
+                          });
+                        },
+                        isDanger: true,
+                      ),
+                  ],
+                ),
+
+                // Selected Images Mini Preview
+                if (_multipleImages.isNotEmpty) ...[
+                  SizedBox(height: 12),
+                  Container(
+                    height: 60,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _multipleImages.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          margin: EdgeInsets.only(right: 6),
+                          width: 60,
+                          height: 60,
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(6),
+                                child: Image.file(
+                                  _multipleImages[index],
+                                  width: 60,
+                                  height: 60,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 2,
+                                right: 2,
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      _multipleImages.removeAt(index);
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: EdgeInsets.all(1),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.close_rounded,
+                                        size: 10, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    bool isDanger = false,
+  }) {
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isDanger ? Colors.red.withOpacity(0.05) : primaryColor.withOpacity(0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isDanger ? Colors.red.withOpacity(0.2) : primaryColor.withOpacity(0.2),
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(icon,
+                  size: 16,
+                  color: isDanger ? Colors.red : primaryColor),
+              SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 10,
+                  color: isDanger ? Colors.red : primaryColor,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget buildNearbyCard(String title, List<Map<String, dynamic>> places) {
-    if (places.isEmpty) return SizedBox(); // hide if empty
-    return _buildSectionCard(
-      title: title,
-      child: SizedBox(
-        height: 100,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          itemCount: places.length,
-          itemBuilder: (context, index) {
-            final place = places[index];
-            return Card(
-              margin: EdgeInsets.symmetric(horizontal: 8),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              elevation: 3,
-              child: Container(
-                width: 160,
-                padding: EdgeInsets.all(8),
+  Widget _buildBasicInfoSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Basic Information', Icons.info_rounded, textColor),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Place',
+                        value: _selectedItem,
+                        items: _items,
+                        onChanged: (val) => setState(() => _selectedItem = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select a Place' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Buy / Rent',
+                        value: _selectedItem1,
+                        items: _items1,
+                        onChanged: (val) => setState(() => _selectedItem1 = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select Buy/Rent' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Total Floor',
+                        value: _totalFloor,
+                        items: _items_floor2,
+                        onChanged: (val) => setState(() => _totalFloor = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select total floor' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Property Type',
+                        value: _selectedPropertyType,
+                        items: propertyTypes,
+                        onChanged: (val) => setState(() => _selectedPropertyType = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Select Property Type' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContactInfoSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Contact Information', Icons.contact_phone_rounded, textColor),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                _buildTextInputField(
+                  label: 'Owner Name (Optional)',
+                  controller: _Ownername,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                ),
+                SizedBox(height: 16),
+                _buildTextInputField(
+                  label: 'Owner No. (Optional)',
+                  controller: _Owner_number,
+                  keyboardType: TextInputType.phone,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                ),
+                SizedBox(height: 16),
+                _buildTextInputField(
+                  label: 'CareTaker Name (Optional)',
+                  controller: _CareTaker_name,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                ),
+                SizedBox(height: 16),
+                _buildTextInputField(
+                  label: 'CareTaker No. (Optional)',
+                  controller: _CareTaker_number,
+                  keyboardType: TextInputType.phone,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyDetailsSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Property Details', Icons.home_work_rounded, textColor),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                _buildTextInputField(
+                  label: 'Property Name & Address',
+                  controller: _address,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter property address';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16),
+                _buildFacilityField(textColor, secondaryTextColor),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Road width (in ft)',
+                        value: selectedRoadSize,
+                        items: roadSizeOptions,
+                        onChanged: (val) => setState(() => selectedRoadSize = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select road size' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Age of property',
+                        value: _ageOfProperty,
+                        items: Age_Options,
+                        onChanged: (val) => setState(() => _ageOfProperty = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select age' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Metro Name',
+                        value: metro_name,
+                        items: metro_nameOptions,
+                        onChanged: (val) => setState(() => metro_name = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select metro name' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Metro Distance',
+                        value: selectedMetroDistance,
+                        items: metroDistanceOptions,
+                        onChanged: (val) => setState(() => selectedMetroDistance = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select metro distance' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Market Distance',
+                        value: selectedMarketDistance,
+                        items: marketDistanceOptions,
+                        onChanged: (val) => setState(() => selectedMarketDistance = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select market distance' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDropdownField(
+                        label: 'Lift Availability',
+                        value: _selectedLift,
+                        items: lift_options,
+                        onChanged: (val) => setState(() => _selectedLift = val),
+                        validator: (val) => val == null || val.isEmpty ? 'Please select lift availability' : null,
+                        textColor: textColor,
+                        secondaryTextColor: secondaryTextColor,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                _buildDropdownField(
+                  label: 'Parking',
+                  value: _selectedParking,
+                  items: parkingOptions,
+                  onChanged: (val) => setState(() => _selectedParking = val),
+                  validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLocationSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+    return _buildPremiumCard(
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Location Details', Icons.location_on_rounded, textColor),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                _buildTextInputField(
+                  label: 'Address for Field Worker',
+                  controller: _Address_apnehisaabka,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter address for field worker';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 16),
+                _buildUpperCaseField(
+                  label: 'Owner Vehicle Number (Optional)',
+                  controller: _vehicleno,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                ),
+                SizedBox(height: 16),
+                _buildTextInputField(
+                  label: 'Google Location',
+                  controller: _Google_Location,
+                  textColor: textColor,
+                  secondaryTextColor: secondaryTextColor,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter Google location';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 12),
+                Container(
+                  padding: EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.05),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline_rounded, size: 14, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Enter Address manually or get your current Address from one tap on location button',
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primaryColor, secondaryColor],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () async {
+                        double? latitude = double.tryParse(long);
+                        double? longitude = double.tryParse(lat);
+
+                        if (latitude == null || longitude == null) {
+                          print("Invalid coordinates! long: $long, lat: $lat");
+                          return;
+                        }
+
+                        try {
+                          List<Placemark> placemarks = await placemarkFromCoordinates(latitude, longitude);
+                          var output = 'Unable to fetch location';
+                          if (placemarks.isNotEmpty) {
+                            final place = placemarks.first;
+                            List<String> parts = [
+                              place.street,
+                              place.subLocality,
+                              place.locality,
+                              place.subAdministrativeArea,
+                              place.administrativeArea,
+                              place.postalCode,
+                              place.country,
+                            ].whereType<String>()
+                                .where((e) => e.trim().isNotEmpty)
+                                .toList();
+                            output = parts.join(', ');
+                          }
+                          setState(() {
+                            full_address = output;
+                            _Google_Location.text = full_address;
+                          });
+                        } catch (e) {
+                          print('Error getting location: $e');
+                        }
+                      },
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.my_location_rounded, color: Colors.white, size: 20),
+                            SizedBox(width: 8),
+                            Text(
+                              'Get Current Location',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNearbyFacilitiesSection(bool isDarkMode, Color cardColor, Color textColor) {
+    if (nearbyHospitals.isEmpty && nearbySchools.isEmpty && nearbyMetros.isEmpty &&
+        nearbyMalls.isEmpty && nearbyParks.isEmpty && nearbyCinemas.isEmpty) {
+      return SizedBox();
+    }
+
+    return _buildPremiumCard(
+      cardColor: cardColor,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('Nearby Facilities', Icons.local_activity_rounded, textColor),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 24),
+            child: Column(
+              children: [
+                if (nearbyHospitals.isNotEmpty) _buildNearbyCard('Hospitals', nearbyHospitals, textColor),
+                if (nearbySchools.isNotEmpty) _buildNearbyCard('Schools', nearbySchools, textColor),
+                if (nearbyMetros.isNotEmpty) _buildNearbyCard('Metro Stations', nearbyMetros, textColor),
+                if (nearbyMalls.isNotEmpty) _buildNearbyCard('Shopping Malls', nearbyMalls, textColor),
+                if (nearbyParks.isNotEmpty) _buildNearbyCard('Parks', nearbyParks, textColor),
+                if (nearbyCinemas.isNotEmpty) _buildNearbyCard('Cinemas', nearbyCinemas, textColor),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNearbyCard(String title, List<Map<String, dynamic>> places, Color textColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: 16),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+        SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: places.length,
+            itemBuilder: (context, index) {
+              final place = places[index];
+              return Container(
+                width: 200,
+                margin: EdgeInsets.only(right: 12),
+                padding: EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       place['name'] ?? 'Unknown',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 4),
                     Text(
                       place['vicinity'] ?? '',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: textColor.withOpacity(0.7),
+                      ),
+                      maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 4),
-                    Text(
-                      'Rating: ${place['rating'] ?? 'N/A'}',
-                      style: TextStyle(fontSize: 12),
+                    Row(
+                      children: [
+                        Icon(Icons.star_rounded, size: 12, color: Colors.amber),
+                        SizedBox(width: 4),
+                        Text(
+                          '${place['rating'] ?? 'N/A'}',
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: textColor.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String? value,
+    required List<String> items,
+    required Function(String?) onChanged,
+    required String? Function(String?)? validator,
+    required Color textColor,
+    required Color secondaryTextColor,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+      ),
+      child: DropdownButtonFormField<String>(
+        value: value,
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(color: secondaryTextColor),
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        ),
+        dropdownColor: cardColor,
+        style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+        icon: Icon(Icons.arrow_drop_down_rounded, color: primaryColor),
+        items: items.map((String item) {
+          return DropdownMenuItem<String>(
+            value: item,
+            child: Text(item, style: TextStyle(color: textColor)),
+          );
+        }).toList(),
+        onChanged: onChanged,
+        validator: validator,
+      ),
+    );
+  }
+
+  Widget _buildTextInputField({
+    required String label,
+    required TextEditingController controller,
+    TextInputType? keyboardType,
+    required Color textColor,
+    required Color secondaryTextColor,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: secondaryTextColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        ),
+      ),
+      validator: validator,
+    );
+  }
+
+  Widget _buildUpperCaseField({
+    required String label,
+    required TextEditingController controller,
+    required Color textColor,
+    required Color secondaryTextColor,
+  }) {
+    return TextFormField(
+      controller: controller,
+      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+      textCapitalization: TextCapitalization.characters,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(color: secondaryTextColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
         ),
       ),
     );
   }
 
+  Widget _buildFacilityField(Color textColor, Color secondaryTextColor) {
+    return TextFormField(
+      controller: _facilityController,
+      readOnly: true,
+      onTap: _showFacilitySelectionDialog,
+      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+      decoration: InputDecoration(
+        labelText: 'Select Facilities',
+        labelStyle: TextStyle(color: secondaryTextColor),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: primaryColor),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        ),
+        suffixIcon: Icon(Icons.arrow_drop_down_rounded, color: primaryColor),
+      ),
+      validator: (val) => val == null || val.isEmpty ? "Select facilities" : null,
+    );
+  }
 
-  Widget _buildSectionCard({required String title, required Widget child}) {
+  Widget _buildPremiumSubmitButton() {
     return Container(
       width: double.infinity,
-      child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: _sectionTitleStyle()),
-              const SizedBox(height: 10),
-              child,
-            ],
+      height: 60,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor, secondaryColor],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withOpacity(0.3),
+            blurRadius: 15,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: _isLoading
+              ? null
+              : () async {
+            if (!_formKey.currentState!.validate()) {
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text(
+                    "Form Incomplete",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  content: Text(
+                    "Please fill all the required fields before submitting.",
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text("OK"),
+                    )
+                  ],
+                ),
+              );
+              return;
+            }
+
+            setState(() {
+              _isLoading = true;
+            });
+
+            int countdown = 3;
+
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) {
+                return StatefulBuilder(
+                  builder: (context, setStateDialog) {
+                    Future.delayed(const Duration(seconds: 1), () async {
+                      if (countdown > 1) {
+                        setStateDialog(() {
+                          countdown--;
+                        });
+                      } else {
+                        setStateDialog(() {
+                          countdown = 0;
+                        });
+
+                        await Future.delayed(const Duration(seconds: 1));
+                        if (Navigator.of(context).canPop()) {
+                          Navigator.of(context).pop();
+                        }
+
+                        await _handleUpload();
+
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("✅ Submitted Successfully!"),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    });
+
+                    return AlertDialog(
+                      backgroundColor: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.grey[900]
+                          : Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      title: Text(
+                        "Submitting...",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 500),
+                            transitionBuilder: (child, animation) =>
+                                ScaleTransition(scale: animation, child: child),
+                            child: countdown > 0
+                                ? Text(
+                              "$countdown",
+                              key: ValueKey<int>(countdown),
+                              style: TextStyle(
+                                fontSize: 40,
+                                fontWeight: FontWeight.bold,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.red[300]
+                                    : Colors.red,
+                              ),
+                            )
+                                : Icon(
+                              Icons.verified_rounded,
+                              key: ValueKey<String>("verified"),
+                              color: Colors.green,
+                              size: 60,
+                            ),
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            countdown > 0 ? "Please wait..." : "Verified!",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+
+            setState(() {
+              _isLoading = false;
+            });
+          },
+          child: Center(
+            child: _isLoading
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 30,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                ),
+                SizedBox(width: 12),
+                Text(
+                  "Processing...",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            )
+                : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
+                SizedBox(width: 10),
+                Text(
+                  'SUBMIT PROPERTY',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
-  }
-
-  Widget _buildTextInput(String label, TextEditingController controller, {IconData? icon, TextInputType? keyboardType}) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType, // <--- Add this line
-        // style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          hintText: 'Enter $label',
-          hintStyle:  TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
-          filled: true,
-          // ✅ Error text style (deep red)
-          errorStyle: const TextStyle(
-            color: Colors.redAccent, // deeper red text
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-
-          // ✅ Error border (deep red)
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent, // deep red border
-              width: 2,
-            ),
-          ),
-
-          // ✅ Focused border when still error
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent, // deep red border when focused
-              width: 2,
-            ),
-          // fillColor: Colors.grey.shade100,
-        ),
-        ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-  Widget buildTextInput(
-      String label,
-      TextEditingController controller, {
-        IconData? icon,
-        TextInputType? keyboardType,
-        bool validateLength = false, // keep if you still want digit-only & length limiter
-      }) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        controller: controller,
-        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          hintText: 'Enter $label',
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-          ),
-          filled: true,
-        ),
-        inputFormatters: validateLength
-            ? [
-          FilteringTextInputFormatter.digitsOnly, // only digits
-          LengthLimitingTextInputFormatter(10),   // max 10 digits
-        ]
-            : [],
-      ),
-    );
-  }
-
-  Widget _buildDropdownRow(
-      String label,
-      List<String> items,
-      String? selectedValue,
-      Function(String?) onChanged, {
-        String? Function(String?)? validator,
-      }) {
-    return _buildSectionCard(
-      title: label,
-      child: DropdownButtonFormField<String>(
-        value: selectedValue,
-        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-        validator: validator,
-        // dropdownColor: Colors.grey.shade100,
-        decoration: InputDecoration(
-          filled: true,
-          // fillColor: Colors.grey.shade200,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)
-
-          ),
-
-          // ✅ Error text style
-          errorStyle: const TextStyle(
-            color: Colors.redAccent, // deep red text
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-
-          // ✅ Error border (deep red)
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent,
-              width: 2,
-            ),
-          ),
-
-          // ✅ Focused border when error
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent,
-              width: 2,
-            ),
-          ),
-        ),
-
-
-        // style: const TextStyle(color: Colors.grey),
-        icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-        onChanged: onChanged,
-        items: items
-            .map((item) => DropdownMenuItem<String>(
-          value: item,
-          child: Text(item, style:  TextStyle(fontSize: 10)),
-        ))
-            .toList(),
-      ),
-    );
-  }
-
-
-  TextStyle _sectionTitleStyle() {
-    return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Poppins');
-  }
-
-  void _loaduserdata() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _name = prefs.getString('name') ?? '';
-      _number = prefs.getString('number') ?? '';
-    });
   }
 
   void _showFacilitySelectionDialog() async {
@@ -1291,6 +1626,13 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     }
   }
 
+  void _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('name') ?? '';
+      _number = prefs.getString('number') ?? '';
+    });
+  }
 }
 
 class _FacilityBottomSheet extends StatefulWidget {
@@ -1317,27 +1659,29 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color backgroundColor = isDarkMode ? Color(0xFF1E1E1E) : Colors.white;
+    final Color textColor = isDarkMode ? Colors.white : Color(0xFF2D3748);
 
+    return SafeArea(
       child: Container(
-        // color: Colors.white,
+        color: backgroundColor,
         child: Padding(
-          padding:
-          EdgeInsets.only(),
+          padding: EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-               Padding(
+              Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
                   "Select Facilities",
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textColor),
                 ),
               ),
               ...widget.options.map((option) {
                 final isSelected = _tempSelected.contains(option);
                 return CheckboxListTile(
-                  title: Text(option,style: TextStyle(),),
+                  title: Text(option, style: TextStyle(color: textColor)),
                   value: isSelected,
                   onChanged: (val) {
                     setState(() {
@@ -1350,21 +1694,31 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
                   },
                 );
               }).toList(),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white, // Button background
-                  foregroundColor: Colors.black, // Text/icon color
-                  side: const BorderSide(color: Colors.black), // Optional border
-                  elevation: 3,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              SizedBox(height: 16),
+              Container(
+                width: double.infinity,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF2D5BFF), Color(0xFF6C63FF)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                onPressed: () => Navigator.pop(context, _tempSelected),
-                child: const Text("Done"),
+                child: TextButton(
+                  onPressed: () => Navigator.pop(context, _tempSelected),
+                  child: Text(
+                    "Done",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
               ),
-              SizedBox(height: 10,)
+              SizedBox(height: 10),
             ],
           ),
         ),

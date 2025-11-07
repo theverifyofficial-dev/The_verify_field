@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
@@ -41,6 +42,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
   @override
   void initState() {
     super.initState();
+    // Future.microtask(() => hitAgreementRenewalAPI());
     loadUserName();
     _shineController = AnimationController(
       vsync: this,
@@ -52,6 +54,25 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       curve: Curves.easeInOut,
     );
   }
+
+  Future<void> hitAgreementRenewalAPI() async {
+
+    const String url = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_renewal_cron.php";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        print("✅ Agreement renewal API triggered successfully.");
+        print("Response: ${response.body}");
+      } else {
+        print("⚠️ API failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("❌ Error hitting agreement renewal API: $e");
+    }
+  }
+
 
   @override
   void dispose() {

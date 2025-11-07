@@ -226,12 +226,12 @@ class LinksPage extends StatelessWidget {
         "color": Colors.green,
       },
       {
-        "title": "🏷️ Sell",
+        "title": "🏷️ Buy",
         "url": [
-          {"title": "1RK for Sell", "url": "https://theverify.in/1RK_flat_for_buy.html"},
-          {"title": "1BHK for Sell", "url": "https://theverify.in/1BHK_flat_for_buy.html"},
-          {"title": "2BHK for Sell", "url": "https://theverify.in/2BHK_flat_for_buy.html"},
-          {"title": "3BHK for Sell", "url": "https://theverify.in/3BHK_flat_for_buy.html"},
+          {"title": "1RK for Buy", "url": "https://theverify.in/1RK_flat_for_buy.html"},
+          {"title": "1BHK for Buy", "url": "https://theverify.in/1BHK_flat_for_buy.html"},
+          {"title": "2BHK for Buy", "url": "https://theverify.in/2BHK_flat_for_buy.html"},
+          {"title": "3BHK for Buy", "url": "https://theverify.in/3BHK_flat_for_buy.html"},
         ],
         "color": Colors.yellow,
       },

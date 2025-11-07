@@ -141,7 +141,7 @@ class _add_repet_numState extends State<add_repet_num> {
                     maxLength: 12, // restrict input to 10 digits
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(10),
+                      LengthLimitingTextInputFormatter(12),
                     ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {

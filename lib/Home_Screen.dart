@@ -113,9 +113,29 @@ class _Home_ScreenState extends State<Home_Screen> {
     super.initState();
     _loaduserdata();
     loadUserName();
+    // Future.microtask(() => hitAgreementRenewalAPI());
     _requestLocationPermissionAndGetLocation();
     //initializeService();
   }
+
+  Future<void> hitAgreementRenewalAPI() async {
+
+    const String url = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_renewal_cron.php";
+
+    try {
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        print("✅ Agreement renewal API triggered successfully.");
+        print("Response: ${response.body}");
+      } else {
+        print("⚠️ API failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      print("❌ Error hitting agreement renewal API: $e");
+    }
+  }
+
 
   double? _latitude;
   double? _longitude;

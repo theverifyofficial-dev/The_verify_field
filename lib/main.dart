@@ -4,7 +4,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
 import 'package:verify_feild_worker/provider/Theme_provider.dart';
@@ -213,20 +212,24 @@ class _MyAppState extends State<MyApp> {
           } else if (nestedPayload is Map) {
             payloadMap = Map<String, dynamic>.from(nestedPayload);
           }
-          buildingId ??= payloadMap['building_id']?.toString() ?? payloadMap['buildingId']?.toString();
-          flatId ??= payloadMap['flat_id']?.toString() ?? payloadMap['flatId']?.toString();
+          buildingId ??= payloadMap['building_id']?.toString() ??
+              payloadMap['buildingId']?.toString();
+          flatId ??= payloadMap['flat_id']?.toString() ??
+              payloadMap['flatId']?.toString();
         } catch (e) {
           print("❌ Error parsing nested payload: $e");
         }
       }
 
       // ✅ Extract buildingId from body if still null
-      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && (buildingId == null || buildingId.isEmpty)) {
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") &&
+          (buildingId == null || buildingId.isEmpty)) {
         buildingId = extractBuildingIdFromBody(message.notification?.body);
       }
 
       // 🔹 Handle building notifications → ADministaterShow_FutureProperty
-      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") && buildingId != null) {
+      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") &&
+          buildingId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -239,7 +242,8 @@ class _MyAppState extends State<MyApp> {
       }
 
       // 🔹 Handle NEW_FLAT notification → Administater_Future_Property_details
-      if (type == "NEW_FLAT" ||type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
+      if (type == "NEW_FLAT" ||
+          type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           if (fromTerminated) {
@@ -275,10 +279,84 @@ class _MyAppState extends State<MyApp> {
             arguments: {"fromNotification": true, "flatId": flatId},
           );
         });
-      } else {
-        if (!(type == "BUILDING_UPDATE" || type == "NEW_BUILDING")) {
-          print("⚠️ flatId missing in notification");
+      }
+
+      if (type == "CONTACT_FORM") {
+        print("📨 Navigating to WebQueryPage with payload: $data");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterWebQuery,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "subid": data['subid'] ?? '',
+              "times": data['times'] ?? '',
+              "phone": data['phone'] ?? '',
+              "name": data['name'] ?? '',
+              "dates": data['dates'] ?? '',
+              "message": data['message'] ?? '',
+            },
+          );
+        });
+        return;
+      }
+
+// 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
+      if ([
+        "NEW_AGREEMENT",
+        "AGREEMENT_UPDATED",
+        "AGREEMENT_ACCEPTED",
+        "AGREEMENT_REJECTED",
+      ].contains(type)) {
+        final agreementId = data['id']?.toString() ?? '';
+        final propertyId = data['property_id']?.toString() ?? '';
+
+        if (agreementId.isEmpty) {
+          print("⚠️ Missing agreementId in notification");
+          return;
         }
+
+        print("🔔 Notification Data => ${message.data}");
+        print("📨 Type => ${data['type']}");
+
+        String? targetRoute;
+
+        if (type == "NEW_AGREEMENT" || type == "AGREEMENT_UPDATED") {
+          targetRoute = Routes.adminAgreementPending;
+        } else if (type == "AGREEMENT_REJECTED") {
+          targetRoute = Routes.fieldAgreementPending;
+        } else if (type == "AGREEMENT_ACCEPTED") {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.fieldAgreementAccepted,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "tabIndex": 1,
+            },
+          );
+          return;
+        }
+
+        if (targetRoute != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              targetRoute!,
+                  (route) => false,
+              arguments: {
+                "fromNotification": true,
+                "agreementId": agreementId,
+                "propertyId": propertyId,
+              },
+            );
+          });
+        } else {
+          print("⚠️ No matching route for agreement type: $type");
+        }
+
+        return; // ✅ stop further navigation
       }
 
     } catch (e) {

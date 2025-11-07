@@ -132,7 +132,6 @@ String formatDateStr(dynamic dateVal, String fallback) {
   }
 }
 
-/// Add months safely (keeps day as close as possible; handles month overflow)
 DateTime addMonthsSafely(DateTime from, int monthsToAdd) {
   final targetMonth = from.month + monthsToAdd;
   final yearOffset = (targetMonth - 1) ~/ 12;
@@ -313,8 +312,6 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
           ),
         ),
         pw.SizedBox(height: 6),
-
-
 
         pw.Text('$ownerName, $ownerRelation, $ownerRelationPerson, Resident of $ownerAddress (hereinafter called the FIRST PARTY/LANDLORD).', style: boldStyle),
         pw.SizedBox(height: 10),
@@ -616,3 +613,27 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   await file.writeAsBytes(await pdf.save());
   return file;
 }
+
+pw.Widget clause(String heading, String body) {
+  return pw.Padding(
+    padding: const pw.EdgeInsets.only(bottom: 18), // consistent spacing between clauses
+    child: pw.RichText(
+      text: pw.TextSpan(
+        children: [
+          pw.TextSpan(
+            text: heading,
+            style: pw.TextStyle(
+              fontWeight: pw.FontWeight.bold,
+              fontSize: 11,
+            ),
+          ),
+          pw.TextSpan(
+            text: body,
+            style: pw.TextStyle(fontSize: 11),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+

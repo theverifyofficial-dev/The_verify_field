@@ -805,7 +805,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     ),
                     decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(
                       color: Colors.black, // ✅ label text color
-                    ),  errorMaxLines: 2,),
+                    ),  errorMaxLines: 2,
+                      errorStyle: const TextStyle(
+                        color: Color(0xFFB00020), // 🔥 darker red
+                        fontWeight: FontWeight.w600,
+                      ),),
                     onChanged: (v) {
                       if (showInWords) setState(() {});
                       if (onChanged != null) onChanged(v);  // forward to caller
@@ -1979,12 +1983,16 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 shiftingDate == null
                     ? 'Select Shifting Date'
                     : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
+                style: TextStyle(
+                  color: shiftingDate == null ? Colors.black : Colors.red,
+                  fontWeight:
+                  shiftingDate == null ? FontWeight.w500 : FontWeight.w700,
                 ),
               ),
-              trailing: const Icon(Icons.calendar_today, color: Colors.black87),
+              trailing: Icon(
+                Icons.calendar_today,
+                color: shiftingDate == null ? Colors.black87 : Colors.green,
+              ),
               onTap: () async {
                 final picked = await showDatePicker(
                   context: context,
@@ -1995,6 +2003,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 if (picked != null) setState(() => shiftingDate = picked);
               },
             ),
+
 
             const SizedBox(height: 12),
 
@@ -2066,7 +2075,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
           Row(children: [
             IconButton(onPressed: () {
               // _jumpToStep(0); //Currently, not important!!

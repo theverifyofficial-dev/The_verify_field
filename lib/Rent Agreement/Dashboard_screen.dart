@@ -4,6 +4,7 @@ import '../constant.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Form.dart';
+import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
 
 class AgreementDashboard extends StatelessWidget {
@@ -21,9 +22,9 @@ class AgreementDashboard extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withOpacity(0.3),
+                color: Colors.green.withOpacity(0.8),
               ),
-              child: Icon(icon, size: 28, color: Colors.blue),
+              child: Icon(icon, size: 28, color: Colors.white),
             ),
             const SizedBox(width: 16),
 
@@ -93,6 +94,12 @@ class AgreementDashboard extends StatelessWidget {
             Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const ExternalWizardPage()),
+            );
+          }),
+          _buildSectionItem("Furnished", Icons.workspace_premium, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FurnishedForm()),
             );
           }),
           _buildSectionItem("Renewal", Icons.timer, () {

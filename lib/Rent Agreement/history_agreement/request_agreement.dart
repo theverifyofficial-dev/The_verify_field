@@ -3,11 +3,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Rent%20Agreement/Forms/Commercial_Form.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Renewal_form.dart';
 
 import '../../model/agrement_model.dart';
 import '../Forms/Agreement_Form.dart';
 import '../Forms/External_Form.dart';
+import '../Forms/Furnished_form.dart';
 import '../details_agreement.dart';
 
 class RequestAgreementsPage extends StatefulWidget {
@@ -50,6 +52,12 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
 
       case "renewal agreement":
         page = RenewalForm(agreementId: agreement.id);
+        break;
+      case "commercial agreement":
+        page = CommercialWizardPage(agreementId: agreement.id);
+        break;
+      case "furnished agreement":
+        page = FurnishedForm(agreementId: agreement.id);
         break;
 
       default:
@@ -114,11 +122,12 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
     final bool isRejected = status == "rejected";
     final bool isUpdated = status == "fields updated";
 
+    // 🟢 Use Green as the base theme instead of Blue
     final Color glowColor = isRejected
         ? Colors.redAccent
         : isUpdated
         ? Colors.greenAccent
-        : Colors.blueAccent;
+        : Colors.green; // ✅ Green replaces blue
 
     final size = MediaQuery.of(context).size;
     final double textScale = size.width < 360
@@ -128,152 +137,120 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         : 1.0;
 
     final baseTextColor = isDark ? Colors.white : Colors.black87;
-    final subTextColor = isDark ? Colors.white70 : Colors.black54;
-
-    final Color primaryGlow = Colors.blueAccent;
-    final Color secondaryGlow = Colors.purpleAccent.shade100;
-
-
+    final subTextColor = isDark ? Colors.white70 : Colors.black;
 
     return Container(
       margin: EdgeInsets.symmetric(
         horizontal: size.width * 0.04,
         vertical: size.height * 0.012,
       ),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          colors: isDark
-              ? [
-            primaryGlow.withOpacity(0.07),
-            secondaryGlow.withOpacity(0.05),
-            Colors.black.withOpacity(0.25),
-          ]
-              : [
-            Colors.white,
-            secondaryGlow.withOpacity(0.05),
-            primaryGlow.withOpacity(0.08),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-
-        border: Border.all(
-          color: isDark
-              ? glowColor.withOpacity(0.4)
-              : glowColor.withOpacity(0.2),
-          width: 1.2,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: glowColor.withOpacity(0.3),
-            blurRadius: 15,
-            spreadRadius: 1,
-            offset: const Offset(0, 6),
+      child: Stack(
+        children: [
+          Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [Colors.green.shade700, Colors.black]   // 🌙 Dark Mode
+                  : [ Colors.green.shade400,Colors.white],  // ☀️ Light Mode
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: glowColor.withOpacity(0.25),
+              width: 1.2,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: glowColor.withOpacity(0.15),
+                blurRadius: 12,
+                spreadRadius: 0.6,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-          BoxShadow(
-            color: Colors.white.withOpacity(isDark ? 0.05 : 0.2),
-            blurRadius: 4,
-            spreadRadius: -2,
-            offset: const Offset(-1, -1),
-          ),
-        ],
-
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
           child: Padding(
-            padding: EdgeInsets.all(size.width * 0.04),
+            padding: EdgeInsets.all(size.width * 0.045),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // HEADER
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    return constraints.maxWidth < 330
-                        ? Wrap(
-                      runSpacing: 6,
-                      spacing: 12,
-                      children: [
-                        _neonText("Owner: ${agreement.ownerName}",
-                            glowColor, textScale, baseTextColor),
-                        _neonText("Tenant: ${agreement.tenantName}",
-                            glowColor, textScale, baseTextColor),
-                      ],
-                    )
-                        : Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: _neonText(
-                              "Owner: ${agreement.ownerName}",
-                              glowColor,
-                              textScale,
-                              baseTextColor),
+                // 🔷 Top Row (Owner & Tenant)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        "👤 Owner: ${agreement.ownerName}",
+                        style: TextStyle(
+                          color: baseTextColor,
+                          fontSize: 14.5 * textScale,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
                         ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Align(
-                            alignment: Alignment.centerRight,
-                            child: _neonText(
-                                "Tenant: ${agreement.tenantName}",
-                                glowColor,
-                                textScale,
-                                baseTextColor),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Flexible(
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          "🏠 Tenant: ${agreement.tenantName}",
+                          style: TextStyle(
+                            color: baseTextColor,
+                            fontSize: 14.5 * textScale,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.3,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    );
-                  },
+                      ),
+                    ),
+                  ],
                 ),
-                SizedBox(height: size.height * 0.012),
+                SizedBox(height: size.height * 0.015),
 
-                // PROPERTY INFO
+                // 📍 Address
                 Row(
                   children: [
-                    Icon(Icons.location_on_rounded,
-                        color: subTextColor, size: 18),
+                    Icon(Icons.location_on_rounded, color: subTextColor, size: 18),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
                         agreement.rentedAddress,
                         style: TextStyle(
                           color: subTextColor,
-                          fontSize: 13.5 * textScale,
+                          fontSize: 13.2 * textScale,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: size.height * 0.006),
+                SizedBox(height: size.height * 0.008),
 
+                // ⏰ Shifting Date
                 Row(
                   children: [
-                    Icon(Icons.schedule_rounded,
-                        color: subTextColor, size: 18),
+                    Icon(Icons.schedule_rounded, color: subTextColor, size: 18),
                     const SizedBox(width: 6),
                     Text(
-                      "Shifting: ${agreement.shiftingDate.toLocal().toString().split(' ')[0]}",
+                      "Shifting Date: ${agreement.shiftingDate.toLocal().toString().split(' ')[0]}",
                       style: TextStyle(
                         color: subTextColor,
-                        fontSize: 13.5 * textScale,
+                        fontSize: 13.2 * textScale,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: size.height * 0.016),
-
-                // STATUS BAR
+                SizedBox(height: size.height * 0.018),
                 Container(
                   padding: EdgeInsets.symmetric(
-                    horizontal: size.width * 0.03,
+                    horizontal: size.width * 0.035,
                     vertical: size.height * 0.012,
                   ),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     gradient: LinearGradient(
                       colors: [
                         glowColor.withOpacity(isDark ? 0.15 : 0.08),
@@ -284,7 +261,6 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                     ),
                   ),
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         isRejected
@@ -298,15 +274,18 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          "${agreement.status ?? 'Pending'} • ${agreement.messages ?? ''}",
+                          "${agreement.status ?? 'Pending'} | Reason : ${agreement.messages ?? 'On Hold'}",
                           style: TextStyle(
-                            color: glowColor,
+                            color: isDark
+                                ? Colors.grey.shade100
+                                : Colors.black,
                             fontSize: 13.5 * textScale,
                             fontWeight: FontWeight.w600,
+                            letterSpacing: 0.2,
                             shadows: [
                               Shadow(
                                 color: glowColor.withOpacity(0.4),
-                                blurRadius: 8,
+                                blurRadius: 6,
                               ),
                             ],
                           ),
@@ -315,110 +294,178 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                     ],
                   ),
                 ),
-                SizedBox(height: size.height * 0.016),
 
-                // ACTION BUTTONS
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: size.width * 0.03,
-                          vertical: size.height * 0.008,
-                        ),
-                        decoration: BoxDecoration(
+                if (isRejected) ...[
+                  const SizedBox(height: 10),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                        isDark ? Colors.red.shade700 : Colors.red.shade500,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
-                          color: Colors.red.withOpacity(0.7),
-                          boxShadow: [
-                            BoxShadow(
-                              color: glowColor.withOpacity(0.3),
-                              blurRadius: 10,
-                            ),
-                          ],
                         ),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            agreement.Type.toUpperCase(),
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12 * textScale,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0.8,
-                            ),
-                          ),
+                        elevation: 6,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () => _navigateToEditForm(context, agreement),
+                      icon: const Icon(Icons.edit, size: 18),
+                      label: const Text(
+                        "Edit & Resubmit",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.withOpacity(0.7),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          elevation: 6,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: size.width * 0.04,
-                            vertical: size.height * 0.012,
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => AgreementDetailPage(
-                                agreementId: agreement.id,
+                  ),
+                ],
+                SizedBox(height: size.height * 0.018),
+
+                // 🔘 Bottom Buttons Row
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final bool isSmall = constraints.maxWidth < 340;
+
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        // 🔴 Type Label
+                        Expanded(
+                          child: Container(
+                            alignment: Alignment.center,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: size.width * 0.03,
+                              vertical: size.height * 0.012,
+                            ),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              color: isDark
+                                  ? Colors.grey.shade100
+                                  : Colors.black,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: glowColor.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 3),
+                                ),
+                              ],
+                            ),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                agreement.Type.toUpperCase(),
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.black
+                                      : Colors.grey.shade100,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12.5 * textScale,
+                                  letterSpacing: 0.7,
+                                ),
                               ),
                             ),
-                          );
-                        },
-                        icon: Icon(Icons.visibility,
-                            size: 18 * textScale, color: Colors.white),
-                        label: Text(
-                          "View Details",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13 * textScale,
                           ),
                         ),
-                      ),
-                    ),
-                  ],
+                        SizedBox(width: isSmall ? 8 : 14),
+
+                        // 🟢 View Details Button
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: isDark
+                                  ? Colors.grey.shade100
+                                  : Colors.black,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              elevation: 6,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: size.width * 0.03,
+                                vertical: size.height * 0.012,
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => AgreementDetailPage(
+                                      agreementId: agreement.id),
+                                ),
+                              );
+                            },
+                            icon: Icon(Icons.visibility_rounded,
+                                size: 18 * textScale, color: Colors.green),
+                            label: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                "View Details",
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.black
+                                      : Colors.grey.shade100,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13 * textScale,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ],
             ),
           ),
         ),
+          if (isRejected)
+            Positioned(
+              top: 12,
+              left: -30,
+              child: Transform.rotate(
+                angle: -0.785398, // -45 degrees in radians
+                child: Container(
+                  width: 140,
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.redAccent.shade400,
+                        Colors.red.shade700,
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.redAccent.withOpacity(0.4),
+                        blurRadius: 6,
+                        offset: const Offset(2, 2),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: const Text(
+                    "REJECTED",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.2,
+                      fontSize: 11.5,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+    ]
       ),
     );
   }
-
-
-  Widget _neonText(
-      String text, Color glowColor, double textScale, Color baseColor) {
-    return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 180),
-      child: Text(
-        text.toUpperCase(),
-        style: TextStyle(
-          fontSize: 13 * textScale,
-          fontWeight: FontWeight.bold,
-          color: baseColor,
-          shadows: [
-            Shadow(color: glowColor.withOpacity(0.5), blurRadius: 8),
-            Shadow(color: glowColor.withOpacity(0.2), blurRadius: 16),
-          ],
-        ),
-        overflow: TextOverflow.ellipsis,
-      ),
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {

@@ -13,6 +13,8 @@ import 'package:open_filex/open_filex.dart';
 import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 
+import 'furnished pdf.dart';
+
 
 class AcceptedDetails extends StatefulWidget {
 
@@ -62,6 +64,65 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     }
     return "";
   }
+
+  Widget _furnitureList(dynamic furnitureData) {
+    if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    Map<String, dynamic> furnitureMap = {};
+    try {
+      if (furnitureData is String) {
+        furnitureMap = Map<String, dynamic>.from(json.decode(furnitureData));
+      } else if (furnitureData is Map<String, dynamic>) {
+        furnitureMap = furnitureData;
+      }
+    } catch (e) {
+      debugPrint("⚠️ Furniture parse error: $e");
+    }
+
+    if (furnitureMap.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+              'Furnished Items:',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87)
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: furnitureMap.entries.map((e) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.shade700, width: 1),
+                ),
+                child: Text(
+                  "${e.key} (${e.value})",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Future<void> _fetchAgreementDetail() async {
     print(widget.agreementId);
@@ -209,14 +270,14 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     try {
       final p = Uri.parse(url).pathSegments;
       if (p.isNotEmpty && p.last.contains('.')) return p.last;
-    } catch (_) {}
+    }
+    catch (_) {}
     final rand = math.Random().nextInt(1 << 32);
     return '${defaultBase}_$rand.$defaultExt';
   }
 
   Future<void> _submitAll() async {
     if (agreement == null) return;
-
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -264,6 +325,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "Fieldwarkarnumber": agreement?["Fieldwarkarnumber"] ?? "",
         "property_id": agreement?["property_id"] ?? "",
         "agreement_type": agreement?["agreement_type"] ?? "",
+        "furniture": agreement?["furniture"] ?? "",
       };
 
       fields.forEach((k, v) {
@@ -326,12 +388,10 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         print("✅ Attached $key from URL ($filename, ${resp.headers['content-type']})");
       }
 
-      // Attach local files first
       await attachFile("police_verification_pdf", policeVerificationFile);
       await attachFile("notry_img", notaryImageFile);
       await attachFile("agreement_pdf", pdfFile);
 
-      // Then attach URL files if no local file
       const basePrefix =
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
       await attachFileFromUrl("owner_aadhar_front", agreement?["owner_aadhar_front"], basePrefix: basePrefix);
@@ -370,19 +430,33 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
     File file;
 
-    if (pdfFile == null) {
-      file = await generateAgreementPdf(agreement!);
+    final String type = (agreement!['agreement_type'] ?? '').toString().trim();
+
+    setState(() => isLoading = true);
+
+    try {
+      // 🔹 Pick PDF generator based on type
+      if (type == "Furnished Agreement") {
+        file = await generateFurnishedAgreementPdf(agreement!);
+      } else {
+        file = await generateAgreementPdf(agreement!);
+      }
+
       setState(() {
         pdfFile = file;
         pdfGenerated = true;
       });
-    } else {
-      file = pdfFile!;
+    } catch (e) {
+      debugPrint("PDF Generation Error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to generate PDF: $e'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    } finally {
+      setState(() => isLoading = false);
     }
-    setState(() {
-      pdfFile = file;
-      pdfGenerated = true;
-    });
   }
 
   @override
@@ -424,6 +498,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                       _kv("Maintenance", agreement?["maintaince"]),
                       _kv("Parking", agreement?["parking"]),
                       _kv("Shifting Date", _formatDate(agreement?["shifting_date"]) ?? ""),
+                      _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
+
                     ],
                   ),
 
@@ -610,8 +686,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                 ),
               ),
 
-
-
             const SizedBox(height: 20),
 
             GenerateAgreementButton(onGenerate: _handleGeneratePdf),
@@ -752,18 +826,27 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   }
 
   Widget _propertyCard(Map<String, dynamic> data) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     final String imageUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo'] ?? ''}";
 
+    Color textPrimary = isDark ? Colors.white : Colors.black87;
+    Color textSecondary = isDark ? Colors.grey[400]! : Colors.grey[700]!;
+    Color cardColor = isDark ? Colors.grey[900]! : Colors.white;
+    Color shadowColor = isDark ? Colors.black.withOpacity(0.3) : Colors.grey.withOpacity(0.2);
+
     return Card(
+      color: cardColor,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 8,
       margin: const EdgeInsets.only(bottom: 20),
-      shadowColor: Colors.black.withOpacity(0.15),
+      shadowColor: shadowColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Property Image
+          // 🖼️ Property Image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: Image.network(
@@ -775,87 +858,77 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                 return Container(
                   height: 200,
                   width: double.infinity,
-                  color: Colors.grey[200],
+                  color: isDark ? Colors.grey[800] : Colors.grey[200],
                   alignment: Alignment.center,
-                  child: const Text("No Image",
-                      style: TextStyle(color: Colors.black54)),
+                  child: Text(
+                    "No Image",
+                    style: TextStyle(color: textSecondary),
+                  ),
                 );
               },
             ),
           ),
 
-          // Details
+          // 📋 Property Details
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // BHK + Floor
+                // 💰 Price + BHK + Floor
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     Text(
                       "₹${data['show_Price'] ?? "--"}",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                        color: isDark ? Colors.greenAccent.shade200 : Colors.green,
                       ),
                     ),
-
                     Text(
                       data['Bhk'] ?? "",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: textPrimary,
                       ),
                     ),
                     Text(
                       data['Floor_'] ?? "--",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: textSecondary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
 
-                // Price + Meter
+                // 🧑 Name + 📍 Location
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-
                     Text(
                       "Name: ${data['field_warkar_name'] ?? "--"}",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: textSecondary,
                       ),
                     ),
-
                     Text(
                       "Location: ${data['locations'] ?? "--"}",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: textSecondary,
                       ),
                     ),
-
                   ],
                 ),
                 const SizedBox(height: 10),
 
-                // // Availability
-                // Text(
-                //   "Available from: ${data['available_date']?.toString().split('T')[0] ?? "--"}",
-                //   style: const TextStyle(
-                //     fontSize: 15,
-                //     fontWeight: FontWeight.w500,
-                //   ),
-                // ),
-                // const SizedBox(height: 6),
+                // ⚡ Meter + 🚗 Parking
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -863,28 +936,39 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                       "Meter: ${data['meter'] ?? "--"}",
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[100],
+                        color: textSecondary,
                       ),
                     ),
-
                     Text(
                       "Parking: ${data['parking'] ?? "--"}",
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.grey[100],
+                        color: textSecondary,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
 
-                // Maintenance
-                Text(
-                  "Maintenance: ${data['maintance'] ?? "--"}",
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Colors.grey[100],
-                  ),
+                // 🛠️ Maintenance + ID
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Maintenance: ${data['maintance'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: textSecondary,
+                      ),
+                    ),
+                    Text(
+                      "ID: ${data['property_id'] ?? "--"}",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: textSecondary,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

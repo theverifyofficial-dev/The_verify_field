@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
 import 'dart:io';
 import '../property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -686,6 +687,348 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               delegate: SliverChildBuilderDelegate(
                     (context, index) {
 
+                  return FutureBuilder<List<FutureProperty2>>(
+                      future: fetchData(),
+                      builder: (context,abc){
+                        if(abc.connectionState == ConnectionState.waiting){
+                          return Center(child: CircularProgressIndicator());
+                        }
+                        else if(abc.hasError){
+                          return Text('${abc.error}');
+                        }
+                        else if (abc.data == null || abc.data!.isEmpty) {
+                          // If the list is empty, show an empty image
+                          return Center(
+                            child: Column(
+                              children: [
+                                // Lottie.asset("assets/images/no data.json",width: 450),
+                                Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
+                              ],
+                            ),
+                          );
+                        }
+                        else{
+
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                ElevatedButton.icon(
+                                  onPressed: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => AllContact(
+                                          buildingId: abc.data![0].id.toString(),       // building ID (from API)
+                                          ownerName: abc.data![0].ownerName,            // owner name
+                                          ownerNumber: abc.data![0].ownerNumber,        // owner number
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    elevation: 3,
+                                    backgroundColor: Colors.purple.shade300,
+                                    foregroundColor: Colors.white,
+                                    minimumSize: const Size(double.infinity, 50),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.call, size: 22),
+                                  label: const Text(
+                                    "Calling Section",
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                  ),
+
+                                ),
+                                const SizedBox(height: 20),
+                                Card(
+                                  elevation: 1,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white12
+                                      : Colors.grey.shade200,
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+
+                                        /// Property Type Tags
+                                        Wrap(
+                                          spacing: 6,
+                                          runSpacing: 4,
+                                          children: [
+                                            _buildInfoChip(
+                                              text: abc.data![0].place,
+                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.green.withOpacity(0.2)
+                                                  : Colors.green.shade50,
+                                              textColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.green.shade800,
+                                              borderColor: Colors.green,
+                                            ),
+                                            _buildInfoChip(
+                                              text: abc.data![0].residenceCommercial,
+                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.blue.withOpacity(0.2)
+                                                  : Colors.blue.shade50,
+                                              textColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.blue.shade200
+                                                  : Colors.blue.shade800,
+                                              borderColor: Colors.blue,
+                                            ),
+                                            _buildInfoChip(
+                                              text: abc.data![0].buyRent,
+                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.orange.withOpacity(0.2)
+                                                  : Colors.orange.shade50,
+                                              textColor: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.orange.shade200
+                                                  : Colors.orange.shade800,
+                                              borderColor: Colors.orange,
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 10),
+                                        Divider(height: 1, color: Theme.of(context).dividerColor),
+                                        const SizedBox(height: 10),
+
+                                        _buildCompactSection(
+                                          icon: Icons.person_outline,
+                                          title: "Owner Info",
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black,
+                                          children: [
+                                            _buildCompactChip(
+                                              icon: Icons.person,
+                                              text: abc.data![0].ownerName,
+                                              color: Theme.of(context).brightness == Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.grey.shade200,
+                                              borderColor: Colors.deepPurpleAccent,
+                                              shadowColor: Colors.deepPurpleAccent,
+                                            ),
+                                            GestureDetector(
+                                              onTap: () => _showContactDialog(context, abc.data![0].ownerNumber),
+                                              child: _buildCompactChip(
+                                                icon: Icons.phone,
+                                                text: abc.data![0].ownerNumber,
+                                                color: Theme.of(context).brightness == Brightness.dark
+                                                    ? Colors.white
+                                                    : Colors.grey.shade200,
+                                                borderColor: Colors.deepPurpleAccent,
+                                                shadowColor: Colors.deepPurpleAccent,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 8),
+
+                                        /// Vehicle number chip
+                                        Center(
+                                          child: _buildCompactChip(
+                                            icon: Icons.directions_car,
+                                            text: abc.data![0].ownerVehicleNumber,
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.white
+                                                : Colors.grey.shade200,
+                                            borderColor: Colors.cyan,
+                                            shadowColor: Colors.cyan,
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 12),
+
+                                        /// Caretaker Section
+                                        _buildCompactSection(
+                                          icon: Icons.support_agent,
+                                          title: "Caretaker",
+                                          color: Theme.of(context).brightness == Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black,
+                                          children: [
+                                            Wrap(
+                                              spacing: 12,
+                                              runSpacing: 8,
+                                              children: [
+                                                _buildCompactChip(
+                                                  icon: Icons.person,
+                                                  text: abc.data![0].caretakerName,
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Colors.white
+                                                      : Colors.grey.shade200,
+                                                  borderColor: Colors.blue,
+                                                  shadowColor: Colors.red,
+                                                ),
+                                                GestureDetector(
+                                                  onTap: () => _showCallDialog(
+                                                    context,
+                                                    abc.data![0].caretakerNumber,
+                                                    "Caretaker",
+                                                  ),
+                                                  child: _buildCompactChip(
+                                                    icon: Icons.phone,
+                                                    text: abc.data![0].caretakerNumber,
+                                                    color: Theme.of(context).brightness == Brightness.dark
+                                                        ? Colors.white
+                                                        : Colors.grey.shade200,
+                                                    borderColor: Colors.blue,
+                                                    shadowColor: Colors.red,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 20),
+
+                                        /// Address Section
+                                        _buildExpandableSection(
+                                          icon: Icons.location_on_outlined,
+                                          title: "Address",
+                                          color: Colors.blueAccent,
+                                          content: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              _buildCompactTextRow("Property Address :", abc.data![0].propertyNameAddress),
+                                              const SizedBox(height: 6),
+                                              _buildCompactTextRow("Field Worker Address: ", abc.data![0].propertyAddressForFieldworker),
+                                              const SizedBox(height: 6),
+                                              InkWell(
+                                                onTap: () async {
+                                                  final address = abc.data![0].yourAddress;
+                                                  final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
+
+                                                  if (await canLaunchUrl(url)) {
+                                                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                                                  } else {
+                                                    throw 'Could not launch $url';
+                                                  }
+                                                },
+                                                child: Row(
+                                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                                  children: [
+                                                    const Icon(Icons.location_on, color: Colors.red, size: 20),
+                                                    const SizedBox(width: 6),
+                                                    Expanded(
+                                                      child: RichText(
+                                                        text: TextSpan(
+                                                          children: [
+                                                            const TextSpan(
+                                                              text: "Current Location: ",
+                                                              style: TextStyle(
+                                                                fontFamily: "Poppins",
+                                                                fontWeight: FontWeight.bold,
+                                                              ),
+                                                            ),
+                                                            TextSpan(
+                                                              text: abc.data![0].yourAddress,
+                                                              style: const TextStyle(
+                                                                color: Colors.blue,
+                                                                fontFamily: "Poppins",
+                                                                decoration: TextDecoration.underline,
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+
+                                            ],
+                                          ),
+                                        ),
+
+                                        const SizedBox(height: 20),
+
+                                        /// Property Details Grid
+                                        _buildCompactSection(
+                                          icon: Icons.info_outline,
+                                          title: "Details",
+                                          color: Colors.green,
+                                          children: [
+                                            GridView.builder(
+                                              shrinkWrap: true,
+                                              physics: const NeverScrollableScrollPhysics(),
+                                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                                                maxCrossAxisExtent: 220,
+                                                childAspectRatio: 3.2,
+                                                crossAxisSpacing: 8,
+                                                mainAxisSpacing: 8,
+                                              ),
+                                              itemCount: 8,
+                                              itemBuilder: (context, index) {
+                                                final details = [
+                                                  ["Floors", abc.data![0].totalFloor],
+                                                  ["Road Size", abc.data![0].roadSize],
+                                                  ["Metro", abc.data![0].metroName],
+                                                  ["Metro Dist", abc.data![0].metroDistance],
+                                                  ["Market Dist", abc.data![0].mainMarketDistance],
+                                                  ["Age", abc.data![0].ageOfProperty],
+                                                  ["Lift", abc.data![0].lift],
+                                                  ["Parking", abc.data![0].parking],
+                                                ];
+                                                return _buildCompactDetailItem(details[index][0], details[index][1]);
+                                              },
+                                            ),
+                                          ],
+                                        ),
+
+                                        const SizedBox(height: 20),
+
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              "Added: ${abc.data![0].currentDate ?? '-'}",
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+
+                                            Text(
+                                              "ID: ${abc.data![0].id}",
+                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      }
+                  );
+                },
+                childCount: 1, // Number of categories
+              ),
+            ),
+
+
+            SliverList(
+
+              delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+
                   return FutureBuilder<List<Ground>>(
                     future: fetchData_Ground(),
                     builder: (context, abc) {
@@ -1062,6 +1405,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 childCount: 1, // Number of categories
               ),
             ),
+
             SliverList(
 
               delegate: SliverChildBuilderDelegate(
@@ -1079,7 +1423,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       } else {
                         final data = abc.data!;
                         return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          // crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -3904,317 +4248,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               ),
             ),
 
-            SliverList(
-
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-
-                  return FutureBuilder<List<FutureProperty2>>(
-                      future: fetchData(),
-                      builder: (context,abc){
-                        if(abc.connectionState == ConnectionState.waiting){
-                          return Center(child: CircularProgressIndicator());
-                        }
-                        else if(abc.hasError){
-                          return Text('${abc.error}');
-                        }
-                        else if (abc.data == null || abc.data!.isEmpty) {
-                          // If the list is empty, show an empty image
-                          return Center(
-                            child: Column(
-                              children: [
-                                // Lottie.asset("assets/images/no data.json",width: 450),
-                                Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                              ],
-                            ),
-                          );
-                        }
-                        else{
-
-                          return SingleChildScrollView(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Card(
-                                  elevation: 1,
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white12
-                                      : Colors.grey.shade200,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-
-                                        /// Property Type Tags
-                                        Wrap(
-                                          spacing: 6,
-                                          runSpacing: 4,
-                                          children: [
-                                            _buildInfoChip(
-                                              text: abc.data![0].place,
-                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.green.withOpacity(0.2)
-                                                  : Colors.green.shade50,
-                                              textColor: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.white
-                                                  : Colors.green.shade800,
-                                              borderColor: Colors.green,
-                                            ),
-                                            _buildInfoChip(
-                                              text: abc.data![0].residenceCommercial,
-                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.blue.withOpacity(0.2)
-                                                  : Colors.blue.shade50,
-                                              textColor: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.blue.shade200
-                                                  : Colors.blue.shade800,
-                                              borderColor: Colors.blue,
-                                            ),
-                                            _buildInfoChip(
-                                              text: abc.data![0].buyRent,
-                                              backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.orange.withOpacity(0.2)
-                                                  : Colors.orange.shade50,
-                                              textColor: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.orange.shade200
-                                                  : Colors.orange.shade800,
-                                              borderColor: Colors.orange,
-                                            ),
-                                          ],
-                                        ),
-
-                                        const SizedBox(height: 10),
-                                        Divider(height: 1, color: Theme.of(context).dividerColor),
-                                        const SizedBox(height: 10),
-
-                                        /// Owner Info
-                                        _buildCompactSection(
-                                          icon: Icons.person_outline,
-                                          title: "Owner Info",
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.white
-                                              : Colors.black,
-                                          children: [
-                                            _buildCompactChip(
-                                              icon: Icons.person,
-                                              text: abc.data![0].ownerName,
-                                              color: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.white
-                                                  : Colors.grey.shade200,
-                                              borderColor: Colors.deepPurpleAccent,
-                                              shadowColor: Colors.deepPurpleAccent,
-                                            ),
-                                            GestureDetector(
-                                              onTap: () => _showContactDialog(context, abc.data![0].ownerNumber),
-                                              child: _buildCompactChip(
-                                                icon: Icons.phone,
-                                                text: abc.data![0].ownerNumber,
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.white
-                                                    : Colors.grey.shade200,
-                                                borderColor: Colors.deepPurpleAccent,
-                                                shadowColor: Colors.deepPurpleAccent,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-
-                                        const SizedBox(height: 8),
-
-                                        /// Vehicle number chip
-                                        Center(
-                                          child: _buildCompactChip(
-                                            icon: Icons.directions_car,
-                                            text: abc.data![0].ownerVehicleNumber,
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.white
-                                                : Colors.grey.shade200,
-                                            borderColor: Colors.cyan,
-                                            shadowColor: Colors.cyan,
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 12),
-
-                                        /// Caretaker Section
-                                        _buildCompactSection(
-                                          icon: Icons.support_agent,
-                                          title: "Caretaker",
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.white
-                                              : Colors.black,
-                                          children: [
-                                            Wrap(
-                                              spacing: 12,
-                                              runSpacing: 8,
-                                              children: [
-                                                _buildCompactChip(
-                                                  icon: Icons.person,
-                                                  text: abc.data![0].caretakerName,
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.grey.shade200,
-                                                  borderColor: Colors.blue,
-                                                  shadowColor: Colors.red,
-                                                ),
-                                                GestureDetector(
-                                                  onTap: () => _showCallDialog(
-                                                    context,
-                                                    abc.data![0].caretakerNumber,
-                                                    "Caretaker",
-                                                  ),
-                                                  child: _buildCompactChip(
-                                                    icon: Icons.phone,
-                                                    text: abc.data![0].caretakerNumber,
-                                                    color: Theme.of(context).brightness == Brightness.dark
-                                                        ? Colors.white
-                                                        : Colors.grey.shade200,
-                                                    borderColor: Colors.blue,
-                                                    shadowColor: Colors.red,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-
-                                        const SizedBox(height: 20),
-
-                                        /// Address Section
-                                        _buildExpandableSection(
-                                          icon: Icons.location_on_outlined,
-                                          title: "Address",
-                                          color: Colors.blueAccent,
-                                          content: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              _buildCompactTextRow("Property Address :", abc.data![0].propertyNameAddress),
-                                              const SizedBox(height: 6),
-                                              _buildCompactTextRow("Field Worker Address: ", abc.data![0].propertyAddressForFieldworker),
-                                              const SizedBox(height: 6),
-                                              InkWell(
-                                                onTap: () async {
-                                                  final address = abc.data![0].yourAddress;
-                                                  final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
-
-                                                  if (await canLaunchUrl(url)) {
-                                                    await launchUrl(url, mode: LaunchMode.externalApplication);
-                                                  } else {
-                                                    throw 'Could not launch $url';
-                                                  }
-                                                },
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    const Icon(Icons.location_on, color: Colors.red, size: 20),
-                                                    const SizedBox(width: 6),
-                                                    Expanded(
-                                                      child: RichText(
-                                                        text: TextSpan(
-                                                          children: [
-                                                            const TextSpan(
-                                                              text: "Current Location: ",
-                                                              style: TextStyle(
-                                                                fontFamily: "Poppins",
-                                                                fontWeight: FontWeight.bold,
-                                                              ),
-                                                            ),
-                                                            TextSpan(
-                                                              text: abc.data![0].yourAddress,
-                                                              style: const TextStyle(
-                                                                color: Colors.blue,
-                                                                fontFamily: "Poppins",
-                                                                decoration: TextDecoration.underline,
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              )
-
-                                            ],
-                                          ),
-                                        ),
-
-                                        const SizedBox(height: 20),
-
-                                        /// Property Details Grid
-                                        _buildCompactSection(
-                                          icon: Icons.info_outline,
-                                          title: "Details",
-                                          color: Colors.green,
-                                          children: [
-                                            GridView.builder(
-                                              shrinkWrap: true,
-                                              physics: const NeverScrollableScrollPhysics(),
-                                              gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                                                maxCrossAxisExtent: 220,
-                                                childAspectRatio: 3.2,
-                                                crossAxisSpacing: 8,
-                                                mainAxisSpacing: 8,
-                                              ),
-                                              itemCount: 8,
-                                              itemBuilder: (context, index) {
-                                                final details = [
-                                                  ["Floors", abc.data![0].totalFloor],
-                                                  ["Road Size", abc.data![0].roadSize],
-                                                  ["Metro", abc.data![0].metroName],
-                                                  ["Metro Dist", abc.data![0].metroDistance],
-                                                  ["Market Dist", abc.data![0].mainMarketDistance],
-                                                  ["Age", abc.data![0].ageOfProperty],
-                                                  ["Lift", abc.data![0].lift],
-                                                  ["Parking", abc.data![0].parking],
-                                                ];
-                                                return _buildCompactDetailItem(details[index][0], details[index][1]);
-                                              },
-                                            ),
-                                          ],
-                                        ),
-
-                                        const SizedBox(height: 20),
-
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Text(
-                                              "Added: ${abc.data![0].currentDate ?? '-'}",
-                                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
-
-                                        Text(
-                                          "ID: ${abc.data![0].id}",
-                                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: "Poppins",
-                                          ),
-                                        ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      }
-                  );
-                },
-                childCount: 1, // Number of categories
-              ),
-            ),
             SliverList(
               delegate: SliverChildBuilderDelegate(
                     (context, index) {

@@ -27,6 +27,9 @@ class AdminAllAgreementModel {
   final String customMeterUnit;
   final String customMaintenanceCharge;
   final String current_date;
+  final String bhk;
+  final String floor;
+  final String? agreementType;
 
   AdminAllAgreementModel( {
     required this.id,
@@ -57,6 +60,9 @@ class AdminAllAgreementModel {
     required this.customMeterUnit,
     required this.customMaintenanceCharge,
     required this. current_date,
+    required this.bhk,
+    required this.floor,
+    required this.agreementType,
   });
   factory AdminAllAgreementModel.fromJson(Map<String, dynamic> json) {
     return AdminAllAgreementModel(
@@ -88,6 +94,9 @@ class AdminAllAgreementModel {
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
       current_date: json['current_dates']?['date'] ?? '', // ✅ FIX
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      agreementType: json['agreement_type'],
     );
   }
 }

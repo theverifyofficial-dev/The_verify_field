@@ -1,28 +1,39 @@
 import 'dart:convert';
+import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../Custom_Widget/Custom_backbutton.dart';
+import 'Forms/Agreement_Form.dart';
+import 'Forms/Commercial_Form.dart';
+import 'Forms/External_Form.dart';
+import 'Forms/Furnished_form.dart';
+import 'Forms/Renewal_form.dart';
 
-/// Professional UI facelift only. Your texts, labels, and data flow are unchanged.
-class AgreementDetailPage extends StatefulWidget {
+/// Redesigned AgreementDetailPage — UI facelift to match Admin cards (green → black/white).
+class AgreementDetailPage extends StatefulWidget  {
+  final bool fromNotification;
   final String agreementId;
-  const AgreementDetailPage({super.key, required this.agreementId});
+  const AgreementDetailPage({super.key,    this.fromNotification = false,
+    required this.agreementId});
 
   @override
   State<AgreementDetailPage> createState() => _AgreementDetailPageState();
 }
 
-class _AgreementDetailPageState extends State<AgreementDetailPage> {
+class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleTickerProviderStateMixin {
   Map<String, dynamic>? agreement;
   bool isLoading = true;
+
 
   @override
   void initState() {
     super.initState();
     _fetchAgreementDetail();
   }
+
+
 
   Future<void> _fetchAgreementDetail() async {
     try {
@@ -49,9 +60,14 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     }
   }
 
-  // ====== LOOK & FEEL HELPERS (design only) ======
-  Color get _panel => Theme.of(context).colorScheme.surface;
-  Color get _ink => Theme.of(context).colorScheme.onSurface;
+
+  // ====== Design helpers (kept and expanded) ======
+  Color get _panel => Theme.of(context).brightness == Brightness.dark
+      ? const Color(0xFF121212)
+      : Colors.white;
+  Color get _ink => Theme.of(context).brightness == Brightness.dark
+      ? Colors.white
+      : Colors.black87;
   Color get _muted => _ink.withOpacity(.68);
   Color get _stroke => Theme.of(context).dividerColor.withOpacity(.22);
 
@@ -63,32 +79,21 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     return 180;
   }
 
+  Color _statusColor(String s) {
+    final t = s.toLowerCase();
+    if (t.contains('rejected')) return Colors.redAccent;
+    if (t.contains('resubmit') || t.contains('approved')) return Colors.greenAccent;
+    if (t.contains('pending')) return Colors.orangeAccent;
+    return Theme.of(context).colorScheme.secondary;
+  }
+
   Widget _badge(String text, {IconData? icon, Color? color}) {
     final theme = Theme.of(context);
-    final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-
-    // Neutral base (no primary)
-    final Color baseBg  = Colors.white;
-    final Color baseFg  = cs.onSurfaceVariant;
-    final Color baseBrd = cs.outlineVariant;
-
-    // If a custom color is provided, use it softly; otherwise stay neutral.
-    final bool accented = color != null;
-    final Color ac = color ?? const Color(0x00000000);
-
-    // Pick foreground that stays readable on any custom color.
-    Color _autoFg(Color bg) =>
-        bg.computeLuminance() < 0.35 ? Colors.white : Colors.black87;
-
-    final Color bg  = accented
-        ? ac.withOpacity(isDark ? .22 : .14)
-        : (isDark ? baseBg.withOpacity(.30) : baseBg.withOpacity(.85));
-
-    final Color fg  = accented ? _autoFg(ac) : baseFg;
-    final Color brd = accented ? ac.withOpacity(.35)
-        : baseBrd.withOpacity(isDark ? .55 : .65);
-
+    final Color bg = color?.withOpacity(isDark ? .18 : .12) ??
+        (isDark ? Colors.white.withOpacity(.06) : Colors.black.withOpacity(.06));
+    final Color fg = color != null ? (color.computeLuminance() < 0.35 ? Colors.white : Colors.black87) : (isDark ? Colors.white : Colors.black87);
+    final Color brd = color?.withOpacity(.28) ?? (_stroke);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -101,7 +106,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
           Icon(icon, size: 16, color: fg),
           const SizedBox(width: 6),
         ],
-        Text(text, style: TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black, fontWeight: FontWeight.w700)),
+        Text(text, style: TextStyle(color: fg, fontWeight: FontWeight.w700)),
       ]),
     );
   }
@@ -110,15 +115,17 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     required String title,
     required List<Widget> children,
     IconData icon = Icons.folder_open_outlined,
+    Color? accent,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
         color: _panel,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _stroke),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(.06), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: Colors.black.withOpacity(isDark ? .45 : .06), blurRadius: 20, offset: const Offset(0, 8)),
         ],
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -127,21 +134,22 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
           padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
           child: Row(children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
-                color: Colors.blueAccent.withOpacity(.12),
+                color: (accent ?? Colors.green).withOpacity(.12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: Theme.of(context).brightness==Brightness.dark?Colors.blue.shade100:Colors.blueAccent),
+              child: Icon(icon, color: Theme.of(context).brightness == Brightness.dark ? Colors.green.shade100 : Colors.green.shade800),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                title, // same text preserved
+                title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
               ),
             ),
+            const SizedBox(width: 8),
           ]),
         ),
         Divider(height: 1, color: _stroke),
@@ -153,8 +161,9 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     );
   }
 
+
   Widget _imageThumb(String path) {
-    if ((path).toString().trim().isEmpty) return const SizedBox.shrink();
+    if ((path ?? '').toString().trim().isEmpty) return const SizedBox.shrink();
     final full = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
     return GestureDetector(
       onTap: () => showDialog(
@@ -163,8 +172,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
           clipBehavior: Clip.hardEdge,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: InteractiveViewer(
-            child: Image.network(full, fit: BoxFit.contain,
-                errorBuilder: (_, __, ___) => const SizedBox(height: 200, child: Center(child: Icon(Icons.broken_image, color: Colors.red)))),
+            child: Image.network(full, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox(height: 200, child: Center(child: Icon(Icons.broken_image, color: Colors.red)))),
           ),
         ),
       ),
@@ -193,7 +201,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
   }
 
   Widget _detailRow({required String label, required String value, bool isImage = false}) {
-    if (value.trim().isEmpty) return const SizedBox.shrink();
+    if ((value ?? '').toString().trim().isEmpty) return const SizedBox.shrink();
     return LayoutBuilder(builder: (context, c) {
       final lw = _labelWidth(c);
       return Padding(
@@ -202,7 +210,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
           SizedBox(
             width: lw,
             child: Text(
-              "$label:", // same label text preserved
+              "$label:",
               style: TextStyle(fontWeight: FontWeight.w700, color: _muted),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
@@ -213,7 +221,7 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
             child: isImage
                 ? _imageThumb(value)
                 : SelectableText(
-              value, // same value shown
+              (value ?? '').toString(),
               style: TextStyle(color: _ink, height: 1.35),
             ),
           ),
@@ -222,73 +230,167 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
     });
   }
 
-  Color _statusColor(String s) {
-    final t = s.toLowerCase();
-    if (t.contains('rejected')) return Colors.red;
-    if (t.contains('resubmit') || t.contains('approved')) return Colors.green;
-    if (t.contains('pending')) return Colors.orange;
-    return Theme.of(context).colorScheme.secondary;
+  // Optional diagonal ribbon used for rejected label
+  Widget _diagonalRibbon(bool show, String text) {
+    if (!show) return const SizedBox.shrink();
+    return Positioned(
+      top: 12,
+      left: -32,
+      child: Transform.rotate(
+        angle: -0.785398, // -45°
+        child: Container(
+          width: 170,
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [Colors.redAccent.shade200, Colors.red.shade700]),
+            boxShadow: [BoxShadow(color: Colors.redAccent.withOpacity(.3), blurRadius: 6, offset: const Offset(2, 2))],
+            borderRadius: BorderRadius.circular(6),
+          ),
+          alignment: Alignment.bottomCenter,
+          child: Text(
+            text.toUpperCase(),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+          ),
+        ),
+      ),
+    );
   }
+
+  void _navigateToEditForm(BuildContext context, Map<String, dynamic> agreement) async {
+    final String type = (agreement['agreement_type'] ?? '').toString().toLowerCase();
+    final String id = (agreement['id'] ?? agreement['agreement_id'] ?? '').toString();
+
+    Widget? page;
+
+    if (type.contains("rental agreement")) {
+      page = RentalWizardPage(agreementId: id);
+    } else if (type.contains("external rental agreement")) {
+      page = ExternalWizardPage(agreementId: id);
+    } else if (type.contains("commercial agreement")) {
+      page = CommercialWizardPage(agreementId: id);
+    } else if (type.contains("furnished agreement")) {
+      page = FurnishedForm(agreementId: id);
+    } else if (type.contains("renewal agreement")) {
+      page = RenewalForm(agreementId: id);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Unknown agreement type: ${agreement['agreement_type']}")),
+      );
+      return;
+    }
+
+    if (page != null) {
+      await Navigator.push(context, MaterialPageRoute(builder: (_) => page!));
+      _fetchAgreementDetail(); // ✅ refresh once after return
+    }
+  }
+
+
+  Widget _furnitureList(dynamic furnitureData) {
+    if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    Map<String, dynamic> furnitureMap = {};
+    try {
+      if (furnitureData is String) {
+        furnitureMap = Map<String, dynamic>.from(json.decode(furnitureData));
+      } else if (furnitureData is Map<String, dynamic>) {
+        furnitureMap = furnitureData;
+      }
+    } catch (e) {
+      debugPrint("⚠️ Furniture parse error: $e");
+    }
+
+    if (furnitureMap.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+           Text(
+            'Furnished Items:',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black87)
+            ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: furnitureMap.entries.map((e) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.shade700, width: 1),
+                ),
+                child: Text(
+                  "${e.key} (${e.value})",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final a = agreement;
+    final isLoadingLocal = isLoading;
     final bool hasGST = (a?['gst_photo']?.toString().trim().isNotEmpty ?? false);
     final bool hasPAN = (a?['pan_photo']?.toString().trim().isNotEmpty ?? false);
     final bool isDirector = hasGST || hasPAN;
     final String personLabel = isDirector ? 'Director' : 'Tenant';
+    final isRejected = (a?['status']?.toString().toLowerCase().contains('reject') ?? false);
+
+    // Top-level gradient that matches card visuals (green -> black/white)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final pageGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: isDark ? [Colors.green.shade700, Colors.black] : [Colors.black, Colors.green.shade400],
+    );
+
     return Scaffold(
+      // custom app bar that uses the gradient ink
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        title: Text(
-          '${a?["agreement_type"] ?? "Agreement"} Details', // same title text
-          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700,color: Colors.white),
-        ),
-        iconTheme: IconThemeData(color: Colors.white),
-        actions: [
-          if (a != null && (a['status']?.toString().isNotEmpty ?? false))
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _statusColor(a['status'].toString()).withOpacity(.12),
-                    border: Border.all(color: _statusColor(a['status'].toString()).withOpacity(.3)),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(children: [
-                    Icon(Icons.verified_outlined, size: 16, color: _statusColor(a['status'].toString())),
-                    const SizedBox(width: 6),
-                    Text(a['status'].toString(), style: TextStyle(color: _statusColor(a['status'].toString()), fontWeight: FontWeight.w700)),
-                  ]),
-                ),
+        backgroundColor: isDark
+            ? Colors.black
+            : Colors.grey.shade100,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(children: [
+            SquareBackButton(), // your existing widget
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '${a?["agreement_type"] ?? "Agreement"} Details',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
               ),
-            )
-        ],
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: Theme.of(context).brightness == Brightness.dark
-            // dark mode: soft blacks
-                ? const [
-              Color(0xFF000000), // pure black
-              Color(0xFF0A0A0A), // deep gray-black
-              Color(0xFF1C1C1C), // smoky edge
-            ]
-            // light mode: light grays with black tint
-                : const [
-              Color(0xFFF5F5F5),
-              Color(0xFFEAEAEA),
-              Color(0xFFD6D6D6),
-            ],
-            stops: const [0.0, 0.55, 1.0],
-          ),
+            ),
+            const SizedBox(width: 8),
+          ]),
         ),
-        child: isLoading
+      ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: BoxDecoration(gradient: pageGradient),
+        child: isLoadingLocal
             ? const Center(child: CircularProgressIndicator())
             : a == null
             ? const Center(child: Text("No details found"))
@@ -298,158 +400,197 @@ class _AgreementDetailPageState extends State<AgreementDetailPage> {
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 1000),
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Wrap(spacing: 10, runSpacing: 10, children: [
-                    if ((a['agreement_type'] ?? '').toString().isNotEmpty)
-                      _badge(a['agreement_type'].toString(), icon: Icons.description_outlined),
-                    if ((a['Bhk'] ?? '').toString().isNotEmpty) _badge('${a['Bhk']}', icon: Icons.home_outlined),
-                    if ((a['monthly_rent'] ?? '').toString().isNotEmpty)
-                      _badge('₹${a['monthly_rent']} rent ', icon: Icons.attach_money),
-                    if ((a['securitys'] ?? '').toString().isNotEmpty)
-                      _badge('₹${a['securitys']} security', icon: Icons.lock_outline),
-                  ]),
-                  const SizedBox(height: 16),
+                padding: const EdgeInsets.fromLTRB(16, 90, 16, 24),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Main content container (slightly translucent panel to read easily)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark ? Colors.black.withOpacity(.45) : Colors.white.withOpacity(.95),
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(.22), blurRadius: 30, offset: const Offset(0, 12))],
+                      ),
+                      padding: const EdgeInsets.all(16),
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        // badges row
+                        Wrap(spacing: 10, runSpacing: 10, children: [
+                          if ((a['agreement_type'] ?? '').toString().isNotEmpty) _badge(a['agreement_type'].toString(), icon: Icons.description_outlined),
+                          if ((a['Bhk'] ?? '').toString().isNotEmpty) _badge('${a['Bhk']}', icon: Icons.home_outlined),
+                          if ((a['monthly_rent'] ?? '').toString().isNotEmpty) _badge('₹${a['monthly_rent']} rent ',),
+                          if ((a['securitys'] ?? '').toString().isNotEmpty) _badge('₹${a['securitys']} security', icon: Icons.lock_outline),
+                        ]),
 
-                  _sectionCard(
-                    title: "Field Worker", // unchanged
-                    icon: Icons.handyman_outlined,
-                    children: [
-                      _detailRow(label: "Name", value: a['Fieldwarkarname'] ?? ''),
-                      _detailRow(label: "Number", value: a['Fieldwarkarnumber'] ?? ''),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
+                        const SizedBox(height: 18),
 
-                  // Keep your original horizontal 3-card layout idea but styled
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 340,
-                          child: _sectionCard(
-                            title: "Owner Details", // unchanged
-                            icon: Icons.person_outline,
+                        if (a['status'] != null)
+                          _sectionCard(
+                            title: "Agreement Status",
+                            icon: Icons.flag_outlined,
                             children: [
-                              _detailRow(label: "Owner Name", value: a['owner_name'] ?? ''),
-                              _detailRow(
-                                label: "Relation",
-                                value: "${a['owner_relation'] ?? ''} ${a['relation_person_name_owner'] ?? ''}",
-                              ),
-                              _detailRow(label: "Address", value: a['parmanent_addresss_owner'] ?? ''),
-                              _detailRow(label: "Mobile", value: a['owner_mobile_no'] ?? ''),
-                              _detailRow(label: "Aadhar", value: a['owner_addhar_no'] ?? ''),
-                              _detailRow(label: "Owner Aadhaar Front", value: a['owner_aadhar_front'] ?? '', isImage: true),
-                              _detailRow(label: "Owner Aadhaar Back", value: a['owner_aadhar_back'] ?? '', isImage: true),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        SizedBox(
-                          width: 340,
-                          child: _sectionCard(
-                            title: a['agreement_type'] == 'Commercial Agreement' ? 'Director Details' : 'Tenant Details',
-                            icon: Icons.verified_user_outlined,
-                            children: [
-                              _detailRow(
-                                label: a['agreement_type'] == 'Commercial Agreement' ? 'Director Name' : 'Tenant Name',
-                                value: a['tenant_name'] ?? '',
-                              ),
-                              _detailRow(
-                                label: "Relation",
-                                value: "${a['tenant_relation'] ?? ''} ${a['relation_person_name_tenant'] ?? ''}",
-                              ),
-                              _detailRow(label: "Address", value: a['permanent_address_tenant'] ?? ''),
-                              _detailRow(label: "Mobile", value: a['tenant_mobile_no'] ?? ''),
-                              _detailRow(label: "Aadhar", value: a['tenant_addhar_no'] ?? ''),
-                              if (a['agreement_type'] == 'Commercial Agreement') ...[
-                                const Divider(),
-                                _detailRow(label: "Company Name", value: a['company_name'] ?? ''),
-                                _detailRow(label: "GST Number", value: a['gst_no'] ?? ''),
-                                _detailRow(label: "PAN Number", value: a['pan_no'] ?? ''),
-                              ],
-                              Wrap(children: [
-                                _detailRow(
-                                  label: "$personLabel Aadhaar Front",
-                                  value: a['tenant_aadhar_front'] ?? '',
-                                  isImage: true,
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: _statusColor(a['status'].toString()).withOpacity(.50),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: _statusColor(a['status'].toString()).withOpacity(.25)),
                                 ),
-                                _detailRow(
-                                  label: "$personLabel Aadhaar Back",
-                                  value: a['tenant_aadhar_back'] ?? '',
-                                  isImage: true,
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _detailRow(label: "Status", value: a['status']?.toString() ?? ''),
+                                    _detailRow(label: "Reason", value: a['messages']?.toString() ?? ''),
+
+                                    if (isRejected) ...[
+                                      const SizedBox(height: 12),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: isDark ? Colors.red.shade700 : Colors.red.shade500,
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            elevation: 6,
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                          ),
+                                          onPressed: () => _navigateToEditForm(context, a),
+                                          icon: const Icon(Icons.edit, size: 18),
+                                          label: const Text(
+                                            "Edit & Resubmit",
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              letterSpacing: 0.3,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ],
                                 ),
-                                _detailRow(
-                                  label: "$personLabel Photo",
-                                  value: a['tenant_image'] ?? '',
-                                  isImage: true,
-                                ),
-                                if (isDirector) ...[
-                                  _detailRow(label: "GST Photo", value: a['gst_photo'] ?? '', isImage: true),
-                                  _detailRow(label: "PAN Photo", value: a['pan_photo'] ?? '', isImage: true),
-                                ],
-                              ]),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        SizedBox(
-                          width: 340,
-                          child: _sectionCard(
-                            title: "Agreement Details", // unchanged
-                            icon: Icons.assignment_outlined,
-                            children: [
-                              _detailRow(label: "Property", value: a['property_id']?.toString() ?? ''),
-                              _detailRow(label: "BHK", value: a['Bhk']?.toString() ?? ''),
-                              _detailRow(label: "Floor", value: a['floor']?.toString() ?? ''),
-                              _detailRow(label: "Rented Address", value: a['rented_address'] ?? ''),
-                              _detailRow(label: "Monthly Rent", value: a['monthly_rent'] != null ? '₹${a['monthly_rent']}' : ''),
-                              _detailRow(label: "Security", value: a['securitys'] != null ? '₹${a['securitys']}' : ''),
-                              _detailRow(label: "Installment Security", value: a['installment_security_amount'] != null ? '₹${a['installment_security_amount']}' : ''),
-                              _detailRow(label: "Meter", value: a['meter']?.toString() ?? ''),
-                              _detailRow(label: "Custom Unit", value: a['custom_meter_unit'] ?? ''),
-                              _detailRow(label: "Maintenance", value: a['maintaince'] ?? ''),
-                              _detailRow(label: "Parking", value: a['parking'] ?? ''),
-                              _detailRow(
-                                label: "Shifting Date",
-                                value: a['shifting_date']?.toString().contains('T') == true
-                                    ? a['shifting_date'].toString().split('T')[0]
-                                    : (a['shifting_date']?.toString() ?? ''),
                               ),
                             ],
                           ),
+
+
+                        const SizedBox(height: 8),
+
+                             SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    SizedBox(
+                                  width: 298,
+                                  child:_sectionCard(
+                                      title: "Owner Details",
+                                      icon: Icons.person_outline,
+                                      children: [
+                                        _detailRow(label: "Owner Name", value: a['owner_name'] ?? ''),
+                                        _detailRow(label: "Relation", value: "${a['owner_relation'] ?? ''} ${a['relation_person_name_owner'] ?? ''}"),
+                                        _detailRow(label: "Address", value: a['parmanent_addresss_owner'] ?? ''),
+                                        _detailRow(label: "Mobile", value: a['owner_mobile_no'] ?? ''),
+                                        _detailRow(label: "Aadhar", value: a['owner_addhar_no'] ?? ''),
+                                        Wrap(
+                                          children: [
+                                            _detailRow(label: "Aadhaar Front", value: a['owner_aadhar_front'] ?? '', isImage: true),
+                                            _detailRow(label: "Aadhaar Back", value: a['owner_aadhar_back'] ?? '', isImage: true),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                ),
+
+                                    const SizedBox(width: 5),
+
+                                    SizedBox(
+                                      width: 298,
+                                      child: _sectionCard(
+                                        title: a['agreement_type'] == 'Commercial Agreement'
+                                            ? 'Director Details'
+                                            : 'Tenant Details',
+                                        icon: Icons.verified_user_outlined,
+                                        children: [
+                                          _detailRow(
+                                              label: a['agreement_type'] == 'Commercial Agreement'
+                                                  ? 'Director Name'
+                                                  : 'Tenant Name',
+                                              value: a[' '] ?? ''),
+                                          _detailRow(label: "Relation", value: "${a['tenant_relation'] ?? ''} ${a['relation_person_name_tenant'] ?? ''}"),
+                                          _detailRow(label: "Address", value: a['permanent_address_tenant'] ?? ''),
+                                          _detailRow(label: "Mobile", value: a['tenant_mobile_no'] ?? ''),
+                                          _detailRow(label: "Aadhar", value: a['tenant_addhar_no'] ?? ''),
+                                          if (a['agreement_type'] == 'Commercial Agreement') ...[
+                                            const Divider(),
+                                            _detailRow(label: "Company Name", value: a['company_name'] ?? ''),
+                                            _detailRow(label: "GST Number", value: a['gst_no'] ?? ''),
+                                            _detailRow(label: "PAN Number", value: a['pan_no'] ?? ''),
+                                          ],
+                                          Wrap(
+                                            children: [
+                                              _detailRow(label: "$personLabel Aadhaar Front", value: a['tenant_aadhar_front'] ?? '', isImage: true),
+                                              _detailRow(label: "$personLabel Aadhaar Back", value: a['tenant_aadhar_back'] ?? '', isImage: true),
+                                              _detailRow(label: "$personLabel Photo", value: a['tenant_image'] ?? '', isImage: true),
+                                              if (isDirector) ...[
+                                                _detailRow(label: "GST Photo", value: a['gst_photo'] ?? '', isImage: true),
+                                                _detailRow(label: "PAN Photo", value: a['pan_photo'] ?? '', isImage: true),
+                                              ],
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 5),
+                                    SizedBox(
+                                      width: 280,
+                                      child: Column(
+                                        children: [
+                                          _sectionCard(
+                                            title: "Property Details",
+                                            icon: Icons.apartment_outlined,
+                                            children: [
+                                              _detailRow(label: "Property ID", value: a['property_id']?.toString() ?? ''),
+                                              _detailRow(label: "BHK", value: a['Bhk']?.toString() ?? ''),
+                                              _detailRow(label: "Floor", value: a['floor']?.toString() ?? ''),
+                                              _detailRow(label: "Rented Address", value: a['rented_address'] ?? ''),
+                                              _detailRow(label: "Meter Type", value: a['meter']?.toString() ?? ''),
+                                              _detailRow(label: "Maintenance", value: a['maintaince'] ?? ''),
+                                              _detailRow(label: "Parking", value: a['parking'] ?? ''),
+
+                                              _furnitureList(a['furniture']), // 👈 this line auto handles your furniture data
+
+                                            ],
+                                          ),
+                                          // === Agreement Finance column ===
+                                          _sectionCard(
+                                            title: "Payment & Rent",
+                                            icon: Icons.attach_money_outlined,
+                                            children: [
+                                              _detailRow(label: "Monthly Rent", value: a['monthly_rent'] != null ? '₹${a['monthly_rent']}' : ''),
+                                              _detailRow(label: "Security", value: a['securitys'] != null ? '₹${a['securitys']}' : ''),
+                                              _detailRow(label: "Installment Security", value: a['installment_security_amount'] != null ? '₹${a['installment_security_amount']}' : ''),
+                                              _detailRow(
+                                                label: "Shifting Date",
+                                                value: a['shifting_date']?.toString().contains('T') == true
+                                                    ? a['shifting_date'].toString().split('T')[0]
+                                                    : (a['shifting_date']?.toString() ?? ''),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
                         ),
-                      ],
                     ),
-                  ),
 
-                  const SizedBox(height: 16),
-
-                  if (a['status'] != null)
-                    _sectionCard(
-                      title: "Agreement Status", // unchanged
-                      icon: Icons.flag_outlined,
-                      children: [
-                        Container(
-                          decoration: BoxDecoration(
-                            color: _statusColor(a['status'].toString()).withOpacity(.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: _statusColor(a['status'].toString()).withOpacity(.25)),
-                          ),
-                          padding: const EdgeInsets.all(12),
-                          child: Column(children: [
-                            _detailRow(label: "Status", value: a['status']?.toString() ?? ''),
-                            _detailRow(label: "Reason", value: a['messages']?.toString() ?? ''),
-                          ]),
-                        ),
-                      ],
-                    ),
-
-                  const SizedBox(height: 30),
-                ]),
+                    _diagonalRibbon(isRejected, 'REJECTED'),
+                  ],
+                ),
               ),
             ),
           );

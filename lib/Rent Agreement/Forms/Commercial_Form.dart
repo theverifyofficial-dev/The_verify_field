@@ -819,7 +819,11 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                     ),
                     decoration: InputDecoration(labelText: label, labelStyle: const TextStyle(
                       color: Colors.black, // ✅ label text color
-                    ),  errorMaxLines: 2,),
+                    ),  errorMaxLines: 2,
+                      errorStyle: const TextStyle(
+                        color: Color(0xFFB00020), // 🔥 darker red
+                        fontWeight: FontWeight.w600,
+                      ),),
                     onChanged: (v) {
                       if (showInWords) setState(() {});
                       if (onChanged != null) onChanged(v);  // forward to caller
@@ -1850,9 +1854,16 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                 shiftingDate == null
                     ? 'Select Shifting Date'
                     : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}',
-                style: const TextStyle(color: Colors.black),
+                style: TextStyle(
+                  color: shiftingDate == null ? Colors.black : Colors.yellow,
+                  fontWeight:
+                  shiftingDate == null ? FontWeight.w500 : FontWeight.w700,
+                ),
               ),
-              trailing: const Icon(Icons.calendar_today, color: Colors.black),
+              trailing: Icon(
+                Icons.calendar_today,
+                color: shiftingDate == null ? Colors.black87 : Colors.green,
+              ),
               onTap: () async {
                 final picked = await showDatePicker(
                   context: context,
@@ -1863,6 +1874,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                 if (picked != null) setState(() => shiftingDate = picked);
               },
             ),
+
 
             const SizedBox(height: 12),
 
@@ -1935,7 +1947,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700)),
+          Text('Preview', style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700,color: Colors.black)),
           Row(children: [
             IconButton(onPressed: () {
               // _jumpToStep(0); //Currently, not important!!

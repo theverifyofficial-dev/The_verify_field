@@ -214,6 +214,65 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
+  Widget _furnitureList(dynamic furnitureData) {
+    if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    Map<String, dynamic> furnitureMap = {};
+    try {
+      if (furnitureData is String) {
+        furnitureMap = Map<String, dynamic>.from(json.decode(furnitureData));
+      } else if (furnitureData is Map<String, dynamic>) {
+        furnitureMap = furnitureData;
+      }
+    } catch (e) {
+      debugPrint("⚠️ Furniture parse error: $e");
+    }
+
+    if (furnitureMap.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+              'Furnished Items:',
+              style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white : Colors.black87)
+          ),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: furnitureMap.entries.map((e) {
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.green.shade100,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.shade700, width: 1),
+                ),
+                child: Text(
+                  "${e.key} (${e.value})",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   Widget _sectionCard({required String title, required List<Widget> children}) {
     // filter out empty children
     final visibleChildren = children.where((c) => c is! SizedBox).toList();
@@ -305,6 +364,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                       _kv("Parking", agreement?["parking"]),
                       _kv("Shifting Date",
                           _formatDate(agreement?["shifting_date"]) ?? ""),
+                      _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
                     ],
                   ),
 

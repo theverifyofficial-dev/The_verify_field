@@ -154,8 +154,7 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
   Future<void> _loadStatsForWorker(String number) async {
     final s = WorkerStats();
 
-    // ============ OVERVIEW (NEW PER WORKER) ============
-    // Total under building
+    // ============ OVERVIEW ============
     try {
       final url = _u('/WebService4.asmx/GetTotalFlats_under_building', {
         'field_workar_number': number,
@@ -192,133 +191,79 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
       }
     } catch (_) {}
 
-    // ============ EXISTING METRICS ============
-    // monthly/live counts
-    final rentLive = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_live_flat_for_field.php',
-      query: {'field_workar_number': number},
-    );
+    // ============ PARALLEL API CALLS ============
+    final List<Future<Map<String, dynamic>>> parallelCalls = [
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_live_flat_for_field.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_for_book_flat_for_month.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_live_commercial_space.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_for_agreement.php', query: {'Fieldwarkarnumber': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_for_building.php', query: {'fieldworkarnumber': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_for_book_flat_yearly.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_live_flat_rent_yearly.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_for_buy_live_flat_yearly.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/commerical_count_yearly.php', query: {'field_workar_number': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_agreement_yarly.php', query: {'Fieldwarkarnumber': number}),
+      _getJsonSmart(filePathWithTarget: '/Second PHP FILE/Target/count_api_for_building_yearly.php', query: {'fieldworkarnumber': number}),
+    ];
 
-    final mt = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_for_book_flat_for_month.php',
-      query: {'field_workar_number': number},
-    );
+    final results = await Future.wait(parallelCalls);
 
-    final buyLive = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php',
-      query: {'field_workar_number': number},
-    );
+    final rentLive = results[0];
+    final mt = results[1];
+    final buyLive = results[2];
+    final comLive = results[3];
+    final agr = results[4];
+    final bld = results[5];
+    final yt = results[6];
+    final rentY = results[7];
+    final buyY = results[8];
+    final comY = results[9];
+    final agrY = results[10];
+    final bldY = results[11];
 
-    final comLive = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_live_commercial_space.php',
-      query: {'field_workar_number': number},
-    );
-
-    final agr = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_for_agreement.php',
-      query: {'Fieldwarkarnumber': number},
-    );
-
-    final bld = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_for_building.php',
-      query: {'fieldworkarnumber': number},
-    );
-
+    // ============ ASSIGN DATA ============
     s.liveRent = _asInt((rentLive['data'] as Map?)?['logg']);
     s.liveBuy = _asInt((buyLive['data'] as Map?)?['logg']);
     s.liveCommercial = _asInt((comLive['data'] as Map?)?['logg']);
     s.agreements = _asInt((agr['data'] as Map?)?['logg']);
     s.buildings = _asInt((bld['data'] as Map?)?['logg']);
 
-    // monthly booked window
-    final mtData = (mt['data'] as Map?) ?? const {};
+    // monthly booked
+    final mtData = (mt['data'] as Map?) ?? {};
     s.mStartRaw = ((mtData['period_start'] as Map?)?['date'] ?? '').toString();
     s.mEndExclRaw = ((mtData['period_end_excl'] as Map?)?['date'] ?? '').toString();
-    s.mBooked = _asInt(mtData['total_booked'] ?? mtData['achieved'] ?? 0);
-    s.mRentBooked = _asInt(mtData['rent_count'] ?? 0);
-    s.mBuyBooked = _asInt(mtData['buy_count'] ?? 0);
+    s.mBooked = _asInt(mtData['total_booked']);
+    s.mRentBooked = _asInt(mtData['rent_count']);
+    s.mBuyBooked = _asInt(mtData['buy_count']);
 
-    // --- monthly AGREEMENTS ---
-    try {
-      final agrMonth = await _getJsonSmart(
-        filePathWithTarget: '/Second PHP FILE/Target/count_api_for_agreement_month.php',
-        query: {'Fieldwarkarnumber': number},
-      );
-      final aData = (agrMonth['data'] as Map?) ?? const {};
-      s.mAgreements = _asInt(aData['logg'] ?? aData['total_agreements'] ?? 0);
-    } catch (_) {
-      s.mAgreements = 0;
-    }
-
-    // --- monthly BUILDING ---
-    try {
-      final bldMonth = await _getJsonSmart(
-        filePathWithTarget: '/Second PHP FILE/Target/count_api_for_building_month.php',
-        query: {'fieldworkarnumber': number},
-      );
-      final bdData = (bldMonth['data'] as Map?) ?? const {};
-      s.mBuildings = _asInt(bdData['logg'] ?? bdData['total_building'] ?? 0);
-    } catch (_) {
-      s.mBuildings = 0;
-    }
-
-    // yearly booked window
-    final yt = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_for_book_flat_yearly.php',
-      query: {'field_workar_number': number},
-    );
-    final ytData = (yt['data'] as Map?) ?? const {};
+    // yearly booked
+    final ytData = (yt['data'] as Map?) ?? {};
     s.yStartRaw = ((ytData['period_start'] as Map?)?['date'] ?? '').toString();
     s.yEndExclRaw = ((ytData['period_end_excl'] as Map?)?['date'] ?? '').toString();
     s.yBooked = _asInt(ytData['total_booked']);
-
-    // ✅ extract book buy/rent yearly counts
     s.bookBuyYear = _asInt(ytData['buy_count']);
     s.bookRentYear = _asInt(ytData['rent_count']);
 
-    // yearly live RENT
-    final rentY = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_live_flat_rent_yearly.php',
-      query: {'field_workar_number': number},
-    );
+    // yearly rent
     final ry = (rentY['data'] as Map?) ?? {};
     s.rentYearAchieved = _asInt(ry['total_live_rent_flat'] ?? 0);
 
-    // yearly live BUY
-    final buyY = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_for_buy_live_flat_yearly.php',
-      query: {'field_workar_number': number},
-    );
+    // yearly buy
     final by = (buyY['data'] as Map?) ?? {};
-    s.buyYearAchieved = _asInt(by['total_live_buy_flat'] ?? 0);
+    s.buyYearAchieved = _asInt(by['total_live_buy_flat'] ?? by['total_live_rent_flat'] ?? 0);
 
-    // yearly COMMERCIAL
-    final comY = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/commerical_count_yearly.php',
-      query: {'field_workar_number': number},
-    );
+    // yearly commercial
     final cy = (comY['data'] as Map?) ?? {};
     s.comYearAchieved = _asInt(cy['total_live_commercial'] ?? 0);
 
-    // yearly AGREEMENT
-    final agrY = await _getJsonSmart(
-      filePathWithTarget: '/Second PHP FILE/Target/count_api_agreement_yarly.php',
-      query: {'Fieldwarkarnumber': number},
-    );
+    // yearly agreement
     final ay = (agrY['data'] as Map?) ?? {};
     s.agrYearAchieved = _asInt(ay['total_agreements'] ?? 0);
 
-    // yearly BUILDING
-    try {
-      final bldYear = await _getJsonSmart(
-        filePathWithTarget: '/Second PHP FILE/Target/count_api_for_building_yearly.php',
-        query: {'fieldworkarnumber': number},
-      );
-      final bdYear = (bldYear['data'] as Map?) ?? const {};
-      s.yBuildings = _asInt(bdYear['logg'] ?? bdYear['total_building'] ?? 0);
-    } catch (_) {
-      s.yBuildings = 0;
-    }
+    // yearly building
+    final bdY = (bldY['data'] as Map?) ?? {};
+    s.yBuildings = _asInt(bdY['logg'] ?? bdY['total_building'] ?? 0);
 
     _stats[number] = s;
   }

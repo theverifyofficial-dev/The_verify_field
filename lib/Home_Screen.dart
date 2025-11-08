@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -276,18 +277,13 @@ class _Home_ScreenState extends State<Home_Screen> {
       });
     }
   }
-  _AgreementURL() async {
-    final Uri url = Uri.parse('https://theverify.in/example.html');
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
-  bool _isTapped = false;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      // backgroundColor: Colors.black,
+       backgroundColor: isDark ? Colors.black45 : Colors.grey.shade200,
       appBar: AppBar(
         surfaceTintColor: Colors.black,
         centerTitle: true,
@@ -339,7 +335,7 @@ class _Home_ScreenState extends State<Home_Screen> {
             onTap: () {
               Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
             },
-            child: Column(   
+            child: Column(
               children: [
                 SizedBox(height: 10,),
                 Row(
@@ -361,158 +357,86 @@ class _Home_ScreenState extends State<Home_Screen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Animated Header
-            AnimationConfiguration.synchronized(
-              duration: const Duration(milliseconds: 500),
-              child: SlideAnimation(
-                horizontalOffset: 50.0,
-                child: FadeInAnimation(
-                  child: Row(
-                    children: [
-                      Text(
-                        "Dashboard",
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontFamily: "Poppins",
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.black,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+            _TargetHeaderCard(context),
+
             const SizedBox(height: 20),
 
-            // Your original card grid with enhanced animations
-            AnimationLimiter(
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: List.generate(9, (index) {
-                  // Keep your original cardData list exactly as you had it
-                  final List<Map<String, dynamic>> cardData = [
-                    {
-                      "image": AppImages.verify_Property,
-                      "title": "Live\n Property",
-                      "onTap": () =>
-                          Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => LiveTabbar())),
-                    },
-                    {
-                      "image": AppImages.realestatefeild,
-                      "title": "Upcoming\nFlats",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const ParentUpcoming()));
-                      },
-                    },
-
-                    {
-                      "image": AppImages.futureProperty,
-                      "title": "Future\n Property",
-                      "onTap": () async {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const FrontPage_FutureProperty(),
-                          ),
-                        );
-                      },
-                    },
-
-                    {
-                      "image": AppImages.tenant,
-                      "title": "Tenant\n Demands",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const MainPage_TenandDemand()));
-                      },
-                    },
-
-                    {
-                      "image": AppImages.agreement,
-                      "title": "Property Agreement",
-                      "onTap": () =>
-                          //_AgreementURL(),
-                    Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => HistoryTab()
-                    )),
-                    },
-
-                    {
-                      "image": AppImages.police,
-                      "title": "All Rented \nFlat",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const AddRentedFlatTabbar()));
-                      },
-                    },
-                    {
-                      "image": AppImages.websiteIssue,
-                      "title": "Web \nQuery",
-                      "onTap": () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (_) => const WebQueryPage()));
-                      },
-                    },
-                    {
-                      "image": AppImages.documents,
-                      "title": "Verification\n Property",
-                      "onTap": () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => ShowProperty())),
-                    },
-                    {
-                      "image": AppImages.target,
-                      "title": "Target",
-                      "onTap": () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => Target_MainPage())),
-                    },
-
-
-                  ];
-
-                  final item = cardData[index];
-
-                  return AnimationConfiguration.staggeredGrid(
-                    position: index,
-                    duration: const Duration(milliseconds: 500),
-                    columnCount: 2,
-                    child: ScaleAnimation(
-                      scale: 0.5,
-                      child: FadeInAnimation(
-                        child: SlideAnimation(
-                          verticalOffset: 50.0,
-                          child: _AnimatedDashboardCard(
-                            context: context,
-                            image: item["image"],
-                            title: item["title"],
-                            onTap: item["onTap"],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }),
+            // ---- 1️⃣ First List Section ----
+            _SectionTitle("Future Property"),
+            _ListCard(
+              image: AppImages.futureProperty,
+              title: "Future Property",
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FrontPage_FutureProperty()),
               ),
             ),
+
+            const SizedBox(height: 16),
+
+            // ---- 2️⃣ First Grid Section ----
+            // _SectionTitle("Live & Upcoming Flats"),
+            _DashboardGrid([
+              {
+                "image": AppImages.verify_Property,
+                "title": "Live Property",
+                "onTap": () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => LiveTabbar())),
+              },
+              {
+                "image": AppImages.realestatefeild,
+                "title": "Upcoming Flats",
+                "onTap": () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => const ParentUpcoming())),
+              },
+              {
+                "image": AppImages.police,
+                "title": "All Rented Flat",
+                "onTap": () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const AddRentedFlatTabbar())),
+              },
+              {
+                "image": AppImages.websiteIssue,
+                "title": "Web Query",
+                "onTap": () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => const WebQueryPage())),
+              },
+            ]),
+
+            const SizedBox(height: 16),
+
+            // ---- 3️⃣ Second List Section ----
+            _SectionTitle("Agreements & Tenant"),
+            _ListCard(
+              image: AppImages.agreement,
+              title: "Property Agreement",
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => HistoryTab()),
+              ),
+            ),
+            const SizedBox(height: 12),
+            _ListCard(
+              image: AppImages.tenant,
+              title: "Tenant Demands",
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MainPage_TenandDemand()),
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // ---- 4️⃣ Second Grid Section ----
+            _SectionTitle("More Features"),
+            _DashboardGrid([
+              {
+                "image": AppImages.documents,
+                "title": "Verification Property",
+                "onTap": () => Navigator.push(
+                    context, MaterialPageRoute(builder: (_) => ShowProperty())),
+              },
+            ]),
           ],
         ),
       ),
@@ -549,52 +473,78 @@ class _AnimatedDashboardCard extends StatefulWidget {
   _AnimatedDashboardCardState createState() => _AnimatedDashboardCardState();
 }
 
+
 class _AnimatedDashboardCardState extends State<_AnimatedDashboardCard> {
   bool _isPressed = false;
+  Color? _glowColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _extractColor();
+  }
+
+  Future<void> _extractColor() async {
+    final palette = await PaletteGenerator.fromImageProvider(
+      AssetImage(widget.image),
+    );
+    setState(() {
+      _glowColor = palette.dominantColor?.color ?? Colors.blueAccent;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final glow = _glowColor ?? Colors.blueAccent;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
       onTapUp: (_) => setState(() => _isPressed = false),
       onTapCancel: () => setState(() => _isPressed = false),
       onTap: widget.onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 100),
-        transform: Matrix4.identity()
-          ..scale(_isPressed ? 0.95 : 1.0),
+        duration: const Duration(milliseconds: 120),
+        transform: Matrix4.identity()..scale(_isPressed ? 0.95 : 1.0),
         child: Container(
           width: MediaQuery.of(context).size.width * 0.42,
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 12),
           decoration: BoxDecoration(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.white12
-                : Colors.grey.shade300,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [Colors.white, Colors.grey.shade200] // light cards on dark theme
+                  : [Color(0xFF1E1E1E), Color(0xFF2C2C2C)], // dark grey cards on light theme
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
-                blurRadius: 10,
-                offset: const Offset(2, 4),
+                color: isDark
+                    ? Colors.black.withOpacity(0.25)
+                    : Colors.grey.withOpacity(0.15),
+                blurRadius: 6,
+                offset: const Offset(2, 3),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // ✨ Soft Image Glow Only
               Container(
-                height: 65,
-                width: 65,
-                padding: const EdgeInsets.all(6),
+                height: 70,
+                width: 70,
                 decoration: BoxDecoration(
-                  color: Colors.white10,
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white12
-                        : Colors.grey.shade400,
-                    width: 1,
-                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: glow.withOpacity(0.25), // 🔥 toned down glow
+                      blurRadius: 12,
+                      spreadRadius: 0.8,
+                    ),
+                  ],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(50),
@@ -609,9 +559,8 @@ class _AnimatedDashboardCardState extends State<_AnimatedDashboardCard> {
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   fontFamily: "Poppins",
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.white
-                      : Colors.black,
+                  // invert text color to match inverted card background
+                  color: isDark ? Colors.black : Colors.white,
                 ),
               ),
             ],
@@ -620,4 +569,245 @@ class _AnimatedDashboardCardState extends State<_AnimatedDashboardCard> {
       ),
     );
   }
+}
+
+Widget _TargetHeaderCard(BuildContext context) {
+  final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => Target_MainPage()),
+      );
+    },
+    child: Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: 18),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: LinearGradient(
+          colors: isDark?
+          [Colors.grey.shade100, Colors.white]
+              : [Color(0xFF1E1E1E), Color(0xFF2C2C2C)], // dark grey cards on light theme
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.white.withOpacity(0.08)
+                : Colors.black.withOpacity(0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          // 🔥 Animated Glow with Image
+          Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(seconds: 2),
+                curve: Curves.easeInOut,
+                height: 70,
+                width: 70,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.blueAccent.withOpacity(0.4)
+                          : Colors.blue.withOpacity(0.4),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+              ),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(50),
+                child: Image.asset(
+                  AppImages.target, // your target image asset here
+                  height: 55,
+                  width: 55,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(width: 18),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Your Target",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.black : Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  "Tap to view progress",
+                  style: TextStyle(
+                    fontSize: 13.5,
+                    color: (isDark ? Colors.black : Colors.white).withOpacity(0.75),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Icon(
+            Icons.arrow_forward_ios_rounded,
+            size: 18,
+            color: isDark ? Colors.white70 : Colors.black54,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+
+Widget _SectionTitle(String title) {
+  return Padding(
+    padding: const EdgeInsets.only(bottom: 10),
+    child: Text(
+      title,
+      style: TextStyle(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        fontFamily: "Poppins",
+        color: Colors.blueAccent,
+      ),
+    ),
+  );
+}
+
+Widget _ListCard({
+  required String image,
+  required String title,
+  required VoidCallback onTap,
+}) {
+  return FutureBuilder<PaletteGenerator>(
+    future: PaletteGenerator.fromImageProvider(AssetImage(image)),
+    builder: (context, snapshot) {
+      final isDark = Theme.of(context).brightness == Brightness.dark;
+      final glowColor =
+          snapshot.data?.dominantColor?.color ?? Colors.blueAccent;
+
+      return GestureDetector(
+        onTap: onTap,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: LinearGradient(
+              colors: isDark
+                  ? [Colors.white, Colors.grey.shade200] // light cards on dark theme
+                  : [Color(0xFF1E1E1E), Color(0xFF2C2C2C)], // dark grey cards on light theme
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+
+
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withOpacity(0.25)
+                    : Colors.grey.withOpacity(0.15),
+                blurRadius: 6,
+                offset: const Offset(2, 3),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // ✨ Subtle glow around image only
+              Container(
+                width: 90,
+                height: 90,
+                margin: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: glowColor.withOpacity(0.25),
+                      blurRadius: 10,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: Image.asset(image, fit: BoxFit.cover),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: "Poppins",
+                    // invert text color to match inverted card background
+                    color: isDark ? Colors.black : Colors.white,
+                  ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 18,
+                  color: isDark ? Colors.black45 : Colors.white60,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _DashboardGrid(List<Map<String, dynamic>> items) {
+  return AnimationLimiter(
+    child: Wrap(
+      spacing: 16,
+      runSpacing: 16,
+      children: List.generate(items.length, (index) {
+        final item = items[index];
+        return AnimationConfiguration.staggeredGrid(
+          position: index,
+          duration: const Duration(milliseconds: 500),
+          columnCount: 2,
+          child: ScaleAnimation(
+            scale: 0.5,
+            child: FadeInAnimation(
+              child: SlideAnimation(
+                verticalOffset: 50.0,
+                child: _AnimatedDashboardCard(
+                  context: navigatorKey.currentContext!, // or just use context
+                  image: item["image"],
+                  title: item["title"],
+                  onTap: item["onTap"],
+                ),
+              ),
+            ),
+          ),
+        );
+      }),
+    ),
+  );
 }

@@ -435,7 +435,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
           ),
         ),
         pw.SizedBox(height: 10),
-        clause('6. Hybrid Work and Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement.'),
+        clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement.'),
         pw.SizedBox(height: 10),
         clause('7. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.'),
         pw.SizedBox(height: 10),

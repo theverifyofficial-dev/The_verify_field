@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -8,13 +7,11 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../ui_decoration_tools/app_images.dart';
 import 'Future_Property.dart';
 
@@ -73,6 +70,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   String? selectedRoadSize;
   String? selectedMetroDistance;
   String? metro_name;
+
   // String? selectedHighwayDistance;
   String? selectedMarketDistance;
   String? _ageOfProperty;
@@ -105,28 +103,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       _Time = DateFormat('h:mm a').format(DateTime.now());
     });
   }
-  // Format the date as you like
-
-  // Future<void> _getCurrentLocation() async {
-  //   if (await _checkLocationPermission()) {
-  //     Position position = await Geolocator.getCurrentPosition(
-  //       desiredAccuracy: LocationAccuracy.high,
-  //     );
-  //
-  //     setState(() {
-  //       lat = position.latitude.toString();
-  //       long = position.longitude.toString();
-  //       _Latitude.text = lat;
-  //       _Longitude.text = long;
-  //     });
-  //
-  //     print("Current Location -> lat: ${position.latitude}, long: ${position.longitude}");
-  //
-  //     // await fetchNearbyFacilities(position); // pass the Position object
-  //   } else {
-  //     await _requestLocationPermission();
-  //   }
-  // }
 
   Future<void> _getCurrentLocation() async {
     // Check for location permissions

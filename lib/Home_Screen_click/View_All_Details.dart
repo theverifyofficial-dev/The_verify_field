@@ -402,7 +402,7 @@ class _View_DetailsState extends State<View_Details> {
               }
             },
             itemBuilder: (context) => const [
-              PopupMenuItem(value: "rented", child: Text("All Rented Flat")),
+              PopupMenuItem(value: "rented", child: Text("Book property")),
             ],
           ),
         ],
@@ -469,7 +469,8 @@ class _View_DetailsState extends State<View_Details> {
                   ],
                 ),
               );
-            } else {
+            }
+            else {
               final property = propertySnapshot.data!.first;
               return SingleChildScrollView(
                 child: Column(
@@ -681,24 +682,24 @@ class _View_DetailsState extends State<View_Details> {
                             title: "Property Details",
                             isDarkMode: isDarkMode,
                           ),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
                               _FactChip(
                                 icon: Icons.install_desktop_sharp,
-                                label: "Live Property Id : "+ property.id.toString(),
+                                label: "Live Property Id : ${property.id}",
                                 color: Colors.lightGreen,
                                 isDarkMode: isDarkMode,
                               ),
-                              SizedBox(width: 8,),
                               _FactChip(
                                 icon: Icons.apartment_sharp,
-                                label: "Building Id : "+ property.subid.toString(),
+                                label: "Building Id : ${property.subid}",
                                 color: Colors.lightBlue,
                                 isDarkMode: isDarkMode,
                               ),
                             ],
                           ),
-
                           _FactChip(
                             icon: Icons.file_open,
                             label: "Building Flat Id : "+ property.sourceId.toString(),

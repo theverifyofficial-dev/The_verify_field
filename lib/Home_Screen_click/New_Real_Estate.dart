@@ -334,7 +334,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       listResponse = const [];
     }
 
-    // Sort by P_id desc, even if P_id comes as String sometimes
     int _asInt(dynamic v) =>
         v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
 

@@ -422,51 +422,56 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
+    final lightTheme = ThemeData.light().copyWith(
+      scaffoldBackgroundColor: const Color(0xFFF7F7F7),
+      cardColor: Colors.white,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
+      textTheme: ThemeData.light()
+          .textTheme
+          .apply(fontFamily: 'Poppins', bodyColor: Colors.black87),
+    );
+
+    final darkTheme = ThemeData.dark().copyWith(
+      scaffoldBackgroundColor: const Color(0xFF121212),
+      cardColor: const Color(0xFF1E1E1E),
+      textTheme: ThemeData.dark()
+          .textTheme
+          .apply(fontFamily: 'Poppins', bodyColor: Colors.white),
+    );
+
     return NetworkListener(
-      child: MaterialApp(
-        navigatorKey: navigatorKey,
-        debugShowCheckedModeBanner: false,
-        themeMode: _themeMode,
-
-        // 🌙 Light theme with softer background
-        theme: ThemeData.light().copyWith(
-          scaffoldBackgroundColor: const Color(0xFFF7F7F7), // off-white
-          cardColor: Colors.white,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Colors.white,
-            foregroundColor: Colors.black,
-            elevation: 1,
-          ),
-          textTheme: ThemeData.light()
-              .textTheme
-              .apply(fontFamily: 'Poppins', bodyColor: Colors.black87),
+      child: AnimatedTheme(
+        data: _themeMode == ThemeMode.dark ? darkTheme : lightTheme,
+        duration: const Duration(milliseconds: 400),
+        curve: Curves.easeInOut,
+        child: MaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          themeMode: _themeMode,
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          scaffoldMessengerKey: rootScaffoldMessengerKey,
+          initialRoute: Splash.route,
+          routes: Routes.routes,
+          builder: (context, child) {
+            return MediaQuery(
+              data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
+              child: ThemeSwitcher(
+                themeMode: _themeMode,
+                toggleTheme: _toggleTheme,
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
+          },
         ),
-
-        // 🌑 Dark theme unchanged
-        darkTheme: ThemeData.dark().copyWith(
-          scaffoldBackgroundColor: const Color(0xFF121212),
-          cardColor: const Color(0xFF1E1E1E),
-          textTheme: ThemeData.dark()
-              .textTheme
-              .apply(fontFamily: 'Poppins', bodyColor: Colors.white),
-        ),
-        scaffoldMessengerKey: rootScaffoldMessengerKey, // ✅ add this
-
-        initialRoute: Splash.route,
-        routes: Routes.routes,
-        builder: (context, child) {
-          return MediaQuery(
-            data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-            child: ThemeSwitcher(
-              themeMode: _themeMode,
-              toggleTheme: _toggleTheme,
-              child: child ?? const SizedBox.shrink(),
-            ),
-          );
-        },
       ),
     );
   }
+
 }
 
 class ThemeSwitcher extends InheritedWidget {

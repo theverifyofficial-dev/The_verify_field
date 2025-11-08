@@ -7,6 +7,7 @@ import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import 'package:verify_feild_worker/Administrator/agreement_details.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import 'package:verify_feild_worker/Login_page.dart';
+import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Social_Media_links.dart';
@@ -452,10 +453,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             {
                               "image": AppImages.target,
                               "title": "Target",
-                              "onTap": () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (_) => Target_MainPage())),
+                              "onTap": () =>  Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AllFieldWorkersPage()),)
                             },
                           ];
 

@@ -120,53 +120,61 @@ class _DashboardScreenState extends State<DashboardScreen>
     });
 
     try {
-      final response = await http.get(
-          Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/Target/show_all_live_flat.php'),
+      final uri = Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/show_all_live_flat.php',
       );
+
+      // 🕓 Add short timeout and start request immediately
+      final response = await http.get(uri).timeout(const Duration(seconds: 6));
 
       if (response.statusCode == 200) {
         final root = json.decode(response.body);
-        if (root['success'] == true && root['data'] is Map) {
-          final data = root['data'] as Map;
 
-          final liveFlats          = _asInt(data['live flats']);
-          final liveCommercial     = _asInt(data['live commercial spaces']);
-          final bookedFlats        = _asInt(data['Book flats']);
-          final bookedCommercial   = _asInt(data['Book commercial spaces']);
-          final totalBuildings     = _asInt(data['Total Building']);
+        if (root['success'] == true && root['data'] is Map<String, dynamic>) {
+          final data = root['data'] as Map<String, dynamic>;
 
-          await _replayFlip(
+          final liveFlats        = _asInt(data['live flats']);
+          final liveCommercial   = _asInt(data['live commercial spaces']);
+          final bookedFlats      = _asInt(data['Book flats']);
+          final bookedCommercial = _asInt(data['Book commercial spaces']);
+          final totalBuildings   = _asInt(data['Total Building']);
 
-            liveFlats: liveFlats,
-            liveCommercial: liveCommercial,
-            bookedFlats: bookedFlats,
-            bookedCommercial: bookedCommercial,
-            totalBuildings: totalBuildings,
-          );
-          await Future.delayed(const Duration(milliseconds: 60));
+          // ⚡️ Remove 2-second delay and update immediately
+          setState(() {
+            _flipEpoch++;
+            _liveFlats = liveFlats;
+            _liveCommercial = liveCommercial;
+            _bookedFlats = bookedFlats;
+            _bookedCommercial = bookedCommercial;
+            _totalBuildings = totalBuildings;
+            isLoading = false;
+            hasError = false;
+          });
 
-          _animationController.forward(from: 0);
-          setState(() => isLoading = false);
+          // 🎬 Run animation slightly async for smoother visual entry
+          Future.microtask(() => _animationController.forward(from: 0));
         } else {
           setState(() {
-            isLoading = false;
             hasError = true;
+            isLoading = false;
           });
         }
       } else {
         setState(() {
-          isLoading = false;
           hasError = true;
+          isLoading = false;
         });
       }
-    } catch (_) {
+    } catch (e) {
+      debugPrint('⚠️ Dashboard fetch error: $e');
       setState(() {
-        isLoading = false;
         hasError = true;
+        isLoading = false;
       });
     }
   }
 
+// ✅ Much faster version (no long waits)
   Future<void> _replayFlip({
     required int liveFlats,
     required int liveCommercial,
@@ -174,17 +182,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     required int bookedCommercial,
     required int totalBuildings,
   }) async {
-    setState(() {
-      _flipEpoch++;
-      _liveFlats = 0;
-      _liveCommercial = 0;
-      _bookedFlats = 0;
-      _bookedCommercial = 0;
-      _totalBuildings = 0;
-    });
-
-    await Future.delayed(const Duration(seconds: 2));
-
+    // instant reset without full rebuild
     setState(() {
       _flipEpoch++;
       _liveFlats = liveFlats;
@@ -194,6 +192,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _totalBuildings = totalBuildings;
     });
   }
+
 
   @override
   void dispose() {
@@ -286,15 +285,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           children: [
             _buildHeaderSummary(),
             const SizedBox(height: 10),
-            GestureDetector(
-                onTap: (){
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AllFieldWorkersPage()),
-                  );
-
-                },
-                child: _buildTotalBuildingsCard(_totalBuildings)),
+            _buildTotalBuildingsCard(_totalBuildings),
             const SizedBox(height: 10),
             GridView.count(
               crossAxisCount: 2,

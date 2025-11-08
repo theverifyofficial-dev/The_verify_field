@@ -12,6 +12,7 @@ class WorkerId {
 
 class WorkerStats {
   // overview (new)
+
   int totalFlatsUnderBuilding = 0;
   int liveFlatsUnderBuilding = 0;
   int rentOutFlatsUnderBuilding = 0; // "Book"
@@ -192,6 +193,7 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
       quick('/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php', {'field_workar_number': number}),
       quick('/Second PHP FILE/Target/count_api_live_commercial_space.php', {'field_workar_number': number}),
       quick('/Second PHP FILE/Target/count_api_for_agreement.php', {'Fieldwarkarnumber': number}),
+      quick('/Second PHP FILE/Target/show_tatal_agreement.php', {'Fieldwarkarnumber': number}), // ✅ New API added here
       quick('/Second PHP FILE/Target/count_api_for_building.php', {'fieldworkarnumber': number}),
       quick('/Second PHP FILE/Target/count_for_book_flat_yearly.php', {'field_workar_number': number}),
       quick('/Second PHP FILE/Target/count_live_flat_rent_yearly.php', {'field_workar_number': number}),
@@ -224,7 +226,7 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
     final comLive = results[5];
     final agr = results[6];
     final bld = results[7];
-
+    final agrShow = results[8]; // ✅ New API result
     s.liveRent = _asInt((rentLive['data'] as Map?)?['logg']);
     s.liveBuy = _asInt((buyLive['data'] as Map?)?['logg']);
     s.liveCommercial = _asInt((comLive['data'] as Map?)?['logg']);
@@ -237,6 +239,8 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
     s.mBooked = _asInt(mtData['total_booked']);
     s.mRentBooked = _asInt(mtData['rent_count']);
     s.mBuyBooked = _asInt(mtData['buy_count']);
+    s.agreements = _asInt((agr['data'] as Map?)?['logg']);
+    s.buildings = _asInt((bld['data'] as Map?)?['logg']);
 
     // --- Yearly ---
     final yt = results[8];
@@ -267,6 +271,18 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
 
     final bdYear = (bldYear['data'] as Map?) ?? {};
     s.yBuildings = _asInt(bdYear['logg'] ?? bdYear['total_building'] ?? 0);
+
+    // Agreements — fallback to "show_tatal_agreement" API if count_api_for_agreement returns 0
+    final agrData = (agr['data'] as Map?) ?? {};
+    final agrShowData = (agrShow['data'] as Map?) ?? {};
+    final bldData = (bld['data'] as Map?) ?? {};
+
+    s.agreements = _asInt(agrData['logg'] ?? 0);
+    if (s.agreements == 0) {
+      s.agreements = _asInt(agrShowData['logg'] ?? 0); // ✅ fallback or override
+    }
+
+    s.buildings = _asInt(bldData['logg'] ?? 0);
 
     _stats[number] = s;
   }
@@ -377,33 +393,57 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          begin: Alignment.topLeft, end: Alignment.bottomRight,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
           colors: isDark
               ? [Colors.black, Colors.black54]
-              : [Colors.white, Theme.of(context).brightness == Brightness.dark ? const Color(0xFFF5F8FF) : Colors.grey.shade300],
+              : [Colors.white, Colors.grey.shade200],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Theme.of(context).brightness == Brightness.dark ? accent.withOpacity(0.35) : accent, width: 1.2),
-        boxShadow: [BoxShadow(color: accent.withOpacity(0.25))],
+        border: Border.all(
+          color: isDark ? accent : accent,
+          width: 1.2,
+        ),
+        // boxShadow: [
+        //   BoxShadow(
+        //     color: accent.withOpacity(0.25),
+        //     blurRadius: 12,
+        //     offset: const Offset(0, 6),
+        //   ),
+        // ],
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          _workerHeader(w, accent),
-          const SizedBox(height: 12),
-          if (s == null)
-            const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 10), child: CircularProgressIndicator()))
-          else
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                _chipStat('Total Flats', s.totalFlatsUnderBuilding, Colors.blue),
-                _chipStat('Live Flats', s.liveFlatsUnderBuilding, Colors.green),
-                _chipStat('Unlive Flat', s.rentOutFlatsUnderBuilding, Colors.orange),
-              ],
-            ),
-        ]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _workerHeader(w, accent),
+            const SizedBox(height: 12),
+
+            if (s == null)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  // 👇 Existing stats
+                  _chipStat('Total Flats', s.totalFlatsUnderBuilding, Colors.blue),
+                  _chipStat('Live Flats', s.liveFlatsUnderBuilding, Colors.green),
+                  _chipStat('Unlive Flat', s.rentOutFlatsUnderBuilding, Colors.orange),
+
+                  // 👇 New API-based values
+                  _chipStat('Buildings', s.agreements, Colors.red),
+                  _chipStat('Agreements', s.buildings, Colors.teal),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }

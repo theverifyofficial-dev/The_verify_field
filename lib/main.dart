@@ -374,6 +374,7 @@ class _MyAppState extends State<MyApp> {
       print('❌ Dynamic Link error: $error');
     });
   }
+
   void _handleDeepLink(Uri? deepLink) {
     if (deepLink != null) {
       final type = deepLink.queryParameters['type'];

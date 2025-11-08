@@ -395,12 +395,12 @@ class _Home_ScreenState extends State<Home_Screen> {
                 "onTap": () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const AddRentedFlatTabbar())),
               },
-              {
-                "image": AppImages.websiteIssue,
-                "title": "Web Query",
-                "onTap": () => Navigator.push(
-                    context, MaterialPageRoute(builder: (_) => const WebQueryPage())),
-              },
+              // {
+              //   "image": AppImages.websiteIssue,
+              //   "title": "Web Query",
+              //   "onTap": () => Navigator.push(
+              //       context, MaterialPageRoute(builder: (_) => const WebQueryPage())),
+              // },
             ]),
 
             const SizedBox(height: 16),

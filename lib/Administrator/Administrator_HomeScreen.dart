@@ -501,8 +501,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
           borderRadius: BorderRadius.circular(20),
           gradient: LinearGradient(
             colors: isDark?
-            [Colors.grey.shade100, Colors.white]
-                : [Color(0xFF1E1E1E), Color(0xFF2C2C2C)], // dark grey cards on light theme
+                [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
+            :
+            [Colors.grey.shade100, Colors.white],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -563,7 +564,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.black : Colors.white,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -571,7 +572,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                     "Tap to view progress",
                     style: TextStyle(
                       fontSize: 13.5,
-                      color: (isDark ? Colors.black : Colors.white).withOpacity(0.75),
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
                     ),
                   ),
                 ],

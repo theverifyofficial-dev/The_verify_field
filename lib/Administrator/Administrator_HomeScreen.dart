@@ -23,8 +23,6 @@ import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import 'Calender/CalenderMain.dart';
-
 class AdministratorHome_Screen extends StatefulWidget {
   static const route = "/AdministratorHome_Screen";
   const AdministratorHome_Screen({super.key});
@@ -437,6 +435,14 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
+                            },
+                            {
+                              'image': AppImages.demand_2,
+                              'title': "Tenant Demands 2.O",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (
+                                          context) => const TenantDemand())),
                             },
                             {
                               "image": AppImages.websiteIssue,

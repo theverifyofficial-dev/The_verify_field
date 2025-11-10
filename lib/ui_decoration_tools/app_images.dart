@@ -54,6 +54,8 @@ class AppImages{
   static const target = 'assets/images/target.png';
   static const dashboard = 'assets/images/dashboard.png';
   static const calendar = 'assets/images/calendar.png';
+  static const man = 'assets/images/man.png';
+  static const browser = 'assets/images/browser.png';
 
 
 

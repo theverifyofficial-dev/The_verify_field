@@ -23,6 +23,8 @@ import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+import 'Calender/CalenderMain.dart';
+
 class AdministratorHome_Screen extends StatefulWidget {
   static const route = "/AdministratorHome_Screen";
   const AdministratorHome_Screen({super.key});
@@ -337,15 +339,15 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                   ),
 
                 ),
-                const SizedBox(height: 15),
+                // const SizedBox(height: 15),
 
                 Padding(
-                  padding: const EdgeInsets.all(15.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: _TargetHeaderCard(context),
                 ),
 
 
-                const SizedBox(height: 15),
+                // const SizedBox(height: 15),
 
                 // Grid of Feature Cards
                 Padding(
@@ -381,7 +383,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 7,
+                        itemCount: 8,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -455,6 +457,15 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                     context,
                                     MaterialPageRoute(
                                         builder: (_) => const AdminUpcoming()));
+                              },
+                            },
+                            {
+                              "image": AppImages.calendar,
+                              "title": "Task Calendar",
+                              "onTap": () {
+                                Navigator.push(
+                                    context, MaterialPageRoute(
+                                    builder: (_) => const CalendarTaskPage()));
                               },
                             },
                           ];

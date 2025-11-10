@@ -345,7 +345,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       },
       {
         "image": AppImages.futureProperty,
-        "title": "Future Property",
+        "title": "Future\n Inventory/Property",
         "onTap": () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -356,7 +356,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       },
       {
         "image": AppImages.tenant,
-        "title": "Tenant Demands",
+        "title": "Costumer Demands",
         "onTap": () {
           Navigator.push(
               context,
@@ -397,7 +397,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       },
       {
         "image": AppImages.realestatefeild,
-        "title": "Upcoming Flats",
+        "title": "Upcoming Property",
         "onTap": () {
           Navigator.push(
               context,

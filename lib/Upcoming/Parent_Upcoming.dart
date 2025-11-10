@@ -67,9 +67,9 @@ class _Show_New_Real_EstateState extends State<ParentUpcoming> {
                 unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
                 indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
                 tabs: const [
-                  Tab(text: 'All Flats'),
-                  Tab(text: 'Your Flats'),
-                  Tab(text: 'Add Flats'),
+                  Tab(text: 'All Property'),
+                  Tab(text: 'Your Property'),
+                  Tab(text: 'Add Property'),
                 ],
               ),
             ),

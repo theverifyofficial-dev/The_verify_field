@@ -179,9 +179,9 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             : userName!,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 10, // Reduced font size
+                          fontSize: 10,
                           fontWeight: FontWeight.bold,
-                          height: 1.2, // Line height adjustment
+                          height: 1.2,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -384,7 +384,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 8,
+                        itemCount: 7,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -420,7 +420,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             },
                             {
                               'image': AppImages.propertysale,
-                              'title': "Future Property",
+                              'title': "Future\n Inventory/Property",
                               'onTap': () {
                                 // Pass the buildingId you want to highlight
                                 Navigator.push(
@@ -433,20 +433,20 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                             },
                             {
                               'image': AppImages.tenant,
-                              'title': "Tenant Demands",
+                              'title': "Costumer Demands",
                               'onTap': () =>
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
                             },
-                            {
-                              'image': AppImages.demand_2,
-                              'title': "Tenant Demands 2.O",
-                              'onTap': () =>
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) => const TenantDemand())),
-                            },
+                            // {
+                            //   'image': AppImages.demand_2,
+                            //   'title': "Tenant Demands 2.O",
+                            //   'onTap': () =>
+                            //       Navigator.push(context, MaterialPageRoute(
+                            //           builder: (
+                            //               context) => const TenantDemand())),
+                            // },
                             {
                               "image": AppImages.websiteIssue,
                               "title": "Web \nQuery",
@@ -460,7 +460,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
 
                             {
                               "image": AppImages.realestatefeild,
-                              "title": "Upcoming\nFlats",
+                              "title": "Upcoming\n Property",
                               "onTap": () {
                                 Navigator.push(
                                     context,
@@ -580,7 +580,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Your Target",
+                    "Target",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,

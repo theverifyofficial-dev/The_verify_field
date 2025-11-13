@@ -451,7 +451,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                   ),
                   alignment: Alignment.center,
                   child: const Text(
-                    "REJECTED",
+                    "REJECTED   ",
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,

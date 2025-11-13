@@ -326,7 +326,7 @@ class _Target_MainPageState extends State<Target_MainPage> {
 
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=${_number}',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$_number',
       );
 
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
@@ -334,13 +334,15 @@ class _Target_MainPageState extends State<Target_MainPage> {
         throw Exception('HTTP ${res.statusCode}');
       }
 
-      final body = jsonDecode(res.body);
-      final data = body['data'];
-      final count = (data is Map && data['logg'] != null)
-          ? int.tryParse(data['logg'].toString()) ?? 0
-          : 0;
+      final root = jsonDecode(res.body);
+
+      final data = root['data'] as Map?;
+
+      // 👈 correct key from this API
+      final count = (data?['total_live_rent_flat'] as num?)?.toInt() ?? 0;
 
       if (!mounted) return;
+
       setState(() {
         _liveCount = count;
         _loadingLive = false;
@@ -348,10 +350,11 @@ class _Target_MainPageState extends State<Target_MainPage> {
       });
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
         _liveCount = 0;
         _loadingLive = false;
-        _liveErr = 'Failed to load live count';
+        _liveErr = 'Failed to load live count: $e';
       });
     }
   }

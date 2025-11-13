@@ -56,10 +56,16 @@ class _TenantDemandState extends State<TenantDemand> {
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
+
     _debounce = Timer(const Duration(milliseconds: 250), () {
       final q = _searchController.text.toLowerCase().trim();
+
       setState(() {
         _filteredDemands = _allDemands.where((d) {
+          // extract date safely
+          final rawDate = d.createdDate;
+          final formattedDate = formatApiDate(rawDate).toLowerCase();
+
           return [
             d.tname,
             d.tnumber,
@@ -71,8 +77,10 @@ class _TenantDemandState extends State<TenantDemand> {
             d.location,
             d.status,
             d.result,
-            d.createdDate
-          ].any((f) => f.toLowerCase().contains(q));
+            formattedDate, // allow searching "13 nov 2025"
+          ].any((field) =>
+              field.toString().toLowerCase().contains(q)
+          );
         }).toList();
       });
     });
@@ -266,7 +274,7 @@ class _TenantDemandState extends State<TenantDemand> {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => AdminDemandDetail(demandId: d.id),
+                                  builder: (_) => AdminDemandDetail(demandId: d.id.toString()),
                                 ),
                               ).then((_) => _loadDemands());
                             },
@@ -360,7 +368,19 @@ class _TenantDemandState extends State<TenantDemand> {
                                       ),
                                     ],
                                   ),
-                                subtitle: Padding( padding: const EdgeInsets.only(top: 6), child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text("${d.location} • ${d.bhk} BHK", style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)), const SizedBox(height: 2), Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)), if (d.reference.isNotEmpty) Padding( padding: const EdgeInsets.only(top: 3), child: Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ), ), ], ), ),                            ),
+                                subtitle: Padding( padding: const EdgeInsets.only(top: 6), child: Column( crossAxisAlignment: CrossAxisAlignment.start, children: [ Text("${d.location} • ${d.bhk} BHK", style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)), const SizedBox(height: 2), Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)), if (d.reference.isNotEmpty) Padding( padding: const EdgeInsets.only(top: 3), child:
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
+
+                                    Text(
+                                      formatApiDate(d.createdDate),
+                                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                    )
+
+                                  ],
+                                ), ), ], ), ),                            ),
                             ),
                           ),
 
@@ -416,4 +436,24 @@ class _TenantDemandState extends State<TenantDemand> {
       ),
     );
   }
+
+  String formatApiDate(String apiDate) {
+    if (apiDate.isEmpty) return "";
+
+    try {
+      final dt = DateTime.parse(apiDate);
+      return "${dt.day} ${_month(dt.month)} ${dt.year}";
+    } catch (_) {
+      return apiDate;
+    }
+  }
+
+  String _month(int m) {
+    const months = [
+      "Jan","Feb","Mar","Apr","May","Jun",
+      "Jul","Aug","Sep","Oct","Nov","Dec"
+    ];
+    return months[m - 1];
+  }
+
 }

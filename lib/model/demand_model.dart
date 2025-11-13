@@ -1,5 +1,5 @@
 class TenantDemandModel {
-  final String id;
+  final int id;
   final String tname;
   final String tnumber;
   final String buyRent;
@@ -34,22 +34,36 @@ class TenantDemandModel {
   });
 
   factory TenantDemandModel.fromJson(Map<String, dynamic> json) {
+    // HANDLE BOTH CASES OF created_date
+    String extractCreatedDate(dynamic raw) {
+      if (raw is String) {
+        return raw; // from list API
+      } else if (raw is Map && raw['date'] != null) {
+        return raw['date'].toString(); // from detail API
+      }
+      return "";
+    }
+
     return TenantDemandModel(
-      id: json['id'] ?? '',
-      tname: json['Tname'] ?? '',
-      tnumber: json['Tnumber'] ?? '',
-      buyRent: json['Buy_rent'] ?? '',
-      reference: json['Reference'] ?? '',
-      price: json['Price'] ?? '',
-      message: json['Message'] ?? '',
-      bhk: json['Bhk'] ?? '',
-      location: json['Location'] ?? '',
-      status: json['Status'] ?? '',
-      result: json['Result'] ?? '',
+      id: int.tryParse(json['id'].toString()) ?? 0,
+
+      tname: json['Tname']?.toString() ?? '',
+      tnumber: json['Tnumber']?.toString() ?? '',
+      buyRent: json['Buy_rent']?.toString() ?? '',
+      reference: json['Reference']?.toString() ?? '',
+      price: json['Price']?.toString() ?? '',
+      message: json['Message']?.toString() ?? '',
+      bhk: json['Bhk']?.toString() ?? '',
+      location: json['Location']?.toString() ?? '',
+      status: json['Status']?.toString() ?? '',
+      result: json['Result']?.toString() ?? '',
       mark: json['mark']?.toString() ?? '0',
-      createdDate: json['created_date'] ?? '',
-      assignedSubadminName: json['assigned_subadmin_name'],
-      assignedFieldworkerName: json['assigned_fieldworker_name'],
+
+      // FIXED: unify both formats
+      createdDate: extractCreatedDate(json['created_date']),
+
+      assignedSubadminName: json['assigned_subadmin_name']?.toString(),
+      assignedFieldworkerName: json['assigned_fieldworker_name']?.toString(),
     );
   }
 }

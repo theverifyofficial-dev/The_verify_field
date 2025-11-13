@@ -57,6 +57,30 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     }
   }
 
+  String formatApiDate(dynamic raw) {
+    if (raw == null) return "-";
+
+    try {
+      final dateStr = raw["date"]; // "2025-11-13 00:00:00.000000"
+      final dt = DateTime.parse(dateStr);
+
+      return "${dt.day.toString().padLeft(2, '0')} "
+          "${_month(dt.month)} "
+          "${dt.year}";
+    } catch (_) {
+      return "-";
+    }
+  }
+
+  String _month(int m) {
+    const names = [
+      "", "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return names[m];
+  }
+
+
   Future<void> _assignDemand() async {
     if (_selectedOffice == null || _selectedName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -176,17 +200,28 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                                 fontWeight: FontWeight.w500),
                           ),
                           Text(
-                            "${_demand!["subadmin_role"] ?? "--"}",
+                            "${_demand!["assigned_subadmin_role"] ?? "--"}",
                             style: TextStyle(
                                 color: Colors.green.shade600,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500),
-                          ),Text(
-                            "${_demand!["subadmin_location"] ?? "--"}",
-                            style: TextStyle(
-                                color: Colors.green.shade600,
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "${_demand!["assigned_subadmin_location"] ?? "--"}",
+                                style: TextStyle(
+                                    color: Colors.green.shade600,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500),
+                              ),
+
+                              Text(
+                                "Assign: ${formatApiDate(_demand!["subadmin_assigned_at"])}",
+                                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                              )
+                            ],
                           ),
                         ],
                       ),
@@ -276,6 +311,12 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   Text(_demand?["Tnumber"] ?? "-",
                       style:
                       TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+
+                  Text(
+                    "Created: ${formatApiDate(_demand!["created_date"])}",
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                  )
+
                 ]),
           ),
           if (_demand?["mark"] == "1")

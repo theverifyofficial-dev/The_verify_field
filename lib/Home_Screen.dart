@@ -3,22 +3,34 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
 import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
+import 'Add_Rented_Flat/Field_Worker_Target.dart';
+import 'Administrator/agreement_details.dart';
+import 'Calender/CalenderForFieldWorker.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
-import 'Home_Screen_click/live_tabbar.dart';
+import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
+import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
+import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
+import 'add_properties_firstpage.dart';
+import 'main.dart';
 
 class Catid1122 {
   final int id;
@@ -320,7 +332,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "onTap": () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => const LiveTabbar())),
+                builder: (_) => const Show_New_Real_Estate())),
         "gradient": cardGradients[0],
       },
       {
@@ -334,7 +346,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       },
       {
         "image": AppImages.futureProperty,
-        "title": "Future\n Inventory/Property",
+        "title": "Future Property",
         "onTap": () => Navigator.push(
           context,
           MaterialPageRoute(
@@ -345,7 +357,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       },
       {
         "image": AppImages.tenant,
-        "title": "Costumer Demands",
+        "title": "Tenant Demands",
         "onTap": () {
           Navigator.push(
               context,
@@ -386,7 +398,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       },
       {
         "image": AppImages.realestatefeild,
-        "title": "Upcoming Property",
+        "title": "Upcoming Flats",
         "onTap": () {
           Navigator.push(
               context,
@@ -395,6 +407,18 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[7],
       },
+      {
+        "image": AppImages.calendar,
+        "title": "Task Calendar",
+        "onTap": () {
+          Navigator.push(
+              context, MaterialPageRoute(
+              builder: (_) => const CalendarTaskPage()));
+        },
+        "gradient": cardGradients[8],
+
+      },
+
     ];
 
     return Scaffold(
@@ -415,7 +439,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       // Top Row: Profile, Logo with premium styling
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
+                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Enhanced Profile with glow effect
@@ -617,7 +641,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         crossAxisSpacing: verticalSpacing,
                         mainAxisSpacing: verticalSpacing,
                         childAspectRatio: cardAspectRatio,
-                        children: List.generate(8, (index) {
+                        children: List.generate(9, (index) {
                           final item = cardData[index];
 
                           return AnimationConfiguration.staggeredGrid(

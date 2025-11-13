@@ -7,6 +7,8 @@ import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import 'package:verify_feild_worker/Administrator/agreement_details.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import 'package:verify_feild_worker/Login_page.dart';
+import '../Calender/CalenderForAdmin.dart';
+import '../Calender/CalenderForFieldWorker.dart';
 import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
@@ -23,7 +25,6 @@ import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import 'Calender/CalenderMain.dart';
 import 'New_TenandDemand/Tenant_demand.dart';
 
 class AdministratorHome_Screen extends StatefulWidget {
@@ -384,7 +385,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 8,
+                        itemCount: 9,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -474,7 +475,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               "onTap": () {
                                 Navigator.push(
                                     context, MaterialPageRoute(
-                                    builder: (_) => const CalendarTaskPage()));
+                                    builder: (_) => const CalendarTaskPageForAdmin()));
                               },
                             },
                           ];

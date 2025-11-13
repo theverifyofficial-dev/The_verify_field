@@ -3,33 +3,22 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
 import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
-import 'Add_Rented_Flat/Field_Worker_Target.dart';
-import 'Administrator/agreement_details.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
-import 'Home_Screen_click/New_Real_Estate.dart';
+import 'Home_Screen_click/live_tabbar.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
-import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
-import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
-import 'add_properties_firstpage.dart';
-import 'main.dart';
 
 class Catid1122 {
   final int id;
@@ -331,7 +320,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "onTap": () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => const Show_New_Real_Estate())),
+                builder: (_) => const LiveTabbar())),
         "gradient": cardGradients[0],
       },
       {

@@ -384,7 +384,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 7,
+                        itemCount: 8,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -439,14 +439,14 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                       builder: (
                                           context) => const Administater_parent_TenandDemand())),
                             },
-                            // {
-                            //   'image': AppImages.demand_2,
-                            //   'title': "Tenant Demands 2.O",
-                            //   'onTap': () =>
-                            //       Navigator.push(context, MaterialPageRoute(
-                            //           builder: (
-                            //               context) => const TenantDemand())),
-                            // },
+                            {
+                              'image': AppImages.demand_2,
+                              'title': "Costumer Demands 2.O",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (
+                                          context) => const TenantDemand())),
+                            },
                             {
                               "image": AppImages.websiteIssue,
                               "title": "Web \nQuery",

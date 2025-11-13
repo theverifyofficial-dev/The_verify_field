@@ -102,6 +102,8 @@ dependencies:
   share_plus: ^10.0.2
   flutter_typeahead: ^5.2.0
   palette_generator: ^0.3.3
+  gallery_saver_plus: ^3.2.9
+  gal: ^2.3.2
 
 
 dev_dependencies:

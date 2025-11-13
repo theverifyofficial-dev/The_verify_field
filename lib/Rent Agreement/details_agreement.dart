@@ -1,8 +1,13 @@
 import 'dart:convert';
-import 'dart:ui';
-import 'package:flutter/cupertino.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:gal/gal.dart';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 
 import '../Custom_Widget/Custom_backbutton.dart';
 import 'Forms/Agreement_Form.dart';
@@ -164,18 +169,93 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
 
   Widget _imageThumb(String path) {
     if ((path ?? '').toString().trim().isEmpty) return const SizedBox.shrink();
-    final full = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+
+    final full =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
+
+    Future<void> _downloadImage() async {
+      try {
+        // Ask permission for photos/storage
+        if (await Permission.photos.request().isDenied &&
+            await Permission.storage.request().isDenied) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Storage permission denied")),
+          );
+          return;
+        }
+
+        // Download the image
+        final response = await http.get(Uri.parse(full));
+        if (response.statusCode != 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("❌ Failed to download image")),
+          );
+          return;
+        }
+
+        // Write bytes to a temporary file
+        final tempDir = await getTemporaryDirectory();
+        final fileName =
+            "verifyserve_${DateTime.now().millisecondsSinceEpoch}.jpg";
+        final filePath = "${tempDir.path}/$fileName";
+        final file = File(filePath);
+        await file.writeAsBytes(response.bodyBytes);
+
+        // Save directly to system gallery using gal
+        await Gal.putImage(filePath, album: "VerifyServe");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("✅ Image saved to phone gallery"),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } catch (e) {
+        debugPrint("Error saving image: $e");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ Error saving image")),
+        );
+      }
+    }
+
     return GestureDetector(
       onTap: () => showDialog(
         context: context,
         builder: (_) => Dialog(
           clipBehavior: Clip.hardEdge,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          child: InteractiveViewer(
-            child: Image.network(full, fit: BoxFit.contain, errorBuilder: (_, __, ___) => const SizedBox(height: 200, child: Center(child: Icon(Icons.broken_image, color: Colors.red)))),
+          child: Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              InteractiveViewer(
+                child: Image.network(
+                  full,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox(
+                    height: 200,
+                    child: Center(
+                      child: Icon(Icons.broken_image, color: Colors.red),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: FloatingActionButton.extended(
+                  onPressed: (){
+                    _downloadImage();
+                    Navigator.pop(context);
+                  },
+                  backgroundColor: Colors.green.shade600,
+                  icon: const Icon(Icons.download, color: Colors.white),
+                  label: const Text("Save", style: TextStyle(color: Colors.white)),
+                ),
+              ),
+            ],
           ),
         ),
       ),
+      onLongPress: _downloadImage, // 👈 long press also downloads directly
       child: Container(
         width: 120,
         height: 92,
@@ -188,12 +268,22 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
         child: Image.network(
           full,
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Center(child: Icon(Icons.broken_image, color: Colors.red)),
+          errorBuilder: (_, __, ___) =>
+          const Center(child: Icon(Icons.broken_image, color: Colors.red)),
           loadingBuilder: (c, w, p) => p == null
               ? w
               : Container(
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(.45),
-            child: const Center(child: SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))),
+            color: Theme.of(context)
+                .colorScheme
+                .surfaceVariant
+                .withOpacity(.45),
+            child: const Center(
+              child: SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
           ),
         ),
       ),

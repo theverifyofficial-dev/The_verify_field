@@ -5,16 +5,14 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import '../../constant.dart';
 import '../../model/demand_model.dart';
-import 'Add_demand.dart';
-import 'Admin_demand_detail.dart';
 
-class TenantDemand extends StatefulWidget {
-  const TenantDemand({super.key});
+class CostumerDemand extends StatefulWidget {
+  const CostumerDemand({super.key});
   @override
-  State<TenantDemand> createState() => _TenantDemandState();
+  State<CostumerDemand> createState() => _TenantDemandState();
 }
 
-class _TenantDemandState extends State<TenantDemand> {
+class _TenantDemandState extends State<CostumerDemand> {
   List<TenantDemandModel> _allDemands = [];
   List<TenantDemandModel> _filteredDemands = [];
   bool _isLoading = true;
@@ -103,43 +101,6 @@ class _TenantDemandState extends State<TenantDemand> {
         leading: IconButton(
           icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white),
           onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          gradient: LinearGradient(
-            colors: [
-              theme.colorScheme.primary.withOpacity(0.9),
-              theme.colorScheme.primaryContainer.withOpacity(0.9)
-            ],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: theme.colorScheme.primary.withOpacity(0.4),
-              blurRadius: 18,
-              spreadRadius: 1,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text(
-            "Add Demand",
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-              letterSpacing: 0.3,
-            ),
-          ),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const CustomerDemandFormPage()),
-          ).then((_) => _loadDemands()),
         ),
       ),
       body: _isLoading
@@ -270,12 +231,12 @@ class _TenantDemandState extends State<TenantDemand> {
                         children: [
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => AdminDemandDetail(demandId: d.id.toString()),
-                                ),
-                              ).then((_) => _loadDemands());
+                              // Navigator.push(
+                              //   context,
+                              //   MaterialPageRoute(
+                              //     builder: (_) => AdminDemandDetail(demandId: d.id.toString()),
+                              //   ),
+                              // ).then((_) => _loadDemands());
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 250),
@@ -301,94 +262,94 @@ class _TenantDemandState extends State<TenantDemand> {
                                 ),
                               ),
                               child: ListTile(
-                                  contentPadding:
-                                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                  leading: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 300),
-                                    height: 52,
-                                    width: 52,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: LinearGradient(
-                                        colors: isUrgent
-                                            ? [
-                                          Colors.redAccent,
-                                          Colors.redAccent.shade700,
-                                        ]
-                                            : [
-                                          theme.colorScheme.primary,
-                                          theme.colorScheme.primary.withOpacity(0.8),
-                                        ],
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: isUrgent
-                                              ? Colors.redAccent.withOpacity(0.3)
-                                              : theme.colorScheme.primary.withOpacity(0.25),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
-                                        )
+                                contentPadding:
+                                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                leading: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 300),
+                                  height: 52,
+                                  width: 52,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: isUrgent
+                                          ? [
+                                        Colors.redAccent,
+                                        Colors.redAccent.shade700,
+                                      ]
+                                          : [
+                                        theme.colorScheme.primary,
+                                        theme.colorScheme.primary.withOpacity(0.8),
                                       ],
                                     ),
-                                    child: Center(
-                                      child: Text(
-                                        d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18,
-                                        ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: isUrgent
+                                            ? Colors.redAccent.withOpacity(0.3)
+                                            : theme.colorScheme.primary.withOpacity(0.25),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 4),
+                                      )
+                                    ],
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
                                       ),
                                     ),
                                   ),
-                                  title: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          d.tname,
-                                          style: TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            fontSize: 16,
-                                            color: isDark ? Colors.white : Colors.black,
-                                          ),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Text(
-                                        d.buyRent,
+                                ),
+                                title: Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        d.tname,
                                         style: TextStyle(
-                                          fontSize: 13,
-                                          color: isUrgent
-                                              ? Colors.redAccent
-                                              : theme.colorScheme.primary,
-                                          fontWeight: FontWeight.w600,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                          color: isDark ? Colors.white : Colors.black,
                                         ),
+                                        overflow: TextOverflow.ellipsis,
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    Text(
+                                      d.buyRent,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: isUrgent
+                                            ? Colors.redAccent
+                                            : theme.colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                                 subtitle: Padding(
                                   padding: const EdgeInsets.only(top: 6),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                      Text("${d.location} • ${d.bhk} BHK",
-                                          style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
+                                    Text("${d.location} • ${d.bhk} BHK",
+                                        style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
                                     const SizedBox(height: 2),
                                     Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
                                     if (d.reference.isNotEmpty)
                                       Padding( padding: const EdgeInsets.only(top: 3), child:
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
 
-                                    Text(
-                                      formatApiDate(d.createdDate),
-                                      style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                                    )
+                                          Text(
+                                            formatApiDate(d.createdDate),
+                                            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                          )
 
-                                  ],
-                                ),),
+                                        ],
+                                      ),),
                                   ],
                                   ),
                                 ),

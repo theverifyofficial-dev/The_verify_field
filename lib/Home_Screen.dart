@@ -439,7 +439,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       // Top Row: Profile, Logo with premium styling
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                         child: Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             // Enhanced Profile with glow effect

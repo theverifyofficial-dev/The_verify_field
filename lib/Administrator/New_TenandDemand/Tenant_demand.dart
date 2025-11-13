@@ -393,7 +393,7 @@ class _TenantDemandState extends State<TenantDemand> {
                                   ),
                                   alignment: Alignment.center,
                                   child: const Text(
-                                    "ASSIGNED",
+                                    "ASSIGNED   ",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,

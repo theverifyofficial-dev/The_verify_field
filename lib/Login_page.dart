@@ -7,8 +7,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Reset_password/forget.dart';
-import 'Accountant/Accountant_Home.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
+import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Home_Screen.dart';
 import 'constant.dart';
 
@@ -270,9 +270,8 @@ class _Login_pageState extends State<Login_page> {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
         }
         else if (user["FAadharCard"] == "Sub Administrator") {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
-              => SubAdminHomeScreen(),
-          ));
+          Navigator.of(context).pushReplacementNamed(SubAdminHomeScreen.route);
+
         }
         else if (user["FAadharCard"] == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);

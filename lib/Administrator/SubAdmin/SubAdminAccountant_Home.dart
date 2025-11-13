@@ -3,21 +3,25 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Login_page.dart';
-import '../Administrator/Administater_Parent_TenantDemand.dart';
-import '../Administrator/Administator_Add_Rented_Flat_Tabbar.dart';
-import '../Administrator/Administator_Agreement/Admin_dashboard.dart';
-import '../Administrator/Administator_Realestate.dart';
-import '../Future_Property_OwnerDetails_section/Future_Property.dart';
-import '../Statistics/Target_MainPage.dart';
-import '../main.dart';
-import '../profile.dart';
-import '../ui_decoration_tools/app_images.dart';
+import '../../Accountant/Company expense/Tabbar_control.dart';
+import '../../Accountant/Salaray expense/Tabbar_control.dart';
+import '../../Administrator/Administater_Parent_TenantDemand.dart';
+import '../../Administrator/Administator_Add_Rented_Flat_Tabbar.dart';
+import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
+import '../../Administrator/Administator_Realestate.dart';
+import '../../Administrator/New_TenandDemand/Tenant_demand.dart';
+import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../../Statistics/Target_MainPage.dart';
+import '../../main.dart';
+import '../../profile.dart';
+import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'Company expense/Tabbar_control.dart';
-import 'Salaray expense/Salary_home.dart';
-import 'Salaray expense/Tabbar_control.dart';
+
+import 'ShowTenantDemant.dart';
 
 class SubAdminHomeScreen extends StatefulWidget {
+  static const route = "/SubAdminHomeScreen";
+
   const SubAdminHomeScreen({super.key});
 
   @override
@@ -327,7 +331,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: 5,
+                            itemCount: 6,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -378,6 +382,15 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                       MaterialPageRoute(
                                           builder: (_) => Target_MainPage())),
                                 },
+                                {
+                                  'image': AppImages.demand_2,
+                                  'title': "Costumer Demands 2.O",
+                                  'onTap': () =>
+                                      Navigator.push(context, MaterialPageRoute(
+                                          builder: (
+                                              context) =>  ShowTenantDemandPage())),
+                                },
+
                               ];
 
                               final item = featureItems[index];

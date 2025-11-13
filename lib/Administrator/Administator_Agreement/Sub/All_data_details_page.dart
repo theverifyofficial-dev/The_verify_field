@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
@@ -42,18 +45,135 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       );
     }
   }
+  Future<File> _convertToJpeg(File file) async {
+    final Uint8List imageBytes = await file.readAsBytes();
+    final decodedImage = await decodeImageFromList(imageBytes);
+
+
+    final pictureRecorder = PictureRecorder();
+    final canvas = Canvas(pictureRecorder);
+    final paint = Paint();
+
+    canvas.drawImage(decodedImage, Offset.zero, paint);
+
+    final img = await pictureRecorder.endRecording()
+        .toImage(decodedImage.width, decodedImage.height);
+    final byteData = await img.toByteData(format: ImageByteFormat.png);
+
+    final Uint8List pngBytes = byteData!.buffer.asUint8List();
+
+    final newFile = File("${file.path}.jpg");
+    return await newFile.writeAsBytes(pngBytes);
+  }
 
   Future<void> _pickAndUploadNotaryImage() async {
-    final picker = ImagePicker();
-    final XFile? picked = await picker.pickImage(source: ImageSource.gallery);
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return SizedBox(
+          height: 160,
+          child: Column(
+            children: [
+              const SizedBox(height: 10),
+              const Text(
+                "Choose Image Source",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
 
-    if (picked != null) {
-      File image = File(picked.path);
-      await _uploadDocument(
-        image,
-        type: "notry_img",
-      );
-    }
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // CAMERA
+                  TextButton.icon(
+                    icon: const Icon(Icons.camera_alt, size: 28),
+                    label: const Text("Camera"),
+                    onPressed: () async {
+                      Navigator.pop(context);
+
+                      final picked = await ImagePicker().pickImage(
+                        source: ImageSource.camera,
+                        imageQuality: 90,
+                      );
+
+                      if (picked == null) return;
+
+                      // Original file
+                      File original = File(picked.path);
+                      print("📸 BEFORE SIZE: ${(await original.length() / 1024).toStringAsFixed(2)} KB");
+
+                      // ---- COMPRESS (first pass) ----
+                      XFile? compressedX = await FlutterImageCompress.compressAndGetFile(
+                        original.path,
+                        "${original.path}_c1.jpg",
+                        quality: 20,
+                        minWidth: 800,
+                        minHeight: 800,
+                      );
+
+                      if (compressedX == null) {
+                        print("❌ Compression failed!");
+                        return;
+                      }
+
+                      // Convert XFile → File
+                      File finalFile = File(compressedX.path);
+
+                      // ---- RECOMPRESS UNTIL UNDER 150 KB ----
+                      int quality = 20;
+
+                      while (await finalFile.length() > 150 * 1024 && quality > 5) {
+                        quality -= 5;
+
+                        XFile? retryX = await FlutterImageCompress.compressAndGetFile(
+                          finalFile.path,
+                          "${finalFile.path}_retry.jpg",
+                          quality: quality,
+                        );
+
+                        if (retryX == null) break;
+
+                        finalFile = File(retryX.path); // XFile → File
+                      }
+
+                      print("📸 AFTER SIZE: ${(await finalFile.length() / 1024).toStringAsFixed(2)} KB");
+
+                      print("📤 UPLOAD ID: ${widget.agreementId}");
+
+                      await _uploadDocument(finalFile, type: "notry_img");
+                    },
+                  ),
+
+                  // GALLERY
+                  TextButton.icon(
+                    icon: const Icon(Icons.photo, size: 28),
+                    label: const Text("Gallery"),
+                    onPressed: () async {
+                      Navigator.pop(context);
+
+                      final picked = await ImagePicker()
+                          .pickImage(source: ImageSource.gallery, imageQuality: 90);
+
+                      if (picked != null) {
+                        File imgFile = File(picked.path);
+
+                        await _uploadDocument(
+                          imgFile,
+                          type: "notry_img",
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _uploadDocument(File file, {required String type}) async {

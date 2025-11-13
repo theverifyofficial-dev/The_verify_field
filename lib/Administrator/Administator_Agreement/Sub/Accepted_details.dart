@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as img;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -14,8 +16,9 @@ import 'package:mime/mime.dart';
 import 'package:http_parser/http_parser.dart';
 
 import 'furnished pdf.dart';
-
-
+import 'package:image/image.dart' as img;
+import 'dart:io';
+import 'dart:typed_data';
 class AcceptedDetails extends StatefulWidget {
 
   final String agreementId;
@@ -45,6 +48,64 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     final mime = lookupMimeType(path) ?? 'application/octet-stream';
     final parts = mime.split('/');
     return MediaType(parts.first, parts.length > 1 ? parts.last : 'octet-stream');
+  }
+
+  bool isCompressing = false;
+  String compressedSizeText = "";
+
+  Future<File> compressImageTo150KB(File file) async {
+    try {
+      int originalKB = file.lengthSync() ~/ 1024;
+      debugPrint("📸 BEFORE Compress: $originalKB KB");
+
+      Uint8List bytes = await file.readAsBytes();
+
+      img.Image? image = img.decodeImage(bytes);
+      if (image == null) {
+        debugPrint("❌ Could not decode image");
+        return file;
+      }
+
+      int quality = 90;
+      int width = image.width;
+
+      File compressed = file;
+
+      while (true) {
+        // 🔥 Correct resize function
+        img.Image resized = img.copyResize(image, width: width);
+
+        // 🔥 Correct JPG encoder
+        List<int> jpgBytes = img.encodeJpg(resized, quality: quality);
+
+        // Write file
+        File temp = File("${file.path}_${DateTime.now().millisecondsSinceEpoch}.jpg");
+        await temp.writeAsBytes(jpgBytes);
+
+        int sizeKB = temp.lengthSync() ~/ 1024;
+        debugPrint("🔄 Width=$width | Quality=$quality | Size=$sizeKB KB");
+
+        if (sizeKB <= 150) {
+          compressed = temp;
+          break;
+        }
+
+        quality -= 10;
+        width = (width * 0.85).toInt();
+
+        if (quality < 10 || width < 300) {
+          compressed = temp;
+          break;
+        }
+      }
+
+      debugPrint("📦 AFTER Compress: ${compressed.lengthSync() ~/ 1024} KB");
+      return compressed;
+
+    } catch (e) {
+      debugPrint("❌ Compress Error: $e");
+      return file;
+    }
   }
 
   String? _formatDate(dynamic shiftingDate) {
@@ -585,7 +646,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                           //   const SnackBar(content: Text("Police Verification file selected ✅")),
                           // );
                         }
-                      },                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
+                      },
+                      icon: const Icon(Icons.upload_sharp, color: Colors.white),
                       label: const Text(
                         "P. Verification",
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
@@ -603,15 +665,98 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                     margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
                     child: ElevatedButton.icon(
                       onPressed: () async {
-                        final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-                        if (picked != null) {
-                          setState(() {
-                            notaryImageFile = File(picked.path);
-                          });
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   const SnackBar(content: Text("Notary image selected ✅")),
-                          // );
-                        }
+                        showModalBottomSheet(
+                          context: context,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                          ),
+                          builder: (context) {
+                            return SizedBox(
+                              height: 140,
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 10),
+                                  const Text(
+                                    "Select Image",
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                                  ),
+                                  const SizedBox(height: 10),
+
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      // 📷 CAMERA
+                                      TextButton.icon(
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+
+                                          final picked = await ImagePicker().pickImage(
+                                            source: ImageSource.camera,
+                                            imageQuality: 90,
+                                          );
+
+                                          if (picked != null) {
+                                            setState(() {
+                                              isCompressing = true;
+                                              compressedSizeText = "Compressing image...";
+                                            });
+
+                                            File imgFile = File(picked.path);
+
+                                            imgFile = await compressImageTo150KB(imgFile);
+
+                                            int sizeKB = imgFile.lengthSync() ~/ 1024;
+
+                                            setState(() {
+                                              notaryImageFile = imgFile;
+                                              isCompressing = false;
+                                              compressedSizeText = "Final Size: $sizeKB KB";
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(Icons.camera_alt, size: 28),
+                                        label: const Text("Camera"),
+                                      ),
+
+                                      // 🖼️ GALLERY
+                                      TextButton.icon(
+                                        onPressed: () async {
+                                          Navigator.pop(context);
+
+                                          final picked = await ImagePicker().pickImage(
+                                            source: ImageSource.gallery,
+                                            imageQuality: 90,
+                                          );
+
+                                          if (picked != null) {
+                                            setState(() {
+                                              isCompressing = true;
+                                              compressedSizeText = "Compressing image...";
+                                            });
+
+                                            File imgFile = File(picked.path);
+
+                                            imgFile = await compressImageTo150KB(imgFile);
+
+                                            int sizeKB = imgFile.lengthSync() ~/ 1024;
+
+                                            setState(() {
+                                              notaryImageFile = imgFile;
+                                              isCompressing = false;
+                                              compressedSizeText = "Final Size: $sizeKB KB";
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(Icons.photo, size: 28),
+                                        label: const Text("Gallery"),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
                       },
                       icon: const Icon(Icons.upload_sharp, color: Colors.white),
                       label: const Text(
@@ -619,7 +764,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Third color
+                        backgroundColor: Colors.red,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
@@ -656,7 +801,26 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                         fit: BoxFit.cover,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 8),if (isCompressing)
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(10),
+                          child: CircularProgressIndicator(),
+                        ),
+                      ),
+
+                    if (!isCompressing && compressedSizeText.isNotEmpty)
+                      Center(
+                        child: Text(
+                          compressedSizeText,
+                          style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green),
+                        ),
+                      ),
+
+
                     const Text("Notary Image",
                         style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
                   ],

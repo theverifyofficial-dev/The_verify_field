@@ -6,7 +6,12 @@ import '../constant.dart';
 import 'AdministatorFieldWorkerBookingPage.dart';
 
 class AdministatorAddRentedFlatTabbar extends StatefulWidget {
-  const AdministatorAddRentedFlatTabbar({super.key});
+  final int tabIndex;
+  final String? propertyId;
+  const AdministatorAddRentedFlatTabbar({
+    super.key,
+    this.tabIndex = 0,
+    this.propertyId,  });
 
   @override
   State<AdministatorAddRentedFlatTabbar> createState() => _AdministatorAddRentedFlatTabbarState();
@@ -27,6 +32,9 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
       setState(() {
         _selectedIndex = _tabController.index;
       });
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tabController.animateTo(widget.tabIndex);
     });
   }
 

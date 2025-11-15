@@ -20,7 +20,8 @@ import 'Forms/Renewal_form.dart';
 class AgreementDetailPage extends StatefulWidget  {
   final bool fromNotification;
   final String agreementId;
-  const AgreementDetailPage({super.key,    this.fromNotification = false,
+  const AgreementDetailPage({super.key,
+    this.fromNotification = false,
     required this.agreementId});
 
   @override

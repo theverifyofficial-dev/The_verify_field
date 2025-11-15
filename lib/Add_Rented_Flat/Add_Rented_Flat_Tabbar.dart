@@ -4,6 +4,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../constant.dart';
 import 'FieldWorkerPendingFlats.dart';
 import 'FieldWorker_Booking_Page.dart';
+import 'FieldWorker_Booking_Page_Details.dart';
 
 class AddRentedFlatTabbar extends StatefulWidget {
   const AddRentedFlatTabbar({super.key});

@@ -8,13 +8,25 @@ import 'Administator_Complete_Payment.dart';
 import 'Administator_Pending_Flat.dart';
 
 class AdministatorAddRentedFlatTabbar extends StatefulWidget {
-  const AdministatorAddRentedFlatTabbar({super.key});
+  static const administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
+
+  final bool fromNotification;
+  final String? flatId;
+  final int tabIndex;   // 👈 ADD THIS
+
+  const AdministatorAddRentedFlatTabbar({
+    super.key,
+    this.fromNotification = false,
+    this.flatId,
+    this.tabIndex = 0,   // 👈 DEFAULT = Booking tab
+  });
 
   @override
   State<AdministatorAddRentedFlatTabbar> createState() => _AdministatorAddRentedFlatTabbarState();
 }
 
-class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedFlatTabbar> with SingleTickerProviderStateMixin {
+class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedFlatTabbar>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   int _selectedIndex = 0;
 
@@ -23,7 +35,14 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: _tabs.length, vsync: this);
+
+    // 🔥 Set tab automatically if opened from notification
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _tabController.animateTo(widget.tabIndex);
+    });
+
     _tabController.addListener(() {
       setState(() {
         _selectedIndex = _tabController.index;
@@ -42,7 +61,7 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        elevation: 0, // Make sure there's no shadow
+        elevation: 0,
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
@@ -52,9 +71,7 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
           },
           child: const Row(
             children: [
-              SizedBox(
-                width: 3,
-              ),
+              SizedBox(width: 3),
               Icon(
                 PhosphorIcons.caret_left_bold,
                 color: Colors.white,
@@ -62,34 +79,39 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
               ),
             ],
           ),
-        ),        // centerTitle: true,
+        ),
+
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(50),
           child: Container(
-            margin: const EdgeInsets.only(left: 16,right: 16,top: 8 ),
+            margin: const EdgeInsets.only(left: 16, right: 16, top: 8),
             decoration: BoxDecoration(
               color: Colors.grey.shade900,
-              borderRadius: BorderRadius.only(topLeft:Radius.circular(25),topRight:Radius.circular(25)),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(25),
+                topRight: Radius.circular(25),
+              ),
             ),
             child: TabBar(
               controller: _tabController,
-              indicator: BoxDecoration(
-                // borderRadius: BorderRadius.circular(20),
-                color: Colors.white,
-              ),
+              indicator: const BoxDecoration(color: Colors.white),
               dividerColor: Colors.transparent,
               labelColor: Colors.black,
               unselectedLabelColor: Colors.white,
               labelStyle: const TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.bold),
-              tabs: _tabs.map((tab) => Padding(
-                padding: const EdgeInsets.only(left: 8.0,right: 8),
+                fontSize: 14, fontWeight: FontWeight.bold,
+              ),
+              tabs: _tabs
+                  .map((tab) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
                 child: Tab(text: tab),
-              )).toList(),
+              ))
+                  .toList(),
             ),
           ),
         ),
       ),
+
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 500),
         child: TabBarView(
@@ -98,7 +120,7 @@ class _AdministatorAddRentedFlatTabbarState extends State<AdministatorAddRentedF
           children: [
             AdministatiorFieldWorkerBookingPage(),
             AdministatiorFieldWorkerPendingFlats(),
-            AdministatiorFieldWorkerCompleteFlats()
+            AdministatiorFieldWorkerCompleteFlats(),
           ],
         ),
       ),

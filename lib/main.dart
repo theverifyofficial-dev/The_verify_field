@@ -100,91 +100,6 @@ class _MyAppState extends State<MyApp> {
     _initDynamicLinks();
   }
 
-  /// Handle Notification Navigation
-  void _handleNotificationNavigation(RemoteMessage message, {bool fromTerminated = false}) {
-    try {
-      final data = message.data;
-
-      String? type = data['type']?.toString();
-      String? flatId = data['flat_id']?.toString();
-      String? buildingId = data['building_id']?.toString();
-
-      // ✅ Parse nested payload if exists
-      final nestedPayload = data['payload'];
-      if (nestedPayload != null) {
-        try {
-          Map<String, dynamic> payloadMap = {};
-          if (nestedPayload is String) {
-            payloadMap = Map<String, dynamic>.from(jsonDecode(nestedPayload));
-          } else if (nestedPayload is Map) {
-            payloadMap = Map<String, dynamic>.from(nestedPayload);
-          }
-          buildingId ??= payloadMap['building_id']?.toString() ??
-              payloadMap['buildingId']?.toString();
-          flatId ??= payloadMap['flat_id']?.toString() ??
-              payloadMap['flatId']?.toString();
-        } catch (e) {
-          print("❌ Error parsing nested payload: $e");
-        }
-      }
-
-      // ✅ Extract from body if still null
-      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") &&
-          (buildingId == null || buildingId.isEmpty)) {
-        buildingId = extractBuildingIdFromBody(message.notification?.body);
-      }
-
-      // 🔹 Navigate → Building pages
-      if ((type == "BUILDING_UPDATE" || type == "NEW_BUILDING") &&
-          buildingId != null) {
-        navigatorKey.currentState?.pushNamedAndRemoveUntil(
-          Routes.administaterShowFutureProperty,
-              (route) => false,
-          arguments: {"fromNotification": true, "buildingId": buildingId},
-        );
-        return;
-      }
-
-      // 🔹 Navigate → Flat details page
-      if (type == "NEW_FLAT" && buildingId != null && flatId != null) {
-        if (fromTerminated) {
-          // Make sure home screen loads first
-          navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            AdministratorHome_Screen.route,
-                (route) => false,
-          );
-        }
-        navigatorKey.currentState?.pushNamed(
-          Routes.administaterFuturePropertyDetails,
-          arguments: {
-            "fromNotification": true,
-            "buildingId": buildingId,
-            "flatId": flatId,
-          },
-        );
-        return;
-      }
-
-      // 🔹 Navigate → Real estate page
-      if (flatId != null && flatId.isNotEmpty) {
-        if (fromTerminated) {
-          navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            AdministratorHome_Screen.route,
-                (route) => false,
-          );
-        }
-        navigatorKey.currentState?.pushNamed(
-          Routes.administaterShowRealEstate,
-          arguments: {"fromNotification": true, "flatId": flatId},
-        );
-      } else {
-        print("⚠️ flatId missing in notification");
-      }
-    } catch (e) {
-      print("❌ Navigation error: $e");
-    }
-  }
-
   /// Extract buildingId from body
   String? extractBuildingIdFromBody(String? body) {
     if (body == null) return null;
@@ -201,7 +116,52 @@ class _MyAppState extends State<MyApp> {
       String? type = data['type']?.toString();
       String? flatId = data['flat_id']?.toString();
       String? buildingId = data['building_id']?.toString();
+      String? propertyId = data['P_id']?.toString();
+      // 🔹 First Payment → OPEN TAB 0
+      if (type == "RENTED_OUT_UPDATED") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterAddRentedFlatTabbar,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "propertyId": propertyId,
+              "tabIndex": 0,   // FIRST TAB ─ Booking
+            },
+          );
+        });
+        return;
+      }
 
+      // 🔹 Second Payment → OPEN TAB 1
+      if (type == "SECOND_PAYMENT_ADDED") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterAddRentedFlatTabbar,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "propertyId": propertyId,
+              "tabIndex": 1,   // SECOND TAB ─ Pending
+            },
+          );
+        });
+        return;
+      }
+      if (type == "FINAL_PAYMENT_ADDED") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterAddRentedFlatTabbar,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "propertyId": propertyId,
+              "tabIndex": 1,   // Final TAB ─ Complete
+            },
+          );
+        });
+        return;
+      }
       // ✅ Nested payload handling
       final nestedPayload = data['payload'];
       if (nestedPayload != null) {
@@ -242,8 +202,7 @@ class _MyAppState extends State<MyApp> {
       }
 
       // 🔹 Handle NEW_FLAT notification → Administater_Future_Property_details
-      if (type == "NEW_FLAT" ||
-          type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
+      if (type == "NEW_FLAT" || type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           if (fromTerminated) {

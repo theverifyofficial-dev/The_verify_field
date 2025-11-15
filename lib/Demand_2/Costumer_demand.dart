@@ -7,14 +7,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/SubAdmin/sub_demand_details.dart';
 import '../../constant.dart';
 import '../../model/demand_model.dart';
+import 'Demand_detail.dart';
 
-class ShowTenantDemandPage extends StatefulWidget {
-  const ShowTenantDemandPage({super.key});
+class CostumerDemand extends StatefulWidget {
+  const CostumerDemand({super.key});
   @override
-  State<ShowTenantDemandPage> createState() => _TenantDemandState();
+  State<CostumerDemand> createState() => _TenantDemandState();
 }
 
-class _TenantDemandState extends State<ShowTenantDemandPage> {
+class _TenantDemandState extends State<CostumerDemand> {
   List<TenantDemandModel> _allDemands = [];
   List<TenantDemandModel> _filteredDemands = [];
   bool _isLoading = true;
@@ -34,12 +35,12 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
 
     try {
       final prefs = await SharedPreferences.getInstance();
-      final subadminName = prefs.getString('name') ?? "";
-      final subadminLocation = prefs.getString('location') ?? "";
-      print(subadminName);
-      print(subadminLocation);
+      final FName = prefs.getString('name') ?? "";
+      final FLocation = prefs.getString('location') ?? "";
+      print(FName);
+      print(FLocation);
 
-      if (subadminName.isEmpty || subadminLocation.isEmpty) {
+      if (FName.isEmpty || FLocation.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("User info missing. Please login again.")),
         );
@@ -47,12 +48,11 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
       }
 
       // Encode name & location for URL safety
-      final encodedName = Uri.encodeQueryComponent(subadminName);
-      final encodedLoc = Uri.encodeQueryComponent(subadminLocation);
+      final encodedName = Uri.encodeQueryComponent(FName);
+      final encodedLoc = Uri.encodeQueryComponent(FLocation);
 
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_subadmin_page.php"
-              "?assigned_subadmin_name=$encodedName&Location=$encodedLoc"
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_fieldworkar_page.php?assigned_fieldworker_name=$encodedName&Location=$encodedLoc"
       );
 
       final response = await http.get(url);
@@ -277,177 +277,132 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
                           ? const Color(0xFF1C1F27)
                           : Colors.white;
 
-                      return Stack(
-                        children: [
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => SubDemandDetails(demandId: d.id.toString()),
-                                ),
-                              ).then((_) => _loadDemands());
-                            },
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
-                              margin: const EdgeInsets.only(bottom: 14),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => DemandDetail(demandId: d.id.toString()),
+                            ),
+                          ).then((_) => _loadDemands());
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 250),
+                          margin: const EdgeInsets.only(bottom: 14),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(22),
+                            color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
+                            boxShadow: [
+                              BoxShadow(
+                                color: isUrgent
+                                    ? Colors.redAccent.withOpacity(0.25)
+                                    : Colors.black.withOpacity(0.08),
+                                blurRadius: 12,
+                                spreadRadius: 1,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                            border: Border.all(
+                              color: isUrgent
+                                  ? Colors.redAccent.withOpacity(0.6)
+                                  : Colors.white.withOpacity(0.05),
+                              width: 1.2,
+                            ),
+                          ),
+                          child: ListTile(
+                            contentPadding:
+                            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                            leading: AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              height: 52,
+                              width: 52,
                               decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(22),
-                                color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: isUrgent
+                                      ? [
+                                    Colors.redAccent,
+                                    Colors.redAccent.shade700,
+                                  ]
+                                      : [
+                                    theme.colorScheme.primary,
+                                    theme.colorScheme.primary.withOpacity(0.8),
+                                  ],
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: isUrgent
-                                        ? Colors.redAccent.withOpacity(0.25)
-                                        : Colors.black.withOpacity(0.08),
-                                    blurRadius: 12,
-                                    spreadRadius: 1,
+                                        ? Colors.redAccent.withOpacity(0.3)
+                                        : theme.colorScheme.primary.withOpacity(0.25),
+                                    blurRadius: 10,
                                     offset: const Offset(0, 4),
-                                  ),
+                                  )
                                 ],
-                                border: Border.all(
-                                  color: isUrgent
-                                      ? Colors.redAccent.withOpacity(0.6)
-                                      : Colors.white.withOpacity(0.05),
-                                  width: 1.2,
+                              ),
+                              child: Center(
+                                child: Text(
+                                  d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
                                 ),
                               ),
-                              child: ListTile(
-                                contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                                leading: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 300),
-                                  height: 52,
-                                  width: 52,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: isUrgent
-                                          ? [
-                                        Colors.redAccent,
-                                        Colors.redAccent.shade700,
-                                      ]
-                                          : [
-                                        theme.colorScheme.primary,
-                                        theme.colorScheme.primary.withOpacity(0.8),
-                                      ],
+                            ),
+                            title: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    d.tname,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                      color: isDark ? Colors.white : Colors.black,
                                     ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: isUrgent
-                                            ? Colors.redAccent.withOpacity(0.3)
-                                            : theme.colorScheme.primary.withOpacity(0.25),
-                                        blurRadius: 10,
-                                        offset: const Offset(0, 4),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  d.buyRent,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    color: isUrgent
+                                        ? Colors.redAccent
+                                        : theme.colorScheme.primary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            subtitle: Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                Text("${d.location} • ${d.bhk} BHK",
+                                    style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
+                                const SizedBox(height: 2),
+                                Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+                                if (d.reference.isNotEmpty)
+                                  Padding( padding: const EdgeInsets.only(top: 3), child:
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
+
+                                      Text(
+                                        formatApiDate(d.createdDate),
+                                        style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                                       )
+
                                     ],
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                title: Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        d.tname,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 16,
-                                          color: isDark ? Colors.white : Colors.black,
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                    Text(
-                                      d.buyRent,
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: isUrgent
-                                            ? Colors.redAccent
-                                            : theme.colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                subtitle: Padding(
-                                  padding: const EdgeInsets.only(top: 6),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                    Text("${d.location} • ${d.bhk} BHK",
-                                        style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
-                                    const SizedBox(height: 2),
-                                    Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
-                                    if (d.reference.isNotEmpty)
-                                      Padding( padding: const EdgeInsets.only(top: 3), child:
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
-
-                                          Text(
-                                            formatApiDate(d.createdDate),
-                                            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                                          )
-
-                                        ],
-                                      ),),
-                                  ],
-                                  ),
-                                ),
+                                  ),),
+                              ],
                               ),
                             ),
                           ),
-
-                          // 🌟 DIAGONAL STRIP (TOP-LEFT)
-                          if (d.status.toLowerCase() == "assigned to fieldworker")
-                            Positioned(
-                              top: 12,
-                              left: -30,
-                              child: Transform.rotate(
-                                angle: -0.785398, // -45 degrees in radians
-                                child: Container(
-                                  width: 140,
-                                  padding: const EdgeInsets.symmetric(vertical: 4),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.green.shade500,
-                                        Colors.green.shade700,
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.redAccent.withOpacity(0.4),
-                                        blurRadius: 6,
-                                        offset: const Offset(2, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: const Text(
-                                    "ASSIGNED   ",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: 1.2,
-                                      fontSize: 11.5,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                        ),
                       );
                     },
                   ),

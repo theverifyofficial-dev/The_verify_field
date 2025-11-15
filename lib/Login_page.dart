@@ -241,7 +241,7 @@ class _Login_pageState extends State<Login_page> {
 
       // API call with number, password, and token
       final response = await http.get(Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
+        "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
       ));
 
       print("📩 Raw Response: ${response.body}");
@@ -270,7 +270,7 @@ class _Login_pageState extends State<Login_page> {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
         }
         else if (user["FAadharCard"] == "Sub Administrator") {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context){
+          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
             return SubAdminHomeScreen();
           }));
 

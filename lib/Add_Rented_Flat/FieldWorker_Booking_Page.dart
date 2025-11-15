@@ -266,11 +266,7 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
       final decoded = json.decode(response.body);
       if (decoded["success"] == true) {
         List data = decoded["data"];
-        return data
-            .map((e) => Property.fromJson(e))
-            .toList()
-            .reversed
-            .toList();
+        return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
       }
     }
     throw Exception("Failed to load data");

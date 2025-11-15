@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Add_Rented_Flat/Action_Form.dart';
 import '../../Add_Rented_Flat/Add_Tenent.dart';
 import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
+import '../../Add_Rented_Flat/FieldWorker_Complete_Detail_Page.dart';
 import '../../constant.dart';
 import 'AdministatorPropertyDetailPage.dart';
 import 'Pending_Add _Property_Form.dart';
@@ -568,21 +569,21 @@ extension FirstPaymentNums on FirstPaymentRecord {
 }
 
 
-class AdministatiorFieldWorkerPendingFlats extends StatefulWidget {
-  const AdministatiorFieldWorkerPendingFlats({super.key});
+class AdministatiorFieldWorkerCompleteFlats extends StatefulWidget {
+  const AdministatiorFieldWorkerCompleteFlats({super.key});
 
   @override
-  State<AdministatiorFieldWorkerPendingFlats> createState() => _AdministatiorFieldWorkerPendingFlatsState();
+  State<AdministatiorFieldWorkerCompleteFlats> createState() => _AdministatiorFieldWorkerCompleteFlatsState();
 }
 
-class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFieldWorkerPendingFlats> {
+class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFieldWorkerCompleteFlats> {
 
   String _fieldworkarnumber = '';
   static Map<dynamic, DateTime>? _lastTapTimes;
 
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php");
     print("User Name :"+"${userName}");
     print("User Number :"+"${userNumber}");
     final response = await http.get(url);
@@ -728,9 +729,17 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                 final item = bookingList[index];
                 return GestureDetector(
                   onTap: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context){
-                      return AdministatorPropertyDetailPage(propertyId: item.id.toString(),);
-                    }));
+                    print(item.id);
+                    final pid = int.parse(item.id.toString()); // check/validate
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => PropertyCompleteDetailPage(
+                          propertyId: pid.toString(),
+                        ),
+                      ),
+                    );
+
                   },
                   child:Container(
                     margin: const EdgeInsets.only(bottom: 16),
@@ -789,8 +798,8 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 // ===================== FINANCIAL DETAILS EXPANSION TILE =====================
                         Container(
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12)
+                              color: Colors.grey.shade200,
+                              borderRadius: BorderRadius.circular(12)
                           ),
                           // margin: const EdgeInsets.symmetric(horizontal: 8, ),
 
@@ -1020,86 +1029,6 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                               ),
                             ),
 
-                            Row(
-                              children: [
-                              _buildTenantButton(
-                              label: "Add Billing",
-                              color: Colors.blue,
-                              onTap: () async {
-
-                                // wherever you have the current property's id:
-                                final int propertyId = item.id; // or however you get it
-
-                                final ok = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => PropertyCalculate(propertyId: propertyId),
-                                  ),
-                                );
-
-                                if (ok == true) {
-                                  _onRefresh();
-                                }
-                              },
-                            ),
-                                SizedBox(width: 6,),
-                                FutureBuilder<List<OwnerData>>(
-                                  future: fetchPersonDetail(item.id),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const SizedBox(
-                                        height: 40,
-                                        child: Center(),
-                                      );
-                                    }
-
-                                    if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                                      // 👉 No Owner → Show Add Owner button
-                                      return _buildTenantButton(
-                                        label: "Add Owner Detail",
-                                        color: Colors.green,
-                                        onTap: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            // refresh UI if owner was added
-                                            _onRefresh();
-                                          }
-                                        },
-                                      );
-                                    }
-                                    else {
-                                      final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
-                                      return _buildTenantButton(
-                                        label: "Update Owner Detail",
-                                        color: Colors.deepOrange,
-                                        onTap: () async {
-                                          print("Owner Id :"+owner.id.toString());
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => UpdateOwnerPage(
-                                                ownerId: owner.id.toString(), // ✅ Pass ownerId
-                                                propertyId: item.id.toString(), // ✅ Pass ownerId
-                                              ),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            _onRefresh();
-                                          }
-                                        },
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            )
 
                           ],
                         ),
@@ -1258,61 +1187,6 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
 
                                         const SizedBox(height: 16),
 
-                                        // ⭐ COMPLETE PAYMENT BUTTON ⭐
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            try {
-                                              final url = Uri.parse(
-                                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/complete_payment.php",
-                                              );
-
-                                              // ⭐ POST CALL
-                                              final response = await http.post(
-                                                url,
-                                                headers: {
-                                                  "Content-Type": "application/x-www-form-urlencoded",
-                                                },
-                                                body: {
-                                                  "P_id": item.id.toString(),   // <-- sending P_id to API
-                                                },
-                                              );
-                                              if (response.statusCode == 200) {
-                                                final res = jsonDecode(response.body);
-                                                print("P_id :${item.id}");
-                                                if (res["success"] == true) {
-                                                  _onRefresh();
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text("Payment Completed Successfully!")),
-
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text(res["message"] ?? "Something went wrong")),
-                                                  );
-                                                }
-                                              } else {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text("Server Error: ${response.statusCode}")),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text("Error: $e")),
-                                              );
-                                            }
-                                          },
-                                          child: const Text(
-                                            "Complete Payment",
-                                            style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600, color: Colors.white),
-                                          ),
-                                        ),
                                       ];
 
                                       return Container(
@@ -1488,10 +1362,10 @@ Widget _buildBillingStep({
   return StatefulBuilder(
     builder: (context, setState) {
       return Container(
-            decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12)
-            ),
+        decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(12)
+        ),
         child: ExpansionTile(
           iconColor: Colors.blue,
           collapsedIconColor: Colors.black54,

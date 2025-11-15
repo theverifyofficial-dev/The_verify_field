@@ -158,6 +158,35 @@ class _Target_MainPageState extends State<Target_MainPage> {
   String _SUbid = '';
   Map<String, dynamic>? _mtData;
   Map<String, dynamic>? _ytData;
+
+
+  bool _yrRentLoading = false;
+  String? _yrRentError;
+  String? _yrRentStartRaw, _yrRentEndExclRaw;
+  int _yrRentAchieved = 0;
+  Map<String, dynamic>? _yrRentData;
+
+
+  bool _yrBuyLoading = false;
+  String? _yrBuyError;
+  String? _yrBuyStartRaw, _yrBuyEndExclRaw;
+  int _yrBuyAchieved = 0;
+  Map<String, dynamic>? _yrBuyData;
+
+
+  bool _yrComLoading = false;
+  String? _yrComError;
+  String? _yrComStartRaw, _yrComEndExclRaw;
+  int _yrComAchieved = 0;
+  Map<String, dynamic>? _yrComData;
+
+
+  bool _yrAgrLoading = false;
+  String? _yrAgrError;
+  String? _yrAgrStartRaw, _yrAgrEndExclRaw;
+  int _yrAgrAchieved = 0;
+  Map<String, dynamic>? _yrAgrData;
+
   Future<void> _loadYearlyTarget() async {
     setState(() { _ytLoading = true; _ytError = null; });
     try {
@@ -230,7 +259,6 @@ class _Target_MainPageState extends State<Target_MainPage> {
     }
   }
 
-
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
     final n = prefs.getString('number') ?? '';
@@ -292,28 +320,40 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchBuyLiveCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=${_number}',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=$_number',
       );
+
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
-      if (res.statusCode != 200) {
-        throw Exception('HTTP ${res.statusCode}');
-      }
+
+      if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
+
       final body = jsonDecode(res.body);
-      final data = body['data'];
-      final count = (data is Map && data['logg'] != null)
-          ? int.tryParse(data['logg'].toString()) ?? 0
-          : 0;
+      final data = body['data'] ?? {};
+
+      // Support all possible key names (backend changes randomly)
+      int count = 0;
+
+      if (data is Map) {
+        count = (data['total_live_rent_flat'] ??
+            data['total_live_buy_flat'] ??
+            data['total_live'] ??
+            data['logg'])
+            ?.toInt() ??
+            int.tryParse(data['total_live_rent_flat']?.toString() ?? '0') ??
+            0;
+      }
 
       if (!mounted) return;
+
       setState(() {
-        _buyLiveCount = count; // e.g. 11
+        _buyLiveCount = count;
         _buyErr = null;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _buyLiveCount = 0;
-        _buyErr = 'Failed to load buy live count';
+        _buyErr = 'Failed to load buy live count: $e';
       });
     }
   }
@@ -362,28 +402,42 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchCommercialLiveCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=${_number}',
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=$_number',
       );
+
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) {
         throw Exception('HTTP ${res.statusCode}');
       }
+
       final body = jsonDecode(res.body);
-      final data = body['data'];
-      final count = (data is Map && data['logg'] != null)
-          ? int.tryParse(data['logg'].toString()) ?? 0
-          : 0;
+      final data = body['data'] ?? {};
+
+      int count = 0;
+
+      if (data is Map) {
+        // Try all possible backend keys
+        count = (data['total_live_commercial'] ??
+            data['total_live_rent_flat'] ??   // NEW API sending this
+            data['total_live'] ??
+            data['logg'])
+            ?.toInt() ??
+            int.tryParse(data['total_live_commercial']?.toString() ?? '0') ??
+            int.tryParse(data['total_live_rent_flat']?.toString() ?? '0') ??
+            0;
+      }
 
       if (!mounted) return;
+
       setState(() {
-        _commercialLiveCount = count; // e.g. 6
+        _commercialLiveCount = count;
         _commercialErr = null;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _commercialLiveCount = 0;
-        _commercialErr = 'Failed to load commercial live count';
+        _commercialErr = 'Failed to load commercial live count: $e';
       });
     }
   }
@@ -391,37 +445,56 @@ class _Target_MainPageState extends State<Target_MainPage> {
   Future<void> _fetchAgreementCount() async {
     try {
       final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=${_number}', // note the param casing and number
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=$_number',
       );
+
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
       if (res.statusCode != 200) {
         throw Exception('HTTP ${res.statusCode}');
       }
+
       final body = jsonDecode(res.body);
-      final data = body['data'];
-      final count = (data is Map && data['logg'] != null)
-          ? int.tryParse(data['logg'].toString()) ?? 0
-          : 0;
+      final data = body['data'] ?? {};
+
+      int count = 0;
+
+      if (data is Map) {
+        count = (data['total_agreements'] ??     // NEW API key
+            data['agreements'] ??            // fallback 1
+            data['logg'] ??                  // old API
+            data['total_agreement'] ??       // fallback 2
+            data['total']                    // fallback 3
+        ) is int
+            ? (data['total_agreements'] ??
+            data['agreements'] ??
+            data['logg'] ??
+            data['total_agreement'] ??
+            data['total'])
+            : int.tryParse(
+            (data['total_agreements'] ??
+                data['agreements'] ??
+                data['logg'] ??
+                data['total_agreement'] ??
+                data['total'])
+                ?.toString() ??
+                '0') ??
+            0;
+      }
 
       if (!mounted) return;
+
       setState(() {
-        _agreementCount = count; // e.g. 2
+        _agreementCount = count;
         _agreementErr = null;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _agreementCount = 0;
-        _agreementErr = 'Failed to load agreement count';
+        _agreementErr = 'Failed to load agreement count: $e';
       });
     }
   }
-
-  bool _yrRentLoading = false;
-  String? _yrRentError;
-  String? _yrRentStartRaw, _yrRentEndExclRaw;
-  int _yrRentAchieved = 0;
-  Map<String, dynamic>? _yrRentData;
 
   Future<void> _loadYearlyLiveRent() async {
     setState(() { _yrRentLoading = true; _yrRentError = null; });
@@ -462,12 +535,6 @@ class _Target_MainPageState extends State<Target_MainPage> {
     }
   }
 
-  bool _yrBuyLoading = false;
-  String? _yrBuyError;
-  String? _yrBuyStartRaw, _yrBuyEndExclRaw;
-  int _yrBuyAchieved = 0;
-  Map<String, dynamic>? _yrBuyData;
-
   Future<void> _loadYearlyLiveBuy() async {
     setState(() { _yrBuyLoading = true; _yrBuyError = null; });
     try {
@@ -501,12 +568,6 @@ class _Target_MainPageState extends State<Target_MainPage> {
       if (mounted) setState(() { _yrBuyLoading = false; });
     }
   }
-
-  bool _yrComLoading = false;
-  String? _yrComError;
-  String? _yrComStartRaw, _yrComEndExclRaw;
-  int _yrComAchieved = 0;
-  Map<String, dynamic>? _yrComData;
 
   Future<void> _loadYearlyCommercial() async {
     setState(() { _yrComLoading = true; _yrComError = null; });
@@ -554,11 +615,6 @@ class _Target_MainPageState extends State<Target_MainPage> {
     }
   }
 
-  bool _yrAgrLoading = false;
-  String? _yrAgrError;
-  String? _yrAgrStartRaw, _yrAgrEndExclRaw;
-  int _yrAgrAchieved = 0;
-  Map<String, dynamic>? _yrAgrData;
   Future<void> _loadYearlyAgreements() async {
     setState(() { _yrAgrLoading = true; _yrAgrError = null; });
     try {

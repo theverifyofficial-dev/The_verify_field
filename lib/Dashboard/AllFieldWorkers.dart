@@ -128,7 +128,10 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
   @override
   void initState() {
     super.initState();
-    _refreshAll();
+    setState(() {
+      _refreshAll();
+
+    });
   }
 
   Future<void> _refreshAll() async {
@@ -155,7 +158,6 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
   Future<void> _loadStatsForWorker(String number) async {
     final s = WorkerStats();
 
-    // Helper for .asmx APIs — extracts JSON inside <string>...</string>
     Future<dynamic> _getAsmxData(String path, Map<String, String> query) async {
       try {
         final url = _u(path, query);
@@ -164,128 +166,139 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
           final body = res.body;
           final match = RegExp(r'\[.*\]').firstMatch(body);
           if (match != null) {
-            final jsonStr = match.group(0)!;
-            return jsonDecode(jsonStr);
+            return jsonDecode(match.group(0)!);
           }
         }
-      } catch (e) {
-        debugPrint("⚠️ ASMX error on $path: $e");
-      }
+      } catch (_) {}
       return [];
     }
 
     Future<Map<String, dynamic>> quick(String path, Map<String, String> query) async {
       try {
-        final res = await _getJsonSmart(filePathWithTarget: path, query: query)
-            .timeout(const Duration(seconds: 4));
-        return res;
+        return await _getJsonSmart(
+          filePathWithTarget: path,
+          query: query,
+        ).timeout(const Duration(seconds: 4));
       } catch (_) {
         return {};
       }
     }
 
-    // 🕒 Run all APIs in parallel
-    final results = await Future.wait([
-      _getAsmxData('/WebService4.asmx/GetTotalFlats_under_building', {'field_workar_number': number}),
-      _getAsmxData('/WebService4.asmx/GetTotalFlats_Live_under_building', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_live_flat_for_field.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_for_book_flat_for_month.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_live_commercial_space.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_for_agreement.php', {'Fieldwarkarnumber': number}),
-      quick('/Second PHP FILE/Target/show_tatal_agreement.php', {'Fieldwarkarnumber': number}), // ✅ New API added here
-      quick('/Second PHP FILE/Target/count_api_for_building.php', {'fieldworkarnumber': number}),
-      quick('/Second PHP FILE/Target/count_for_book_flat_yearly.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_live_flat_rent_yearly.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_for_buy_live_flat_yearly.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/commerical_count_yearly.php', {'field_workar_number': number}),
-      quick('/Second PHP FILE/Target/count_api_agreement_yarly.php', {'Fieldwarkarnumber': number}),
-      quick('/Second PHP FILE/Target/count_api_for_building_yearly.php', {'fieldworkarnumber': number}),
-    ]);
+    try {
+      // Run all APIs in parallel
+      final results = await Future.wait([
+        _getAsmxData('/WebService4.asmx/GetTotalFlats_under_building', {'field_workar_number': number}),
+        _getAsmxData('/WebService4.asmx/GetTotalFlats_Live_under_building', {'field_workar_number': number}),
 
-    // --- Assign Overview ---
-    final totalList = results[0];
-    if (totalList is List && totalList.isNotEmpty) {
-      s.totalFlatsUnderBuilding = _asInt(totalList.first['subid']);
-    }
+        // Monthly + Live
+        quick('/Second PHP FILE/Target/count_api_live_flat_for_field.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_api_for_book_flat_for_month.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_api_live_commercial_space.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_api_for_agreement.php', {'Fieldwarkarnumber': number}),
+        quick('/Second PHP FILE/Target/show_tatal_agreement.php', {'Fieldwarkarnumber': number}),
+        quick('/Second PHP FILE/Target/count_api_for_building.php', {'fieldworkarnumber': number}),
 
-    final liveList = results[1];
-    if (liveList is List) {
-      for (final item in liveList) {
-        final status = (item['live_unlive'] ?? '').toString().toLowerCase();
-        final subid = _asInt(item['subid']);
-        if (status.contains('live')) s.liveFlatsUnderBuilding = subid;
-        if (status.contains('book')) s.rentOutFlatsUnderBuilding = subid;
+        // Yearly
+        quick('/Second PHP FILE/Target/count_for_book_flat_yearly.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_live_flat_rent_yearly.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_api_for_buy_live_flat_yearly.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/commerical_count_yearly.php', {'field_workar_number': number}),
+        quick('/Second PHP FILE/Target/count_api_agreement_yarly.php', {'Fieldwarkarnumber': number}),
+        quick('/Second PHP FILE/Target/count_api_for_building_yearly.php', {'fieldworkarnumber': number}),
+      ]);
+
+      // Safety helper to get `data` map from results (returns null if missing)
+      Map? _dataAt(int idx) {
+        if (idx < 0 || idx >= results.length) return null;
+        final r = results[idx];
+        if (r is Map && r.containsKey('data')) return r['data'] as Map?;
+        return null;
       }
+
+      // ASMX Overview
+      final totalList = results.isNotEmpty ? results[0] : null;
+      if (totalList is List && totalList.isNotEmpty) {
+        s.totalFlatsUnderBuilding = _asInt(totalList.first['subid']);
+      }
+
+      final liveList = results.length > 1 ? results[1] : null;
+      if (liveList is List) {
+        for (final i in liveList) {
+          final status = '${i['live_unlive']}'.toLowerCase();
+          final subid = _asInt(i['subid']);
+          if (status.contains('live')) s.liveFlatsUnderBuilding = subid;
+          if (status.contains('book')) s.rentOutFlatsUnderBuilding = subid;
+        }
+      }
+
+      // -------- Monthly / Live --------
+      final rentLive = _dataAt(2);
+      final mt = _dataAt(3);
+      final buy = _dataAt(4);
+      final com = _dataAt(5);
+      final agr = _dataAt(6);
+      final agr2 = _dataAt(7);
+      final bld = _dataAt(8);
+
+      // Use _pickCount for resilient key selection where backend varies
+      s.liveRent = _pickCount(rentLive, ['total_live_rent_flat', 'logg', 'total']);
+      s.liveBuy = _pickCount(buy, ['total_live_buy_flat', 'total_live_rent_flat', 'logg']);
+      s.liveCommercial = _pickCount(com, ['total_live_commercial', 'total_live_rent_flat', 'logg']);
+
+      s.mStartRaw = ((mt?['period_start'] as Map?)?['date'] ?? '').toString();
+      s.mEndExclRaw = ((mt?['period_end_excl'] as Map?)?['date'] ?? '').toString();
+
+      s.mBooked = _pickCount(mt, ['total_booked']);
+      s.mRentBooked = _pickCount(mt, ['rent_count']);
+      s.mBuyBooked = _pickCount(mt, ['buy_count']);
+
+      s.agreements = _pickCount(agr, ['total_agreements', 'agreements', 'logg']);
+      if (s.agreements == 0) {
+        s.agreements = _pickCount(agr2, ['logg']);
+      }
+      s.buildings = _pickCount(bld, ['logg', 'total_building']);
+
+      // -------- Yearly --------
+      final yt = _dataAt(9);
+      final yrRent = _dataAt(10);
+      final yrBuy = _dataAt(11);
+      final yrCom = _dataAt(12);
+      final yrAgr = _dataAt(13);
+      final yrBld = _dataAt(14);
+
+      s.yStartRaw = ((yt?['period_start'] as Map?)?['date'] ?? '').toString();
+      s.yEndExclRaw = ((yt?['period_end_excl'] as Map?)?['date'] ?? '').toString();
+
+      s.yBooked = _pickCount(yt, ['total_booked']);
+      s.bookBuyYear = _pickCount(yt, ['buy_count']);
+      s.bookRentYear = _pickCount(yt, ['rent_count']);
+
+      s.rentYearAchieved = _pickCount(yrRent, ['total_live_rent_flat', 'total_live_rent']);
+      s.buyYearAchieved = _pickCount(yrBuy, ['total_live_buy_flat', 'total_live_rent_flat']);
+      s.comYearAchieved = _pickCount(yrCom, ['total_live_commercial', 'total_live_rent_flat']);
+      s.agrYearAchieved = _pickCount(yrAgr, ['total_agreements', 'total_agreements']);
+      s.yBuildings = _pickCount(yrBld, ['total_building', 'logg']);
+
+      // Save
+      _stats[number] = s;
+    } catch (e) {
+      // If any unexpected error happens, keep a safe empty stats and continue.
+      debugPrint('⚠️ _loadStatsForWorker error for $number: $e');
+      _stats[number] = s;
     }
-
-    // --- Monthly ---
-    final rentLive = results[2];
-    final mt = results[3];
-    final buyLive = results[4];
-    final comLive = results[5];
-    final agr = results[6];
-    final bld = results[7];
-    final agrShow = results[8]; // ✅ New API result
-    s.liveRent = _asInt((rentLive['data'] as Map?)?['logg']);
-    s.liveBuy = _asInt((buyLive['data'] as Map?)?['logg']);
-    s.liveCommercial = _asInt((comLive['data'] as Map?)?['logg']);
-    s.agreements = _asInt((agr['data'] as Map?)?['logg']);
-    s.buildings = _asInt((bld['data'] as Map?)?['logg']);
-
-    final mtData = (mt['data'] as Map?) ?? {};
-    s.mStartRaw = ((mtData['period_start'] as Map?)?['date'] ?? '').toString();
-    s.mEndExclRaw = ((mtData['period_end_excl'] as Map?)?['date'] ?? '').toString();
-    s.mBooked = _asInt(mtData['total_booked']);
-    s.mRentBooked = _asInt(mtData['rent_count']);
-    s.mBuyBooked = _asInt(mtData['buy_count']);
-    s.agreements = _asInt((agr['data'] as Map?)?['logg']);
-    s.buildings = _asInt((bld['data'] as Map?)?['logg']);
-
-    // --- Yearly ---
-    final yt = results[8];
-    final rentY = results[9];
-    final buyY = results[10];
-    final comY = results[11];
-    final agrY = results[12];
-    final bldYear = results[13];
-
-    final ytData = (yt['data'] as Map?) ?? {};
-    s.yStartRaw = ((ytData['period_start'] as Map?)?['date'] ?? '').toString();
-    s.yEndExclRaw = ((ytData['period_end_excl'] as Map?)?['date'] ?? '').toString();
-    s.yBooked = _asInt(ytData['total_booked']);
-    s.bookBuyYear = _asInt(ytData['buy_count']);
-    s.bookRentYear = _asInt(ytData['rent_count']);
-
-    final ry = (rentY['data'] as Map?) ?? {};
-    s.rentYearAchieved = _asInt(ry['total_live_rent_flat'] ?? 0);
-
-    final by = (buyY['data'] as Map?) ?? {};
-    s.buyYearAchieved = _asInt(by['total_live_buy_flat'] ?? 0);
-
-    final cy = (comY['data'] as Map?) ?? {};
-    s.comYearAchieved = _asInt(cy['total_live_commercial'] ?? 0);
-
-    final ay = (agrY['data'] as Map?) ?? {};
-    s.agrYearAchieved = _asInt(ay['total_agreements'] ?? 0);
-
-    final bdYear = (bldYear['data'] as Map?) ?? {};
-    s.yBuildings = _asInt(bdYear['logg'] ?? bdYear['total_building'] ?? 0);
-
-    // Agreements — fallback to "show_tatal_agreement" API if count_api_for_agreement returns 0
-    final agrData = (agr['data'] as Map?) ?? {};
-    final agrShowData = (agrShow['data'] as Map?) ?? {};
-    final bldData = (bld['data'] as Map?) ?? {};
-
-    s.agreements = _asInt(agrData['logg'] ?? 0);
-    if (s.agreements == 0) {
-      s.agreements = _asInt(agrShowData['logg'] ?? 0); // ✅ fallback or override
-    }
-
-    s.buildings = _asInt(bldData['logg'] ?? 0);
-
-    _stats[number] = s;
   }
+
+// Reusable resilient picker (kept in your class)
+  int _pickCount(Map? d, List<String> keys) {
+    if (d == null) return 0;
+    for (final k in keys) {
+      final v = d[k];
+      if (v != null) return _asInt(v);
+    }
+    return 0;
+  }
+
 
   // ================== UI ==================
   @override

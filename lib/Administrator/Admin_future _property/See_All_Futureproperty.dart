@@ -292,6 +292,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
       setState(() {
         _filteredProperties = filtered;
         propertyCount = filtered.length;
+
+        _recalculateSummary();
       });
     });
   }
@@ -459,6 +461,53 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
       print("Error fetching total flats: $e");
     }
   }
+  Map<String, bool> _emptyBuildingMap = {}; // id → true if empty
+  bool _prefetchingEmpty = false;
+  Future<void> _prefetchEmptyStatus() async {
+    _emptyBuildingMap.clear();
+
+    try {
+      final futures = _allProperties.map((item) async {
+        try {
+          final url = Uri.parse(
+            'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${item.id}',
+          );
+
+          final res = await http.get(url);
+
+          if (res.statusCode == 200) {
+            final body = jsonDecode(res.body);
+
+            int count = 0; // default
+
+            if (body is List && body.isNotEmpty) {
+              count = int.tryParse(body[0]['logg'].toString()) ?? 0;
+            }
+
+            // Empty = logg = 0
+            _emptyBuildingMap[item.id.toString()] = (count == 0);
+          }
+        } catch (_) {
+          _emptyBuildingMap[item.id.toString()] = false;
+        }
+      });
+
+      await Future.wait(futures);
+    } catch (e) {
+      print("Empty building fetch error: $e");
+    }
+  }
+  void _recalculateSummary() {
+    totalFlats = _filteredProperties.length;
+
+    liveFlats = _filteredProperties.where((item) {
+      return _liveMap[item.id] == true;
+    }).length;
+
+    bookFlats = _filteredProperties.where((item) {
+      return _liveMap[item.id] == false;
+    }).length;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -602,7 +651,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: ['Buy', 'Rent', 'Commercial', 'Live', 'Unlive', 'Empty Field']
+                    children: ['Buy', 'Rent', 'Commercial', 'Live', 'Unlive', 'Empty Field','Empty Building']
                         .map((label) {
                       final isSelected = label == selectedLabel;
                       return Padding(
@@ -674,6 +723,24 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                 filtered = _allProperties.where(_hasMissing).toList();
                                 break;
 
+
+                              case 'Empty Building':
+                                if (_prefetchingEmpty) {
+                                  print('Checking empty buildings… try again');
+                                  break;
+                                }
+
+                                if (_emptyBuildingMap.isEmpty) {
+                                  setState(() => _prefetchingEmpty = true);
+                                  await _prefetchEmptyStatus();
+                                  if (!mounted) return;
+                                  setState(() => _prefetchingEmpty = false);
+                                }
+
+                                filtered = filtered.where((item) {
+                                  return _emptyBuildingMap[item.id.toString()] == true;
+                                }).toList();
+                                break;
                               default:
                                 break;
                             }
@@ -684,6 +751,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                               // _searchController.text = label;   <-- removed on purpose
                               _filteredProperties = filtered;
                               propertyCount = filtered.length;
+
+                              _recalculateSummary();
                             });
                           },
                           style: ElevatedButton.styleFrom(

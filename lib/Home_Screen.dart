@@ -21,6 +21,7 @@ import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
 import 'Add_Rented_Flat/Field_Worker_Target.dart';
 import 'Administrator/agreement_details.dart';
 import 'Calender/CalenderForFieldWorker.dart';
+import 'Demand_2/Costumer_demand.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
@@ -419,6 +420,19 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
       },
 
+      {
+        "image": AppImages.demand_2,
+        "title": "Costumer Demands 2.O",
+        "onTap": () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CostumerDemand()),
+        ),
+        "gradient": LinearGradient(
+          colors: [Colors.purple, Colors.blue,],
+        ),
+      },
+
+
     ];
 
     return Scaffold(
@@ -641,7 +655,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         crossAxisSpacing: verticalSpacing,
                         mainAxisSpacing: verticalSpacing,
                         childAspectRatio: cardAspectRatio,
-                        children: List.generate(9, (index) {
+                        children: List.generate(cardData.length, (index) {
                           final item = cardData[index];
 
                           return AnimationConfiguration.staggeredGrid(

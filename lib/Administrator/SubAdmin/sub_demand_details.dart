@@ -2,24 +2,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import '../../constant.dart';
 
-class AdminDemandDetail extends StatefulWidget {
+class SubDemandDetails extends StatefulWidget {
   final String demandId;
-  const AdminDemandDetail({super.key, required this.demandId});
+  const SubDemandDetails({super.key, required this.demandId});
 
   @override
-  State<AdminDemandDetail> createState() => _AdminDemandDetailState();
+  State<SubDemandDetails> createState() => _AdminDemandDetailState();
 }
 
-class _AdminDemandDetailState extends State<AdminDemandDetail> {
+class _AdminDemandDetailState extends State<SubDemandDetails> {
   Map<String, dynamic>? _demand;
   bool _isLoading = true;
   bool _assigning = false;
-  String? _selectedOffice;
   String? _selectedName;
+  String? _selectedOffice;
 
-  final List<String> _nameList = ["Saurabh Yadav"];
+  final List<String> _nameList = ["Faizan Khan","Ravi Kumar","Sumit","avjit"];
 
   @override
   void initState() {
@@ -84,7 +83,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
   Future<void> _assignDemand() async {
     if (_selectedName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Select Name")),
+        const SnackBar(content: Text("Select the Name first.")),
       );
       return;
     }
@@ -94,14 +93,14 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     try {
       final body = jsonEncode({
         "demand_id": widget.demandId,
-        "subadmin_role": "Sub Administrator",
-        "subadmin_name": _selectedName,
-        "subadmin_location": _selectedOffice
+        "fieldworker_role": "FieldWorkar",
+        "fieldworker_name": _selectedName,
+        "fieldworker_location": _selectedOffice,
       });
 
       final response = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php"),
+            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_fieldoworkar.php"),
         headers: {"Content-Type": "application/json"},
         body: body,
       );
@@ -168,7 +167,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
           children: [
             _buildTenantCard(isDark, accent),
             const SizedBox(height: 24),
-            if (_demand!["Status"] == "assign to subadmin") ...[
+            if (_demand!["Status"] == "assigned to fieldworker") ...[
               Container(
                 padding: const EdgeInsets.all(14),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -193,14 +192,14 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                                 fontWeight: FontWeight.bold),
                           ),
                           Text(
-                            "Assigned to: ${_demand!["assigned_subadmin_name"] ?? "--"}",
+                            "Assigned to: ${_demand!["assigned_fieldworker_name"] ?? "--"}",
                             style: TextStyle(
                                 color: Colors.green.shade600,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500),
                           ),
                           Text(
-                            "${_demand!["assigned_subadmin_role"] ?? "--"}",
+                            "${_demand!["assigned_fieldworker_role"] ?? "--"}",
                             style: TextStyle(
                                 color: Colors.green.shade600,
                                 fontSize: 13,
@@ -210,7 +209,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                "${_demand!["assigned_subadmin_location"] ?? "--"}",
+                                "${_demand!["assigned_fieldworker_location"] ?? "--"}",
                                 style: TextStyle(
                                     color: Colors.green.shade600,
                                     fontSize: 13,
@@ -218,7 +217,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                               ),
 
                               Text(
-                                "Assign: ${formatApiDate(_demand!["subadmin_assigned_at"])}",
+                                "Assign: ${formatApiDate(_demand!["fieldworker_assigned_at"])}",
                                 style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                               )
                             ],
@@ -230,27 +229,27 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                 ),
               ),
             ],
-                if (_demand!["Status"] == "New") ...[
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => _openAssignBottomSheet(accent, isDark),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: accent.withOpacity(0.85),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  elevation: 6,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                ),
-                child: Text(
-                  "Assign Demand",
-                  style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 17),
+            if (_demand!["Status"] == "assign to subadmin") ...[
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => _openAssignBottomSheet(accent, isDark),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accent.withOpacity(0.85),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 6,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(
+                    "Assign Demand",
+                    style: TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17),
+                  ),
                 ),
               ),
-            ),
-    ],
+            ],
           ],
         ),
       ),
@@ -418,32 +417,6 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
 
                   const SizedBox(height: 20),
 
-                  // 🔥 FUTURE FEATURE (commented)
-                  /*
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text("Assign to All Offices",
-                        style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black87,
-                            fontWeight: FontWeight.w600)),
-                    Switch(
-                      value: _assignToAll,
-                      activeColor: Colors.black,
-                      activeTrackColor: accent,
-                      onChanged: (v) {
-                        setState(() {
-                          _assignToAll = v;
-                          if (v) _selectedOffice = null;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                */
-
-                  // 🔰 Select Name
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: "Select Name",
@@ -458,8 +431,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                         .map((e) => DropdownMenuItem(value: e, child: Text(e)))
                         .toList(),
                   ),
-
-                  const SizedBox(height: 16),
+                  SizedBox(height: 10,),
 
                   Container(
                     width: double.infinity,
@@ -487,6 +459,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   ),
 
                   const Spacer(),
+
 
                   // 🔥 Assign Button
                   SizedBox(
@@ -535,7 +508,8 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 14)
+
                 ],
               ),
             );

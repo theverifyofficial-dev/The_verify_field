@@ -6,14 +6,14 @@ import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import '../../constant.dart';
 
-class CustomerDemandFormPage extends StatefulWidget {
-  const CustomerDemandFormPage({super.key});
+class DemandForm extends StatefulWidget {
+  const DemandForm({super.key});
 
   @override
-  State<CustomerDemandFormPage> createState() => _CustomerDemandFormPageState();
+  State<DemandForm> createState() => _CustomerDemandFormPageState();
 }
 
-class _CustomerDemandFormPageState extends State<CustomerDemandFormPage>
+class _CustomerDemandFormPageState extends State<DemandForm>
 
     with SingleTickerProviderStateMixin  {
   final _formKey = GlobalKey<FormState>();

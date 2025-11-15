@@ -53,6 +53,51 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     }
   }
 
+  Future<void> _callAndLog(String number, String id, String message) async {
+    await _logContact(message: message, id: id);
+    final uri = Uri.parse("tel:$number");
+    await launchUrl(uri);
+  }
+
+  Future<void> _whatsappAndLog(
+      String number, String id, String message, String name) async {
+
+    await _logContact(message: message, id: id);
+
+    final phone = number.replaceAll(" ", "");
+    final text = Uri.encodeComponent("Hello $name, I’m contacting regarding your request.");
+    final url = Uri.parse("https://wa.me/$phone?text=$text");
+
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _logContact({
+    required String message,
+    required String id,
+  }) async {
+    final now = DateTime.now();
+    final date = "${now.year}-${now.month}-${now.day}";
+    final time = "${now.hour}:${now.minute}";
+
+    const apiUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/calling_option_for_fieldworkar.php";
+
+    try {
+      final response = await http.post(
+        Uri.parse(apiUrl),
+        body: {"message": message, "date": date, "time": time, "subid": id},
+      );
+
+      debugPrint("Log saved: ${response.body}");
+    } catch (e) {
+      debugPrint("Error logging contact: $e");
+    }
+  }
+
+
+
+
+
   String formatApiDate(dynamic raw) {
     if (raw == null) return "-";
 
@@ -101,13 +146,36 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         ),
         centerTitle: true,
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: accent,
-        icon: Icon(Icons.phone, color: Colors.black),
-        label: Text("Contact", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-        onPressed: () => _openContactSheet(context, accent, isDark),
+      floatingActionButton: GestureDetector(
+        onTap: () => _openContactSheet(context, accent, isDark),
+        child: Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [
+                accent,
+                accent.withOpacity(0.7),
+              ],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: accent.withOpacity(0.4),
+                blurRadius: 14,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.phone_in_talk_rounded,
+            color: Colors.black,
+            size: 28,
+          ),
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+
 
       body: _isLoading
           ? Center(child: CircularProgressIndicator(color: accent))
@@ -128,7 +196,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: accent.withOpacity(0.85),
+                  backgroundColor: theme.colorScheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12)),
@@ -156,105 +224,287 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     );
   }
 
-  void _openContactSheet(BuildContext context, Color accent, bool isDark) {
+  Future<List<dynamic>> _fetchLogs(String id) async {
+    try {
+      final url =
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
+
+      print("📡 Fetching Logs: $url");
+
+      final res = await http.get(Uri.parse(url));
+
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body["success"] == true && body["data"] is List) {
+          print("📥 Logs fetched: ${body["data"].length}");
+          return body["data"];
+        }
+      }
+    } catch (e) {
+      print("❌ Error fetching logs: $e");
+    }
+    return [];
+  }
+
+
+  void _openContactSheet(BuildContext context, Color accent, bool isDark) async {
     final number = _demand?["Tnumber"] ?? "";
-    final name   = _demand?["Tname"] ?? "Customer";
+    final name = _demand?["Tname"] ?? "";
+    final id = _demand?["id"].toString() ?? "";
+
+    // FIRST LOAD LOGS
+    List<dynamic> logs = [];
+    await _fetchLogs(id).then((list) => logs = list);
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF111217) : Colors.white,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 50,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.4),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              const SizedBox(height: 18),
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            // function to reload logs live inside bottomsheet
+            Future<void> refreshLogs() async {
+              print("🔄 Refreshing Logs...");
+              final updated = await _fetchLogs(id);
+              setSheetState(() {
+                logs = updated;
+              });
+              print("✅ Logs Updated: ${logs.length}");
+            }
 
-              Text("Contact Customer",
-                  style: TextStyle(
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111217) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // drag handle
+                  Container(
+                    width: 45,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    "Contact Customer",
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: accent)
+                      color: accent,
+                    ),
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  // CONTACT BUTTONS
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _contactButton(
+                          label: "Call",
+                          color: Colors.blue,
+                          icon: Icons.call,
+                          onTap: () async {
+                            print("☎ CALL tapped");
+
+                            await _logContact(
+                                message: "Try to Call $number", id: id);
+
+                            print("📌 Log Inserted → Calling...");
+                            await refreshLogs();
+
+                            final uri = Uri.parse("tel:$number");
+                            await launchUrl(uri);
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: _contactButton(
+                          label: "WhatsApp",
+                          color: Colors.green,
+                          icon: Icons.chat,
+                          onTap: () async {
+                            print("💬 WhatsApp tapped");
+
+                            await _logContact(
+                                message: "Try to message on WhatsApp $number",
+                                id: id);
+
+                            print("📌 Log Inserted → Opening WhatsApp...");
+                            await refreshLogs();
+
+                            final phone = number.replaceAll(" ", "");
+                            final txt = Uri.encodeComponent(
+                                "Hello $name, I’m contacting regarding your request.");
+                            final url =
+                            Uri.parse("https://wa.me/$phone?text=$txt");
+
+                            await launchUrl(url,
+                                mode: LaunchMode.externalApplication);
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 25),
+
+                  // LOG HEADER
+                  Row(
+                    children: [
+                      Icon(Icons.history, color: accent, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Contact Logs",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // LOG LIST
+                  SizedBox(
+                    height: 250,
+                    child: logs.isEmpty
+                        ? Center(
+                      child: Text(
+                        "No activity logs found.",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    )
+                        : ListView.separated(
+                      itemCount: logs.length,
+                      separatorBuilder: (_, __) => Divider(
+                          color: isDark
+                              ? Colors.white12
+                              : Colors.black12),
+                      itemBuilder: (context, i) {
+                        final log = logs[i];
+                        final msg = log['message'] ?? "";
+                        final date = log['date'] ?? "";
+                        final time = log['time'] ?? "";
+
+                        final isCall =
+                        msg.toLowerCase().contains("call");
+                        final isWhatsapp =
+                        msg.toLowerCase().contains("whatsapp");
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isCall
+                                    ? Colors.blue.withOpacity(0.15)
+                                    : isWhatsapp
+                                    ? Colors.green.withOpacity(0.15)
+                                    : Colors.grey.withOpacity(0.15),
+                              ),
+                              child: Icon(
+                                isCall
+                                    ? Icons.call
+                                    : isWhatsapp
+                                    ? Icons.chat
+                                    : Icons.info_outline,
+                                color: isCall
+                                    ? Colors.blue
+                                    : isWhatsapp
+                                    ? Colors.green
+                                    : Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    msg,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "$date • $time",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
               ),
-
-              const SizedBox(height: 22),
-
-              // CALL BUTTON
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.call, color: Colors.white),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () {
-                    _callCustomer(number);
-                  },
-                  label: Text(
-                    "Call $number",
-                    style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 14),
-
-              // WHATSAPP BUTTON
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.chat, color: Colors.white),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: () {
-                    _whatsappCustomer(number, name);
-                  },
-                  label: const Text(
-                    "Message on WhatsApp",
-                    style: TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              )
-            ],
-          ),
+            );
+          },
         );
       },
     );
   }
 
-  void _callCustomer(String number) async {
-    final uri = Uri.parse("tel:$number");
-    await launchUrl(uri);
+
+
+
+
+  Widget _contactButton({
+    required String label,
+    required Color color,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        onPressed: onTap,
+        icon: Icon(icon, color: Colors.white),
+        label: Text(
+          label,
+          style: const TextStyle(
+              color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
   }
 
-  void _whatsappCustomer(String number, String name) async {
-    final text = Uri.encodeComponent("Hello $name, I am contacting you regarding your demand on Verify.");
-    final uri  = Uri.parse("https://wa.me/$number?text=$text");
-    await launchUrl(uri);
-  }
+
 
 
   Widget _buildTenantCard(bool isDark, Color accent) {
@@ -272,6 +522,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           )
         ],
       ),
+
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Container(
@@ -337,6 +588,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         ]),
         const SizedBox(height: 12),
         Divider(color: Colors.grey.withOpacity(0.3)),
+
         _infoRow("Buy / Rent", _demand?["Buy_rent"]),
         _infoRow("Location", _demand?["Location"]),
         _infoRow("Price Range", _demand?["Price"]),

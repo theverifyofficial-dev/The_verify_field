@@ -45,26 +45,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       );
     }
   }
-  Future<File> _convertToJpeg(File file) async {
-    final Uint8List imageBytes = await file.readAsBytes();
-    final decodedImage = await decodeImageFromList(imageBytes);
-
-
-    final pictureRecorder = PictureRecorder();
-    final canvas = Canvas(pictureRecorder);
-    final paint = Paint();
-
-    canvas.drawImage(decodedImage, Offset.zero, paint);
-
-    final img = await pictureRecorder.endRecording()
-        .toImage(decodedImage.width, decodedImage.height);
-    final byteData = await img.toByteData(format: ImageByteFormat.png);
-
-    final Uint8List pngBytes = byteData!.buffer.asUint8List();
-
-    final newFile = File("${file.path}.jpg");
-    return await newFile.writeAsBytes(pngBytes);
-  }
 
   Future<void> _pickAndUploadNotaryImage() async {
     showModalBottomSheet(
@@ -179,7 +159,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   Future<void> _uploadDocument(File file, {required String type}) async {
     if (!mounted) return;
 
-    // Show loader
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -188,18 +167,25 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
     try {
       final request = http.MultipartRequest(
-        'POST',
+        "POST",
         Uri.parse("https://theverify.in/update_police_verifification_notry_img.php"),
       );
 
-      // Dynamic field name
-      String fieldName = type == "notry_img" ? "notry_img" : "police_verification_pdf";
+      request.fields["id"] = widget.agreementId;
 
-      request.fields['id'] = widget.agreementId;
-      request.fields['file_type'] = fieldName;
-      request.files.add(await http.MultipartFile.fromPath(fieldName, file.path));
+      // Add only required field
+      if (type == "notry_img") {
+        request.files.add(
+          await http.MultipartFile.fromPath("notry_img", file.path),
+        );
+      } else if (type == "police_verification_pdf") {
+        request.files.add(
+          await http.MultipartFile.fromPath("police_verification_pdf", file.path),
+        );
+      }
 
-      debugPrint("📤 Upload Started: ${file.path}");
+      debugPrint("📤 Upload Started : ${file.path}");
+
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
@@ -212,12 +198,11 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       if (response.statusCode == 200) {
         try {
           final data = jsonDecode(responseBody);
-          debugPrint("✅ Decoded JSON: $data");
 
-          if (data['status'] == 'ok') {
+          if (response.statusCode == 200) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(data['message'] ?? "Upload successful"),
+                content: Text(data["message"] ?? "Upload successful"),
                 backgroundColor: Colors.green,
               ),
             );
@@ -231,9 +216,11 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
             );
           }
         } catch (e) {
-          debugPrint("⚠️ JSON Parse Error: $e");
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text("Response: $responseBody")),
+            SnackBar(
+              content: Text("Response: $responseBody"),
+              backgroundColor: Colors.orange,
+            ),
           );
         }
       } else {
@@ -247,7 +234,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     } catch (e) {
       if (mounted) {
         Navigator.of(context, rootNavigator: true).pop();
-        debugPrint("❌ Upload Error: $e");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text("Error: $e"),
@@ -257,6 +243,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
       }
     }
   }
+
 
   String? _formatDate(dynamic shiftingDate) {
     if (shiftingDate == null) return "";

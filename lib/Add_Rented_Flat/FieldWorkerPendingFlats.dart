@@ -359,13 +359,13 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
     final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
     final response = await http.get(url);
 
-    print("API Response: ${response.body}");
+    // print("API Response: ${response.body}");
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       if (decoded['success'] == true) {
         final data = decoded['data'] as List<dynamic>;
-        print("Decoded Owner Data: $data"); // ✅ Check decoded list
+        // print("Decoded Owner Data: $data"); // ✅ Check decoded list
         return data.map((e) => OwnerData.fromJson(e)).toList();
       } else {
         return [];
@@ -752,39 +752,55 @@ class _FieldWorkerPendingFlatsState extends State<FieldWorkerPendingFlats> {
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
-                                      onPressed: () {
-                                        _openAmountSheet(
-                                          context,
-                                          item.id,
-                                          "Second Amount",
-                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
-                                          "second_amount",
-                                        );
-                                      },
-                                      child: const Text("Set 2nd Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),overflow: TextOverflow.ellipsis,),
+
+                                  /// SECOND AMOUNT BUTTON — show when NULL or empty
+                                  if (item.statusForSecondPayment == null ||
+                                      item.statusForSecondPayment!.isEmpty)
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.blue),
+                                        onPressed: () {
+                                          _openAmountSheet(
+                                            context,
+                                            item.id,
+                                            "Second Amount",
+                                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_2nd_amount_api.php",
+                                            "second_amount",
+                                          );
+                                        },
+                                        child: const Text(
+                                          "Set 2nd Amount",
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  SizedBox(width: 5,),
-                                  Expanded(
-                                    child: ElevatedButton(
-                                      style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
-                                      onPressed: () {
-                                        _openAmountSheet(
-                                          context,
-                                          item.id,
-                                          "Final Amount",
-                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/final_amount.php",
-                                          "final_amount",
-                                        );
-                                      },
-                                      child: const Text("Set Final Amount",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w500,),overflow: TextOverflow.ellipsis,),
+
+                                  const SizedBox(width: 5),
+
+                                  if (item.statusForFinalPayment == null ||
+                                      item.statusForFinalPayment!.isEmpty)
+                                    Expanded(
+                                      child: ElevatedButton(
+                                        style: ElevatedButton.styleFrom(backgroundColor: Colors.deepOrange),
+                                        onPressed: () {
+                                          _openAmountSheet(
+                                            context,
+                                            item.id,
+                                            "Final Amount",
+                                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/final_amount.php",
+                                            "final_amount",
+                                          );
+                                        },
+                                        child: const Text(
+                                          "Set Final Amount",
+                                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
                                     ),
-                                  ),
                                 ],
-                              ),
+                              )
 
 
                             ],

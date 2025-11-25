@@ -5,6 +5,8 @@ import '../constant.dart';
 import 'FieldWorkerPendingFlats.dart';
 import 'FieldWorker_Booking_Page.dart';
 import 'FieldWorker_Booking_Page_Details.dart';
+import 'FieldWorker_Complete_Detail_Page.dart';
+import 'FieldWorker_Complete_Page.dart';
 
 class AddRentedFlatTabbar extends StatefulWidget {
   const AddRentedFlatTabbar({super.key});
@@ -29,17 +31,6 @@ class _AddRentedFlatTabbarState extends State<AddRentedFlatTabbar>
   void dispose() {
     _tabController.dispose();
     super.dispose();
-  }
-
-  // --- Complete Tab placeholder ---
-  Widget _buildCompleteTab() {
-    return Center(
-      child: Text(
-        "All completed flats and successful deals are here.",
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
-      ),
-    );
   }
 
   @override
@@ -91,7 +82,7 @@ class _AddRentedFlatTabbarState extends State<AddRentedFlatTabbar>
         children: [
           FieldWorkerBookingPage(),
           FieldWorkerPendingFlats(),
-          _buildCompleteTab(),
+          FieldWorkerCompleteFlats(),
         ],
       ),
     );

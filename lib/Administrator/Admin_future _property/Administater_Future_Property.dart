@@ -144,11 +144,14 @@ class _ADministaterShow_FuturePropertyState
   String? _highlightedBuildingId;
   bool _isLoading = true;
   String _number = '';
+  String _location = '';
 
   List<Map<String, String>> fieldWorkers = [
     {"name": "Sumit", "id": "9711775300"},
     {"name": "Ravi", "id": "9711275300"},
     {"name": "Faizan", "id": "9971172204"},
+    {"name": "Manish", "id": "8130209217"},
+    {"name": "Abhay", "id": "9675383184"},
   ];
 
   Map<String, List<Catid>> _groupedData = {};
@@ -191,8 +194,12 @@ class _ADministaterShow_FuturePropertyState
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _number = prefs.getString('number') ?? '';
+      _location = prefs.getString('location') ?? '';
     });
+
+    print("User Location: $_location");
   }
+
 
   Future<List<Catid>> _fetchDataByNumber(String number) async {
     final url = Uri.parse(
@@ -645,6 +652,8 @@ class _ADministaterShow_FuturePropertyState
 
   @override
   Widget build(BuildContext context) {
+    final loc = _location.trim().toLowerCase();
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -667,12 +676,30 @@ class _ADministaterShow_FuturePropertyState
           : SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: fieldWorkers.map((fw) {
+          children: fieldWorkers
+              .where((fw) {
+            final name = fw['name']!.toLowerCase();
+
+            // Sultanpur Field Workers
+            if (loc.contains("sultanpur")) {
+              return name == "sumit" || name == "ravi" || name == "faizan";
+            }
+
+            // Rajpur Khurd or ChhattarPur Field Workers
+            if (loc.contains("rajpur") || loc.contains("chhattar")) {
+              return name == "manish" || name == "abhay";
+            }
+
+            return false;
+          })
+              .map((fw) {
             final props = _groupedData[fw['name']] ?? [];
             return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
-          }).toList(),
+          })
+              .toList(),
         ),
       ),
+
     );
   }
 }

@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../Propert_verigication_Document/Show_tenant.dart';
+import '../SocialMediaHandler/VideoSubmitPage.dart';
 import '../add_properties_firstpage.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_New_Property.dart';
@@ -68,6 +69,9 @@ class NewRealEstateShowDateModel {
   final String? careTakerName;
   final String? careTakerNumber;
   final String? video;
+  final String? videoStatus;        // NEW
+  final String? dateForTarget;      // NEW
+  final String? videoUpdatedAt;     // NEW
 
   NewRealEstateShowDateModel({
     this.pId,
@@ -118,6 +122,9 @@ class NewRealEstateShowDateModel {
     this.careTakerName,
     this.careTakerNumber,
     this.video,
+    this.videoStatus,
+    this.dateForTarget,
+    this.videoUpdatedAt,
   });
 
   // tiny helpers so backend shenanigans don't break you
@@ -179,6 +186,9 @@ class NewRealEstateShowDateModel {
       careTakerName: _asStr(json['care_taker_name']),
       careTakerNumber: _asStr(json['care_taker_number']),
       video: _asStr(json['video_link']),
+      videoStatus: _asStr(json['video_status']),
+      dateForTarget: _asStr(json['date_for_target']),
+      videoUpdatedAt: _asStr(json['video_updated_at']?['date']),
     );
   }
 
@@ -232,6 +242,11 @@ class NewRealEstateShowDateModel {
       'care_taker_name': careTakerName,
       'care_taker_number': careTakerNumber,
       'video_link': video,
+
+      'video_status': videoStatus,
+      'date_for_target': dateForTarget,
+      'video_updated_at': videoUpdatedAt,
+
     };
   }
 }
@@ -251,6 +266,8 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
   bool _isLoading = true;
   String _number = '';
+  String _name = '';
+  String _aadhar = '';
   int propertyCount = 0;
   String? selectedLabel;
   Timer? _debounce;
@@ -260,6 +277,14 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+  Future<void> saveStatus(int id, String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString("video_status_$id", status);
+  }
+  Future<String?> loadStatus(int id) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString("video_status_$id");
   }
 
   void _onSearchChanged() {
@@ -350,28 +375,54 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // fetch _number from SharedPreferences
 
-    _loaduserdata().then((_) {
-      _fetchInitialData(); // Call your API after loading user data
-    });
+    _loaduserdata();
+    _fetchInitialData();
   }
+  Map<int, String> submittedStatus = {};
+
 
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
-    _number = prefs.getString('number') ?? '';
+
+    _name = prefs.getString('name') ?? '';      // FName
+    _number = prefs.getString('number') ?? '';  // FNumber
+    _aadhar = prefs.getString('post') ?? '';    // FAadharCard
+
+    print("Loaded Name: $_name");
+    print("Loaded Number: $_number");
+    print("Loaded Aadhar: $_aadhar");
+
     await _fetchProperties();
+    for (var property in _allProperties) {
+      final saved = await loadStatus(property.pId ?? 0);
+      if (saved != null) {
+        submittedStatus[property.pId!] = saved;
+      }
+    }
+
   }
+
 
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
+
     try {
       final data = await fetchData(_number);
-      setState(() {
-        _allProperties = data;
-        _filteredProperties = data;
-        _isLoading = false;
-      });
+
+      _allProperties = data;
+      _filteredProperties = data;
+
+      // 🔥 Now load saved status AFTER properties are loaded
+      for (var property in _allProperties) {
+        final saved = await loadStatus(property.pId ?? 0);
+        if (saved != null) {
+          submittedStatus[property.pId ?? 0] = saved;
+        }
+      }
+
+      setState(() => _isLoading = false);
+
     } catch (e) {
       print("❌ Error: $e");
       setState(() => _isLoading = false);
@@ -394,9 +445,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     }
   }
 
-
-
-
   void _setSearchText(String label, String text) {
     setState(() {
       selectedLabel = label;
@@ -413,6 +461,189 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   }
   bool get _isSearchActive {
     return _searchController.text.trim().isNotEmpty || selectedLabel!="";
+  }
+  Future<String?> submitVideo({
+    required int id,
+    required String byName,
+    required String role,
+    required String text,
+  }) async {
+    final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php");
+
+    try {
+      final response = await http.post(url, body: {
+        "action": "submit_video",
+        "id": id.toString(),
+        "by_name": byName,
+        "role": role,
+        "text": text,
+      });
+
+      print("📤 SENT: action = submit_video, id=$id, by=$byName, role=$role, text=$text");
+      print("📩 RESPONSE: ${response.body}");
+
+      final jsonBody = jsonDecode(response.body);
+
+      if (jsonBody["ok"] == true) {
+        final status = jsonBody["data"]["messages"][0]["status_after"];
+        return status;   // 🔥 return the status string
+      }
+
+      return null;
+    } catch (e) {
+      print("❌ API ERROR: $e");
+      return null;
+    }
+  }
+
+  void _openSubmitVideoSheet(int propertyId) {
+    final TextEditingController msgController = TextEditingController();
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return StatefulBuilder(   // ⭐ Needed for updating inside dialog
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+
+              contentPadding: EdgeInsets.all(20),
+
+              content: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+
+                  children: [
+
+                    /// ---------- TITLE ----------
+                    Center(
+                      child: Text(
+                        "Submit Video Details",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 20),
+
+                    /// ---------- LABEL ----------
+                    Text(
+                      "Message",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    SizedBox(height: 8),
+
+                    /// ---------- ROUNDED TEXT FIELD ----------
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: Colors.grey.shade300),
+                      ),
+                      child: TextField(
+                        controller: msgController,
+                        maxLines: 4,
+                        style: TextStyle(color: Colors.black),
+                        decoration: InputDecoration(
+                          hintText: "Write something about the video...",
+                          hintStyle: TextStyle(color: Colors.black),
+                          border: InputBorder.none,
+                          contentPadding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 25),
+
+                    /// ---------- SUBMIT BUTTON ----------
+                    GestureDetector(
+                      onTap: () async {
+                        final text = msgController.text.trim();
+
+                        if (text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Please enter message")),
+                          );
+                          return;
+                        }
+
+                        Navigator.pop(context); // Close dialog
+
+                        String? status = await submitVideo(
+                          id: propertyId,
+                          byName: _name,
+                          role: _aadhar,
+                          text: text,
+                        );
+
+                        if (status != null) {
+                          setState(() {
+                            submittedStatus[propertyId] = status;
+                          });
+
+                          await saveStatus(propertyId, status);
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Video Submitted Successfully")),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text("Failed to submit")),
+                          );
+                        }
+                      },
+
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.blue, Colors.purpleAccent],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blue.shade200,
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            "Submit",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
 
@@ -726,7 +957,40 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
                                             ],
                                           ),
-                                        )
+                                        ),
+                                        Column(
+                                            children: [
+                                              if (hasMissingFields) ...[
+                                                SizedBox(
+                                                  height: MediaQuery.of(context).size.height * 0.41,
+                                                ),
+                                                Padding(
+                                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                               child: Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.all(10),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red[50],
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        border: Border.all(color: Colors.redAccent, width: 1),
+                                                      ),
+                                                      child: Text(
+                                                        "⚠ Missing fields: ${missingFields.join(", ")}",
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Colors.redAccent,
+                                                        ),
+                                                      ),
+                                                    ),
+                                             ),
+
+                                              ]
+                                            ],
+                                          ),
+
+
+
                                       ],
                                     ),
                                     Padding(
@@ -823,26 +1087,116 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
                                             ],
                                           ),
-                                          if (hasMissingFields) ...[
-                                            SizedBox(height: 20),
-                                            Container(
-                                              width: double.infinity,
-                                              padding: const EdgeInsets.all(10),
-                                              decoration: BoxDecoration(
-                                                color: Colors.red[50],
-                                                borderRadius: BorderRadius.circular(10),
-                                                border: Border.all(color: Colors.redAccent, width: 1),
-                                              ),
-                                              child: Text(
-                                                "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                style: const TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: Colors.redAccent,
-                                                ),
-                                              ),
-                                            ),
-                                          ]
+                                          if(property.videoStatus!=""&&property.videoStatus!=null)
+                                            Wrap(
+                                              spacing: 8,
+                                              children: [
+                                                InkWell(
+                                                  onTap: () async {
+                                                    String st = (property.videoStatus ?? "").trim().toLowerCase();
+
+                                                    // ----------------- FIELDWORKER STATUS CHECK -----------------
+                                                    bool isPending = st.isEmpty;
+                                                    bool isSubmitted = st == "video submitted";
+                                                    bool isEditorRequested = st == "video requested by editor";
+                                                    bool isEditingStarted = st == "video recived and editing started";
+                                                    bool isUploaded = st == "video uploaded";
+
+                                                    // ----------------- IF EDITING STARTED OR UPLOADED → VIEW ONLY -----------------
+                                                    if (isEditingStarted || isUploaded) {
+                                                      ScaffoldMessenger.of(context).showSnackBar(
+                                                        SnackBar(
+                                                            duration: Duration(seconds: 2),
+                                                            content: Text("Editing already started")),
+                                                      );
+
+                                                      // OPEN VIEW ONLY PAGE
+                                                      await Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (_) => SubmitVideoPage(
+                                                            propertyId: property.pId ?? 0,
+                                                            status: st,
+                                                            action: "view_only",
+                                                            userName: _name,
+                                                            userRole: "fieldworker",  // 🔥 FIXED HERE
+                                                          ),
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
+
+                                                    // ----------------- FIELDWORKER ACTION -----------------
+                                                    String actionToSend = "submit_video";
+
+                                                    if (isEditorRequested) {
+                                                      actionToSend = "fieldworker_reply";
+                                                    }
+
+                                                    // ----------------- UI TEXT -----------------
+                                                    String displayStatus = isPending ? "Pending" : property.videoStatus!;
+
+                                                    // ----------------- NAVIGATE -----------------
+                                                    final result = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => SubmitVideoPage(
+                                                          propertyId: property.pId ?? 0,
+                                                          status: displayStatus,
+                                                          action: actionToSend,
+                                                          userName: _name,
+                                                          userRole: "fieldworker",   // 🔥 FIXED HERE ALSO
+                                                        ),
+                                                      ),
+                                                    );
+
+                                                    if (result == true) {
+                                                      _fetchProperties();
+                                                    }
+                                                  },
+
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                      color: (() {
+                                                        String st = (property.videoStatus ?? "").trim().toLowerCase();
+                                                        if (st.isEmpty) return Colors.red;
+                                                        if (st == "video submitted") return Colors.green;
+                                                        if (st == "video requested by editor") return Colors.blue;
+                                                        if (st == "video recived and editing started") return Colors.orange;
+                                                        if (st == "video uploaded") return Colors.purple;
+                                                        return Colors.red;
+                                                      })(),
+                                                      borderRadius: BorderRadius.circular(10),
+                                                    ),
+                                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          (() {
+                                                            String st = (property.videoStatus ?? "").trim().toLowerCase();
+                                                            if (st == "video submitted") return Icons.check_circle;
+                                                            return Icons.error_outline;
+                                                          })(),
+                                                          color: Colors.white,
+                                                        ),
+                                                        SizedBox(width: 8),
+                                                        Text(
+                                                          (() {
+                                                            String st = (property.videoStatus ?? "").trim().toLowerCase();
+                                                            if (st.isEmpty) return "Pending";
+                                                            return property.videoStatus!;
+                                                          })(),
+                                                          style: TextStyle(
+                                                            color: Colors.white,
+                                                            fontWeight: FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                )
+                                              ],
+                                            )
                                         ],
                                       ),
                                     ),
@@ -910,20 +1264,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       //   ),
       // ),
     );
-  }
-
-
-  Color _getPropertyTypeColor(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'rent':
-        return Colors.green;
-      case 'buy':
-        return Colors.blueAccent;
-      case 'lease':
-        return Colors.purple;
-      default:
-        return Colors.blue;
-    }
   }
 
   Widget _buildFeatureItem({

@@ -7,6 +7,7 @@ import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
+import 'SocialMediaHandler/SocialMediaHomePage.dart';
 import 'ui_decoration_tools/app_images.dart';
 
 class Catid {
@@ -67,9 +68,15 @@ class _SplashState extends State<Splash> {
 
         if (role == "Administrator") {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
-        } else if (role == "Sub Administrator") {
+        }
+        else if (role == "Sub Administrator") {
           Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
           => SubAdminHomeScreen(),
+          ));
+        }
+        else if (role == "Editor") {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
+          => SocialMediaHomePage(),
           ));
         }
         else if (role == "FieldWorkar") {

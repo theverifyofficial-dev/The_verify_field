@@ -187,26 +187,102 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
     try {
       // Run all APIs in parallel
       final results = await Future.wait([
-        _getAsmxData('/WebService4.asmx/GetTotalFlats_under_building', {'field_workar_number': number}),
-        _getAsmxData('/WebService4.asmx/GetTotalFlats_Live_under_building', {'field_workar_number': number}),
 
-        // Monthly + Live
-        quick('/Second PHP FILE/Target/count_api_live_flat_for_field.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_api_for_book_flat_for_month.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_api_live_commercial_space.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_api_for_agreement.php', {'Fieldwarkarnumber': number}),
-        quick('/Second PHP FILE/Target/show_tatal_agreement.php', {'Fieldwarkarnumber': number}),
-        quick('/Second PHP FILE/Target/count_api_for_building.php', {'fieldworkarnumber': number}),
+        // 0️⃣  TOTAL FLATS UNDER BUILDING (All flats in all buildings)
+        _getAsmxData(
+          '/WebService4.asmx/GetTotalFlats_under_building',
+          {'field_workar_number': number},
+        ),
 
-        // Yearly
-        quick('/Second PHP FILE/Target/count_for_book_flat_yearly.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_live_flat_rent_yearly.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_api_for_buy_live_flat_yearly.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/commerical_count_yearly.php', {'field_workar_number': number}),
-        quick('/Second PHP FILE/Target/count_api_agreement_yarly.php', {'Fieldwarkarnumber': number}),
-        quick('/Second PHP FILE/Target/count_api_for_building_yearly.php', {'fieldworkarnumber': number}),
+        // 1️⃣  LIVE + UNLIVE FLATS COUNT (filters inside code)
+        _getAsmxData(
+          '/WebService4.asmx/GetTotalFlats_Live_under_building',
+          {'field_workar_number': number},
+        ),
+
+        // -------------------- MONTHLY + CURRENT LIVE ----------------------
+
+        // 2️⃣ MONTHLY LIVE RENT FLATS (LIVE RENT only)
+        quick(
+          '/Second PHP FILE/Target/count_api_live_flat_for_field.php',
+          {'field_workar_number': number},
+        ),
+
+        // 3️⃣ MONTHLY BOOK (TOTAL) + rent_count + buy_count
+        quick(
+          '/Second PHP FILE/Target/count_api_for_book_flat_for_month.php',
+          {'field_workar_number': number},
+        ),
+
+        // 4️⃣ MONTHLY LIVE BUY FLATS
+        quick(
+          '/Second PHP FILE/Target/count_api_live_flat_for_buy_field.php',
+          {'field_workar_number': number},
+        ),
+
+        // 5️⃣ MONTHLY LIVE COMMERCIAL FLATS
+        quick(
+          '/Second PHP FILE/Target/count_api_live_commercial_space.php',
+          {'field_workar_number': number},
+        ),
+
+        // 6️⃣ MONTHLY AGREEMENTS (Version 1)
+        quick(
+          '/Second PHP FILE/Target/count_api_for_agreement.php',
+          {'Fieldwarkarnumber': number},
+        ),
+
+        // 7️⃣ TOTAL AGREEMENTS (fallback)
+        quick(
+          '/Second PHP FILE/Target/show_tatal_agreement.php',
+          {'Fieldwarkarnumber': number},
+        ),
+
+        // 8️⃣ MONTHLY BUILDING COUNT
+        quick(
+          '/Second PHP FILE/Target/count_api_for_building.php',
+          {'fieldworkarnumber': number},
+        ),
+
+        // -------------------- YEARLY TARGET DATA ----------------------
+
+        // 9️⃣ YEARLY BOOK FLATS (TOTAL + rent_count + buy_count)
+        quick(
+          '/Second PHP FILE/Target/count_for_book_flat_yearly.php',
+          {'field_workar_number': number},
+        ),
+
+        // 🔟 YEARLY LIVE RENT FLATS
+        quick(
+          '/Second PHP FILE/Target/count_live_flat_rent_yearly.php',
+          {'field_workar_number': number},
+        ),
+
+        // 1️⃣1️⃣ YEARLY LIVE BUY FLATS
+        quick(
+          '/Second PHP FILE/Target/count_api_for_buy_live_flat_yearly.php',
+          {'field_workar_number': number},
+        ),
+
+        // 1️⃣2️⃣ YEARLY COMMERCIAL FLATS
+        quick(
+          '/Second PHP FILE/Target/commerical_count_yearly.php',
+          {'field_workar_number': number},
+        ),
+
+        // 1️⃣3️⃣ YEARLY AGREEMENTS
+        quick(
+          '/Second PHP FILE/Target/count_api_agreement_yarly.php',
+          {'Fieldwarkarnumber': number},
+        ),
+
+        // 1️⃣4️⃣ YEARLY BUILDING COUNT
+        quick(
+          '/Second PHP FILE/Target/count_api_for_building_yearly.php',
+          {'fieldworkarnumber': number},
+        ),
       ]);
+
 
       // Safety helper to get `data` map from results (returns null if missing)
       Map? _dataAt(int idx) {
@@ -601,10 +677,11 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
             const Center(child: Padding(padding: EdgeInsets.symmetric(vertical: 10), child: CircularProgressIndicator()))
           else ...[
             Row(children: [
-              Expanded(child: _smallKpi('Book Rent (Y)', s.bookBuyYear, _tBookRentYear, Colors.green)),
+              Expanded(child: _smallKpi('Book Rent (Y)', s.bookRentYear, _tBookRentYear, Colors.green)),
               const SizedBox(width: 8),
-              Expanded(child: _smallKpi('Book Buy (Y)', s.buyYearAchieved, _tBookBuyYear, Colors.blueGrey)),
+              Expanded(child: _smallKpi('Book Buy (Y)', s.bookBuyYear, _tBookBuyYear, Colors.blueGrey)),
             ]),
+
             const SizedBox(height: 8),
             Row(children: [
               Expanded(child: _smallKpi('Live Rent (Y)', s.rentYearAchieved, _tRentYear, Colors.blue)),

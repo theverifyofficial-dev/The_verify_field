@@ -24,6 +24,8 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
 
   bool _isLoading = true;
   String _number = '';
+  String _location = '';
+  String _name = '';
   int propertyCount = 0;
   String? selectedLabel;
   Timer? _debounce;
@@ -77,12 +79,68 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       propertyCount = filtered.length;
     });
   }
+  Future<void> _fetchProperties() async {
+    setState(() => _isLoading = true);
 
+    try {
+      final data = await fetchData(_number);
+
+      // 🔥 APPLY LOCATION RULE HERE
+      final locationFiltered = _applyCustomLocationFilter(data);
+
+      setState(() {
+        _allProperties = locationFiltered;
+        _filteredProperties = locationFiltered;
+        _isLoading = false;
+      });
+    } catch (e) {
+      print("❌ Error: $e");
+      setState(() => _isLoading = false);
+    }
+  }
+
+  List<Upcoming_model> _applyCustomLocationFilter(List<Upcoming_model> list) {
+    String loc = _location.trim().toLowerCase();
+
+    // If Sultanpur → show ONLY Sultanpur properties
+    if (loc == "sultanpur") {
+      return list.where((item) =>
+      (item.locations ?? "").trim().toLowerCase() == "sultanpur"
+      ).toList();
+    }
+
+    // If Rajpur Khurd OR ChhattarPur → show BOTH (Rajpur Khurd + ChhattarPur)
+    if (loc == "rajpur khurd" || loc == "chhattarpur") {
+      return list.where((item) {
+        final itemLoc = (item.locations ?? "").trim().toLowerCase();
+        return itemLoc == "rajpur khurd" || itemLoc == "chhattarpur";
+      }).toList();
+    }
+
+    // Default → show all
+    return list;
+  }
 
   Future<List<Upcoming_model>> fetchData(String number) async {
+    String finalLocation = "";
+
+    final loc = _location.trim().toLowerCase();
+
+    if (loc == "sultanpur") {
+      finalLocation = "SultanPur";
+    }
+    else if (loc == "rajpur khurd" || loc == "chhattarpur") {
+      finalLocation = "Rajpur Khurd,ChhattarPur";   // ✅ always fetch both
+    }
+    else {
+      finalLocation = _location;  // default
+    }
+
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_show_api_for_admin.php",
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation",
     );
+
+    print("🚀 Final Location: $finalLocation");
 
     final response = await http.get(url);
 
@@ -92,7 +150,6 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
         final List<dynamic> dataList = decoded['data'];
 
-        // Sort by P_id descending
         dataList.sort((a, b) {
           if (a['P_id'] != null && b['P_id'] != null) {
             return b['P_id'].compareTo(a['P_id']);
@@ -102,10 +159,10 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
 
         return dataList.map((e) => Upcoming_model.fromJson(e)).toList();
       } else {
-        throw Exception("Invalid response structure: missing 'data' key");
+        throw Exception("Invalid response structure");
       }
     } else {
-      throw Exception('Unexpected server response: ${response.statusCode}');
+      throw Exception("Server Error: ${response.statusCode}");
     }
   }
 
@@ -117,41 +174,26 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
 
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // fetch _number from SharedPreferences
+    _loaduserdata();
 
     _loaduserdata().then((_) {
-      _fetchInitialData(); // Call your API after loading user data
+      _fetchInitialData();
     });
   }
 
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
+    _name = prefs.getString('name') ?? '';
     _number = prefs.getString('number') ?? '';
+    _location = prefs.getString('location') ?? '';
     await _fetchProperties();
-  }
-
-  Future<void> _fetchProperties() async {
-    setState(() => _isLoading = true);
-    try {
-      final data = await fetchData(_number);
-      setState(() {
-        _allProperties = data;
-        _filteredProperties = data;
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("❌ Error: $e");
-      setState(() => _isLoading = false);
-    }
   }
 
   Future<void> _fetchInitialData() async {
     setState(() => _isLoading = true);
     try {
-      final data = await fetchData(""); // Call your API
+      final data = await fetchData("");
       setState(() {
-        // _originalData = data;
-        // _filteredData = data;
         _isLoading = false;
       });
     } catch (e) {
@@ -163,7 +205,6 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
   bool get _isSearchActive {
     return _searchController.text.trim().isNotEmpty || selectedLabel!="";
   }
-
 
   @override
   Widget build(BuildContext context) {

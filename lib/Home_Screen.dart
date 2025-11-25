@@ -13,6 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
+import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
 import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
@@ -122,6 +123,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   DateTime now = DateTime.now();
 
   String _fieldworkarnumber = '';
+  String _fieldworkarname = '';
 
   String? userName;
   String? userNumber;
@@ -288,6 +290,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     setState(() {
       _fieldworkarnumber = prefs.getString('number') ?? '';
+      _fieldworkarname = prefs.getString('name') ?? '';
     });
   }
 

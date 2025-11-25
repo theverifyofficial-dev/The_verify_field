@@ -196,68 +196,10 @@ class ADministaterShow_realestete extends StatefulWidget {
 class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
   final _formKey = GlobalKey<FormState>();
 
-  void _showBottomSheet(BuildContext context) {
 
-    List<String> timing = [
-      "Residential",
-      "Plots",
-      "Commercial",
-    ];
-    ValueNotifier<int> timingIndex = ValueNotifier(0);
-
-    String displayedData = "Press a button to display data";
-
-    void updateData(String newData) {
-      setState(() {
-        displayedData = newData;
-      });
-    }
-
-    showModalBottomSheet(
-      backgroundColor: Colors.black,
-      context: context,
-      builder: (BuildContext context) {
-        return  DefaultTabController(
-          length: 2,
-          child: Padding(
-            padding: EdgeInsets.only(left: 5,right: 5,top: 0, bottom: 5),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 5,),
-                Container(
-                  margin: EdgeInsets.only(bottom: 5),
-                  padding: EdgeInsets.all(3),
-                  height: 50,
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10), color: Colors.grey),
-                  child: TabBar(
-                    indicator: BoxDecoration(
-                      color: Colors.red[500],
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    // ignore: prefer_const_literals_to_create_immutables
-                    tabs: [
-                      Tab(text: 'Residential'),
-                      Tab(text: 'Commercial'),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: TabBarView(children: [
-                    Filter_Options(),
-                    Commercial_Filter()
-                  ]),
-                )
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
+  String _name = '';
   String _number = '';
+  String _location = '';
 
 // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
@@ -286,6 +228,21 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     // Otherwise assume the decoded JSON is already the payload
     return decoded;
   }
+  void _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('name') ?? '';
+      _number = prefs.getString('number') ?? '';
+      _location = prefs.getString('location') ?? '';
+    });
+
+    print("===== SHARED PREF DATA LOADED =====");
+    print("Name: $_name");
+    print("Number: $_number");
+    print("Location: $_location");
+    print("===================================");
+  }
+
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
     final resp = await http.get(url);
@@ -336,10 +293,17 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     return _fetchCommon(url);
   }
 
-  Future<List<Catid>> fetchData_rajpur() async {
+  Future<List<Catid>> fetchData_manishProperty() async {
     final url = Uri.parse(
       "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-          "?field_workar_number=9818306096&live_unlive=Live",
+          "?field_workar_number=8130209217&live_unlive=Live",
+    );
+    return _fetchCommon(url);
+  }
+  Future<List<Catid>> fetchData_abheyProperty() async {
+    final url = Uri.parse(
+      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
+          "?field_workar_number=9675383184&live_unlive=Live",
     );
     return _fetchCommon(url);
   }
@@ -366,6 +330,9 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   void initState() {
     super.initState();
 
+    // Load user data immediately when screen opens
+    _loaduserdata();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final args = ModalRoute.of(context)?.settings.arguments as Map?;
       final flatId = args?['flatId'];
@@ -375,13 +342,13 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           _highlightedFlatId = flatId.toString();
         });
 
-        // ✅ Scroll after build
         WidgetsBinding.instance.addPostFrameCallback((_) {
           _scrollToHighlighted();
         });
       }
     });
   }
+
 
   /// ✅ Trigger scroll only after all APIs loaded
   void _tryScrollToHighlighted() {
@@ -419,20 +386,12 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       fetchData1(),
       fetchData2(),
       av(),
-      fetchData_rajpur(),
+      fetchData_manishProperty(),
     ]);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
   }
 
-  Future<void> _loaduserdata() async {
-    final data = await av();
-    if (mounted) {
-      setState(() {
-        _properties = data;
-      });
-    }
-  }
 
   @override
   void dispose() {
@@ -463,6 +422,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
   @override
   Widget build(BuildContext context) {
+    final loc = _location.trim().toLowerCase();
+
     return Scaffold(
       // backgroundColor: Colors.black,
       appBar: AppBar(
@@ -509,7 +470,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            SliverList(
+            if (loc == "sultanpur")
+              SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   return FutureBuilder<List<Catid>>(
@@ -627,7 +589,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 childCount: 1,
               ),
             ),
-            SliverList(
+            if (loc == "sultanpur")
+              SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   return FutureBuilder<List<Catid>>(
@@ -802,7 +765,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 childCount: 1,
               ),
             ),
-            SliverList(
+            if (loc == "sultanpur")
+              SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   return FutureBuilder<List<Catid>>(
@@ -977,49 +941,36 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 childCount: 1,
               ),
             ),
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData_rajpur(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiRajpurLoaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child: Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Failed to load properties',
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                              fontFamily: "Poppins",
-                            ),
-                          ),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.home_work_outlined, size: 48, color: Colors.grey[400]),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No properties available',
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontFamily: "Poppins",
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
+
+            if (loc.contains("rajpur") || loc.contains("chhattar"))
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return FutureBuilder<List<Catid>>(
+                      future: fetchData_manishProperty(), // Manish API
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          _apiRajpurLoaded = true;
+                          _tryScrollToHighlighted();
+                        }
+
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child: Lottie.asset(AppImages.loadingHand, height: 400),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text("Failed to load properties"));
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(child: Text("No properties available"));
+                        }
+
                         final data = snapshot.data!;
+                        final scrollController = ScrollController();
+
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -1029,7 +980,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    'Rajpur Properties',
+                                    "Manish",
                                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       fontFamily: "PoppinsBold",
@@ -1041,27 +992,23 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => See_All_Realestate(id: '9818306096'),
+                                          builder: (context) =>
+                                              See_All_Realestate(id: '8130209217'),
                                         ),
                                       );
                                     },
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'View All',
-                                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                              color: Colors.blue[700],
-                                              fontWeight: FontWeight.w600,
-                                              fontFamily: "Poppins",
-                                            ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.blue[700]),
-                                        ],
-                                      ),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          "View All",
+                                          style: TextStyle(
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Icon(Icons.arrow_forward_ios_rounded,
+                                            size: 14, color: Colors.blue),
+                                      ],
                                     ),
                                   ),
                                 ],
@@ -1070,21 +1017,28 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                             SizedBox(
                               height: 450,
                               child: ListView.builder(
+                                controller: scrollController,
                                 scrollDirection: Axis.horizontal,
                                 itemCount: data.length,
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, index) {
-                                  final property = data[index];
+                                itemBuilder: (context, idx) {
+                                  final property = data[idx];
+                                  final idKey = property.id.toString();
+
+                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
+
                                   return PropertyCard(
-                                    key: _cardKeys.putIfAbsent(property.id.toString(), () => GlobalKey()), // ✅ key for each card
+                                    cardKey: _cardKeys[idKey],
                                     property: property,
-                                    displayIndex: data.length - index,
-                                    isHighlighted: property.id.toString() == _highlightedFlatId,
+                                    displayIndex: data.length - idx,
+                                    isHighlighted: idKey == _highlightedFlatId,
                                     onTap: () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => Administater_View_Details(idd: property.id.toString()),
+                                          builder: (context) =>
+                                              Administater_View_Details(
+                                                  idd: property.id.toString()),
                                         ),
                                       );
                                     },
@@ -1094,13 +1048,125 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                             ),
                           ],
                         );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
+                      },
+                    );
+                  },
+                  childCount: 1,
+                ),
               ),
-            ),
+            if (loc.contains("rajpur") || loc.contains("chhattar"))
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return FutureBuilder<List<Catid>>(
+                      future: fetchData_abheyProperty(), // Manish API
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          _apiRajpurLoaded = true;
+                          _tryScrollToHighlighted();
+                        }
+
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child: Lottie.asset(AppImages.loadingHand, height: 400),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(child: Text("Failed to load properties"));
+                        }
+
+                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(child: Text("No properties available"));
+                        }
+
+                        final data = snapshot.data!;
+                        final scrollController = ScrollController();
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    "Abhey",
+                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme.of(context).colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  InkWell(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              See_All_Realestate(id: '9675383184'),
+                                        ),
+                                      );
+                                    },
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          "View All",
+                                          style: TextStyle(
+                                              color: Colors.blue,
+                                              fontWeight: FontWeight.w600),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Icon(Icons.arrow_forward_ios_rounded,
+                                            size: 14, color: Colors.blue),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              height: 450,
+                              child: ListView.builder(
+                                controller: scrollController,
+                                scrollDirection: Axis.horizontal,
+                                itemCount: data.length,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                itemBuilder: (context, idx) {
+                                  final property = data[idx];
+                                  final idKey = property.id.toString();
+
+                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
+
+                                  return PropertyCard(
+                                    cardKey: _cardKeys[idKey],
+                                    property: property,
+                                    displayIndex: data.length - idx,
+                                    isHighlighted: idKey == _highlightedFlatId,
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              Administater_View_Details(
+                                                  idd: property.id.toString()),
+                                        ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  childCount: 1,
+                ),
+              ),
+
           ],
         ),
       ),
@@ -1136,12 +1202,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         ],
       ),
     );
-  }
-  void _loaduserdata1() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _number = prefs.getString('number') ?? '';
-    });
   }
 
   void _launchDialer(String phoneNumber) async {

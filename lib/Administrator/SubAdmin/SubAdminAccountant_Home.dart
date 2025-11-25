@@ -10,6 +10,7 @@ import '../../Administrator/Administator_Add_Rented_Flat_Tabbar.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Administrator/Administator_Realestate.dart';
 import '../../Administrator/New_TenandDemand/Tenant_demand.dart';
+import '../../Dashboard/AllFieldWorkers.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../../Statistics/Target_MainPage.dart';
 import '../../main.dart';
@@ -17,6 +18,8 @@ import '../../profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+import '../Admin_future _property/Administater_Future_Property.dart';
+import '../Admin_upcoming.dart';
 import 'ShowTenantDemant.dart';
 
 class SubAdminHomeScreen extends StatefulWidget {
@@ -197,6 +200,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         child: AnimationLimiter(child: widget),
                       ),
                   children: [
+
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -295,7 +299,11 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                       ),
 
                     ),
-                    const SizedBox(height: 30),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                      child: _TargetHeaderCard(context),
+                    ),
+                    const SizedBox(height: 10),
 
                     // Grid of Feature Cards
                     Padding(
@@ -311,16 +319,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               .size
                               .height;
 
-                          // Dynamic grid calculation
                           final crossAxisCount = screenWidth > 800 ? 4 :
                           screenWidth > 600 ? 3 : 2;
 
-                          // Calculate item width based on available space
                           final availableWidth = constraints.maxWidth;
                           final itemWidth = (availableWidth -
                               ((crossAxisCount - 1) * 16)) / crossAxisCount;
                           final childAspectRatio = itemWidth /
-                              (itemWidth * 1.1); // Height is 10% more than width
+                              (itemWidth * 1.1);
 
                           return GridView.builder(
                             shrinkWrap: true,
@@ -362,26 +368,19 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                           builder: (context) => const AdministatorAddRentedFlatTabbar())),
                                 },
                                 {
-                                  "image": AppImages.futureProperty,
-                                  "title": "Future\n Property",
-                                  "onTap": () async {
+                                  'image': AppImages.propertysale,
+                                  'title': "Future\n Inventory/Property",
+                                  'onTap': () {
+                                    // Pass the buildingId you want to highlight
                                     Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (_) => const FrontPage_FutureProperty(),
+                                        builder: (context) => ADministaterShow_FutureProperty(),
                                       ),
                                     );
                                   },
                                 },
 
-                                {
-                                  "image": AppImages.target,
-                                  "title": "Target",
-                                  "onTap": () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                          builder: (_) => Target_MainPage())),
-                                },
                                 {
                                   'image': AppImages.demand_2,
                                   'title': "Costumer Demands 2.O",
@@ -390,7 +389,16 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                           builder: (
                                               context) =>  ShowTenantDemandPage())),
                                 },
-
+                                {
+                                  "image": AppImages.realestatefeild,
+                                  "title": "Upcoming\n Property",
+                                  "onTap": () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) => const AdminUpcoming()));
+                                  },
+                                },
                               ];
 
                               final item = featureItems[index];
@@ -408,6 +416,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         },
                       ),
                     ),
+
                   ],
                 ),
               ),
@@ -705,4 +714,111 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
       },
     );
   }
+  Widget _TargetHeaderCard(BuildContext context) {
+    final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => AllFieldWorkersPage()),
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 18),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: isDark?
+            [Color(0xFF1E1E1E), Color(0xFF2C2C2C)]
+                :
+            [Colors.grey.shade100, Colors.white],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.white.withOpacity(0.08)
+                  : Colors.black.withOpacity(0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            // 🔥 Animated Glow with Image
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(seconds: 2),
+                  curve: Curves.easeInOut,
+                  height: 70,
+                  width: 70,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark
+                            ? Colors.blueAccent.withOpacity(0.4)
+                            : Colors.blue.withOpacity(0.4),
+                        blurRadius: 15,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: Image.asset(
+                    AppImages.target, // your target image asset here
+                    height: 55,
+                    width: 55,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(width: 18),
+
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Target",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    "Tap to view progress",
+                    style: TextStyle(
+                      fontSize: 13.5,
+                      color: (isDark ? Colors.white : Colors.black).withOpacity(0.75),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: isDark ? Colors.white70 : Colors.black54,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

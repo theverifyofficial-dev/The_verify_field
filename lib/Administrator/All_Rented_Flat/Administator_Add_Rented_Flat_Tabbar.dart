@@ -12,13 +12,13 @@ class AdministatorAddRentedFlatTabbar extends StatefulWidget {
 
   final bool fromNotification;
   final String? flatId;
-  final int tabIndex;   // 👈 ADD THIS
+  final int tabIndex;
 
   const AdministatorAddRentedFlatTabbar({
     super.key,
     this.fromNotification = false,
     this.flatId,
-    this.tabIndex = 0,   // 👈 DEFAULT = Booking tab
+    this.tabIndex = 0,
   });
 
   @override

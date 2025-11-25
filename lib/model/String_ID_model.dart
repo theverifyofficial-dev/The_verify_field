@@ -65,8 +65,8 @@ class  StringIdModel {
 
   factory StringIdModel.fromJson(Map<String, dynamic> json) {
     return StringIdModel(
-      current_date: json['current_dates'],
-      id: json['id'],
+      current_date: json['current_dates'] ?? '',
+      id: json['id'].toString(),
       ownerName: json['owner_name'] ?? '',
       ownerRelation: json['owner_relation'] ?? '',
       relationPersonNameOwner: json['relation_person_name_owner'] ?? '',

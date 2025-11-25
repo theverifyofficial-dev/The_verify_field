@@ -17,6 +17,14 @@ class DemandDetail extends StatefulWidget {
 class _AdminDemandDetailState extends State<DemandDetail> {
   Map<String, dynamic>? _demand;
   bool _isLoading = true;
+  DateTime? _finishingDate;
+  String? _finalReason;
+  bool _isSubmittingFinal = false;
+  final TextEditingController _otherReasonCtrl = TextEditingController();
+  bool _isDisclosing = false;
+
+
+
 
   @override
   void initState() {
@@ -51,24 +59,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       }
       setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _callAndLog(String number, String id, String message) async {
-    await _logContact(message: message, id: id);
-    final uri = Uri.parse("tel:$number");
-    await launchUrl(uri);
-  }
-
-  Future<void> _whatsappAndLog(
-      String number, String id, String message, String name) async {
-
-    await _logContact(message: message, id: id);
-
-    final phone = number.replaceAll(" ", "");
-    final text = Uri.encodeComponent("Hello $name, I’m contacting regarding your request.");
-    final url = Uri.parse("https://wa.me/$phone?text=$text");
-
-    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 
   Future<void> _logContact({
@@ -129,6 +119,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final bool isUrgent = _demand?["mark"] == "1";
     final Color accent =
     isUrgent ? Colors.redAccent : theme.colorScheme.primary;
+    final bool isDisclosed = _demand?["Status"]?.toString().toLowerCase() == "disclosed";
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
@@ -146,35 +137,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         ),
         centerTitle: true,
       ),
-      floatingActionButton: GestureDetector(
-        onTap: () => _openContactSheet(context, accent, isDark),
-        child: Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [
-                accent,
-                accent.withOpacity(0.7),
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withOpacity(0.4),
-                blurRadius: 14,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.phone_in_talk_rounded,
-            color: Colors.black,
-            size: 28,
-          ),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
 
 
       body: _isLoading
@@ -188,34 +150,73 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             _buildTenantCard(isDark, accent),
             const SizedBox(height: 24),
 
+            if (_demand?["Status"]?.toString().toLowerCase() == "progressing")
+              _buildCompletionSection(isDark, accent),
+
+            if (_demand?["Status"]?.toString().toLowerCase() == "disclosed")
+              _buildFinalSummarySection(isDark, accent),
+
+
+
 
             const SizedBox(height: 24),
 
-            // OPEN FORM / ADD MORE DETAILS
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
+                  backgroundColor: isDisclosed
+                      ? Colors.grey.shade200
+                      : theme.colorScheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                onPressed: () {
-                  Navigator.pop(context);
+                onPressed: isDisclosed
+                    ? null
+                    : () {
+                  if (_demand == null) return;
+
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => const DemandForm()),
-                  );
+                      builder: (_) => TenantDemandUpdatePage(demand: _demand!),
+                    ),
+                  ).then((_) => _fetchDemandDetails());
                 },
                 child: Text(
                   "Add More Details",
                   style: TextStyle(
-                      color: isDark ? Colors.black : Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16),
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
+              ),
+            ),
+            const SizedBox(height: 24),
+
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.phone_in_talk_rounded, color: Colors.white),
+                label: const Text(
+                  "Contact Customer",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () => _openContactSheet(context, accent, isDark),
               ),
             ),
           ],
@@ -223,6 +224,370 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       ),
     );
   }
+
+  Widget _buildFinalSummarySection(bool isDark, Color accent) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(top: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.2),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Disclosing Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Finishing Date
+          Text(
+            "Finishing Date",
+            style: theme.textTheme.titleSmall!
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+            ),
+            child: Text(
+              _demand?["finishing_date"] ?? "-",
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 15,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Final Reason
+          Text(
+            "Final Reason",
+            style: theme.textTheme.titleSmall!
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+            ),
+            child: Text(
+              _demand?["final_reason"] ?? "-",
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Widget _buildCompletionSection(bool isDark, Color accent) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(top: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.2),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Completion Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Finishing Date
+          Text("Finishing Date",
+              style: theme.textTheme.titleSmall!
+                  .copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2040),
+              );
+              if (picked != null) {
+                setState(() => _finishingDate = picked);
+              }
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.15),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _finishingDate == null
+                        ? "Select Date"
+                        : "${_finishingDate!.year}-${_finishingDate!.month.toString().padLeft(2, '0')}-${_finishingDate!.day.toString().padLeft(2, '0')}",
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                      fontSize: 15,
+                    ),
+                  ),
+                  Icon(Icons.calendar_today,
+                      size: 20, color: theme.iconTheme.color),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Final Reason
+          Text("Final Reason",
+              style: theme.textTheme.titleSmall!
+                  .copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 6),
+          GestureDetector(
+            onTap: () => _showFinalReasonSheet(),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.15),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _finalReason ?? "Select Reason",
+                    style: TextStyle(
+                      color: _finalReason == null
+                          ? Colors.grey
+                          : (isDark ? Colors.white70 : Colors.black87),
+                      fontSize: 15,
+                    ),
+                  ),
+                  Icon(Icons.keyboard_arrow_down,
+                      size: 22, color: theme.iconTheme.color),
+                ],
+              ),
+            ),
+          ),
+
+            const SizedBox(height: 15),
+            TextField(
+              controller: _otherReasonCtrl,
+              decoration: InputDecoration(
+                labelText: "Enter Reason Details",
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              maxLines: 2,
+              onChanged: (_) => setState(() {}),
+            ),
+
+          const SizedBox(height: 15),
+
+          const SizedBox(height: 12),
+
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: _isDisclosing ? null : _showDiscloseConfirmDialog,
+              child: _isDisclosing
+                  ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                  : const Text(
+                "Disclose Demand",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDiscloseConfirmDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: const Text("Confirm Action"),
+          content: const Text(
+            "Are you sure you want to disclose this demand? "
+                "This action cannot be undone.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _submitFinalUpdate();
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+
+  void _showFinalReasonSheet() {
+    final reasons = [
+      "Completed Successfully",
+      "Property Not Found",
+      "Customer Cancelled",
+      "Mismatch Requirements",
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const SizedBox(height: 12),
+          const Text(
+            "Select Final Reason",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+          ),
+          const Divider(),
+
+          ...reasons.map((e) {
+            return ListTile(
+              title: Text(e),
+              onTap: () {
+                Navigator.pop(ctx);
+
+                setState(() {
+                  _finalReason = e;
+                });
+              },
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _submitFinalUpdate() async {
+    if (_finishingDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Please select finishing date"),
+        ),
+      );
+      return;
+    }
+
+    if (_finalReason == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Please select final reason"),
+        ),
+      );
+      return;
+    }
+
+    final String finalReasonToSend =
+        (_finalReason ?? "") +
+            (_otherReasonCtrl.text.trim().isEmpty
+                ? ""
+                : " - ${_otherReasonCtrl.text.trim()}");
+
+    setState(() => _isSubmittingFinal = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php"),
+        body: {
+          "id": _demand!["id"].toString(),
+          "finishing_date":
+          "${_finishingDate!.year}-${_finishingDate!.month.toString().padLeft(2, '0')}-${_finishingDate!.day.toString().padLeft(2, '0')}",
+          "final_reason": finalReasonToSend,
+        },
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.green,
+          content: Text("Final Update Submitted"),
+        ),
+      );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Error: $e"),
+        ),
+      );
+    }
+
+    setState(() => _isSubmittingFinal = false);
+  }
+
 
   Future<List<dynamic>> _fetchLogs(String id) async {
     try {

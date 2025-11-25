@@ -40,6 +40,7 @@ class Property {
   final String fieldworkarAddress;
   final String roadSize;
   final String metroDistance;
+  final String localities_list;
   final String highwayDistance;
   final String mainMarketDistance;
   final String meter;
@@ -90,6 +91,7 @@ class Property {
     required this.fieldworkarAddress,
     required this.roadSize,
     required this.metroDistance,
+    required this.localities_list,
     required this.highwayDistance,
     required this.mainMarketDistance,
     required this.meter,
@@ -142,7 +144,9 @@ class Property {
       fieldworkarAddress: json['fieldworkar_address'] ?? '',
       roadSize: json['Road_Size'] ?? '',
       metroDistance: json['metro_distance'] ?? '',
-      highwayDistance: json['highway_distance'] ?? '',
+      localities_list: json['locality_list']
+          ?? json['localities_list']
+          ?? '',      highwayDistance: json['highway_distance'] ?? '',
       mainMarketDistance: json['main_market_distance'] ?? '',
       meter: json['meter'] ?? '',
       ownerName: json['owner_name'] ?? '',
@@ -264,6 +268,18 @@ class underflat_futureproperty extends StatefulWidget {
 }
 
 class _underflat_futurepropertyState extends State<underflat_futureproperty> {
+
+  Future<String?> pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+      initialDate: DateTime.now(),
+    );
+
+    if (picked == null) return null;
+    return "${picked.year}-${picked.month}-${picked.day}";
+  }
 
   Future<List<RealEstateSlider1>> fetchCarouselData() async {
     final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
@@ -469,6 +485,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   late Future<List<Catid1>> _catidFuture;
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -539,7 +556,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                           ),
                         );
                       }
+
                       else{
+                        final List<String> localityChips =
+                        abc.data![0].localities_list.split(',').map((e) => e.trim()).toList();
+                        print('Locality list: $localityChips');
                         return ListView.builder(
                             itemCount: 1,
                             shrinkWrap: true,
@@ -1047,6 +1068,46 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                           ),
                                                         ],
                                                       ),
+                                                      _buildCompactSection(
+                                                        icon: Icons.info_outline,
+                                                        title: "Details",
+                                                        color: Colors.green,
+                                                        children: [
+                                                          _buildCompactSection(
+                                                            icon: Icons.location_city,
+                                                            title: "Localities",
+                                                            color: Colors.deepOrange,
+                                                            children: [
+                                                              Wrap(
+                                                                spacing: 8,
+                                                                runSpacing: 8,
+                                                                children: localityChips.map((loc) {
+                                                                  return Container(
+                                                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                                                    decoration: BoxDecoration(
+                                                                      color: Theme.of(context).brightness == Brightness.dark
+                                                                          ? Colors.white12
+                                                                          : Colors.orange.shade50,
+                                                                      borderRadius: BorderRadius.circular(14),
+                                                                      border: Border.all(color: Colors.deepOrange),
+                                                                    ),
+                                                                    child: Text(
+                                                                      loc,
+                                                                      style: TextStyle(
+                                                                        color: Theme.of(context).brightness == Brightness.dark
+                                                                            ? Colors.orange.shade600
+                                                                            : Colors.deepOrange.shade800,
+                                                                        fontWeight: FontWeight.w500,
+                                                                        fontSize: 13,
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                }).toList(),
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
                                                       SizedBox(
                                                         height: 20,
                                                       ),
@@ -1395,16 +1456,21 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                                       .outer),
                                                         ],
                                                       ),
-                                                      child: Text(
-                                                        "" +
-                                                            abc.data![len]
-                                                                .careTakerName /*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                        style: TextStyle(
-                                                            fontSize: 14,
-                                                            color: Colors.black,
-                                                            fontWeight:
-                                                                FontWeight.w500,
-                                                            letterSpacing: 0.5),
+                                                      child: Row(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        children: [
+                                                          Text(
+                                                            "" +
+                                                                abc.data![len]
+                                                                    .careTakerName /*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                            style: TextStyle(
+                                                                fontSize: 14,
+                                                                color: Colors.black,
+                                                                fontWeight:
+                                                                    FontWeight.w500,
+                                                                letterSpacing: 0.5),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                     SizedBox(
@@ -2597,8 +2663,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                   child: Row(
                                                     mainAxisAlignment: MainAxisAlignment.center,
                                                     children: [
-                                                      // Icon(Iconsax.sort_copy,size: 15,),
-                                                      //SizedBox(width: 10,),
                                                       Text(""+abc.data![len].shifting_date/*+abc.data![len].Building_Name.toUpperCase()*/,
                                                         style: TextStyle(
                                                             fontSize: 13,
@@ -2821,7 +2885,12 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                           ),
                         );
                       }
-                    } else if (estate_status == "Live") {
+                    }
+
+
+
+
+                    else if (estate_status == "Live") {
                       // MOVE TO BOOK (UNLIVE)
                       print("🔵 MOVE TO BOOK (Unlive): ${widget.id}");
 
@@ -2920,34 +2989,115 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                   setState(() => _isUpcomingLoading = true);
 
                   try {
+                    // if (Upcoming_status == "Book") {
+                    //   print("🟠 MOVE TO UPCOMING: ${widget.id}");
+                    //   final updateResponse = await http.post(
+                    //     Uri.parse(
+                    //         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                    //     body: {"action": "update", "P_id": widget.id.toString()},
+                    //   );
+                    //   final moveResponse = await http.post(
+                    //     Uri.parse(
+                    //         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                    //     body: {"action": "copy", "P_id": widget.id.toString()},
+                    //   );
+                    //
+                    //   print("🟢 Update: ${updateResponse.statusCode}");
+                    //   print("🟢 Copy: ${moveResponse.statusCode}");
+                    //
+                    //   if (updateResponse.statusCode == 200 &&
+                    //       moveResponse.statusCode == 200) {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       const SnackBar(
+                    //         content: Text("Moved to Upcoming successfully!",
+                    //             style: TextStyle(color: Colors.white)),
+                    //         backgroundColor: Colors.orange,
+                    //       ),
+                    //     );
+                    //     setState(() => Upcoming_status = "Live");
+                    //   }
+                    // }
+
                     if (Upcoming_status == "Book") {
+                      print("📅 Asking user to pick a date...");
+
+                      final selectedDate = await pickDate(context);
+
+                      if (selectedDate == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("No date selected!"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        setState(() => _isUpcomingLoading = false);
+                        return;
+                      }
+
+                      print("📅 Selected Date: $selectedDate");
+
+                      // 1️⃣ UPDATE DATE BEFORE MOVE
+                      final dateUpdateResponse = await http.post(
+                        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        body: {
+                          "action": "update_available_date",
+                          "P_id": widget.id.toString(),
+                          "date": selectedDate,
+                        },
+                      );
+
+
+
+                      print("🟠 Date Update Status: ${dateUpdateResponse.statusCode}");
+                      print("🟠 Date Update body: ${dateUpdateResponse.body}");
+
+
+                      if (dateUpdateResponse.statusCode != 200) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("Failed to update date!"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        setState(() => _isUpcomingLoading = false);
+                        return;
+                      }
+                      else{
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text("successfully updated with date"),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+
+                      }
+
+                      // 2️⃣ CONTINUE WITH MOVE PROCESS
                       print("🟠 MOVE TO UPCOMING: ${widget.id}");
                       final updateResponse = await http.post(
-                        Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
                         body: {"action": "update", "P_id": widget.id.toString()},
                       );
+
                       final moveResponse = await http.post(
-                        Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
+                        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php"),
                         body: {"action": "copy", "P_id": widget.id.toString()},
                       );
 
-                      print("🟢 Update: ${updateResponse.statusCode}");
-                      print("🟢 Copy: ${moveResponse.statusCode}");
-
-                      if (updateResponse.statusCode == 200 &&
-                          moveResponse.statusCode == 200) {
+                      if (updateResponse.statusCode == 200 && moveResponse.statusCode == 200) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: Text("Moved to Upcoming successfully!",
-                                style: TextStyle(color: Colors.white)),
+                            content: Text("Moved to Upcoming successfully!"),
                             backgroundColor: Colors.orange,
                           ),
                         );
                         setState(() => Upcoming_status = "Live");
                       }
-                    } else if (Upcoming_status == "Live") {
+                    }
+
+
+
+                    else if (Upcoming_status == "Live") {
                       print("🔵 REMOVE FROM UPCOMING: ${widget.id}");
                       final updateResponse = await http.post(
                         Uri.parse(
@@ -3002,6 +3152,39 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         ),
       ),
 
+    );
+  }
+  Widget _buildCompactSection({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required List<Widget> children
+  }) {
+    return Column(
+      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: children,
+        ),
+      ],
     );
   }
 }

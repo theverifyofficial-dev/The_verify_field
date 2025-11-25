@@ -1034,29 +1034,29 @@ class _Target_MainPageState extends State<Target_MainPage> {
                   ),
                 ],
 
-              // ===================== Buildings =====================
-              const SizedBox(height: 16),
-
-              const _HighlightBar(color: Colors.pinkAccent, label: "Buildings"),
-
-
-              _PieKpiCard(
-                title: 'Monthly Target 17',
-                liveCount: _buildingCount,
-                target: _buildingMonthlyTarget,
-                colorLive: Colors.lightBlueAccent,
-                colorRemain: Colors.grey.shade700,
-                totalThisMonth: _buildingCount,       // show raw in the pill
-              ),
-              const SizedBox(height: 16),
-
-              _PieKpiCard(
-                title: 'Yearly Target 204',
-                liveCount: _buildingCount,
-                target: _buildingYearlyTarget,
-                colorLive: Colors.pinkAccent,         // your call
-                colorRemain: Colors.grey.shade700,
-              ),
+              // // ===================== Buildings =====================
+              // const SizedBox(height: 16),
+              //
+              // const _HighlightBar(color: Colors.pinkAccent, label: "Buildings"),
+              //
+              //
+              // _PieKpiCard(
+              //   title: 'Monthly Target 17',
+              //   liveCount: _buildingCount,
+              //   target: _buildingMonthlyTarget,
+              //   colorLive: Colors.lightBlueAccent,
+              //   colorRemain: Colors.grey.shade700,
+              //   totalThisMonth: _buildingCount,       // show raw in the pill
+              // ),
+              // const SizedBox(height: 16),
+              //
+              // _PieKpiCard(
+              //   title: 'Yearly Target 204',
+              //   liveCount: _buildingCount,
+              //   target: _buildingYearlyTarget,
+              //   colorLive: Colors.pinkAccent,         // your call
+              //   colorRemain: Colors.grey.shade700,
+              // ),
             ],
           ),
         ),

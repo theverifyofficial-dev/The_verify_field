@@ -620,9 +620,9 @@ class _AllFieldWorkersPageState extends State<AllFieldWorkersPage> {
               Expanded(child: _smallKpi('Agreements (Y)', s.agrYearAchieved, _tAgrYear, Colors.redAccent)),
             ]),
             const SizedBox(height: 8),
-            Row(children: [
-              Expanded(child: _smallKpi('Building (Y)', s.yBuildings, _tBldYear, Colors.teal)),
-            ]),
+            // Row(children: [
+            //   Expanded(child: _smallKpi('Building (Y)', s.yBuildings, _tBldYear, Colors.teal)),
+            // ]),
             const SizedBox(height: 8),
             Text(
               (s.yStartRaw?.isNotEmpty == true && s.yEndExclRaw?.isNotEmpty == true)

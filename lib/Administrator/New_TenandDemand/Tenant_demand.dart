@@ -395,8 +395,84 @@ class _TenantDemandState extends State<TenantDemand> {
                               ),
                             ),
                           ),
-
-                          // 🌟 DIAGONAL STRIP (TOP-LEFT)
+                          if (d.status.toLowerCase() == "disclosed")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.red.shade500,
+                                        Colors.red.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.redAccent.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "DISCLOSED   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (d.status.toLowerCase() == "assigned to fieldworker")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade500,
+                                        Colors.green.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.redAccent.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "ASSIGNED   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           if (d.status.toLowerCase() == "assign to subadmin")
                             Positioned(
                               top: 12,

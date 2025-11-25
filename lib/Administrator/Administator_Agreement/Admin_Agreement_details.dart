@@ -31,7 +31,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     try {
       final response = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
-
+      print('Agreement ID: ${widget.agreementId}');
       if (response.statusCode == 200) {
         final decoded = json.decode(response.body);
         if (decoded["status"] == "success" && decoded["count"] > 0) {
@@ -342,7 +342,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                     fit: BoxFit.cover, // ensures full fill
                     errorBuilder: (context, error, stackTrace) => Container(
                       color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image, color: Colors.red, size: 40),
+                      child: Center(child: Text('No Image',style: TextStyle(color: Colors.red),))
                     ),
                   ),
                 ),
@@ -479,14 +479,13 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                     ),
                   ),
                   const SizedBox(width: 12),
-
-                  // Agreement Details
+          if (agreement!["agreement_type"] != "Police Verification")
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.8,
                     child: _sectionCard(
                       title: "Agreement Details",
                       children: [
-                        _kv("Property", agreement?["property_id"] ?? ""),
+                          _kv("Property", agreement?["property_id"] ?? ""),
                         _kv("BHK", agreement?["Bhk"] ?? ""),
                         _kv("Floor", agreement?["floor"] ?? ""),
                         _kv("Rented Address", agreement!["rented_address"]),
@@ -507,8 +506,13 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
               ),
             ),
 
+          if (agreement!["agreement_type"] == "Police Verification")
+            _sectionCard(title: "Property Residential Address ", children: [
+              _kv("Property Address", agreement!["rented_address"]),
+            ]),
 
-            // 🔹 Fieldworker
+
+      // 🔹 Fieldworker
             _sectionCard(title: "Field Worker", children: [
               _kv("Name", agreement!["Fieldwarkarname"]),
               _kv("Number", agreement!["Fieldwarkarnumber"]),
@@ -533,10 +537,10 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
             const SizedBox(height: 30),
 
-            Row(
+
+              Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-
                 Expanded(
                   child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
@@ -636,7 +640,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🖼️ Property Image
+
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             child: Image.network(
@@ -794,13 +798,16 @@ class ElevatedGradientButton extends StatelessWidget {
           ],
         ),
         padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Row(mainAxisSize: MainAxisSize.min, children: [
+        child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
           Icon(icon, color: Colors.white),
           const SizedBox(width: 12),
           Text(text,
               style: const TextStyle(
                   color: Colors.white, fontWeight: FontWeight.w600)),
-        ]),
+        ]
+        ),
       ),
     );
   }

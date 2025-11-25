@@ -247,7 +247,7 @@ class LinksPage extends StatelessWidget {
       },
       {
         "title": "📸 Instagram",
-        "url": "https://www.instagram.com/verify_realestate/",
+        "url": "https://www.instagram.com/verify_realestate_/",
         "color": Colors.purple,
       },
       {

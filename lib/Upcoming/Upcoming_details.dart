@@ -4,6 +4,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Upcoming/update_form.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Rent Agreement/update_images.dart';
 import '../constant.dart';
 import '../property_preview.dart';
@@ -69,6 +70,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_details_page.php?P_id=${widget.id}");
 
     final response = await http.get(url);
+    print('${widget.id}');
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       if (decoded["status"] == "success" && decoded["data"].isNotEmpty) {
@@ -108,6 +110,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }
+
 
 
   Widget infoRow(BuildContext context, String label, String? value) {
@@ -190,7 +193,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
         ),
-        itemCount: 6, // number of shimmer placeholders
+        itemCount: 6,
         itemBuilder: (context, index) => Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade300,
@@ -200,6 +203,66 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
       ),
     );
   }
+
+
+  Future<void> _pickAndUpdateDate() async {
+    final selectedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2040),
+    );
+
+    if (selectedDate == null) return;
+
+    final formattedDate =
+        "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}";
+
+    setState(() => _isLoading = true);
+
+    final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcomin_update_api.php");
+
+    final response = await http.post(url, body: {
+      "P_id": widget.id.toString(),
+      "date": formattedDate,
+    });
+
+    print(response.body);
+
+    setState(() => _isLoading = false);
+
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+
+      if (decoded["status"] == "success") {
+        // refresh UI
+        fetchPropertyDetails();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Date updated successfully!"),
+            backgroundColor: Colors.green,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Failed to update date."),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Server error. Try again."),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
 
 
 
@@ -362,6 +425,8 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                   infoRow(context, "Highway Distance", data['highway_distance']),
                   infoRow(context, "Main Market Distance", data['main_market_distance']),
                   infoRow(context, "Facility", data['Facility']),
+                  infoRow(context, "Updated Available Date", data['dates_for_right_avaiable']),
+
                 ]),
 
                 sectionCard(context, "Owner Details", [
@@ -378,14 +443,59 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                   infoRow(context, "Current Location", data['field_worker_current_location']),
                 ]),
 
-              ],
+
+                ElevatedButton.icon(
+                  onPressed: _pickAndUpdateDate,
+                  style: ElevatedButton.styleFrom(
+                    elevation: 3,
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(Icons.calendar_month, size: 22),
+                  label: const Text(
+                    "Update Available Date",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+                SizedBox(height: 12),
+
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => Future_Property_details(
+                          idd: data['subid'].toString(),
+                        ),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    elevation: 3,
+                    backgroundColor: Colors.purple.shade300,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 50),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  icon: const Icon(
+                      Icons.move_up_sharp, size: 22),
+                  label: const Text(
+                    "Go to Building",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ] ,
             ),
           ),
         ],
       ),
     );
   }
-
-
 }
 

@@ -18,6 +18,7 @@ class _AgreementDetailsState extends State<AllData> {
   bool isLoading = true;
   TextEditingController searchController = TextEditingController();
 
+
   @override
   void initState() {
     super.initState();
@@ -81,6 +82,19 @@ class _AgreementDetailsState extends State<AllData> {
       debugPrint('❌ Error fetching data: $e');
       setState(() => isLoading = false);
     }
+  }
+
+  List<Color> _getCardColors(String? type, bool isDark) {
+    if (type == "Police Verification") {
+      return isDark
+          ? [Colors.blue.shade900, Colors.black]
+          : [Colors.black, Colors.blue.shade400];
+    }
+
+    // Default colors
+    return isDark
+        ? [Colors.green.shade700, Colors.black]
+        : [Colors.black, Colors.green.shade400];
   }
 
   _launchURL(String pdfUrl) async {
@@ -206,15 +220,16 @@ class _AgreementDetailsState extends State<AllData> {
                 itemBuilder: (context, index) {
                   final item = filteredAgreements[index];
                   final renewalDate = _getRenewalDate(item.shiftingDate);
+                  final bool isPolice = item.agreementType == "Police Verification";
+
 
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(18),
                       gradient: LinearGradient(
-                        colors: isDark
-                            ? [Colors.green.shade700, Colors.black]
-                            : [Colors.black, Colors.green.shade400],
+                        colors: _getCardColors(item.agreementType, isDark),
+
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -290,13 +305,15 @@ class _AgreementDetailsState extends State<AllData> {
                             // 👥 Owner & Tenant Info
                             _InfoRow(title: "Owner", value: item.ownerName),
                             _InfoRow(title: "Tenant", value: item.tenantName),
-                            _InfoRow(title: "Rent", value: "₹${item.monthlyRent}"),
+                            if (!isPolice) ...[
+                              _InfoRow(title: "Rent", value: "₹${item.monthlyRent}"),
                             _InfoRow(title: "Shifting Date", value: _formatDate(item.shiftingDate)),
                             _InfoRow(
                               title: "Renewal Date",
                               value: renewalDate != null ? _formatDateTime(renewalDate) : '--',
                               valueColor: _getRenewalDateColor(renewalDate),
                             ),
+                            ],
 
                             const Divider(height: 20, color: Colors.white30),
 
@@ -312,6 +329,7 @@ class _AgreementDetailsState extends State<AllData> {
                                     color: Colors.white70,
                                   ),
                                 ),
+                                if (!isPolice)
                                 Text(
                                   "Floor: ${item.floor}",
                                   style: const TextStyle(
@@ -332,7 +350,8 @@ class _AgreementDetailsState extends State<AllData> {
                                 if (item.policeVerificationPdf.isEmpty ||
                                     item.policeVerificationPdf == 'null')
                                   _MissingBadge(label: "Police Verification Missing"),
-                                if (item.notaryImg.isEmpty || item.notaryImg == 'null')
+                                if (!isPolice)
+                                  if (item.notaryImg.isEmpty || item.notaryImg == 'null')
                                   _MissingBadge(label: "Notary Image Missing"),
                               ],
                             ),
@@ -464,5 +483,6 @@ class _MissingBadge extends StatelessWidget {
       ),
     );
   }
+
 }
 

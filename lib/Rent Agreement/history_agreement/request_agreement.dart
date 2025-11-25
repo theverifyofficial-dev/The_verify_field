@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Commercial_Form.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Renewal_form.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/Forms/Verification_form.dart';
 
 import '../../model/agrement_model.dart';
 import '../Forms/Agreement_Form.dart';
@@ -58,6 +59,10 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         break;
       case "furnished agreement":
         page = FurnishedForm(agreementId: agreement.id);
+        break;
+
+      case "police verification":
+        page = VerificationWizardPage(agreementId: agreement.id);
         break;
 
       default:
@@ -234,7 +239,9 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                     Icon(Icons.schedule_rounded, color: subTextColor, size: 18),
                     const SizedBox(width: 6),
                     Text(
-                      "Shifting Date: ${agreement.shiftingDate.toLocal().toString().split(' ')[0]}",
+                      "Shifting Date: ${agreement.shiftingDate != null
+                          ? agreement.shiftingDate!.toLocal().toString().split(' ')[0]
+                          : "Not Provided"}",
                       style: TextStyle(
                         color: subTextColor,
                         fontSize: 13.2 * textScale,
@@ -243,8 +250,11 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                     ),
                   ],
                 ),
+
                 SizedBox(height: size.height * 0.018),
-                Container(
+
+
+                  Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: size.width * 0.035,
                     vertical: size.height * 0.012,

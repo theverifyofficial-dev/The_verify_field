@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +15,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Future_Property.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'metro_api.dart';
+
 
 class Add_FutureProperty extends StatefulWidget {
   const Add_FutureProperty({super.key});
@@ -23,9 +27,6 @@ class Add_FutureProperty extends StatefulWidget {
 }
 
 class _Add_FuturePropertyState extends State<Add_FutureProperty> {
-
-
-
 
   bool _isLoading = false;
   List<File> _multipleImages = [];
@@ -54,6 +55,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   final TextEditingController _address = TextEditingController();
   final TextEditingController _Building_information = TextEditingController();
   final TextEditingController _facilityController = TextEditingController();
+  final TextEditingController metroController = TextEditingController();
+  final TextEditingController localityController = TextEditingController();
 
   String _number = '';
   String _name = '';
@@ -96,6 +99,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   String _date = '';
   String _Time = '';
+  String? selectedLocality;
+
 
   void _generateDateTime() {
     setState(() {
@@ -214,7 +219,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("road_size", selectedRoadSize ?? ''),
       MapEntry("parking", _selectedParking ?? ''),
       MapEntry("metro_distance", selectedMetroDistance ?? ''),
-      MapEntry("metro_name", metro_name.toString()),
       MapEntry("main_market_distance", selectedMarketDistance ?? ''),
       MapEntry("age_of_property", _ageOfProperty ?? ''),
       MapEntry("total_floor", _totalFloor ?? ''),
@@ -222,6 +226,12 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("current_date_", DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now()),),
       MapEntry("Residence_commercial", _selectedPropertyType!),
       MapEntry("facility", selectedFacilities.join(', ')),
+      // MapEntry("metro_name", metro_name ?? ''),
+      // MapEntry("locality_list", selectedLocality ?? ''),
+      MapEntry("metro_name", metroController.text),
+      MapEntry("locality_list", localityController.text),
+
+
     ]);
 
     // Multiple images
@@ -280,7 +290,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     await uploadImageWithTitle(_imageFile!);
   }
   String? _selectedItem;
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj','Ghitorni'];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj','Ghitorni'];
   String? _selectedLift;
   final List<String> lift_options = ['Yes','No'];
 
@@ -596,38 +606,64 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 ],
               ),
 
-              Row(
-                children: [
-                  Expanded(
-                    child:
-                    _buildDropdownRow(
-                      'Metro Name',
-                      metro_nameOptions,
-                      metro_name,
-                          (val) => setState(() => metro_name = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select metro Name' : null,
-                    ),
+
+
+              /// ------------------ METRO FIELD ------------------
+              _buildSectionCard(
+                title: "Metro Station",
+                child: TextFormField(
+                  controller: metroController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    hintText: "Select Metro Station",
+                    border: OutlineInputBorder(),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child:
-                    _buildDropdownRow(
-                      'Metro Distance',
-                      metroDistanceOptions,
-                      selectedMetroDistance,
-                          (val) => setState(() => selectedMetroDistance = val),
-                      validator: (val) => val == null || val.isEmpty ? 'Please select metro distance' : null,
-                    ),
-                  ),
-                ],
+                  onTap: () {
+                    showMetroLocalityPicker(context, (metro, localities) {
+                      setState(() {
+                        metroController.text = metro;
+                        localityController.text = localities.join(", ");
+                      });
+                    });
+                  },
+                ),
               ),
-              // _buildDropdownRow(
-              //   'Highway Distance (in m)',
-              //   highwayDistanceOptions,
-              //   selectedHighwayDistance,
-              //       (val) => setState(() => selectedHighwayDistance = val),
-              //   validator: (val) => val == null || val.isEmpty ? 'Please select highway distance' : null,
-              // ),
+
+              /// ------------------ LOCALITY FIELD ------------------
+              _buildSectionCard(
+                title: "Localities",
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextFormField(
+                      controller: localityController,
+                      readOnly: true,
+                      maxLines: 2,
+                      decoration: const InputDecoration(
+                        hintText: "Selected Localities",
+                        border: OutlineInputBorder(),
+                      ),
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // SHOW CHIPS VISUALLY
+                    if (localityController.text.trim().isNotEmpty)
+                      Wrap(
+                        spacing: 6,
+                        children: localityController.text
+                            .split(",")
+                            .map((loc) => Chip(
+                          label: Text(loc.trim()),
+                          backgroundColor: Colors.grey.shade600,
+                        ))
+                            .toList(),
+                      ),
+                  ],
+                ),
+              ),
+
+
               Row(
                 children: [
                   Expanded(
@@ -640,6 +676,23 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                   ),
                   SizedBox(width: 6,),
+
+                  Expanded( child: _buildDropdownRow( 'Metro Distance', metroDistanceOptions, selectedMetroDistance, (val) => setState(() => selectedMetroDistance = val), validator: (val) => val == null || val.isEmpty ? 'Please select metro distance' : null, ), ), ], ),
+
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDropdownRow(
+                      'Parking',
+                      parkingOptions,
+                      _selectedParking,
+                          (val) => setState(() => _selectedParking = val),
+                      validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
+                    ),
+                  ),
+                  SizedBox(width: 6,),
+
                   Expanded(
                     child: _buildDropdownRow(
                       'Lift Availability',
@@ -651,13 +704,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                   ),
                 ],
-              ),
-              _buildDropdownRow(
-                'Parking',
-                parkingOptions,
-                _selectedParking,
-                    (val) => setState(() => _selectedParking = val),
-                validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
               ),
 
               _buildTextInput('Address for Field Worker', _Address_apnehisaabka),
@@ -697,59 +743,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               ),
               SizedBox(height: 20),
               InkWell(
-                // onTap: ()async {
-                //
-                //   // double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
-                //   // double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
-                //
-                //   double? latitude = double.tryParse(long);
-                //   double? longitude = double.tryParse(lat);
-                //
-                //   if (latitude == null || longitude == null) {
-                //     print("Invalid coordinates! long: $long, lat: $lat");
-                //     return; // stop execution
-                //   }
-                //
-                //   print("Placemark lookup for lat: $latitude, long: $longitude");
-                //
-                //   placemarkFromCoordinates(latitude, longitude).then((placemarks) {
-                //
-                //     var output = 'Unable to fetch location';
-                //     if (placemarks.isNotEmpty) {
-                //       final place = placemarks.first;
-                //
-                //       // Collect all available parts, ignoring null or empty ones
-                //       List<String> parts = [
-                //         place.street,
-                //         place.subLocality,
-                //         place.locality,
-                //         place.subAdministrativeArea,
-                //         place.administrativeArea,
-                //         place.postalCode,
-                //         place.country,
-                //       ].whereType<String>() // 👈 filters out null automatically
-                //           .where((e) => e.trim().isNotEmpty) // 👈 removes empty strings
-                //           .toList();
-                //
-                //       // Join them with commas
-                //       output = parts.join(', ');
-                //     }
-                //
-                //     setState(() {
-                //       full_address = output;
-                //
-                //       _Google_Location.text = full_address;
-                //
-                //       print('Your Current Address:- $full_address');
-                //     });
-                //
-                //   });
-                // },
-
                 onTap: ()async {
-
-                  // double latitude = double.parse(long.replaceAll(RegExp(r'[^0-9.]'),''));
-                  // double longitude = double.parse(lat.replaceAll(RegExp(r'[^0-9.]'),''));
 
                   double? latitude = double.tryParse(long);
                   double? longitude = double.tryParse(lat);
@@ -979,10 +973,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 ),
               ),
               const SizedBox(height: 50),
-            ],
+          ]
+          ),
           ),
         ),
-      ),
     );
   }
   TextInputFormatter upperCaseTextFormatter() {
@@ -1237,6 +1231,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   }
 
 
+
+
   TextStyle _sectionTitleStyle() {
     return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Poppins');
   }
@@ -1268,6 +1264,330 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   }
 
 }
+
+
+// -----------------------------------------------------
+//              METRO + LOCALITY PICKER
+// -----------------------------------------------------
+
+void showMetroLocalityPicker(
+    BuildContext context,
+    Function(String metro, List<String> localities) onSelected,
+    ) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    barrierColor: Colors.black.withOpacity(0.5),
+
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+
+    builder: (context) {
+      return DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.60,
+        maxChildSize: 0.95,
+        expand: false,
+        builder: (context, controller) {
+          return MetroLocalitySheet(
+            onSelected: onSelected,
+          );
+        },
+      );
+    },
+  );
+}
+
+
+class MetroLocalitySheet extends StatefulWidget {
+  final Function(String metro, List<String> localities) onSelected;
+
+  const MetroLocalitySheet({super.key, required this.onSelected});
+
+  @override
+  State<MetroLocalitySheet> createState() => _MetroLocalitySheetState();
+}
+
+class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
+  final MetroAPI api = MetroAPI();
+
+  // Controllers
+  final TextEditingController metroCtrl = TextEditingController();
+  final TextEditingController localityCtrl = TextEditingController();
+
+  // State
+  List<Map<String, dynamic>> metroList = [];
+  List<Map<String, dynamic>> nearbyList = [];
+  List<Map<String, dynamic>> filteredNearby = [];
+
+  List<String> selectedLocalities = [];
+
+  bool loadingMetro = false;
+  bool loadingNearby = false;
+
+  Timer? metroDebounce;
+  Timer? localityDebounce;
+
+  String? selectedMetro;
+
+  @override
+  void dispose() {
+    metroDebounce?.cancel();
+    localityDebounce?.cancel();
+    super.dispose();
+  }
+
+  /* ------------------------ FETCH METRO ------------------------ */
+  void searchMetro(String q) {
+    if (metroDebounce?.isActive ?? false) metroDebounce!.cancel();
+
+    metroDebounce = Timer(const Duration(milliseconds: 300), () async {
+      if (q.trim().length < 2) {
+        setState(() => metroList = []);
+        return;
+      }
+
+      setState(() => loadingMetro = true);
+      final result = await api.fetchStations(q);
+      setState(() {
+        metroList = result;
+        loadingMetro = false;
+      });
+    });
+  }
+
+  /* ------------------------ FETCH LOCALITIES ------------------------ */
+  Future<void> fetchNearby(String metroName) async {
+    setState(() {
+      loadingNearby = true;
+      nearbyList = [];
+      filteredNearby = [];
+      selectedLocalities.clear();
+    });
+
+    final result = await api.fetchNearby(metroName);
+
+    setState(() {
+      nearbyList = result;
+      filteredNearby = result;
+      loadingNearby = false;
+    });
+  }
+
+  /* ------------------------ FILTER LOCALITY ------------------------ */
+  void searchLocality(String q) {
+    if (localityDebounce?.isActive ?? false) localityDebounce!.cancel();
+
+    localityDebounce = Timer(const Duration(milliseconds: 200), () {
+      if (q.trim().isEmpty) {
+        setState(() => filteredNearby = nearbyList);
+        return;
+      }
+
+      setState(() {
+        filteredNearby = nearbyList
+            .where((e) =>
+            e["name"].toString().toLowerCase().contains(q.toLowerCase()))
+            .toList();
+      });
+    });
+  }
+
+  /* ------------------------ MAIN UI ------------------------ */
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final cardBg = isDark ? const Color(0xFF222222) : Colors.grey.shade100;
+    final textCol = isDark ? Colors.white : Colors.black87;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      padding: EdgeInsets.only(
+          left: 16,
+          right: 16,
+          top: 16,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 40,
+            height: 5,
+            margin: const EdgeInsets.only(bottom: 20),
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+
+          Text('Bottom Sheet',style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold),),
+          SizedBox(height: 10,),
+
+          TextField(
+            controller: metroCtrl,
+            onChanged: searchMetro,
+            style: TextStyle(color: textCol),
+            decoration: InputDecoration(
+              labelText: "Metro Station",
+              labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
+              filled: true,
+              fillColor: cardBg,
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+
+          if (loadingMetro)
+            const Padding(
+              padding: EdgeInsets.all(10),
+              child: CircularProgressIndicator(),
+            ),
+
+          if (metroList.isNotEmpty)
+            Expanded(
+              flex: 3,
+              child: ListView.builder(
+                itemCount: metroList.length,
+                itemBuilder: (_, i) {
+                  final m = metroList[i];
+
+                  return ListTile(
+                    tileColor: cardBg,
+                    title: Text(m["name"], style: TextStyle(color: textCol)),
+                    onTap: () async {
+                      metroCtrl.text = m["name"];
+                      selectedMetro = m["name"];
+                      metroList.clear();
+                      FocusScope.of(context).unfocus();
+
+                      await fetchNearby(m["name"]);
+                    },
+                  );
+                },
+              ),
+            ),
+
+          const SizedBox(height: 20),
+
+          /* ------------------- LOCALITY INPUT ------------------- */
+          TextField(
+            controller: localityCtrl,
+            onChanged: searchLocality,
+            enabled: nearbyList.isNotEmpty,
+            style: TextStyle(color: textCol),
+            decoration: InputDecoration(
+              labelText: nearbyList.isEmpty
+                  ? "Select Metro First"
+                  : "Search Locality",
+              labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
+              filled: true,
+              fillColor: cardBg,
+              border:
+              OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+
+          if (loadingNearby)
+            const Padding(
+              padding: EdgeInsets.all(10),
+              child: CircularProgressIndicator(),
+            ),
+
+          /* ------------------- SELECTED CHIPS ------------------- */
+          if (selectedLocalities.isNotEmpty)
+            Wrap(
+              spacing: 6,
+              children: selectedLocalities
+                  .map(
+                    (loc) => Chip(
+                  label: Text(loc),
+                  backgroundColor:
+                  isDark ? Colors.white12 : Colors.grey.shade300,
+                  deleteIcon: const Icon(Icons.close, size: 18),
+                  onDeleted: () {
+                    setState(() {
+                      selectedLocalities.remove(loc);
+                    });
+                  },
+                ),
+              )
+                  .toList(),
+            ),
+
+          const SizedBox(height: 10),
+
+          /* ------------------- LOCALITY LIST ------------------- */
+          if (filteredNearby.isNotEmpty)
+            Expanded(
+              flex: 5,
+              child: ListView.builder(
+                itemCount: filteredNearby.length,
+                itemBuilder: (_, i) {
+                  final loc = filteredNearby[i];
+                  return Card(
+                    color: cardBg,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                    child: ListTile(
+                      title: Text(loc["name"],
+                          style: TextStyle(color: textCol)),
+                      subtitle: Text(
+                        loc["type"] ?? "",
+                        style: TextStyle(
+                          color: textCol.withOpacity(0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                      trailing: Icon(
+                        selectedLocalities.contains(loc["name"])
+                            ? Icons.check_circle
+                            : Icons.add_circle_outline,
+                        color: Colors.redAccent,
+                      ),
+                      onTap: () {
+                        setState(() {
+                          if (!selectedLocalities.contains(loc["name"])) {
+                            selectedLocalities.add(loc["name"]);
+                          }
+                        });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ),
+
+          const SizedBox(height: 12),
+
+          ElevatedButton(
+            onPressed: () {
+              if (selectedMetro != null) {
+                widget.onSelected(selectedMetro!, selectedLocalities);
+              }
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.shade700,
+              padding:
+              const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+            child: const Text("Done",
+                style: TextStyle(color: Colors.white, fontSize: 16)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class _FacilityBottomSheet extends StatefulWidget {
   final List<String> options;
@@ -1348,3 +1668,5 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
     );
   }
 }
+
+

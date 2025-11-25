@@ -4,16 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
-import 'package:verify_feild_worker/Administrator/agreement_details.dart';
-import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import '../Calender/CalenderForAdmin.dart';
-import '../Calender/CalenderForFieldWorker.dart';
 import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
-import '../Future_Property_OwnerDetails_section/Future_Property.dart';
 import '../Social_Media_links.dart';
-import '../Statistics/Target_MainPage.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../administrator/Administator_Realestate.dart';
 import '../main.dart';
@@ -339,19 +334,13 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                       );
                     },
                   ),
-
                 ),
-                // const SizedBox(height: 15),
 
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 15.0),
                   child: _TargetHeaderCard(context),
                 ),
 
-
-                // const SizedBox(height: 15),
-
-                // Grid of Feature Cards
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: LayoutBuilder(
@@ -385,7 +374,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 9,
+                        itemCount: 7,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -412,13 +401,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                 );
                               },
                             },
-                            {
-                              'image': AppImages.police,
-                              'title': "All Rented \nFlat",
-                              'onTap': () =>
-                                   Navigator.push(context, MaterialPageRoute(
-                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                            },
+
                             {
                               'image': AppImages.propertysale,
                               'title': "Future\n Inventory/Property",
@@ -447,6 +430,17 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const TenantDemand())),
+                            },
+
+                            {
+                              "image": AppImages.police,
+                              "title": "All Rented Flat",
+                              "onTap": () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const AdministatorAddRentedFlatTabbar()));
+                              },
                             },
                             {
                               "image": AppImages.websiteIssue,

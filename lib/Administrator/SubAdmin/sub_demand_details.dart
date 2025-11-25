@@ -250,6 +250,8 @@ class _AdminDemandDetailState extends State<SubDemandDetails> {
                 ),
               ),
             ],
+            if (_demand?["Status"]?.toString().toLowerCase() == "disclosed")
+              _buildFinalSummarySection(isDark, accent),
           ],
         ),
       ),
@@ -518,5 +520,88 @@ class _AdminDemandDetailState extends State<SubDemandDetails> {
       },
     );
   }
+
+  Widget _buildFinalSummarySection(bool isDark, Color accent) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(top: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.2),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Disclosing Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Finishing Date
+          Text(
+            "Finishing Date",
+            style: theme.textTheme.titleSmall!
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+            ),
+            child: Text(
+              _demand?["finishing_date"] ?? "-",
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 15,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Final Reason
+          Text(
+            "Final Reason",
+            style: theme.textTheme.titleSmall!
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+            ),
+            child: Text(
+              _demand?["final_reason"] ?? "-",
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 }

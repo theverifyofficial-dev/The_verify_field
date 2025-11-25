@@ -427,6 +427,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${agreement?["agreement_type"] ?? ""} Details'),
@@ -449,31 +451,33 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
                 children: [
-                  _buildCard(
-                    title: "Agreement Details",
-                    children: [
-                      _kv("BHK", agreement?["Bhk"] ?? ""),
-                      _kv( "Floor", agreement?["floor"] ?? ""),
-                      _kv("Rented Address", agreement?["rented_address"]),
-                      _kv("Monthly Rent", agreement?["monthly_rent"] != null
-                          ? "₹${agreement?["monthly_rent"]}"
-                          : ""),
-                      _kv("Security", agreement?["securitys"] != null
-                          ? "₹${agreement?["securitys"]}"
-                          : ""),
-                      _kv("Installment Security",
-                          agreement?["installment_security_amount"] != null
-                              ? "₹${agreement?["installment_security_amount"]}"
-                              : ""),
-                      _kv("Meter", agreement?["meter"]),
-                      _kv("Custom Unit", agreement?["custom_meter_unit"]),
-                      _kv("Maintenance", agreement?["maintaince"]),
-                      _kv("Parking", agreement?["parking"]),
-                      _kv("Shifting Date",
-                          _formatDate(agreement?["shifting_date"]) ?? ""),
-                      _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
-                    ],
-                  ),
+                  if (!isPolice)
+                    _buildCard(
+                      title: "Agreement Details",
+                      children: [
+                        _kv("BHK", agreement?["Bhk"] ?? ""),
+                        _kv("Floor", agreement?["floor"] ?? ""),
+                        _kv("Rented Address", agreement?["rented_address"]),
+                        _kv("Monthly Rent", agreement?["monthly_rent"] != null
+                            ? "₹${agreement?["monthly_rent"]}"
+                            : ""),
+                        _kv("Security", agreement?["securitys"] != null
+                            ? "₹${agreement?["securitys"]}"
+                            : ""),
+                        _kv("Installment Security",
+                            agreement?["installment_security_amount"] != null
+                                ? "₹${agreement?["installment_security_amount"]}"
+                                : ""),
+                        _kv("Meter", agreement?["meter"]),
+                        _kv("Custom Unit", agreement?["custom_meter_unit"]),
+                        _kv("Maintenance", agreement?["maintaince"]),
+                        _kv("Parking", agreement?["parking"]),
+                        _kv("Shifting Date",
+                            _formatDate(agreement?["shifting_date"]) ?? ""),
+                        _furnitureList(agreement!['furniture']),
+                      ],
+                    ),
+
 
                   Column(
                       children: [
@@ -538,6 +542,14 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
               ),
             ),
 
+            if (isPolice)
+              _sectionCard(
+                title: "Property Address",
+                children: [
+                  _kv("Rented Address", agreement?["rented_address"]),
+                ],
+              ),
+
             _sectionCard(title: "Field Worker", children: [
               _kv("Name", agreement!["Fieldwarkarname"]),
               _kv("Number", agreement!["Fieldwarkarnumber"]),
@@ -574,41 +586,44 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                 ),
 
                 // 🔹 Notary Button
-                ElevatedButton(
-                  onPressed: () {
-                    final notary = agreement?["notry_img"];
-                    if (notary == null || notary.toString().isEmpty) {
-                      _pickAndUploadNotaryImage();
-                    } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ImagePreviewScreen(
-                              imageUrl: 'https://theverify.in/$notary'),
-                        ),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: (agreement?["notry_img"] == null ||
-                        agreement!["notry_img"].toString().isEmpty)
-                        ? Colors.grey
-                        : Colors.red,
-                    foregroundColor: Colors.black,
+                if (!isPolice)
+                  ElevatedButton(
+                    onPressed: () {
+                      final notary = agreement?["notry_img"];
+                      if (notary == null || notary.toString().isEmpty) {
+                        _pickAndUploadNotaryImage();
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ImagePreviewScreen(
+                                imageUrl: 'https://theverify.in/$notary'),
+                          ),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: (agreement?["notry_img"] == null ||
+                          agreement!["notry_img"].toString().isEmpty)
+                          ? Colors.grey
+                          : Colors.red,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: Text(
+                      (agreement?["notry_img"] == null ||
+                          agreement!["notry_img"].toString().isEmpty)
+                          ? 'Add Notary'
+                          : 'View Notary',
+                    ),
                   ),
-                  child: Text(
-                    (agreement?["notry_img"] == null ||
-                        agreement!["notry_img"].toString().isEmpty)
-                        ? 'Add Notary'
-                        : 'View Notary',
-                  ),
-                ),
               ],
             ),
 
 
             const SizedBox(height: 12),
-            Row(
+
+            if (!isPolice)
+              Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 ElevatedButton(

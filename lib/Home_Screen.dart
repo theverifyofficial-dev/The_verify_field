@@ -24,6 +24,7 @@ import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Costumer_demand.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
+import 'Home_Screen_click/live_tabbar.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
@@ -172,7 +173,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         });
       }
     } catch (e) {
-      print('Error loading stats: $e');
     }
   }
 
@@ -333,7 +333,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "onTap": () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => const Show_New_Real_Estate())),
+                builder: (_) => const LiveTabbar())),
         "gradient": cardGradients[0],
       },
       {
@@ -441,7 +441,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         children: [
           // Top Header without curve - straight container with gradient
           SizedBox(
-            height: screenHeight * 0.35, // Dynamic height to prevent overflow on small screens (max ~276 on standard)
+            height: 150,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(gradient: primaryGradient),
@@ -542,88 +542,88 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                         ),
                       ),
                       // Enhanced Stats Row with premium cards - Compact without greeting
-                      Expanded(
-                        child: ClipRect(
-                          child: FadeTransition(
-                            opacity: _fadeAnimation,
-                            child: SlideTransition(
-                              position: _slideAnimation,
-                              child: Container(
-                                width: double.infinity,
-                                margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8), // Reduced vertical margin
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white.withOpacity(0.1),
-                                      Colors.transparent,
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.2),
-                                    width: 1,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 15,
-                                      offset: const Offset(0, 8),
-                                    ),
-                                  ],
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8), // Reduced padding
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        _PremiumStatCard(
-                                          icon: Icons.home_outlined,
-                                          label: 'Rent Properties',
-                                          value: rentPropertiesCount.toString(),
-                                          gradient: LinearGradient(
-                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        _PremiumStatCard(
-                                          icon: Icons.schedule_outlined,
-                                          label: 'Future Properties',
-                                          value: futurePropertiesCount.toString(),
-                                          gradient: LinearGradient(
-                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        _PremiumStatCard(
-                                          icon: Icons.description_outlined,
-                                          label: 'Agreements',
-                                          value: agreementCount.toString(),
-                                          gradient: LinearGradient(
-                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        _PremiumStatCard(
-                                          icon: Icons.trending_up_outlined,
-                                          label: 'Targets',
-                                          value: '85%',
-                                          gradient: LinearGradient(
-                                            colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      // Expanded(
+                      //   child: ClipRect(
+                      //     child: FadeTransition(
+                      //       opacity: _fadeAnimation,
+                      //       child: SlideTransition(
+                      //         position: _slideAnimation,
+                      //         child: Container(
+                      //           width: double.infinity,
+                      //           margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8), // Reduced vertical margin
+                      //           decoration: BoxDecoration(
+                      //             gradient: LinearGradient(
+                      //               colors: [
+                      //                 Colors.white.withOpacity(0.1),
+                      //                 Colors.transparent,
+                      //               ],
+                      //               begin: Alignment.topLeft,
+                      //               end: Alignment.bottomRight,
+                      //             ),
+                      //             borderRadius: BorderRadius.circular(16),
+                      //             border: Border.all(
+                      //               color: Colors.white.withOpacity(0.2),
+                      //               width: 1,
+                      //             ),
+                      //             boxShadow: [
+                      //               BoxShadow(
+                      //                 color: Colors.black.withOpacity(0.1),
+                      //                 blurRadius: 15,
+                      //                 offset: const Offset(0, 8),
+                      //               ),
+                      //             ],
+                      //           ),
+                      //           child: Padding(
+                      //             padding: const EdgeInsets.all(8), // Reduced padding
+                      //             child: SingleChildScrollView(
+                      //               scrollDirection: Axis.horizontal,
+                      //               child: Row(
+                      //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      //                 children: [
+                      //                   _PremiumStatCard(
+                      //                     icon: Icons.home_outlined,
+                      //                     label: 'Rent Properties',
+                      //                     value: rentPropertiesCount.toString(),
+                      //                     gradient: LinearGradient(
+                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                      //                     ),
+                      //                   ),
+                      //                   const SizedBox(width: 8),
+                      //                   _PremiumStatCard(
+                      //                     icon: Icons.schedule_outlined,
+                      //                     label: 'Future Properties',
+                      //                     value: futurePropertiesCount.toString(),
+                      //                     gradient: LinearGradient(
+                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                      //                     ),
+                      //                   ),
+                      //                   const SizedBox(width: 8),
+                      //                   _PremiumStatCard(
+                      //                     icon: Icons.description_outlined,
+                      //                     label: 'Agreements',
+                      //                     value: agreementCount.toString(),
+                      //                     gradient: LinearGradient(
+                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                      //                     ),
+                      //                   ),
+                      //                   const SizedBox(width: 8),
+                      //                   _PremiumStatCard(
+                      //                     icon: Icons.trending_up_outlined,
+                      //                     label: 'Targets',
+                      //                     value: '85%',
+                      //                     gradient: LinearGradient(
+                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
+                      //                     ),
+                      //                   ),
+                      //                 ],
+                      //               ),
+                      //             ),
+                      //           ),
+                      //         ),
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
                     ],
                   ),
                 ),

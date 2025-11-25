@@ -600,6 +600,37 @@ class _View_DetailsState extends State<AllViewDetails> {
                               ),
                             ]
                           ),
+                          SizedBox(height: 10),
+
+                          // Property Details
+                          _SectionHeader(
+                            title: "Property Details",
+                            isDarkMode: isDarkMode,
+                          ),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _FactChip(
+                                icon: Icons.install_desktop_sharp,
+                                label: "Live Property Id : ${property.id}",
+                                color: Colors.lightGreen,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _FactChip(
+                                icon: Icons.apartment_sharp,
+                                label: "Building Id : ${property.subid}",
+                                color: Colors.lightBlue,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ],
+                          ),
+                          _FactChip(
+                            icon: Icons.file_open,
+                            label: "Building Flat Id : "+ property.sourceId.toString(),
+                            color: Colors.deepOrange,
+                            isDarkMode: isDarkMode,
+                          ),
 
                           SizedBox(height: 10,),
                           _DetailRow(

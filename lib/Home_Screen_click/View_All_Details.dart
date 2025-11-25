@@ -20,6 +20,8 @@ import 'package:verify_feild_worker/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
+import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
+import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 import 'Add_image_under_property.dart';
@@ -980,7 +982,7 @@ class _View_DetailsState extends State<View_Details> {
                               }
                             },
                           ),
-                          // SizedBox(height: 24),
+
                           SizedBox(height: 12),
                           _ContactCard(
                             name: property.fieldWorkerName,
@@ -1010,10 +1012,45 @@ class _View_DetailsState extends State<View_Details> {
                           ),
                           _DetailRow(
                             icon: Icons.price_change_sharp,
-                            title: "Property Ask & Last",
+                            title: "Property Ask & Last Price",
                             value: "₹ ${property.askingPrice}"+" | " + "₹ ${property.lastPrice}",
                             color: Colors.greenAccent,
                             isDarkMode: isDarkMode,
+                          ),
+
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Future_Property_details(
+                                    idd: property.subid.toString(),
+                                  ),
+                                ),
+                              );
+                            },
+                            // onPressed: () {
+                            //   Navigator.push(
+                            //       context,
+                            //       MaterialPageRoute
+                            //         (builder: (context) => underflat_futureproperty(id: property.subid.toString(),Subid: property.sourceId.toString(),))
+                            //   );
+                            // },
+                            style: ElevatedButton.styleFrom(
+                              elevation: 3,
+                              backgroundColor: Colors.purple.shade300,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            icon: const Icon(Icons.move_up_sharp, size: 22),
+                            label: const Text(
+                              "Go to Building",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+
                           ),
                         ],
                       ),

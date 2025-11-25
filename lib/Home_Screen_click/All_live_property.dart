@@ -483,16 +483,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                                                   textColor: Colors.teal.shade700,
                                                   shadowColor: Colors.teal.shade100,
                                                 ),
-                                                // _buildFeatureItem(
-                                                //   context: context,
-                                                //   icon: Icons.receipt_rounded,
-                                                //   text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                //   borderColor: Colors.red.shade200,
-                                                //   backgroundColor: Colors.red.shade50,
-                                                //   textColor: Colors.red.shade700,
-                                                //   shadowColor: Colors.red.shade100,
-                                                // ),
-
                                                 _buildFeatureItem(
                                                   context: context,
                                                   icon: Icons.home_work,
@@ -503,26 +493,36 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                                                   shadowColor: Colors.orange.shade100,
                                                 ),
 
-                                                // _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
-                                                //     ? _buildFeatureItem(
-                                                //   context: context,
-                                                //   text: " Building: ${_filteredProperties[index].sId.toString()}",
-                                                //   borderColor: Colors.deepOrange.shade400,
-                                                //   backgroundColor: Colors.deepOrange.shade100,
-                                                //   textColor: Colors.deepOrange.shade700,
-                                                //   shadowColor: Colors.deepOrange.shade100,
-                                                // )
-                                                //     : SizedBox.shrink(), // Empty widget if condition is not met
-                                                //
-                                                //
-                                                // _buildFeatureItem(
-                                                //   context: context,
-                                                //   text: " Agreement: ${_filteredProperties[index].sourceId.toString()}",
-                                                //   borderColor: Colors.blue.shade400,
-                                                //   backgroundColor: Colors.blue.shade100,
-                                                //   textColor: Colors.blue.shade700,
-                                                //   shadowColor: Colors.blue.shade100,
-                                                // )
+                                                _buildFeatureItem(
+                                                  context: context,
+                                                  icon: Icons.receipt_rounded,
+                                                  text: "Flat No. ${_filteredProperties[index].flatNumber}",
+                                                  borderColor: Colors.red.shade200,
+                                                  backgroundColor: Colors.red.shade50,
+                                                  textColor: Colors.red.shade700,
+                                                  shadowColor: Colors.red.shade100,
+                                                ),
+
+                                                _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
+                                                    ? _buildFeatureItem(
+                                                  context: context,
+                                                  text: "Building ID : ${_filteredProperties[index].sId.toString()}",
+                                                  borderColor: Colors.deepOrange.shade400,
+                                                  backgroundColor: Colors.deepOrange.shade100,
+                                                  textColor: Colors.deepOrange.shade700,
+                                                  shadowColor: Colors.deepOrange.shade100,
+                                                )
+                                                    : SizedBox.shrink(), // Empty widget if condition is not met
+
+
+                                                _buildFeatureItem(
+                                                  context: context,
+                                                  text: "Building Flat ID : ${_filteredProperties[index].sourceId.toString()}",
+                                                  borderColor: Colors.blue.shade400,
+                                                  backgroundColor: Colors.blue.shade100,
+                                                  textColor: Colors.blue.shade700,
+                                                  shadowColor: Colors.blue.shade100,
+                                                )
 
                                               ],
                                             ),

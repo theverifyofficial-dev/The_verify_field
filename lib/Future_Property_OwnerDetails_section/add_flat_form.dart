@@ -28,7 +28,6 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
   String road_size;
   String age_property;
   String apartment_address;
-  String apartment_name;
   String field_address;
   String current_loc;
   String place;
@@ -37,6 +36,7 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
   String Residence_commercial;
   String facility;
   String google_loc;
+  String locality_list;
 
 
 
@@ -53,7 +53,6 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
       required this.road_size,
       required this.age_property,
       required this.apartment_address,
-      required this.apartment_name,
       required this.field_address,
       required this.current_loc,
       required this.place,
@@ -62,6 +61,8 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
       required this.Residence_commercial,
       required this.facility,
       required this.google_loc,
+      required this.locality_list,
+
 
 
   });
@@ -363,6 +364,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       MapEntry("Last_Price", _formattedLastPrice),
       MapEntry("asking_price", _formattedAskingPrice),
       MapEntry("Road_Size", widget.road_size),
+      MapEntry("locality_list", widget.locality_list),
       MapEntry("metro_distance", widget.metro_name),
       MapEntry("highway_distance", widget.metro_dis),
       MapEntry("main_market_distance", widget.market_dis),

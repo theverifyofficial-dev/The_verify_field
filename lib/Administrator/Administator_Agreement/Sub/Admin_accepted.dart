@@ -156,14 +156,18 @@ class _AgreementDetailsState extends State<AdminAccepted> {
                       ),
                       const SizedBox(height: 6),
 
-                      // 🏠 Rent, Date, Type
-                      _infoRow("Rent", "₹${item.monthlyRent}",isDark
-                          ? Colors.grey.shade100
-                          : Colors.black,),
-                      _infoRow(
-                          "Date", _formatDate(item.shiftingDate),isDark
-                          ? Colors.grey.shade100
-                          : Colors.black,),
+                      if (item.Type != "Police Verification") ...[
+                        _infoRow(
+                          "Rent",
+                          "₹${item.monthlyRent}",
+                          isDark ? Colors.grey.shade100 : Colors.black,
+                        ),
+                        _infoRow(
+                          "Date",
+                          _formatDate(item.shiftingDate),
+                          isDark ? Colors.grey.shade100 : Colors.black,
+                        ),
+                      ],
                       _infoRow("Type", item.Type,isDark
                           ? Colors.grey.shade100
                           : Colors.black,),

@@ -236,7 +236,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
 
 
     String getDayWithSuffix(int day) {
-    if (day >= 11 && day <= 13) return '${day}th'; // 11th, 12th, 13th special case
+    if (day >= 11 && day <= 13) return '${day}th';
     switch (day % 10) {
       case 1:
         return '${day}st';
@@ -409,6 +409,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.TextSpan(text: 'A security deposit of ', style: baseStyle),
             pw.TextSpan(text: formatAmount(securityRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Rent Agreement after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges as per actual.', style: baseStyle),
+            pw.TextSpan(text: '(IPC 425, 403)', style: baseStyle),
+
           ]),
         ),
         pw.SizedBox(height: 10),
@@ -419,6 +421,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               pw.TextSpan(text: 'The rented premises shall be used for '),
               pw.TextSpan(text: 'residential', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.TextSpan(text: ' purposes only.'),
+              pw.TextSpan(text: '(IPC 420, 406)', style: baseStyle),
+
             ],
             style: baseStyle,
           ),
@@ -430,20 +434,22 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             children: [
               pw.TextSpan(text: '5. Electricity & Water Charges: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               getMeterClause(data),
+              pw.TextSpan(text: '(IPC 379, Electricity Act 135)', style: baseStyle),
+
             ],
             style: baseStyle,
           ),
         ),
         pw.SizedBox(height: 10),
-        clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement.'),
+        clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement. (IPC 420, 468, 471)'),
         pw.SizedBox(height: 10),
-        clause('7. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.'),
+        clause('7. Mandatory Police Verification & Visitor Compliance:', 'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188)'),
         pw.SizedBox(height: 10),
-        clause('8. Damage and Handover:', 'The Tenant shall keep the premises in good condition. Any damage, other than normal wear and tear, must be repaired at the Tenant\'s cost. At the end of tenancy, the Tenant must vacate and return the premises as received. Delay or failure to hand over possession will make the Tenant liable for damages and legal action.'),
+        clause('8. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.(IPC 425, 427)'),
         pw.SizedBox(height: 10),
-        clause('9. Inspection:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively.'),
+        clause('9. Damage and Handover:', 'The Tenant shall keep the premises in good condition. Any damage, other than normal wear and tear, must be repaired at the Tenant\'s cost. At the end of tenancy, the Tenant must vacate and return the premises as received. Delay or failure to hand over possession will make the Tenant liable for damages and legal action. (IPC 441, 447, 427)'),
         pw.SizedBox(height: 10),
-        clause('10. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
+        clause('10. Inspection & Emergency Entry:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188'),
         pw.SizedBox(height: 10),
       ],
     ),
@@ -456,32 +462,33 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [
 
-        clause('11. Vacating & Termination:', 'The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing.'),
+        clause('11. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
+        pw.SizedBox(height: 10),
+        clause('12. Vacating & Termination:', 'The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing. (IPC 441, 447)'),
         pw.SizedBox(height: 15),
-        clause('12. Termination on Grounds of Misconduct:', 'If the Tenant engages in any unlawful, improper, or socially unacceptable activity, or causes trouble in the society or locality such as fighting or disturbing peace, the Landlord shall have the right to terminate this tenancy by giving one month\'s written notice. After the notice period ends, the Tenant must vacate the premises without objection.'),
+        clause('13. Termination on Grounds of Misconduct:', 'If the Tenant engages in any unlawful, improper, or socially unacceptable activity, or causes trouble in the society or locality such as fighting or disturbing peace, the Landlord shall have the right to terminate this tenancy by giving one month\'s written notice. After the notice period ends, the Tenant must vacate the premises without objection. (IPC 268, 290, 504, 506, 323)'),
         pw.SizedBox(height: 15),
-        clause('13. Tenant Information:', 'The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the term ends.'),
+        clause('14. Tenant Information:', 'The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the term ends. (IPC 188, 177)'),
         pw.SizedBox(height: 15),
-        clause('14. Lock-in Period:', 'The Second Party shall not terminate the lease within the first Six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.'),
+        clause('15. Lock-in Period:', 'The Second Party shall not terminate the lease within the first Six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.'),
         pw.SizedBox(height: 15),
-        clause('15. Prohibited Activities:', 'The Second Party shall not engage in illegal or unlawful activities in the premises. The Second Party shall not keep any unauthorized inflammable or explosive items in the premises.'),
+        clause('16. Prohibited Activities:', 'The Second Party shall not engage in illegal or unlawful activities in the premises. The Second Party shall not keep any unauthorized inflammable or explosive items in the premises. (IPC 285, 286, 188, 120B)'),
         pw.SizedBox(height: 15),
-        clause('16. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same.'),
+        clause('17. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same. (IPC 420, 468, 471)'),
         pw.SizedBox(height: 15),
-        clause('17. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use.'),
+        clause('18. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. (IPC 420, 468, 471)'),
         pw.SizedBox(height: 15),
-        clause('18. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic.'),
+        clause('19. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic. (IPC 268)'),
         pw.SizedBox(height: 15),
-        clause('19. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
+        clause('20. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
         pw.SizedBox(height: 15),
-        clause('20. Unauthorized Occupants:', 'No person other than the Second Party/Tenant shall occupy the premises without prior written consent from the First Party/Landlord. Unauthorized occupants will be considered a violation of this agreement and may result in termination.'),
+        clause('21. Unauthorized Occupants:', 'No person other than the Second Party/Tenant shall occupy the premises without prior written consent from the First Party/Landlord. Unauthorized occupants will be considered a violation of this agreement and may result in termination. (IPC 441, 447)'),
         pw.SizedBox(height: 15),
-        clause('21. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises.'),
+        clause('22. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403)'),
         pw.SizedBox(height: 15),
-        clause('22. Living Relationships:', 'The Second Party/Tenant shall not enter into or maintain a live-in relationship within the premises without notifying the First Party/Landlord. Any legal issues arising from such arrangements shall be the sole responsibility of the Second Party/Tenant, and the First Party/Landlord shall not be held liable.'),
+        clause('23. Living Relationships:', 'The Second Party/Tenant shall not enter into or maintain a live-in relationship within the premises without notifying the First Party/Landlord. Any legal issues arising from such arrangements shall be the sole responsibility of the Second Party/Tenant, and the First Party/Landlord shall not be held liable.'),
         pw.SizedBox(height: 15),
-        clause('23. Disputes:', 'Any legal disagreements stemming from this agreement must exclusively be resolved by the courts located within Delhi or New Delhi.'),
-        pw.SizedBox(height: 15),
+        clause('24. Disputes:', 'Any legal disagreements stemming from this agreement must exclusively be resolved by the courts located within Delhi or New Delhi.'),
       ],
     ),
   );
@@ -494,13 +501,20 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       build: (context) => [
 
         pw.SizedBox(height: 15),
-        clause('24. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
-        pw.SizedBox(height: 6),
+        clause('25. Digital Communication & E-Signature Validity:', 'Both parties agree that communication done through WhatsApp, Email, SMS, or any digital platform shall be considered valid. Digital signatures or scanned signatures shall be treated as legally binding under the Information Technology Act, 2000. (IPC 465, 471)'),
+        pw.SizedBox(height: 10),
+        clause('26. Fire Safety & Hazardous Materials Prohibition:', 'The Tenant shall not store flammable, chemical, explosive, or hazardous materials. Violation may attract action under IPC Section 285 and IPC Section 286, and may result in immediate termination.(IPC 285, 286)'),
+        pw.SizedBox(height: 10),
+        clause('27. Full Landlord & Property Non-Liability for Tenant\'s Actions:', 'The First Party/Landlord and the property itself shall not be held liable for any actions, misconduct, illegal activity, disputes, fraud, civil matters, criminal cases, or legal violations committed by the Second Party/Tenant. All consequences arising from the behavior, actions, or omissions of the Tenant shall be the sole responsibility of the Tenant alone.'),
+        pw.SizedBox(height: 10),
+        clause('28. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
+        pw.SizedBox(height: 10),
+
 
       if (agreement_type.trim().toLowerCase() != "external rental agreement" &&
       agreement_type.trim().toLowerCase() != "renewal agreement")
         clause(
-        '25. Mediator:',
+        '29. Mediator:',
         'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.',
         ),
 

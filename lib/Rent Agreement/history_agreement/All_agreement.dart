@@ -89,6 +89,18 @@ class _AllAgreementState extends State<AllAgreement> {
     }
   }
 
+  // 🔹 CARD COLOR LOGIC (Police Verification)
+  List<Color> _getCardColors(String? type, bool isDark) {
+    if (type == "Police Verification") {
+      return isDark
+          ? [Colors.blue.shade900, Colors.black]
+          : [Colors.black, Colors.blue.shade400];
+    }
+    return isDark
+        ? [Colors.green.shade700, Colors.black]
+        : [Colors.black, Colors.green.shade400];
+  }
+
   DateTime? _getRenewalDate(dynamic rawDate) {
     try {
       String actualDate =
@@ -139,6 +151,7 @@ class _AllAgreementState extends State<AllAgreement> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return SafeArea(
       child: Scaffold(
         backgroundColor: isDark ? Colors.black : const Color(0xFFF8F6F2),
@@ -148,6 +161,7 @@ class _AllAgreementState extends State<AllAgreement> {
               ? const Center(child: CircularProgressIndicator(color: Colors.green))
               : Column(
             children: [
+
               // 🔷 Header
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -155,10 +169,11 @@ class _AllAgreementState extends State<AllAgreement> {
                   gradient: LinearGradient(
                     colors: isDark
                         ? [Colors.green.shade700, Colors.black]
-                        : [ Colors.green.shade400,Colors.white,],
+                        : [ Colors.green.shade400, Colors.white ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
+                  borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.green.withOpacity(0.3),
@@ -166,34 +181,25 @@ class _AllAgreementState extends State<AllAgreement> {
                       offset: const Offset(0, 4),
                     ),
                   ],
-                  borderRadius:
-                  const BorderRadius.vertical(bottom: Radius.circular(20)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Your Agreements",
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
+
                     const SizedBox(height: 10),
+
                     Container(
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.grey[850]
-                            : Colors.white.withOpacity(0.95),
+                        color: isDark ? Colors.grey[850] : Colors.white,
                         borderRadius: BorderRadius.circular(14),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 6,
-                            offset: const Offset(0, 3),
-                          ),
-                        ],
                       ),
                       child: TextField(
                         controller: searchController,
@@ -201,25 +207,18 @@ class _AllAgreementState extends State<AllAgreement> {
                           prefixIcon: Icon(Icons.search, color: Colors.green.shade700),
                           hintText: "Search by Owner, Tenant, or ID...",
                           border: InputBorder.none,
-                          hintStyle: TextStyle(
-                            color: isDark ? Colors.white54 : Colors.grey[700],
-                          ),
-                          contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
-                        style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black),
                       ),
                     ),
                   ],
                 ),
               ),
 
-              // 🧾 Count Info
+              // Total Count
               Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -227,43 +226,48 @@ class _AllAgreementState extends State<AllAgreement> {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 15,
-                      color: isDark
-                          ? Colors.green.shade200
-                          : Colors.green.shade800,
+                      color: isDark ? Colors.green.shade200 : Colors.green.shade800,
                     ),
                   ),
                 ),
               ),
 
-              // 📜 List
+              // 📌 List
               Expanded(
                 child: filteredAgreements.isEmpty
                     ? Center(
                   child: Text(
                     "No agreements found",
                     style: TextStyle(
-                      color:
-                      isDark ? Colors.white54 : Colors.grey[700],
+                      color: isDark ? Colors.white54 : Colors.grey,
                     ),
                   ),
                 )
                     : ListView.builder(
-                  physics: const BouncingScrollPhysics(),
                   padding: const EdgeInsets.all(12),
                   itemCount: filteredAgreements.length,
                   itemBuilder: (context, index) {
-                    final item = filteredAgreements[index];
-                    final renewalDate = _getRenewalDate(item.shiftingDate);
-                    final color = _getRenewalDateColor(renewalDate);
 
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? const Color(0xFF1E1E1E)
-                          : Colors.white,
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(
+                    final item = filteredAgreements[index];
+                    final renewal = _getRenewalDate(item.shiftingDate);
+                    final isPolice = item.agreementType == "Police Verification";
+
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
+                        gradient: LinearGradient(
+                          colors: _getCardColors(item.agreementType, isDark),
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.25),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
                       child: InkWell(
                         borderRadius: BorderRadius.circular(14),
@@ -283,7 +287,8 @@ class _AllAgreementState extends State<AllAgreement> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 🧾 Header Row
+
+                              // Header
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
@@ -291,10 +296,10 @@ class _AllAgreementState extends State<AllAgreement> {
                                     children: [
                                       CircleAvatar(
                                         radius: 15,
-                                        backgroundColor: _getRenewalDateColor(renewalDate),
+                                        backgroundColor: _getRenewalDateColor(renewal),
                                         child: Text(
                                           '${filteredAgreements.length - index}',
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -302,9 +307,7 @@ class _AllAgreementState extends State<AllAgreement> {
                                       ),
                                       const SizedBox(width: 10),
                                       Text(
-                                        item.agreementType?.isNotEmpty == true
-                                            ? item.agreementType!
-                                            : "General Agreement",
+                                        item.agreementType ?? "Agreement",
                                         style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 15,
@@ -317,7 +320,7 @@ class _AllAgreementState extends State<AllAgreement> {
                                     "ID: ${item.id}",
                                     style: TextStyle(
                                       fontSize: 12,
-                                      color: Colors.grey[600],
+                                      color: Colors.white70,
                                     ),
                                   ),
                                 ],
@@ -325,32 +328,37 @@ class _AllAgreementState extends State<AllAgreement> {
 
                               const SizedBox(height: 10),
 
-                              // 👥 Owner & Tenant Info
+                              // Owner & Tenant
                               _InfoRow(title: "Owner", value: item.ownerName),
                               _InfoRow(title: "Tenant", value: item.tenantName),
-                              _InfoRow(title: "Rent", value: "₹${item.monthlyRent}"),
-                              _InfoRow(title: "Shifting Date", value: _formatDate(item.shiftingDate)),
-                              _InfoRow(
-                                title: "Renewal Date",
-                                value: renewalDate != null ? _formatDateTime(renewalDate) : '--',
-                                valueColor: _getRenewalDateColor(renewalDate),
-                              ),
 
-                              const Divider(height: 20),
+                              if (!isPolice) ...[
+                                _InfoRow(title: "Rent", value: "₹${item.monthlyRent}"),
+                                _InfoRow(title: "Shifting Date", value: _formatDate(item.shiftingDate)),
+                                _InfoRow(
+                                  title: "Renewal Date",
+                                  value: renewal != null ? _formatDateTime(renewal) : "--",
+                                  valueColor: _getRenewalDateColor(renewal),
+                                ),
+                              ],
 
-                              // 🧩 Fieldworker and type info
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
+                              const Divider(height: 20, color: Colors.white30),
 
-                                  Text(
-                                    "Floor: ${item.floor}",
-                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
+                              // Floor (hide for police)
+                              if (!isPolice)
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "Floor: ${item.floor}",
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
 
                             ],
                           ),
@@ -368,7 +376,7 @@ class _AllAgreementState extends State<AllAgreement> {
   }
 }
 
-// 🔹 Info Row (Key-Value Style)
+// 🔹 Info Row Widget
 Widget _InfoRow({required String title, required String value, Color? valueColor}) {
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 2),
@@ -379,7 +387,7 @@ Widget _InfoRow({required String title, required String value, Color? valueColor
           "$title:",
           style: const TextStyle(
             fontWeight: FontWeight.w500,
-            color: Colors.grey,
+            color: Colors.white70,
           ),
         ),
         Flexible(
@@ -392,9 +400,8 @@ Widget _InfoRow({required String title, required String value, Color? valueColor
               color: valueColor ?? Colors.white,
             ),
           ),
-        )
+        ),
       ],
     ),
   );
 }
-

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/Administrator/SubAdmin/sub_demand_details.dart';
 import '../../constant.dart';
 import '../../model/demand_model.dart';
 import 'Demand_detail.dart';
@@ -277,132 +276,175 @@ class _TenantDemandState extends State<CostumerDemand> {
                           ? const Color(0xFF1C1F27)
                           : Colors.white;
 
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DemandDetail(demandId: d.id.toString()),
-                            ),
-                          ).then((_) => _loadDemands());
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 250),
-                          margin: const EdgeInsets.only(bottom: 14),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(22),
-                            color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
-                            boxShadow: [
-                              BoxShadow(
-                                color: isUrgent
-                                    ? Colors.redAccent.withOpacity(0.25)
-                                    : Colors.black.withOpacity(0.08),
-                                blurRadius: 12,
-                                spreadRadius: 1,
-                                offset: const Offset(0, 4),
+                      return Stack(
+                        children: [
+                          GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => DemandDetail(demandId: d.id.toString()),
                               ),
-                            ],
-                            border: Border.all(
-                              color: isUrgent
-                                  ? Colors.redAccent.withOpacity(0.6)
-                                  : Colors.white.withOpacity(0.05),
-                              width: 1.2,
+                            ).then((_) => _loadDemands());
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            margin: const EdgeInsets.only(bottom: 14),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(22),
+                              color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isUrgent
+                                      ? Colors.redAccent.withOpacity(0.25)
+                                      : Colors.black.withOpacity(0.08),
+                                  blurRadius: 12,
+                                  spreadRadius: 1,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                              border: Border.all(
+                                color: isUrgent
+                                    ? Colors.redAccent.withOpacity(0.6)
+                                    : Colors.white.withOpacity(0.05),
+                                width: 1.2,
+                              ),
                             ),
-                          ),
-                          child: ListTile(
-                            contentPadding:
-                            const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                            leading: AnimatedContainer(
-                              duration: const Duration(milliseconds: 300),
-                              height: 52,
-                              width: 52,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                gradient: LinearGradient(
-                                  colors: isUrgent
-                                      ? [
-                                    Colors.redAccent,
-                                    Colors.redAccent.shade700,
-                                  ]
-                                      : [
-                                    theme.colorScheme.primary,
-                                    theme.colorScheme.primary.withOpacity(0.8),
+                            child: ListTile(
+                              contentPadding:
+                              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              leading: AnimatedContainer(
+                                duration: const Duration(milliseconds: 300),
+                                height: 52,
+                                width: 52,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: isUrgent
+                                        ? [
+                                      Colors.redAccent,
+                                      Colors.redAccent.shade700,
+                                    ]
+                                        : [
+                                      theme.colorScheme.primary,
+                                      theme.colorScheme.primary.withOpacity(0.8),
+                                    ],
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isUrgent
+                                          ? Colors.redAccent.withOpacity(0.3)
+                                          : theme.colorScheme.primary.withOpacity(0.25),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    )
                                   ],
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: isUrgent
-                                        ? Colors.redAccent.withOpacity(0.3)
-                                        : theme.colorScheme.primary.withOpacity(0.25),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 4),
-                                  )
+                                child: Center(
+                                  child: Text(
+                                    d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      d.tname,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 16,
+                                        color: isDark ? Colors.white : Colors.black,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  Text(
+                                    d.buyRent,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isUrgent
+                                          ? Colors.redAccent
+                                          : theme.colorScheme.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ],
                               ),
-                              child: Center(
-                                child: Text(
-                                  d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    d.tname,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16,
-                                      color: isDark ? Colors.white : Colors.black,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                                Text(
-                                  d.buyRent,
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    color: isUrgent
-                                        ? Colors.redAccent
-                                        : theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            subtitle: Padding(
-                              padding: const EdgeInsets.only(top: 6),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                Text("${d.location} • ${d.bhk} BHK",
-                                    style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
-                                const SizedBox(height: 2),
-                                Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
-                                if (d.reference.isNotEmpty)
-                                  Padding( padding: const EdgeInsets.only(top: 3), child:
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 6),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start, children: [
+                                  Text("${d.location} • ${d.bhk} BHK",
+                                      style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
+                                  const SizedBox(height: 2),
+                                  Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+                                  if (d.reference.isNotEmpty)
+                                    Padding( padding: const EdgeInsets.only(top: 3), child:
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text( "Ref: ${d.reference}", style: TextStyle( color: isDark ? Colors.white38 : Colors.black45, fontSize: 13), ),
 
-                                      Text(
-                                        formatApiDate(d.createdDate),
-                                        style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                                      )
+                                        Text(
+                                          formatApiDate(d.createdDate),
+                                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                        )
 
-                                    ],
-                                  ),),
-                              ],
+                                      ],
+                                    ),),
+                                ],
+                                ),
                               ),
                             ),
                           ),
                         ),
+                          if (d.status.toLowerCase() == "disclosed")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.red.shade500,
+                                        Colors.red.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.redAccent.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "DISCLOSED   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                      ]
                       );
                     },
                   ),
@@ -410,6 +452,7 @@ class _TenantDemandState extends State<CostumerDemand> {
               ),
             ],
           ),
+
         ],
       ),
     );

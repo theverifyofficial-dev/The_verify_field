@@ -229,8 +229,72 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   ],
                 ),
               ),
+
             ],
-                if (_demand!["Status"] == "New") ...[
+            if (_demand!["Status"] == "assigned to fieldworker") ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                margin: const EdgeInsets.only(bottom: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: Colors.green.withOpacity(0.10),
+                  border: Border.all(color: Colors.green.withOpacity(0.4)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.verified_rounded, color: Colors.green, size: 26),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Successfully Assigned",
+                            style: TextStyle(
+                                color: Colors.green.shade700,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            "Assigned to: ${_demand!["assigned_fieldworker_name"] ?? "--"}",
+                            style: TextStyle(
+                                color: Colors.green.shade600,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            "${_demand!["assigned_fieldworker_role"] ?? "--"}",
+                            style: TextStyle(
+                                color: Colors.green.shade600,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "${_demand!["assigned_fieldworker_location"] ?? "--"}",
+                                style: TextStyle(
+                                    color: Colors.green.shade600,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500),
+                              ),
+
+                              Text(
+                                "Assign: ${formatApiDate(_demand!["fieldworker_assigned_at"])}",
+                                style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+
+            if (_demand!["Status"] == "New") ...[
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
@@ -251,6 +315,9 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
               ),
             ),
     ],
+
+            if (_demand?["Status"]?.toString().toLowerCase() == "disclosed")
+              _buildFinalSummarySection(isDark, accent),
           ],
         ),
       ),
@@ -544,5 +611,87 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
       },
     );
   }
+  Widget _buildFinalSummarySection(bool isDark, Color accent) {
+    final theme = Theme.of(context);
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      margin: const EdgeInsets.only(top: 20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.2),
+            blurRadius: 18,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Disclosing Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Finishing Date
+          Text(
+            "Finishing Date",
+            style: theme.textTheme.titleSmall!
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+            ),
+            child: Text(
+              _demand?["finishing_date"] ?? "-",
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 15,
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 18),
+
+          // Final Reason
+          Text(
+            "Final Reason",
+            style: theme.textTheme.titleSmall!
+                .copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              color: theme.colorScheme.surfaceVariant.withOpacity(0.12),
+            ),
+            child: Text(
+              _demand?["final_reason"] ?? "-",
+              style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
 }

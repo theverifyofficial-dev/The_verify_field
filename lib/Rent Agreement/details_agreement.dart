@@ -16,7 +16,6 @@ import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
 
-/// Redesigned AgreementDetailPage — UI facelift to match Admin cards (green → black/white).
 class AgreementDetailPage extends StatefulWidget  {
   final bool fromNotification;
   final String agreementId;
@@ -435,7 +434,6 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     final a = agreement;
@@ -513,8 +511,8 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
                         ]),
 
                         const SizedBox(height: 18),
-
-                        if (a['status'] != null)
+                        if (agreement!["agreement_type"] != "Police Verification")
+                          if (a['status'] != null)
                           _sectionCard(
                             title: "Agreement Status",
                             icon: Icons.flag_outlined,
@@ -654,7 +652,8 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
                                             ],
                                           ),
                                           // === Agreement Finance column ===
-                                          _sectionCard(
+                                          if (agreement!["agreement_type"] != "Police Verification")
+                                            _sectionCard(
                                             title: "Payment & Rent",
                                             icon: Icons.attach_money_outlined,
                                             children: [
@@ -689,4 +688,6 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
       ),
     );
   }
+
+
 }

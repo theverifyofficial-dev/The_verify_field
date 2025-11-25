@@ -6,6 +6,7 @@ import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
+import 'Forms/Verification_form.dart';
 
 class AgreementDashboard extends StatelessWidget {
   const AgreementDashboard({super.key});
@@ -106,6 +107,12 @@ class AgreementDashboard extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const RenewalForm()),
+            );
+          }),
+          _buildSectionItem("Police Verification", Icons.local_police_outlined, () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const VerificationWizardPage()),
             );
           }),
         ],

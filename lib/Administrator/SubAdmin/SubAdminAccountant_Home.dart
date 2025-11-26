@@ -299,10 +299,10 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                       ),
 
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: _TargetHeaderCard(context),
-                    ),
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                    //   child: _TargetHeaderCard(context),
+                    // ),
                     const SizedBox(height: 10),
 
                     // Grid of Feature Cards
@@ -337,7 +337,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: 6,
+                            itemCount: 3,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -352,21 +352,21 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                     );
                                   },
                                 },
-                                {
-                                  'image': AppImages.tenant,
-                                  'title': "Tenant Demands",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (
-                                              context) => const Administater_parent_TenandDemand())),
-                                },
-                                {
-                                  'image': AppImages.police,
-                                  'title': "All Rented \nFlat",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                                },
+                                // {
+                                //   'image': AppImages.tenant,
+                                //   'title': "Tenant Demands",
+                                //   'onTap': () =>
+                                //       Navigator.push(context, MaterialPageRoute(
+                                //           builder: (
+                                //               context) => const Administater_parent_TenandDemand())),
+                                // },
+                                // {
+                                //   'image': AppImages.police,
+                                //   'title': "All Rented \nFlat",
+                                //   'onTap': () =>
+                                //       Navigator.push(context, MaterialPageRoute(
+                                //           builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                                // },
                                 {
                                   'image': AppImages.propertysale,
                                   'title': "Future\n Inventory/Property",
@@ -381,14 +381,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   },
                                 },
 
-                                {
-                                  'image': AppImages.demand_2,
-                                  'title': "Costumer Demands 2.O",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (
-                                              context) =>  ShowTenantDemandPage())),
-                                },
+                                // {
+                                //   'image': AppImages.demand_2,
+                                //   'title': "Costumer Demands 2.O",
+                                //   'onTap': () =>
+                                //       Navigator.push(context, MaterialPageRoute(
+                                //           builder: (
+                                //               context) =>  ShowTenantDemandPage())),
+                                // },
                                 {
                                   "image": AppImages.realestatefeild,
                                   "title": "Upcoming\n Property",
@@ -420,183 +420,183 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                   ],
                 ),
               ),
-              Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: AnimatedBuilder(
-                      animation: _shineAnimation,
-                      builder: (context, child) {
-                        return Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            gradient: LinearGradient(
-                              colors: [
-                                const Color(0xFF00C6FF),
-                                primaryColor.withOpacity(0.25 + 0.4 * _shineAnimation.value),
-                                const Color(0xFF0072FF),
-                              ],
-                              stops: const [0.0, 0.5, 1.0],
-                              begin: Alignment(
-                                  -1.0 + (2.0 * _shineAnimation.value), -1.0),
-                              end: Alignment(
-                                  1.0 - (2.0 * _shineAnimation.value), 1.0),
-                            ),
-                          ),
-                          child: Card(
-                            color: isDarkMode ? Colors.white10 : Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              side: BorderSide(
-                                color: primaryColor.withOpacity(
-                                    0.3 * _shineAnimation.value),
-                                width: 1.5,
-                              ),
-                            ),
-                            elevation: 6,
-                            shadowColor: primaryColor.withOpacity(0.2),
-                            child: InkWell(
-                              // onTap: () =>
-                              //     Navigator.push(
-                              //       context,
-                              //       MaterialPageRoute(
-                              //         builder: (
-                              //             context) =>
-                              //         const ADministaterShow_realestete(),
-                              //       ),
-                              //     ),
-                              borderRadius: BorderRadius.circular(16),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      height: 50,
-                                      width: 50,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: Colors.black.withOpacity(0.1),
-                                            blurRadius: 8,
-                                            offset: const Offset(2, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.asset(
-                                          AppImages.dividend,
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 16),
-                                    Expanded(
-                                      child: Text(
-                                        "Manage Accounts",
-                                        style: Theme
-                                            .of(context)
-                                            .textTheme
-                                            .titleLarge
-                                            ?.copyWith(
-                                          color: isDarkMode
-                                              ? Colors.white
-                                              : Colors.grey.shade700,
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: "PoppinsBold",
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-
-                  ),
-                  const SizedBox(height: 10),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: LayoutBuilder(
-                      builder: (context, constraints) {
-                        final screenWidth = MediaQuery
-                            .of(context)
-                            .size
-                            .width;
-                        final screenHeight = MediaQuery
-                            .of(context)
-                            .size
-                            .height;
-
-                        // Dynamic grid calculation
-                        final crossAxisCount = screenWidth > 800 ? 4 :
-                        screenWidth > 600 ? 3 : 2;
-
-                        // Calculate item width based on available space
-                        final availableWidth = constraints.maxWidth;
-                        final itemWidth = (availableWidth -
-                            ((crossAxisCount - 1) * 16)) / crossAxisCount;
-                        final childAspectRatio = itemWidth /
-                            (itemWidth * 1.1); // Height is 10% more than width
-
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            childAspectRatio: childAspectRatio,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 16,
-                          ),
-                          itemCount: 2,
-                          itemBuilder: (context, index) {
-                            final List<Map<String, dynamic>> featureItems = [
-                              {
-                                "image": AppImages.agreement,
-                                "title": "Company \nExpenses",
-                                "onTap": () async {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const TabbarControl(),
-                                    ),
-                                  );
-                                },
-                              },
-                              {
-                                'image': AppImages.pay,
-                                'title': "Salary \nExpenses",
-                                'onTap': () {
-                                  Navigator.push(context, MaterialPageRoute(
-                                      builder: (
-                                          context) => const Salary_TabbarControl()));
-                                }
-                              },
-                            ];
-
-                            final item = featureItems[index];
-
-                            return _buildFeatureCard(
-                              context: context,
-                              imagePath: item['image'],
-                              title: item['title'],
-                              onTap: item['onTap'],
-                              shineAnimation: _shineAnimation,
-                              itemWidth: itemWidth,
-                            );
-                          },
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
-              ),
+              // Column(
+              //   children: [
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 16),
+              //       child: AnimatedBuilder(
+              //         animation: _shineAnimation,
+              //         builder: (context, child) {
+              //           return Container(
+              //             decoration: BoxDecoration(
+              //               borderRadius: BorderRadius.circular(16),
+              //               gradient: LinearGradient(
+              //                 colors: [
+              //                   const Color(0xFF00C6FF),
+              //                   primaryColor.withOpacity(0.25 + 0.4 * _shineAnimation.value),
+              //                   const Color(0xFF0072FF),
+              //                 ],
+              //                 stops: const [0.0, 0.5, 1.0],
+              //                 begin: Alignment(
+              //                     -1.0 + (2.0 * _shineAnimation.value), -1.0),
+              //                 end: Alignment(
+              //                     1.0 - (2.0 * _shineAnimation.value), 1.0),
+              //               ),
+              //             ),
+              //             child: Card(
+              //               color: isDarkMode ? Colors.white10 : Colors.white,
+              //               shape: RoundedRectangleBorder(
+              //                 borderRadius: BorderRadius.circular(16),
+              //                 side: BorderSide(
+              //                   color: primaryColor.withOpacity(
+              //                       0.3 * _shineAnimation.value),
+              //                   width: 1.5,
+              //                 ),
+              //               ),
+              //               elevation: 6,
+              //               shadowColor: primaryColor.withOpacity(0.2),
+              //               child: InkWell(
+              //                 // onTap: () =>
+              //                 //     Navigator.push(
+              //                 //       context,
+              //                 //       MaterialPageRoute(
+              //                 //         builder: (
+              //                 //             context) =>
+              //                 //         const ADministaterShow_realestete(),
+              //                 //       ),
+              //                 //     ),
+              //                 borderRadius: BorderRadius.circular(16),
+              //                 child: Padding(
+              //                   padding: const EdgeInsets.all(16.0),
+              //                   child: Row(
+              //                     crossAxisAlignment: CrossAxisAlignment.center,
+              //                     children: [
+              //                       Container(
+              //                         height: 50,
+              //                         width: 50,
+              //                         decoration: BoxDecoration(
+              //                           borderRadius: BorderRadius.circular(12),
+              //                           boxShadow: [
+              //                             BoxShadow(
+              //                               color: Colors.black.withOpacity(0.1),
+              //                               blurRadius: 8,
+              //                               offset: const Offset(2, 4),
+              //                             ),
+              //                           ],
+              //                         ),
+              //                         child: ClipRRect(
+              //                           borderRadius: BorderRadius.circular(12),
+              //                           child: Image.asset(
+              //                             AppImages.dividend,
+              //                             fit: BoxFit.cover,
+              //                           ),
+              //                         ),
+              //                       ),
+              //                       const SizedBox(width: 16),
+              //                       Expanded(
+              //                         child: Text(
+              //                           "Manage Accounts",
+              //                           style: Theme
+              //                               .of(context)
+              //                               .textTheme
+              //                               .titleLarge
+              //                               ?.copyWith(
+              //                             color: isDarkMode
+              //                                 ? Colors.white
+              //                                 : Colors.grey.shade700,
+              //                             fontWeight: FontWeight.w700,
+              //                             fontFamily: "PoppinsBold",
+              //                           ),
+              //                         ),
+              //                       ),
+              //                     ],
+              //                   ),
+              //                 ),
+              //               ),
+              //             ),
+              //           );
+              //         },
+              //       ),
+              //
+              //     ),
+              //     const SizedBox(height: 10),
+              //     Padding(
+              //       padding: const EdgeInsets.symmetric(horizontal: 16),
+              //       child: LayoutBuilder(
+              //         builder: (context, constraints) {
+              //           final screenWidth = MediaQuery
+              //               .of(context)
+              //               .size
+              //               .width;
+              //           final screenHeight = MediaQuery
+              //               .of(context)
+              //               .size
+              //               .height;
+              //
+              //           // Dynamic grid calculation
+              //           final crossAxisCount = screenWidth > 800 ? 4 :
+              //           screenWidth > 600 ? 3 : 2;
+              //
+              //           // Calculate item width based on available space
+              //           final availableWidth = constraints.maxWidth;
+              //           final itemWidth = (availableWidth -
+              //               ((crossAxisCount - 1) * 16)) / crossAxisCount;
+              //           final childAspectRatio = itemWidth /
+              //               (itemWidth * 1.1); // Height is 10% more than width
+              //
+              //           return GridView.builder(
+              //             shrinkWrap: true,
+              //             physics: const NeverScrollableScrollPhysics(),
+              //             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              //               crossAxisCount: crossAxisCount,
+              //               childAspectRatio: childAspectRatio,
+              //               crossAxisSpacing: 16,
+              //               mainAxisSpacing: 16,
+              //             ),
+              //             itemCount: 2,
+              //             itemBuilder: (context, index) {
+              //               final List<Map<String, dynamic>> featureItems = [
+              //                 {
+              //                   "image": AppImages.agreement,
+              //                   "title": "Company \nExpenses",
+              //                   "onTap": () async {
+              //                     Navigator.push(
+              //                       context,
+              //                       MaterialPageRoute(
+              //                         builder: (_) => const TabbarControl(),
+              //                       ),
+              //                     );
+              //                   },
+              //                 },
+              //                 {
+              //                   'image': AppImages.pay,
+              //                   'title': "Salary \nExpenses",
+              //                   'onTap': () {
+              //                     Navigator.push(context, MaterialPageRoute(
+              //                         builder: (
+              //                             context) => const Salary_TabbarControl()));
+              //                   }
+              //                 },
+              //               ];
+              //
+              //               final item = featureItems[index];
+              //
+              //               return _buildFeatureCard(
+              //                 context: context,
+              //                 imagePath: item['image'],
+              //                 title: item['title'],
+              //                 onTap: item['onTap'],
+              //                 shineAnimation: _shineAnimation,
+              //                 itemWidth: itemWidth,
+              //               );
+              //             },
+              //           );
+              //         },
+              //       ),
+              //     ),
+              //     const SizedBox(height: 40),
+              //   ],
+              // ),
 
             ],
           ),

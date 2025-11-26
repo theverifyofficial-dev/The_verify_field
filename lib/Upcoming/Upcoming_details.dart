@@ -278,6 +278,17 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
 
     final data = propertyData!;
     final imageUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data['property_photo']}";
+    List<String> localityChips = [];
+
+    final rawLocality = data['locality_list'];
+
+    if (rawLocality is String) {
+      localityChips = rawLocality.split(',').map((e) => e.trim()).toList();
+    } else if (rawLocality is List) {
+      localityChips = rawLocality.map((e) => e.toString().trim()).toList();
+    } else {
+      localityChips = [];
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -335,6 +346,7 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                       return Center(child: Text("No images available"));
                     } else {
                       final images = gallerySnapshot.data!;
+
                       return SizedBox(
                         height: 100, // height of horizontal gallery
                         child: ListView.separated(
@@ -344,6 +356,8 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                           itemBuilder: (context, index) {
                             final image = images[index];
                             final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+
 
                             return GestureDetector(
                               onTap: () {
@@ -436,12 +450,49 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
                   infoRow(context, "CareTaker Number", data['care_taker_number']),
                 ]),
 
+                _buildCompactSection(
+                  icon: Icons.location_city,
+                  title: "Near by Localities",
+                  color: Colors.deepOrange,
+                  children: [
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: localityChips.map((loc) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white12
+                                : Colors.orange.shade50,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.deepOrange),
+                          ),
+                          child: Text(
+                            loc,
+                            style: TextStyle(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.orange.shade600
+                                  : Colors.deepOrange.shade800,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 13,
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ],
+                ),
+
                 sectionCard(context, "Field Worker", [
                   infoRow(context, "Name", data['field_warkar_name']),
                   infoRow(context, "Number", data['field_workar_number']),
                   infoRow(context, "Address", data['fieldworkar_address']),
                   infoRow(context, "Current Location", data['field_worker_current_location']),
                 ]),
+
+
+                SizedBox(height: 10,),
 
 
                 ElevatedButton.icon(
@@ -495,6 +546,40 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
           ),
         ],
       ),
+    );
+  }
+  Widget _buildCompactSection({
+    required IconData icon,
+    required String title,
+    required Color color,
+    required List<Widget> children
+  }) {
+    return Column(
+      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        SizedBox(height: 10,),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Icon(icon, size: 14, color: color),
+            const SizedBox(width: 6),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 4,
+          runSpacing: 4,
+          children: children,
+        ),
+      ],
     );
   }
 }

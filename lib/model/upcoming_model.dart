@@ -28,6 +28,7 @@ class Upcoming_model {
   final String? ownerNumber;
   final String? currentDates;
   final String? availableDate;
+  final String? updated_availableDate;
   final String? kitchen;
   final String? bathroom;
   final String? lift;
@@ -74,6 +75,7 @@ class Upcoming_model {
     this.ownerNumber,
     this.currentDates,
     this.availableDate,
+    this.updated_availableDate,
     this.kitchen,
     this.bathroom,
     this.lift,
@@ -122,6 +124,7 @@ class Upcoming_model {
       ownerNumber: json['owner_number'],
       currentDates: json['current_dates'],
       availableDate: json['available_date'],
+      updated_availableDate: json['dates_for_right_avaiable'],
       kitchen: json['kitchen'],
       bathroom: json['bathroom'],
       lift: json['lift'],

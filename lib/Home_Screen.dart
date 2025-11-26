@@ -450,7 +450,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               decoration: BoxDecoration(gradient: primaryGradient),
               child: SafeArea(
                 child: Padding(
-                  padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 10),
+                  padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8),
                   child: Column(
                     children: [
                       // Top Row: Profile, Logo with premium styling

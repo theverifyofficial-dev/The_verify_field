@@ -5,6 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'Progressbar.dart';
 
 class MonthlyTargetResult {
   final DateTime periodStartUtc;
@@ -667,6 +668,11 @@ class _Target_MainPageState extends State<Target_MainPage> {
           icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white),
         ),
         actions: [
+          TextButton(onPressed: (){
+            Navigator.of(context).push(MaterialPageRoute(builder: (context){
+              return RealEstateAnalyticsPage();
+            }));
+          }, child: Text("Type")),
           IconButton(
             icon: const Icon(
                 PhosphorIcons.arrow_clockwise, color: Colors.white),
@@ -1034,29 +1040,29 @@ class _Target_MainPageState extends State<Target_MainPage> {
                   ),
                 ],
 
-              // // ===================== Buildings =====================
-              // const SizedBox(height: 16),
-              //
-              // const _HighlightBar(color: Colors.pinkAccent, label: "Buildings"),
-              //
-              //
-              // _PieKpiCard(
-              //   title: 'Monthly Target 17',
-              //   liveCount: _buildingCount,
-              //   target: _buildingMonthlyTarget,
-              //   colorLive: Colors.lightBlueAccent,
-              //   colorRemain: Colors.grey.shade700,
-              //   totalThisMonth: _buildingCount,       // show raw in the pill
-              // ),
-              // const SizedBox(height: 16),
-              //
-              // _PieKpiCard(
-              //   title: 'Yearly Target 204',
-              //   liveCount: _buildingCount,
-              //   target: _buildingYearlyTarget,
-              //   colorLive: Colors.pinkAccent,         // your call
-              //   colorRemain: Colors.grey.shade700,
-              // ),
+              // ===================== Buildings =====================
+              const SizedBox(height: 16),
+
+              const _HighlightBar(color: Colors.pinkAccent, label: "Buildings"),
+
+
+              _PieKpiCard(
+                title: 'Monthly Target 17',
+                liveCount: _buildingCount,
+                target: _buildingMonthlyTarget,
+                colorLive: Colors.lightBlueAccent,
+                colorRemain: Colors.grey.shade700,
+                totalThisMonth: _buildingCount,       // show raw in the pill
+              ),
+              const SizedBox(height: 16),
+
+              _PieKpiCard(
+                title: 'Yearly Target 204',
+                liveCount: _buildingCount,
+                target: _buildingYearlyTarget,
+                colorLive: Colors.pinkAccent,         // your call
+                colorRemain: Colors.grey.shade700,
+              ),
             ],
           ),
         ),
@@ -1080,8 +1086,6 @@ class _HighlightBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // If user gave a textcolor manually, use it.
-    // Otherwise pick a nice adaptive one based on theme
     final resolvedTextColor = textcolor ??
         (isDark
             ?  Colors.white.withOpacity(0.95)

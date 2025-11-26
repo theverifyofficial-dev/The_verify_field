@@ -16,16 +16,18 @@ class Catid {
   final String F_AadhaarCard;
 
   Catid(
-      {required this.F_Name, required this.F_Number, required this.F_AadhaarCard});
+      {required this.F_Name,
+      required this.F_Number,
+      required this.F_AadhaarCard});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
+  factory Catid.FromJson(Map<String, dynamic> json) {
     return Catid(
         F_Name: json['FName'],
         F_Number: json['FNumber'],
         F_AadhaarCard: json['FAadharCard']);
   }
 }
-//Hello World
+
 class Splash extends StatefulWidget {
   static const route = "/";
   const Splash({super.key});
@@ -35,15 +37,14 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
-
   Future<List<Catid>> fetchData_account(llogin) async {
-    var url = Uri.parse("https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${llogin}");
+    var url = Uri.parse(
+        "https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${llogin}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
+    } else {
       throw Exception('Unexpected error occured!');
     }
   }
@@ -55,7 +56,7 @@ class _SplashState extends State<Splash> {
   }
 
   void init() async {
-    await Future.delayed(Duration(milliseconds: 250));
+    await Future.delayed(Duration(microseconds: 10));
 
     SharedPreferences pref = await SharedPreferences.getInstance();
     String? loginNumber = pref.getString("number");
@@ -65,36 +66,28 @@ class _SplashState extends State<Splash> {
 
       if (result.isNotEmpty) {
         String role = result.first.F_AadhaarCard;
-
         if (role == "Administrator") {
           Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
-        }
-        else if (role == "Sub Administrator") {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
-          => SubAdminHomeScreen(),
+        } else if (role == "Sub Administrator") {
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => SubAdminHomeScreen(),
           ));
-        }
-        else if (role == "Editor") {
-          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context)
-          => SocialMediaHomePage(),
+        } else if (role == "Editor") {
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) => SocialMediaHomePage(),
           ));
-        }
-        else if (role == "FieldWorkar") {
+        } else if (role == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);
         } else {
-          // Unknown role fallback
           Navigator.of(context).pushReplacementNamed(Login_page.route);
         }
       } else {
-        // Data mismatch or user not found
         Navigator.of(context).pushReplacementNamed(Login_page.route);
       }
     } else {
-      // No login info saved
       Navigator.of(context).pushReplacementNamed(Login_page.route);
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +97,11 @@ class _SplashState extends State<Splash> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(AppImages.verify, width: 300, height: 300,),
+            Image.asset(
+              AppImages.verify,
+              width: 300,
+              height: 300,
+            ),
           ],
         ),
       ),

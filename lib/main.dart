@@ -15,7 +15,9 @@ import 'package:verify_feild_worker/routes.dart';
 import 'package:verify_feild_worker/splash.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Controller/Show_demand_binding.dart';
+import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
+import 'SocialMediaHandler/SocialMediaHomePage.dart';
 
 
 
@@ -262,7 +264,45 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-// 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
+     // 🌟 VIDEO EDITOR WORKFLOW NOTIFICATIONS (PASTE THIS BLOCK)
+      if (type == "EDITOR_REPLY") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => DefaultTabController(
+              initialIndex: 1, // 2nd tab
+              length: 2,
+              child: const LiveTabbar(),
+            ),
+          ),
+        );
+        return;
+      }
+
+      if (type == "FIELDWORKER_REPLY") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => DefaultTabController(
+              initialIndex: 1,
+              length: 2,
+              child: const LiveTabbar(),
+            ),
+          ),
+        );
+        return;
+      }
+
+      if (type == "VIDEO_SUBMITTED" ||
+          type == "EDITOR_RECEIVED" ||
+          type == "VIDEO_UPLOADED") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => const SocialMediaHomePage(),
+          ),
+        );
+        return;
+      }
+
+     // 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
       if ([
         "NEW_AGREEMENT",
         "AGREEMENT_UPDATED",
@@ -322,6 +362,7 @@ class _MyAppState extends State<MyApp> {
       print("❌ Navigation error: $e");
     }
   }
+
   void _initDynamicLinks() async {
     final PendingDynamicLinkData? initialLink =
     await FirebaseDynamicLinks.instance.getInitialLink();

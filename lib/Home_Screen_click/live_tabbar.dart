@@ -5,35 +5,30 @@ import '../ui_decoration_tools/app_images.dart';
 import 'All_live_property.dart';
 import 'New_Real_Estate.dart';
 
-
-
 class LiveTabbar extends StatefulWidget {
-  const LiveTabbar({super.key});
+  final int initialIndex; // 👈 NEW
+
+  const LiveTabbar({super.key, this.initialIndex = 0}); // Default = 1st tab
 
   @override
   State<LiveTabbar> createState() => _Show_New_Real_EstateState();
 }
 
 class _Show_New_Real_EstateState extends State<LiveTabbar> {
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        elevation: 0, // Make sure there's no shadow
+        elevation: 0,
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
+          onTap: () => Navigator.pop(context),
           child: const Row(
             children: [
-              SizedBox(
-                width: 3,
-              ),
+              SizedBox(width: 3),
               Icon(
                 PhosphorIcons.caret_left_bold,
                 color: Colors.white,
@@ -44,11 +39,12 @@ class _Show_New_Real_EstateState extends State<LiveTabbar> {
         ),
       ),
       body: DefaultTabController(
-        length: 3,
+        length: 2,                  // 👈 FIXED (You have only 2 tabs)
+        initialIndex: widget.initialIndex, // 👈 NEW
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: 5,),
+            SizedBox(height: 5),
             Container(
               margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
               height: 50,
@@ -65,25 +61,24 @@ class _Show_New_Real_EstateState extends State<LiveTabbar> {
                 unselectedLabelColor: Colors.white70,
                 labelStyle: TextStyle(fontWeight: FontWeight.bold),
                 unselectedLabelStyle: TextStyle(fontWeight: FontWeight.normal),
-                indicatorSize: TabBarIndicatorSize.tab, // Full width of tab
+                indicatorSize: TabBarIndicatorSize.tab,
                 tabs: const [
                   Tab(text: 'ALL Property'),
                   Tab(text: 'Your Property'),
                 ],
               ),
             ),
-
             Expanded(
-              child: TabBarView(children: [
-                AllLiveProperty(),
-                Show_New_Real_Estate(),
-              ]),
+              child: TabBarView(
+                children: [
+                  AllLiveProperty(),
+                  Show_New_Real_Estate(),
+                ],
+              ),
             )
           ],
         ),
       ),
-
-
     );
   }
 }

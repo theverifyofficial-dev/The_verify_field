@@ -438,8 +438,13 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
+
       appBar: AppBar(
+        actions: [
+          IconButton(onPressed: _fetchProperties, icon: Icon(CupertinoIcons.refresh))
+        ],
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,
         iconTheme: IconThemeData(color: Colors.white),

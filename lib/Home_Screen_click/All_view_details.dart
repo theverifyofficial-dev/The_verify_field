@@ -369,6 +369,7 @@ class _View_DetailsState extends State<AllViewDetails> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
 
         centerTitle: true,
@@ -405,436 +406,438 @@ class _View_DetailsState extends State<AllViewDetails> {
           }
 
         },
-        child: FutureBuilder<List<Catid>>(
-          future: _propertyFuture,
-          builder: (context, propertySnapshot) {
-            // Determine current theme mode
-            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-            final theme = Theme.of(context);
-
-            if (propertySnapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (propertySnapshot.hasError) {
-              return Center(child: Text('Error: ${propertySnapshot.error}'));
-            } else if (propertySnapshot.data == null || propertySnapshot.data!.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      "No Data Found!",
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
-                        color: isDarkMode ? Colors.white : Colors.black87,
-                        fontFamily: 'Poppins',
+        child: SingleChildScrollView(
+          child: FutureBuilder<List<Catid>>(
+            future: _propertyFuture,
+            builder: (context, propertySnapshot) {
+              // Determine current theme mode
+              final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+              final theme = Theme.of(context);
+          
+              if (propertySnapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (propertySnapshot.hasError) {
+                return Center(child: Text('Error: ${propertySnapshot.error}'));
+              } else if (propertySnapshot.data == null || propertySnapshot.data!.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "No Data Found!",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w500,
+                          color: isDarkMode ? Colors.white : Colors.black87,
+                          fontFamily: 'Poppins',
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              final property = propertySnapshot.data!.first;
-              return SingleChildScrollView(
-                child: Column(
-                  children: [
-                    Column(
-                      children: [
-                        Stack(
-                          alignment: Alignment.bottomCenter,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.only(
-                                bottomLeft: Radius.circular(20),
-                                bottomRight: Radius.circular(20),
-                              ),
-                              child: (property.videoLink != null && property.videoLink!.isNotEmpty)
-                                  ? LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return AspectRatio(
-                                    aspectRatio: 16 / 9, // standard YouTube aspect ratio
-                                    child: VideoPlayerWidget(videoUrl: property.videoLink!),
-                                  );
-                                },
-                              )
-                                  : GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => PropertyPreview(
-                                        ImageUrl:
-                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                    ],
+                  ),
+                );
+              } else {
+                final property = propertySnapshot.data!.first;
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Column(
+                        children: [
+                          Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(20),
+                                  bottomRight: Radius.circular(20),
+                                ),
+                                child: (property.videoLink != null && property.videoLink!.isNotEmpty)
+                                    ? LayoutBuilder(
+                                  builder: (context, constraints) {
+                                    return AspectRatio(
+                                      aspectRatio: 16 / 9, // standard YouTube aspect ratio
+                                      child: VideoPlayerWidget(videoUrl: property.videoLink!),
+                                    );
+                                  },
+                                )
+                                    : GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PropertyPreview(
+                                          ImageUrl:
+                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: CachedNetworkImage(
+                                    imageUrl:
+                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                    height: MediaQuery.of(context).size.height * 0.25,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                      child: Center(
+                                        child: Image.asset(AppImages.loader, height: 70, fit: BoxFit.contain),
                                       ),
                                     ),
-                                  );
-                                },
-                                child: CachedNetworkImage(
-                                  imageUrl:
-                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
-                                  height: MediaQuery.of(context).size.height * 0.25,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-                                    child: Center(
-                                      child: Image.asset(AppImages.loader, height: 70, fit: BoxFit.contain),
-                                    ),
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
-                                    color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-                                    child: Center(
-                                      child: Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
+                                    errorWidget: (context, url, error) => Container(
+                                      color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                      child: Center(
+                                        child: Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
+                                      ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            )
-                          ],
-                        ),
-
-                      ],
-                    ),
-
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Quick Facts Row
-                          Wrap(
-                            children: [
-                              _FactChip(
-                                icon: Icons.bed,
-                                label: "${property.bhk}",
-                                color: Colors.redAccent,
-                                isDarkMode: isDarkMode,
-                              ),
-                              SizedBox(width: 8),
-                              _FactChip(
-                                icon: Icons.gite_rounded,
-                                label: property.floor,
-                                color: Colors.blueAccent,
-                                isDarkMode: isDarkMode,
-                              ),
-                              SizedBox(width: 8),
-                              _FactChip(
-                                icon: Icons.type_specimen,
-                                label: property.buyRent,
-                                color: Colors.green,
-                                isDarkMode: isDarkMode,
-                              ),
-
+                              )
                             ],
                           ),
-                          SizedBox(height: 10
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-
-                                  Text(
-                                    '₹ ${property.showPrice ?? ""}',
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: "PoppinsBold",
+          
+                        ],
+                      ),
+          
+                      Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Quick Facts Row
+                            Wrap(
+                              children: [
+                                _FactChip(
+                                  icon: Icons.bed,
+                                  label: "${property.bhk}",
+                                  color: Colors.redAccent,
+                                  isDarkMode: isDarkMode,
+                                ),
+                                SizedBox(width: 8),
+                                _FactChip(
+                                  icon: Icons.gite_rounded,
+                                  label: property.floor,
+                                  color: Colors.blueAccent,
+                                  isDarkMode: isDarkMode,
+                                ),
+                                SizedBox(width: 8),
+                                _FactChip(
+                                  icon: Icons.type_specimen,
+                                  label: property.buyRent,
+                                  color: Colors.green,
+                                  isDarkMode: isDarkMode,
+                                ),
+          
+                              ],
+                            ),
+                            SizedBox(height: 10
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+          
+                                    Text(
+                                      '₹ ${property.showPrice ?? ""}',
+                                      style: theme.textTheme.headlineSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: "PoppinsBold",
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                              // _InfoChip(
-                              //   icon: Icons.star,
-                              //   value: property.id.toString(),
-                              //   color: Colors.amber,
-                              //   isDarkMode: isDarkMode,
-                              // ),
-                            ],
-                          ),
-                          _DetailRow(
-                            icon: Icons.home_repair_service,
-                            title: "Maintenance",
-                            value: "₹ ${property.maintenance}",
-                            color: Colors.orangeAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-
-                          SizedBox(height: 4),
-                          Wrap(
-                            children: [
-                              _FactChip(
-                                icon: Icons.location_on_sharp,
-                                label: "${property.locations}",
-                                color: Colors.redAccent,
-                                isDarkMode: isDarkMode,
-                              ),
-                              SizedBox(width: 8),
-                              _FactChip(
-                                icon: Icons.gite_rounded,
-                                label: property.typeofProperty,
-                                color: Colors.blueAccent,
-                                isDarkMode: isDarkMode,
-                              ),
-                              SizedBox(width: 8),
-                              _FactChip(
-                                icon: Icons.square_foot,
-                                label: "${property.squarefit} sqft",
-                                color: Colors.purpleAccent,
-                                isDarkMode: isDarkMode,
-                              ),
-                            ],
-                          ),
-
-                          SizedBox(height: 10),
-
-                          Row(
-                            children: [
-                              _FactChip(
-                                icon: Icons.install_desktop_sharp,
-                                label: "Live Property Id : "+ property.id.toString(),
-                                color: Colors.lightGreen,
-                                isDarkMode: isDarkMode,
-                              ),
-                            ]
-                          ),
-                          SizedBox(height: 10),
-
-                          // Property Details
-                          _SectionHeader(
-                            title: "Property Details",
-                            isDarkMode: isDarkMode,
-                          ),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: [
-                              _FactChip(
-                                icon: Icons.install_desktop_sharp,
-                                label: "Live Property Id : ${property.id}",
-                                color: Colors.lightGreen,
-                                isDarkMode: isDarkMode,
-                              ),
-                              _FactChip(
-                                icon: Icons.apartment_sharp,
-                                label: "Building Id : ${property.subid}",
-                                color: Colors.lightBlue,
-                                isDarkMode: isDarkMode,
-                              ),
-                            ],
-                          ),
-                          _FactChip(
-                            icon: Icons.file_open,
-                            label: "Building Flat Id : "+ property.sourceId.toString(),
-                            color: Colors.deepOrange,
-                            isDarkMode: isDarkMode,
-                          ),
-
-                          SizedBox(height: 10,),
-                          _DetailRow(
-                            icon: Icons.construction,
-                            title: "Facilities",
-                            value: property.facility,
-                            color: Colors.blueGrey,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.upload_sharp,
-                            title: "Lift Availability",
-                            value:
-                            "${property.lift.toLowerCase() == 'yes' ? 'Available' : 'Not Available'}",
-                            color: Colors.green,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.gas_meter_rounded,
-                            title: "Meter Type",
-                            value:  "${property.meter}/- per unit.",
-                            color: Colors.deepPurpleAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.chair,
-                            title: "Furnishing",
-                            value: "${property.furnishing}, ${property.apartmentName}",
-                            color: Colors.brown,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.kitchen,
-                            title: "Kitchen & Bathroom",
-                            value: "${property.kitchen} Kitchen | ${property.bathroom} Bathroom",
-                            color: Colors.indigoAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.local_parking,
-                            title: "Parking & Main Market Distance",
-                            value: property.parking+" | "+ property.mainMarketDistance  ,
-                            color: Colors.teal,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.balcony,
-                            title: "Balcony",
-                            value: property.balcony,
-                            color: Colors.lightGreen,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.train,
-                            title: "Near Metro & Metro Distance",
-                            value:  "${property.metroDistance} Metro walking distance is ${property.highwayDistance}",
-                            color: Colors.amber,
-                            isDarkMode: isDarkMode,
-                          ),
-
-                          _DetailRow(
-                            icon: Icons.real_estate_agent_rounded,
-                            title: "Age of Property & Road Size",
-                            value:  property.ageOfProperty+" | "+property.roadSize ,
-                            color: Colors.redAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.app_registration,
-                            title: "Registry & GPA",
-                            value:  property.registryAndGpa ,
-                            color: Colors.greenAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.screen_lock_landscape,
-                            title: "Loan Availability",
-                            value:  property.loan ,
-                            color: Colors.orangeAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-
-                          _DetailRow(
-                            icon: Icons.place,
-                            title: "Residence / Commercial",
-                            value:  property.residenceCommercial ,
-                            color: Colors.green,
-                            isDarkMode: isDarkMode,
-                          ),
-                          SizedBox(height: 24),
-
-
-                          SizedBox(height: 24),
-
-                          // Gallery Section
-                          _SectionHeader(
-                            title: "Gallery",
-                            isDarkMode: isDarkMode,
-                          ),
-                          SizedBox(height: 8),
-                          FutureBuilder<List<RealEstateSlider>>(
-                            future: _galleryFuture,
-                            builder: (context, gallerySnapshot) {
-                              if (gallerySnapshot.connectionState == ConnectionState.waiting) {
-                                return Center(child: CircularProgressIndicator());
-                              } else if (gallerySnapshot.hasError) {
-                                return Center(child: Text("Error loading gallery"));
-                              } else if (!gallerySnapshot.hasData || gallerySnapshot.data!.isEmpty) {
-                                return Center(child: Text("No images available"));
-                              } else {
-                                final images = gallerySnapshot.data!;
-                                return ListView.builder(
-                                  shrinkWrap: true,
-                                  physics: NeverScrollableScrollPhysics(),
-                                  itemCount: images.length,
-                                  itemBuilder: (context, index) {
-                                    final image = images[index];
-                                    return GestureDetector(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (_) => PropertyPreview(
-                                              ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                        child: Container(
-                                          // height: 200,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(12),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: Colors.black.withOpacity(isDarkMode ? 0.4 : 0.2),
-                                                blurRadius: 4,
-                                                offset: Offset(0, 4),
+                                  ],
+                                ),
+                                // _InfoChip(
+                                //   icon: Icons.star,
+                                //   value: property.id.toString(),
+                                //   color: Colors.amber,
+                                //   isDarkMode: isDarkMode,
+                                // ),
+                              ],
+                            ),
+                            _DetailRow(
+                              icon: Icons.home_repair_service,
+                              title: "Maintenance",
+                              value: "₹ ${property.maintenance}",
+                              color: Colors.orangeAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+          
+                            SizedBox(height: 4),
+                            Wrap(
+                              children: [
+                                _FactChip(
+                                  icon: Icons.location_on_sharp,
+                                  label: "${property.locations}",
+                                  color: Colors.redAccent,
+                                  isDarkMode: isDarkMode,
+                                ),
+                                SizedBox(width: 8),
+                                _FactChip(
+                                  icon: Icons.gite_rounded,
+                                  label: property.typeofProperty,
+                                  color: Colors.blueAccent,
+                                  isDarkMode: isDarkMode,
+                                ),
+                                SizedBox(width: 8),
+                                _FactChip(
+                                  icon: Icons.square_foot,
+                                  label: "${property.squarefit} sqft",
+                                  color: Colors.purpleAccent,
+                                  isDarkMode: isDarkMode,
+                                ),
+                              ],
+                            ),
+          
+                            SizedBox(height: 10),
+          
+                            Row(
+                              children: [
+                                _FactChip(
+                                  icon: Icons.install_desktop_sharp,
+                                  label: "Live Property Id : "+ property.id.toString(),
+                                  color: Colors.lightGreen,
+                                  isDarkMode: isDarkMode,
+                                ),
+                              ]
+                            ),
+                            SizedBox(height: 10),
+          
+                            // Property Details
+                            _SectionHeader(
+                              title: "Property Details",
+                              isDarkMode: isDarkMode,
+                            ),
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                _FactChip(
+                                  icon: Icons.install_desktop_sharp,
+                                  label: "Live Property Id : ${property.id}",
+                                  color: Colors.lightGreen,
+                                  isDarkMode: isDarkMode,
+                                ),
+                                _FactChip(
+                                  icon: Icons.apartment_sharp,
+                                  label: "Building Id : ${property.subid}",
+                                  color: Colors.lightBlue,
+                                  isDarkMode: isDarkMode,
+                                ),
+                              ],
+                            ),
+                            _FactChip(
+                              icon: Icons.file_open,
+                              label: "Building Flat Id : "+ property.sourceId.toString(),
+                              color: Colors.deepOrange,
+                              isDarkMode: isDarkMode,
+                            ),
+          
+                            SizedBox(height: 10,),
+                            _DetailRow(
+                              icon: Icons.construction,
+                              title: "Facilities",
+                              value: property.facility,
+                              color: Colors.blueGrey,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.upload_sharp,
+                              title: "Lift Availability",
+                              value:
+                              "${property.lift.toLowerCase() == 'yes' ? 'Available' : 'Not Available'}",
+                              color: Colors.green,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.gas_meter_rounded,
+                              title: "Meter Type",
+                              value:  "${property.meter}/- per unit.",
+                              color: Colors.deepPurpleAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.chair,
+                              title: "Furnishing",
+                              value: "${property.furnishing}, ${property.apartmentName}",
+                              color: Colors.brown,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.kitchen,
+                              title: "Kitchen & Bathroom",
+                              value: "${property.kitchen} Kitchen | ${property.bathroom} Bathroom",
+                              color: Colors.indigoAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.local_parking,
+                              title: "Parking & Main Market Distance",
+                              value: property.parking+" | "+ property.mainMarketDistance  ,
+                              color: Colors.teal,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.balcony,
+                              title: "Balcony",
+                              value: property.balcony,
+                              color: Colors.lightGreen,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.train,
+                              title: "Near Metro & Metro Distance",
+                              value:  "${property.metroDistance} Metro walking distance is ${property.highwayDistance}",
+                              color: Colors.amber,
+                              isDarkMode: isDarkMode,
+                            ),
+          
+                            _DetailRow(
+                              icon: Icons.real_estate_agent_rounded,
+                              title: "Age of Property & Road Size",
+                              value:  property.ageOfProperty+" | "+property.roadSize ,
+                              color: Colors.redAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.app_registration,
+                              title: "Registry & GPA",
+                              value:  property.registryAndGpa ,
+                              color: Colors.greenAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.screen_lock_landscape,
+                              title: "Loan Availability",
+                              value:  property.loan ,
+                              color: Colors.orangeAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+          
+                            _DetailRow(
+                              icon: Icons.place,
+                              title: "Residence / Commercial",
+                              value:  property.residenceCommercial ,
+                              color: Colors.green,
+                              isDarkMode: isDarkMode,
+                            ),
+                            SizedBox(height: 24),
+          
+          
+                            SizedBox(height: 24),
+          
+                            // Gallery Section
+                            _SectionHeader(
+                              title: "Gallery",
+                              isDarkMode: isDarkMode,
+                            ),
+                            SizedBox(height: 8),
+                            FutureBuilder<List<RealEstateSlider>>(
+                              future: _galleryFuture,
+                              builder: (context, gallerySnapshot) {
+                                if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator());
+                                } else if (gallerySnapshot.hasError) {
+                                  return Center(child: Text("Error loading gallery"));
+                                } else if (!gallerySnapshot.hasData || gallerySnapshot.data!.isEmpty) {
+                                  return Center(child: Text("No images available"));
+                                } else {
+                                  final images = gallerySnapshot.data!;
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    physics: NeverScrollableScrollPhysics(),
+                                    itemCount: images.length,
+                                    itemBuilder: (context, index) {
+                                      final image = images[index];
+                                      return GestureDetector(
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => PropertyPreview(
+                                                ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
                                               ),
-                                            ],
-                                          ),
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadiusGeometry.circular(10),
-                                            child: CachedNetworkImage(
-                                              imageUrl:
-                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
-                                              fit: BoxFit.fill,
-                                              placeholder: (context, url) => Container(
-                                                color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-                                                child: Center(
-                                                  child: Image.asset(
-                                                    AppImages.loader,
-                                                    height: 50,
-                                                    width: 50,
+                                            ),
+                                          );
+                                        },
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                          child: Container(
+                                            // height: 200,
+                                            decoration: BoxDecoration(
+                                              borderRadius: BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.black.withOpacity(isDarkMode ? 0.4 : 0.2),
+                                                  blurRadius: 4,
+                                                  offset: Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: ClipRRect(
+                                              borderRadius: BorderRadiusGeometry.circular(10),
+                                              child: CachedNetworkImage(
+                                                imageUrl:
+                                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
+                                                fit: BoxFit.fill,
+                                                placeholder: (context, url) => Container(
+                                                  color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                                  child: Center(
+                                                    child: Image.asset(
+                                                      AppImages.loader,
+                                                      height: 50,
+                                                      width: 50,
+                                                    ),
                                                   ),
                                                 ),
-                                              ),
-                                              errorWidget: (context, url, error) => Container(
-                                                color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
-                                                child: Icon(
-                                                  Icons.broken_image,
-                                                  color: isDarkMode ? Colors.white : Colors.black54,
+                                                errorWidget: (context, url, error) => Container(
+                                                  color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                    color: isDarkMode ? Colors.white : Colors.black54,
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              }
-                            },
-                          ),
-                          // SizedBox(height: 24),
-                          SizedBox(height: 12),
-                          _ContactCard(
-                            name: property.fieldWorkerName,
-                            phone: property.fieldWorkerNumber,
-                            role: "Field Worker",
-                            color: Colors.blueAccent,
-                            onCall: () => _showCallConfirmation(
-                              context,
-                              property.fieldWorkerName,
-                              property.fieldWorkerNumber,
+                                      );
+                                    },
+                                  );
+                                }
+                              },
                             ),
-                            isDarkMode: isDarkMode,
-                          ),
-                          _DetailRow(
-                            icon: Icons.pages_outlined,
-                            title: "Property Added Date",
-                            value: formatDate(property.availableDate),
-                            color: Colors.orangeAccent,
-                            isDarkMode: isDarkMode,
-                          ),
-                        ],
+                            // SizedBox(height: 24),
+                            SizedBox(height: 12),
+                            _ContactCard(
+                              name: property.fieldWorkerName,
+                              phone: property.fieldWorkerNumber,
+                              role: "Field Worker",
+                              color: Colors.blueAccent,
+                              onCall: () => _showCallConfirmation(
+                                context,
+                                property.fieldWorkerName,
+                                property.fieldWorkerNumber,
+                              ),
+                              isDarkMode: isDarkMode,
+                            ),
+                            _DetailRow(
+                              icon: Icons.pages_outlined,
+                              title: "Property Added Date",
+                              value: formatDate(property.availableDate),
+                              color: Colors.orangeAccent,
+                              isDarkMode: isDarkMode,
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              );
-            }
-          },
+                    ],
+                  ),
+                );
+              }
+            },
+          ),
         ),
       ),
 

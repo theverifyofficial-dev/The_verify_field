@@ -126,7 +126,7 @@ class _MyAppState extends State<MyApp> {
             arguments: {
               "fromNotification": true,
               "propertyId": propertyId,
-              "tabIndex": 0,   // FIRST TAB ─ Booking
+              "tabIndex": 0,
             },
           );
         });

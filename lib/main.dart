@@ -142,7 +142,7 @@ class _MyAppState extends State<MyApp> {
             arguments: {
               "fromNotification": true,
               "propertyId": propertyId,
-              "tabIndex": 1,   // SECOND TAB ─ Pending
+              "tabIndex": 1,
             },
           );
         });
@@ -156,7 +156,7 @@ class _MyAppState extends State<MyApp> {
             arguments: {
               "fromNotification": true,
               "propertyId": propertyId,
-              "tabIndex": 1,   // Final TAB ─ Complete
+              "tabIndex": 1,
             },
           );
         });
@@ -195,7 +195,10 @@ class _MyAppState extends State<MyApp> {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
             Routes.administaterShowFutureProperty,
                 (route) => false,
-            arguments: {"fromNotification": true, "buildingId": buildingId},
+            arguments: {
+              "fromNotification": true,
+              "buildingId": buildingId
+            },
           );
         });
         return;
@@ -235,7 +238,9 @@ class _MyAppState extends State<MyApp> {
           }
           navigatorKey.currentState?.pushNamed(
             Routes.administaterShowRealEstate,
-            arguments: {"fromNotification": true, "flatId": flatId},
+            arguments: {
+              "fromNotification": true,
+              "flatId": flatId},
           );
         });
       }
@@ -262,45 +267,67 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-     // 🌟 VIDEO EDITOR WORKFLOW NOTIFICATIONS (PASTE THIS BLOCK)
-      if (type == "EDITOR_REPLY") {
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (_) => DefaultTabController(
-              initialIndex: 1, // 2nd tab
-              length: 2,
-              child: const LiveTabbar(),
-            ),
-          ),
-        );
-        return;
-      }
 
-      if (type == "FIELDWORKER_REPLY") {
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (_) => DefaultTabController(
-              initialIndex: 1,
-              length: 2,
-              child: const LiveTabbar(),
-            ),
-          ),
-        );
-        return;
-      }
+      // 1️⃣ FIELDWORKER → EDITOR REPLY
+            if (type == "EDITOR_REPLY") {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => LiveTabbar(
+                    initialIndex: 1, // open 2nd tab
+                    highlightPropertyId: data['mainId']?.toString(),
+                  ),
+                ),
+              );
+              return;
+            }
 
-      if (type == "VIDEO_SUBMITTED" ||
-          type == "EDITOR_RECEIVED" ||
-          type == "VIDEO_UPLOADED") {
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(
-            builder: (_) => const SocialMediaHomePage(),
-          ),
-        );
-        return;
-      }
+      // 2️⃣ EDITOR → FIELDWORKER REPLY
+            if (type == "FIELDWORKER_REPLY") {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => LiveTabbar(
+                    initialIndex: 1,
+                    highlightPropertyId: data['mainId']?.toString(),
+                  ),
+                ),
+              );
+              return;
+            }
 
-     // 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
+      // 3️⃣ VIDEO SUBMITTED BY FIELDWORKER → go to SOCIAL MEDIA PAGE
+            if (type == "VIDEO_SUBMITTED") {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => const SocialMediaHomePage(),
+                ),
+              );
+              return;
+            }
+
+      // 4️⃣ EDITOR RECEIVED + editing started → go to LIVE TABBAR 2nd tab
+            if (type == "EDITOR_RECEIVED") {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => LiveTabbar(
+                    initialIndex: 1,
+                    highlightPropertyId: data['mainId']?.toString(),
+                  ),
+                ),
+              );
+              return;
+            }
+
+      // 5️⃣ VIDEO UPLOADED FINAL → go to SOCIAL MEDIA PAGE
+            if (type == "VIDEO_UPLOADED") {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) => const SocialMediaHomePage(),
+                ),
+              );
+              return;
+            }
+
+      // 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
       if ([
         "NEW_AGREEMENT",
         "AGREEMENT_UPDATED",

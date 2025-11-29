@@ -252,7 +252,9 @@ class NewRealEstateShowDateModel {
 }
 
 class Show_New_Real_Estate extends StatefulWidget {
-  const Show_New_Real_Estate({super.key});
+  final String? highlightPropertyId;   // 👈 NEW
+
+  const Show_New_Real_Estate({super.key,this.highlightPropertyId});
 
   @override
   State<Show_New_Real_Estate> createState() => _Show_New_Real_EstateState();
@@ -271,6 +273,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   int propertyCount = 0;
   String? selectedLabel;
   Timer? _debounce;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void dispose() {
@@ -413,7 +416,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       _allProperties = data;
       _filteredProperties = data;
 
-      // 🔥 Now load saved status AFTER properties are loaded
+      // 🔥 Load saved video submission status
       for (var property in _allProperties) {
         final saved = await loadStatus(property.pId ?? 0);
         if (saved != null) {
@@ -422,6 +425,25 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       }
 
       setState(() => _isLoading = false);
+
+      if (widget.highlightPropertyId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          int index = _filteredProperties.indexWhere(
+                (item) => item.pId.toString() == widget.highlightPropertyId,
+          );
+
+          print("🔥 Highlight Property ID = ${widget.highlightPropertyId}");
+          print("📍 Found at index = $index");
+
+          if (index != -1) {
+            _scrollController.animateTo(
+              index * 500, // Adjust card height if needed
+              duration: Duration(milliseconds: 600),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      }
 
     } catch (e) {
       print("❌ Error: $e");
@@ -900,7 +922,9 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                             },
                             child: Container(
                               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-
+                              color: property.pId.toString() == widget.highlightPropertyId
+                                  ? Colors.red.withOpacity(0.3)    // 🔥 highlight
+                                  : Colors.transparent,
                               child: Card(
                               elevation: 4, // ✅ elevation added
                               shadowColor:  Theme.of(context).brightness == Brightness.dark

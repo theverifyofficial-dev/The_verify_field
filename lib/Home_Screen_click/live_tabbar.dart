@@ -7,8 +7,12 @@ import 'New_Real_Estate.dart';
 
 class LiveTabbar extends StatefulWidget {
   final int initialIndex; // 👈 NEW
+  final String? highlightPropertyId;   // 👈 NEW
 
-  const LiveTabbar({super.key, this.initialIndex = 0}); // Default = 1st tab
+  const LiveTabbar({super.key, this.initialIndex = 0,
+    this.highlightPropertyId,
+
+  }); // Default = 1st tab
 
   @override
   State<LiveTabbar> createState() => _Show_New_Real_EstateState();
@@ -72,7 +76,9 @@ class _Show_New_Real_EstateState extends State<LiveTabbar> {
               child: TabBarView(
                 children: [
                   AllLiveProperty(),
-                  Show_New_Real_Estate(),
+                  Show_New_Real_Estate(
+                    highlightPropertyId: widget.highlightPropertyId,
+                  ),
                 ],
               ),
             )

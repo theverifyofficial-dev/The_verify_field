@@ -143,7 +143,7 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
 
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(18),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -292,85 +292,86 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
 
             /// MESSAGE HISTORY
             if (editorInfo != null)
-              Expanded(
-                child: ListView(
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.mail,color: Colors.blue,),
-                        SizedBox(width: 6,),
-                        const Text("Message History",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
+              ListView(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.mail, color: Colors.blue),
+                      SizedBox(width: 6),
+                      const Text(
+                        "Message History",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
 
-                    ...List.generate(
-                      (editorInfo?["messages"] ?? []).length,
-                          (i) {
-                        var msg = editorInfo!["messages"][i];
-                        bool isEditorMessage = msg["role"] == "editor";
+                  ...List.generate(
+                    (editorInfo?["messages"] ?? []).length,
+                        (i) {
+                      var msg = editorInfo!["messages"][i];
+                      bool isEditorMessage = msg["role"] == "editor";
 
-                        return Container(
+                      return Container(
                         margin: const EdgeInsets.only(bottom: 12),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-
-                            // 🔥 Auto Light/Dark Theme Background
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(10),
+                          color: isEditorMessage
+                              ? (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.blue.withOpacity(0.15)
+                              : Colors.blue.withOpacity(0.08))
+                              : (Theme.of(context).brightness == Brightness.dark
+                              ? Colors.green.withOpacity(0.15)
+                              : Colors.green.withOpacity(0.08)),
+                          border: Border.all(
                             color: isEditorMessage
-                            ? (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.blue.withOpacity(0.15)
-                                : Colors.blue.withOpacity(0.08))
-                                : (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.green.withOpacity(0.15)
-                                : Colors.green.withOpacity(0.08)),
-
-                            // 🔥 Auto Border According to theme
-                            border: Border.all(
-                            color: isEditorMessage
-                            ? (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.blue.shade300
+                                ? (Theme.of(context).brightness == Brightness.dark
+                                ? Colors.blue.shade300
                                 : Colors.blue.shade600)
                                 : (Theme.of(context).brightness == Brightness.dark
-                            ? Colors.green.shade300
+                                ? Colors.green.shade300
                                 : Colors.green.shade600),
                             width: 1.2,
-                            ),
-                            ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "${msg["actor_name"]} (${msg["role"]})",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: isEditorMessage ? Colors.blue : Colors.green,
-                                ),
-                              ),
-                              const SizedBox(height: 5),
-                              Text(
-                                  msg["message_text"] ?? "",
-                                  style: const TextStyle(fontSize: 14,fontWeight: FontWeight.w600)),
-                              const SizedBox(height: 6),
-                              Text(
-                                "Time: ${formatDateTime(msg["created_at"]["date"] ?? "")}",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.grey
-                                      : Colors.black,
-                                ),
-                              ),
-                            ],
                           ),
-                        );
-                      },
-                    ),
-                  ],
-                ),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${msg["actor_name"]} (${msg["role"]})",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isEditorMessage ? Colors.blue : Colors.green,
+                              ),
+                            ),
+                            const SizedBox(height: 5),
+                            Text(
+                              msg["message_text"] ?? "",
+                              style: const TextStyle(
+                                  fontSize: 14, fontWeight: FontWeight.w600),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              "Time: ${formatDateTime(msg["created_at"]["date"] ?? "")}",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.grey
+                                    : Colors.black,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
+
           ],
         ),
       ),

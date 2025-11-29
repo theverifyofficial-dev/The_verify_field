@@ -321,7 +321,10 @@ class _MyAppState extends State<MyApp> {
             if (type == "VIDEO_UPLOADED") {
               navigatorKey.currentState?.push(
                 MaterialPageRoute(
-                  builder: (_) => const SocialMediaHomePage(),
+                  builder: (_) => LiveTabbar(
+                    initialIndex: 1,
+                    highlightPropertyId: data['mainId']?.toString(),
+                  ),
                 ),
               );
               return;

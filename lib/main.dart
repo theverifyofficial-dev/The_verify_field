@@ -267,68 +267,65 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-
-      // 1️⃣ FIELDWORKER → EDITOR REPLY
-            if (type == "EDITOR_REPLY") {
-              navigatorKey.currentState?.push(
-                MaterialPageRoute(
-                  builder: (_) => LiveTabbar(
-                    initialIndex: 1, // open 2nd tab
-                    highlightPropertyId: data['mainId']?.toString(),
+        // 1️⃣ EDITOR REPLY → LiveTabbar (Tab 2 + highlight)
+              if (type == "EDITOR_REPLY") {
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(
+                    builder: (_) => LiveTabbar(
+                      initialIndex: 1,
+                      highlightPropertyId: data['main_id']?.toString(),
+                    ),
                   ),
-                ),
-              );
-              return;
-            }
+                );
+                return;
+              }
 
-      // 2️⃣ EDITOR → FIELDWORKER REPLY
-            if (type == "FIELDWORKER_REPLY") {
-              navigatorKey.currentState?.push(
-                MaterialPageRoute(
-                  builder: (_) => LiveTabbar(
-                    initialIndex: 1,
-                    highlightPropertyId: data['mainId']?.toString(),
+        // 2️⃣ FIELDWORKER REPLY → Social Media Home Page
+              if (type == "FIELDWORKER_REPLY") {
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(
+                    builder: (_) => const SocialMediaHomePage(),
                   ),
-                ),
-              );
-              return;
-            }
+                );
+                return;
+              }
 
-      // 3️⃣ VIDEO SUBMITTED BY FIELDWORKER → go to SOCIAL MEDIA PAGE
-            if (type == "VIDEO_SUBMITTED") {
-              navigatorKey.currentState?.push(
-                MaterialPageRoute(
-                  builder: (_) => const SocialMediaHomePage(),
-                ),
-              );
-              return;
-            }
-
-      // 4️⃣ EDITOR RECEIVED + editing started → go to LIVE TABBAR 2nd tab
-            if (type == "EDITOR_RECEIVED") {
-              navigatorKey.currentState?.push(
-                MaterialPageRoute(
-                  builder: (_) => LiveTabbar(
-                    initialIndex: 1,
-                    highlightPropertyId: data['mainId']?.toString(),
+        // 3️⃣ VIDEO SUBMITTED → Social Media Home Page
+              if (type == "VIDEO_SUBMITTED") {
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(
+                    builder: (_) => const SocialMediaHomePage(),
                   ),
-                ),
-              );
-              return;
-            }
+                );
+                return;
+              }
 
-      // 5️⃣ VIDEO UPLOADED FINAL → go to SOCIAL MEDIA PAGE
-            if (type == "VIDEO_UPLOADED") {
-              navigatorKey.currentState?.push(
-                MaterialPageRoute(
-                  builder: (_) => LiveTabbar(
-                    initialIndex: 1,
-                    highlightPropertyId: data['mainId']?.toString(),
+        // 4️⃣ EDITOR RECEIVED → LiveTabbar (Tab 2 + highlight)
+              if (type == "EDITOR_RECEIVED") {
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(
+                    builder: (_) => LiveTabbar(
+                      initialIndex: 1,
+                      highlightPropertyId: data['main_id']?.toString(),
+                    ),
                   ),
-                ),
-              );
-              return;
-            }
+                );
+                return;
+              }
+
+        // 5️⃣ VIDEO UPLOADED → LiveTabbar (Tab 2 + highlight)
+              if (type == "VIDEO_UPLOADED") {
+                navigatorKey.currentState?.push(
+                  MaterialPageRoute(
+                    builder: (_) => LiveTabbar(
+                      initialIndex: 1,
+                      highlightPropertyId: data['main_id']?.toString(),
+                    ),
+                  ),
+                );
+                return;
+              }
+
 
       // 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
       if ([

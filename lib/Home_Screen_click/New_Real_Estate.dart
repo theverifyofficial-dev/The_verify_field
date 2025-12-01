@@ -437,8 +437,8 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
 
           if (index != -1) {
             _scrollController.animateTo(
-              index * 500, // Adjust card height if needed
-              duration: Duration(milliseconds: 600),
+              index * MediaQuery.of(context).size.height * 0.80,
+              duration: Duration(milliseconds: 700),
               curve: Curves.easeOut,
             );
           }
@@ -455,10 +455,8 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   Future<void> _fetchInitialData() async {
     setState(() => _isLoading = true);
     try {
-      final data = await fetchData(""); // Call your API
       setState(() {
-        // _originalData = data;
-        // _filteredData = data;
+
         _isLoading = false;
       });
     } catch (e) {
@@ -519,154 +517,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     }
   }
 
-  void _openSubmitVideoSheet(int propertyId) {
-    final TextEditingController msgController = TextEditingController();
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return StatefulBuilder(   // ⭐ Needed for updating inside dialog
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-
-              contentPadding: EdgeInsets.all(20),
-
-              content: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-
-                  children: [
-
-                    /// ---------- TITLE ----------
-                    Center(
-                      child: Text(
-                        "Submit Video Details",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 20),
-
-                    /// ---------- LABEL ----------
-                    Text(
-                      "Message",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-
-                    /// ---------- ROUNDED TEXT FIELD ----------
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.grey.shade300),
-                      ),
-                      child: TextField(
-                        controller: msgController,
-                        maxLines: 4,
-                        style: TextStyle(color: Colors.black),
-                        decoration: InputDecoration(
-                          hintText: "Write something about the video...",
-                          hintStyle: TextStyle(color: Colors.black),
-                          border: InputBorder.none,
-                          contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                        ),
-                      ),
-                    ),
-
-                    SizedBox(height: 25),
-
-                    /// ---------- SUBMIT BUTTON ----------
-                    GestureDetector(
-                      onTap: () async {
-                        final text = msgController.text.trim();
-
-                        if (text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Please enter message")),
-                          );
-                          return;
-                        }
-
-                        Navigator.pop(context); // Close dialog
-
-                        String? status = await submitVideo(
-                          id: propertyId,
-                          byName: _name,
-                          role: _aadhar,
-                          text: text,
-                        );
-
-                        if (status != null) {
-                          setState(() {
-                            submittedStatus[propertyId] = status;
-                          });
-
-                          await saveStatus(propertyId, status);
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Video Submitted Successfully")),
-                          );
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Failed to submit")),
-                          );
-                        }
-                      },
-
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(vertical: 16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.blue, Colors.purpleAccent],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.shade200,
-                              blurRadius: 10,
-                              offset: Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Center(
-                          child: Text(
-                            "Submit",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
 
   @override
@@ -844,6 +694,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
             child: RefreshIndicator(
               onRefresh: _fetchProperties,
               child: ListView.builder(
+                controller: _scrollController,
                 itemCount: _filteredProperties.length,
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
@@ -922,9 +773,12 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                             },
                             child: Container(
                               margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              color: property.pId.toString() == widget.highlightPropertyId
-                                  ? Colors.red.withOpacity(0.3)    // 🔥 highlight
-                                  : Colors.transparent,
+                              decoration: BoxDecoration(
+                                color: property.pId.toString() == widget.highlightPropertyId
+                                    ? Colors.red  // 🔥 CLEAR HIGHLIGHT
+                                    : null,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                               child: Card(
                               elevation: 4, // ✅ elevation added
                               shadowColor:  Theme.of(context).brightness == Brightness.dark
@@ -933,8 +787,10 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                               shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                               ),
-                              color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
-                              child:
+                                color: property.pId.toString() == widget.highlightPropertyId
+                                    ? Colors.red.withOpacity(0.01)       // ✅ Visible now
+                                    : Colors.white,
+                                child:
                                Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1240,53 +1096,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
           ),
         ],
       ),
-
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       borderRadius: BorderRadius.circular(6),
-      //       boxShadow: [
-      //         BoxShadow(
-      //           color: Colors.black.withOpacity(0.2),
-      //           blurRadius: 10,
-      //           offset: const Offset(0, 5),
-      //         ),
-      //       ],
-      //       gradient: LinearGradient(
-      //         colors: [Colors.blueAccent, Colors.lightBlueAccent],
-      //         begin: Alignment.centerLeft,
-      //         end: Alignment.centerRight,
-      //       ),
-      //     ),
-      //     child: ElevatedButton.icon(
-      //       onPressed: () {
-      //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
-      //         // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
-      //       },
-      //       icon: const Icon(Icons.add, color: Colors.white),
-      //       label: const Text(
-      //         'Add Property',
-      //         style: TextStyle(
-      //           fontSize: 17,
-      //           fontFamily: "PoppinsBold",
-      //           fontWeight: FontWeight.w600,
-      //           letterSpacing: 0.5,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       style: ElevatedButton.styleFrom(
-      //         elevation: 0, // Shadow handled by container
-      //         backgroundColor: Colors.transparent,
-      //         shadowColor: Colors.transparent,
-      //         shape: RoundedRectangleBorder(
-      //           borderRadius: BorderRadius.circular(16),
-      //         ),
-      //         padding: const EdgeInsets.symmetric(vertical: 16),
-      //       ),
-      //     ),
-      //   ),
-      // ),
     );
   }
 

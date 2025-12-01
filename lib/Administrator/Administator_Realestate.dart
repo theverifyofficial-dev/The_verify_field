@@ -400,25 +400,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     super.dispose();
   }
 
-  bool _isDeleting = false;
-  //Delete api
-  Future<void> DeletePropertyById(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
-    final response = await http.get(url);
-    // await Future.delayed(Duration(seconds: 1));
-    if (response.statusCode == 200) {
-      setState(() {
-        _isDeleting = false;
-        //ShowVehicleNumbers(id);
-        //showVehicleModel?.vehicleNo;
-      });
-      print(response.body.toString());
-      print('Item deleted successfully');
-    } else {
-      print('Error deleting item. Status code: ${response.statusCode}');
-      throw Exception('Failed to load data');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -1235,16 +1216,24 @@ class PropertyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final imageHeight = screenWidth * 0.45;
+    final size = MediaQuery.of(context).size;
+    final screenWidth = size.width;
+    final screenHeight = size.height;
+
+    final adaptivePadding = screenWidth * 0.04;
+    final imageHeight = screenWidth * 0.45; // keep same ratio
+    final textScale = MediaQuery.of(context).textScaler;
 
     return GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
         key: cardKey,
         duration: const Duration(milliseconds: 400),
-        width: screenWidth * 0.75,
-        margin: const EdgeInsets.only(right: 16, bottom: 16),
+        width: screenWidth * (screenWidth < 600 ? 0.75 : 0.50), // tablets = 50%
+        margin: EdgeInsets.only(
+          right: screenWidth * 0.04,
+          bottom: screenWidth * 0.04,
+        ),
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
               ? Colors.white10
@@ -1257,34 +1246,38 @@ class PropertyCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              blurRadius: screenWidth * 0.03,
+              offset: Offset(0, screenWidth * 0.015),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 🖼 Property image
             _buildImage(context, property, imageHeight),
 
-            // 📝 Property details
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLocation(context, property),
-                    const SizedBox(height: 12),
-                    _buildFeatures(property),
-                    const SizedBox(height: 16),
-                    _buildDescription(context, property, displayIndex),
-                    const SizedBox(height: 12),
-                    Divider(height: 1, color: Colors.grey[200]),
-                    const SizedBox(height: 8),
-                    _buildFooter(context, property),
-                  ],
+                padding: EdgeInsets.all(adaptivePadding),
+                child: MediaQuery(
+                  // Apply global responsive text scaling
+                  data: MediaQuery.of(context).copyWith(
+                    textScaleFactor: textScale.scale(1.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLocation(context, property),
+                      SizedBox(height: screenHeight * 0.008),
+                      _buildFeatures(property),
+                      SizedBox(height: screenHeight * 0.012),
+                      _buildDescription(context, property, displayIndex),
+                      SizedBox(height: screenHeight * 0.012),
+                      Divider(height: 1, color: Colors.grey[200]),
+                      SizedBox(height: screenHeight * 0.01),
+                      _buildFooter(context, property),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -1293,6 +1286,7 @@ class PropertyCard extends StatelessWidget {
       ),
     );
   }
+
 
 
 // ---------------------- IMAGE ----------------------
@@ -1460,36 +1454,39 @@ class PropertyCard extends StatelessWidget {
               fontWeight: FontWeight.w600,
               fontFamily: "Poppins",
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            maxLines: 2,
+            overflow: TextOverflow.visible,
+            softWrap: true,
           ),
-          Text(
-            "Property No: $displayIndex",
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              fontFamily: "Poppins",
-            ),
-          ),
-            SizedBox(height: 5,),
-
-            Text(
-              "Building ID: ${property.subid}",
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                fontFamily: "Poppins",
+          SizedBox(height: 10,),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Property No: $displayIndex",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "Poppins",
+                ),
               ),
-
+              Text(
+                "Building ID: ${property.subid}",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "Poppins",
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-// ---------------------- FOOTER ----------------------
   Widget _buildFooter(BuildContext context, Catid property) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1516,7 +1513,6 @@ class PropertyCard extends StatelessWidget {
     );
   }
 
-// ---------------------- FEATURE PILL ----------------------
   Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color textColor) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1530,60 +1526,6 @@ class PropertyCard extends StatelessWidget {
           Icon(icon, size: 16, color: textColor),
           const SizedBox(width: 4),
           Text(text, style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontFamily: "Poppins")),
-        ],
-      ),
-    );
-  }
-// ---------------------- MAIN CARD ----------------------
-  Widget _buildPropertyCard(BuildContext context, Catid property, int displayIndex) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * 0.75; // 75% of screen width
-    final imageHeight = cardWidth * 0.6;  // proportional height for image
-
-    return Container(
-      width: cardWidth,
-      margin: const EdgeInsets.only(right: 16, bottom: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white10
-            : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 🖼 Property image
-          _buildImage(context, property, imageHeight),
-
-          // 📝 Property details
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildLocation(context, property),
-                  const SizedBox(height: 12),
-                  _buildFeatures(property),
-                  const SizedBox(height: 16),
-                  _buildDescription(context, property, displayIndex),
-
-                  const SizedBox(height: 12),
-                  Divider(height: 1, color: Colors.grey[200]),
-                  const SizedBox(height: 8),
-
-                  _buildFooter(context, property),
-                ],
-              ),
-            ),
-          ),
         ],
       ),
     );

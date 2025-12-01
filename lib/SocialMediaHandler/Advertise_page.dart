@@ -16,14 +16,15 @@ import '../Propert_verigication_Document/Show_tenant.dart';
 import '../add_properties_firstpage.dart';
 import '../profile.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'Add_Ads.dart';
 import 'VideoSubmitPage.dart';
 
-class SocialMediaHomePage extends StatefulWidget {
-  const SocialMediaHomePage({super.key});
+class   AdvertisePage extends StatefulWidget {
+  const AdvertisePage({super.key});
   @override
-  State<SocialMediaHomePage> createState() => _AllLiveProperty();
+  State<AdvertisePage> createState() => _AllLiveProperty();
 }
-class _AllLiveProperty extends State<SocialMediaHomePage> {
+class _AllLiveProperty extends State<AdvertisePage> {
 
   List<NewRealEstateShowDateModel> _allProperties = [];
   List<NewRealEstateShowDateModel> _filteredProperties = [];
@@ -54,9 +55,9 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
     });
   }
 
-  Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
+  Future<List<NewRealEstateShowDateModel>> fetchData() async {
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/demo_check_ap_for_editor.php",
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_count.php",
     );
     // final url = Uri.parse(
     //   "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
@@ -175,7 +176,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
     try {
-      final data = await fetchData(_number);
+      final data = await fetchData();
       setState(() {
         _allProperties = data;
         _filteredProperties = data;
@@ -190,7 +191,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
   Future<void> _fetchInitialData() async {
     setState(() => _isLoading = true);
     try {
-      final data = await fetchData(""); // Call your API
+      final data = await fetchData(); // Call your API
       setState(() {
         // _originalData = data;
         // _filteredData = data;
@@ -484,40 +485,25 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                                   textColor: Colors.green.shade700,
                                                   shadowColor: Colors.green.shade100,
                                                 ),
-
                                               ],
                                             ),
                                           ),
-                                          Column(
-                                            children: [
-                                              if (hasMissingFields) ...[
-                                                SizedBox(
-                                                  height: MediaQuery.of(context).size.height * 0.41,
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                                  child: Container(
-                                                    width: double.infinity,
-                                                    padding: const EdgeInsets.all(10),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.red[50],
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      border: Border.all(color: Colors.redAccent, width: 1),
-                                                    ),
-                                                    child: Text(
-                                                      "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.redAccent,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
 
-                                              ]
-                                            ],
+                                          Positioned(
+                                            bottom: 12,
+                                            right: 12,
+                                            child:
+                                           _AddedByItem(
+                                            context: context,
+                                            text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
+                                            borderColor: Colors.red.shade400,
+                                            backgroundColor: Colors.red.shade100,
+                                            textColor: Colors.red,
+                                            shadowColor: Colors.white60,
+
+                                            ),
                                           ),
+
                                         ],
                                       ),
                                       Padding(
@@ -596,156 +582,35 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
 
                                               ],
                                             ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
-                                          children: [
 
-                                            Expanded(
-                                              child: InkWell(
-                                                onTap: () async {
-                                                  String raw = (property.videoStatus ?? "").trim().toLowerCase();
-
-                                                  bool isPending = raw.isEmpty;
-                                                  bool isSubmitted = raw == "video submitted";
-                                                  bool isWorkerReason = raw == "reason";
-                                                  bool isRequested = raw == "video requested by editor";
-                                                  bool isEditingStarted = raw == "video recived and editing started";
-                                                  bool isUploaded = raw == "video uploaded";
-
-                                                  // -----------------------------------------------------
-                                                  // 🔥 If editor should upload final YouTube link
-                                                  // -----------------------------------------------------
-                                                  if (isEditingStarted && !isUploaded) {
-                                                    await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) => SubmitVideoPage(
-                                                          propertyId: property.pId ?? 0,
-                                                          status: raw,
-                                                          action: "upload_video_link",
-                                                          userName: _name,
-                                                          userRole: _aadhar,
-                                                        ),
-                                                      ),
-                                                    );
-
-                                                    _fetchProperties();
-                                                    return;
-                                                  }
-
-                                                  // -----------------------------------------------------
-                                                  // 🔥 If final link already uploaded → view only
-                                                  // -----------------------------------------------------
-                                                  if (isUploaded) {
-                                                    await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) => SubmitVideoPage(
-                                                          propertyId: property.pId ?? 0,
-                                                          status: raw,
-                                                          action: "view_only",
-                                                          userName: _name,
-                                                          userRole: _aadhar,
-                                                        ),
-                                                      ),
-                                                    );
-                                                    return;
-                                                  }
-
-                                                  // -----------------------------------------------------
-                                                  // 🔥 Normal editor messaging flow
-                                                  // -----------------------------------------------------
-                                                  String actionToSend = "editor_reply";
-
-                                                  if (isSubmitted || isWorkerReason || isRequested) {
-                                                    actionToSend = "editor_received";
-                                                  }
-
-                                                  final result = await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) => SubmitVideoPage(
-                                                        propertyId: property.pId ?? 0,
-                                                        status: raw,
-                                                        action: actionToSend,
-                                                        userName: _name,
-                                                        userRole: _aadhar,
-                                                      ),
-                                                    ),
-                                                  );
-
-                                                  if (result == true) {
-                                                    _fetchProperties();
-                                                  }
-                                                },
-
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: () {
-                                                      String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                      if (st.isEmpty) return Colors.red;
-                                                      if (st == "video submitted") return Colors.blue;
-                                                      if (st == "reason") return Colors.blue;
-                                                      if (st == "video requested by editor") return Colors.orange;
-                                                      if (st == "video recived and editing started") return Colors.orange;
-                                                      if (st == "video uploaded") return Colors.purple;
-                                                      return Colors.red;
-                                                    }(),
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    border: Border.all(
-                                                      color: () {
-                                                        String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                        if (st.isEmpty) return Colors.red;
-                                                        if (st == "video submitted") return Colors.blue;
-                                                        if (st == "reason") return Colors.blue;
-                                                        if (st == "video requested by editor") return Colors.orange;
-                                                        if (st == "video recived and editing started") return Colors.orange;
-                                                        if (st == "video uploaded") return Colors.purple;
-                                                        return Colors.red;
-                                                      }(),
-                                                    ),
+                                            ElevatedButton.icon(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => InsertMetaAdsExpensePro(flatId: _filteredProperties[index].pId.toString()),
                                                   ),
-                                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                                  child: Row(
-                                                    children: [
-                                                      Icon(
-                                                        (property.videoStatus ?? "").trim().toLowerCase() == "video submitted"
-                                                            ? Icons.check_circle
-                                                            : Icons.error_outline,
-                                                        color: Colors.white,
-                                                      ),
-                                                      SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          (property.videoStatus ?? "").trim().isEmpty
-                                                              ? "Editor Request"
-                                                              : property.videoStatus!,
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      )
-                                                    ],
-                                                  ),
+                                                );
+                                                print(_filteredProperties[index].pId);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                elevation: 3,
+                                                backgroundColor: Colors.purple.shade300,
+                                                foregroundColor: Colors.white,
+                                                minimumSize: const Size(double.infinity, 50),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(14),
                                                 ),
                                               ),
+                                              icon: const Icon(Icons.add_circle, size: 22),
+                                              label: const Text(
+                                                "Add Meta ADs",
+                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                              ),
+
                                             ),
 
-                                        // space between the two containers
-                                                Expanded(
-                                                  child: _AddedByItem(
-                                                    context: context,
-                                                    text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
-                                                    borderColor: Colors.red.shade400,
-                                                    backgroundColor: Colors.red.shade200,
-                                                    textColor: Colors.white,
-                                                    shadowColor: Colors.white60,
-
-                                                  ),
-                                                ),
-                                          ],),
                                           ],
                                         ),
                                       ),
@@ -765,68 +630,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
           ),
         ],
       ),
-
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       borderRadius: BorderRadius.circular(6),
-      //       boxShadow: [
-      //         BoxShadow(
-      //           color: Colors.black.withOpacity(0.2),
-      //           blurRadius: 10,
-      //           offset: const Offset(0, 5),
-      //         ),
-      //       ],
-      //       gradient: LinearGradient(
-      //         colors: [Colors.blueAccent, Colors.lightBlueAccent],
-      //         begin: Alignment.centerLeft,
-      //         end: Alignment.centerRight,
-      //       ),
-      //     ),
-      //     child: ElevatedButton.icon(
-      //       onPressed: () {
-      //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
-      //         // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
-      //       },
-      //       icon: const Icon(Icons.add, color: Colors.white),
-      //       label: const Text(
-      //         'Add Property',
-      //         style: TextStyle(
-      //           fontSize: 17,
-      //           fontFamily: "PoppinsBold",
-      //           fontWeight: FontWeight.w600,
-      //           letterSpacing: 0.5,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       style: ElevatedButton.styleFrom(
-      //         elevation: 0, // Shadow handled by container
-      //         backgroundColor: Colors.transparent,
-      //         shadowColor: Colors.transparent,
-      //         shape: RoundedRectangleBorder(
-      //           borderRadius: BorderRadius.circular(16),
-      //         ),
-      //         padding: const EdgeInsets.symmetric(vertical: 16),
-      //       ),
-      //     ),
-      //   ),
-      // ),
     );
-  }
-
-
-  Color _getPropertyTypeColor(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'rent':
-        return Colors.green;
-      case 'buy':
-        return Colors.blueAccent;
-      case 'lease':
-        return Colors.purple;
-      default:
-        return Colors.blue;
-    }
   }
 
   Widget _buildFeatureItem({
@@ -894,69 +698,67 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
     );
   }
 }
+
 Widget _AddedByItem({
-    required BuildContext context,
-    required String text,
-    required Color borderColor,
-    IconData? icon, // 👈 optional now
-    Color? backgroundColor,
-    Color? textColor,
-    Color? shadowColor,
-  }) {
-    final width = MediaQuery.of(context).size.width;
+  required BuildContext context,
+  required String text,
+  required Color borderColor,
+  IconData? icon,
+  Color? backgroundColor,
+  Color? textColor,
+  Color? shadowColor,
+}) {
+  final width = MediaQuery.of(context).size.width;
 
-    // Scale text, padding, and icon size relative to screen width
-    double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
-    double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
-    double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
-    double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
+  double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
+  double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
+  double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
+  double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalPadding,
-      ),
-      margin: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.transparent,
-        border: Border.all(color: borderColor, width: 2),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: (shadowColor ?? borderColor).withOpacity(0.10),
-            blurRadius: 6,
-            spreadRadius: 2,
-            offset: const Offset(0, 3),
+  return Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: horizontalPadding,
+      vertical: verticalPadding,
+    ),
+    decoration: BoxDecoration(
+      color: backgroundColor ?? Colors.transparent,
+      border: Border.all(color: borderColor, width: 2),
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: (shadowColor ?? borderColor).withOpacity(0.10),
+          blurRadius: 6,
+          spreadRadius: 2,
+          offset: Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null)
+          Icon(
+            icon,
+            size: iconSize,
+            color: textColor,
           ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[ // 👈 only shows if passed
-            Icon(
-              icon,
-              size: iconSize,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
-            ),
-            const SizedBox(width: 4),
-          ],
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: fontSize,
-                fontWeight: FontWeight.bold,
-                fontFamily: "Poppins",
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : (textColor ?? Colors.black),
-              ),
+        if (icon != null) SizedBox(width: 4),
+
+        /// 👇 FIXED — No Expanded, no constraints errors
+        Flexible(
+          child: Text(
+            text,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: FontWeight.bold,
+              fontFamily: "Poppins",
+              color: textColor ?? Colors.black,
             ),
           ),
-        ],
-      ),
-    );
-  }
+        ),
+      ],
+    ),
+  );
+}
+

@@ -113,7 +113,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     print("Updating agreement status: $action"); // debug
     try {
       final url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
+          " ");
 
       print("Sending POST request to $url with id=${widget.agreementId}");
       final response = await http.post(

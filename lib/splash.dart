@@ -8,6 +8,7 @@ import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
+import 'SocialMediaHandler/video_home.dart';
 import 'ui_decoration_tools/app_images.dart';
 
 class Catid {
@@ -74,7 +75,7 @@ class _SplashState extends State<Splash> {
           ));
         } else if (role == "Editor") {
           Navigator.pushReplacement(context, MaterialPageRoute(
-            builder: (context) => SocialMediaHomePage(),
+            builder: (context) => VideoHomepage(),
           ));
         } else if (role == "FieldWorkar") {
           Navigator.of(context).pushReplacementNamed(Home_Screen.route);
@@ -84,7 +85,8 @@ class _SplashState extends State<Splash> {
       } else {
         Navigator.of(context).pushReplacementNamed(Login_page.route);
       }
-    } else {
+    }
+    else {
       Navigator.of(context).pushReplacementNamed(Login_page.route);
     }
   }

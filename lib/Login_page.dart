@@ -10,7 +10,7 @@ import 'package:verify_feild_worker/Reset_password/forget.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Home_Screen.dart';
-import 'SocialMediaHandler/SocialMediaHomePage.dart';
+import 'SocialMediaHandler/video_home.dart';
 import 'constant.dart';
 
 class Catid {
@@ -281,7 +281,7 @@ class _Login_pageState extends State<Login_page> {
         }
         else if (user["FAadharCard"] == "Editor") {
           Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
-            return SocialMediaHomePage();
+            return VideoHomepage();
           }));
         }
         else {

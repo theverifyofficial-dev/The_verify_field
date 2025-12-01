@@ -56,6 +56,10 @@ class AppImages{
   static const calendar = 'assets/images/calendar.png';
   static const man = 'assets/images/man.png';
   static const browser = 'assets/images/browser.png';
+  static const ads = 'assets/images/advertising-campaign.png';
+  static const video = 'assets/images/clapperboard.png';
+  static const media = 'assets/images/social-media.png';
+
 
 
 

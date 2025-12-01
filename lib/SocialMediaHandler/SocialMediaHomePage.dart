@@ -19,7 +19,10 @@ import '../ui_decoration_tools/app_images.dart';
 import 'VideoSubmitPage.dart';
 
 class SocialMediaHomePage extends StatefulWidget {
-  const SocialMediaHomePage({super.key});
+  final String? highlightPropertyId;
+   SocialMediaHomePage({super.key,
+     this.highlightPropertyId,
+  });
   @override
   State<SocialMediaHomePage> createState() => _AllLiveProperty();
 }
@@ -28,6 +31,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
   List<NewRealEstateShowDateModel> _allProperties = [];
   List<NewRealEstateShowDateModel> _filteredProperties = [];
   TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
 
   bool _isLoading = true;
   String _number = '';
@@ -125,6 +129,26 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
       final saved = await loadStatus(property.pId ?? 0);
       if (saved != null) {
         submittedStatus[property.pId!] = saved;
+        // 🔥 HIGHLIGHT & SCROLL when notification comes
+        if (widget.highlightPropertyId != null) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            int index = _filteredProperties.indexWhere(
+                  (item) => item.pId.toString() == widget.highlightPropertyId,
+            );
+
+            print("🔥 Highlight in Social Page: ${widget.highlightPropertyId}");
+            print("📍 Found index: $index");
+
+            if (index != -1) {
+              _scrollController.animateTo(
+                index * 500, // height approx
+                duration: const Duration(milliseconds: 700),
+                curve: Curves.easeOut,
+              );
+            }
+          });
+        }
+
       }
     }
 
@@ -349,6 +373,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
             child: RefreshIndicator(
               onRefresh: _fetchProperties,
               child: ListView.builder(
+                controller: _scrollController,
                 itemCount: _filteredProperties.length,
                 itemBuilder: (context, index) {
 
@@ -433,13 +458,18 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                 margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
 
                                 child: Card(
-                                  elevation: 4, // ✅ elevation added
+                                  elevation: 4,
+                                  shape: RoundedRectangleBorder(
+                                    side: property.pId.toString() == widget.highlightPropertyId
+                                        ? const BorderSide(color: Colors.red, width: 3)   // 🔥 RED HIGHLIGHT
+                                        : BorderSide.none,
+                      // :const BorderSide(color: Colors.red, width: 3),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   shadowColor:  Theme.of(context).brightness == Brightness.dark
                                       ? Colors.white
                                       : Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
+
                                   color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
                                   child:
                                   Column(
@@ -454,11 +484,15 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                               color: Theme.of(context).highlightColor,
                                               borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
                                             ),
-                                            child: Image.network(
-                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => Center(
-                                                child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
+                                            child: ClipRRect(
+                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+
+                                              child: Image.network(
+                                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) => Center(
+                                                  child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
+                                                ),
                                               ),
                                             ),
                                           ),

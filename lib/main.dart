@@ -284,9 +284,12 @@ class _MyAppState extends State<MyApp> {
               if (type == "FIELDWORKER_REPLY") {
                 navigatorKey.currentState?.push(
                   MaterialPageRoute(
-                    builder: (_) => const SocialMediaHomePage(),
+                    builder: (_) => SocialMediaHomePage(
+                      highlightPropertyId: data['main_id']?.toString(),   // 👈 FIXED KEY
+                    ),
                   ),
                 );
+
                 return;
               }
 
@@ -294,7 +297,9 @@ class _MyAppState extends State<MyApp> {
               if (type == "VIDEO_SUBMITTED") {
                 navigatorKey.currentState?.push(
                   MaterialPageRoute(
-                    builder: (_) => const SocialMediaHomePage(),
+                    builder: (_) => SocialMediaHomePage(
+                      highlightPropertyId: data['main_id']?.toString(),   // 👈 FIXED KEY
+                    ),
                   ),
                 );
                 return;

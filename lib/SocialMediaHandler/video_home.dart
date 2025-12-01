@@ -284,7 +284,7 @@ class _VideoHomepage_ScreenState extends State<VideoHomepage> with TickerProvide
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => const SocialMediaHomePage(),
+                                      builder: (_) => SocialMediaHomePage(),
                                     ),
                                   );
                                 },

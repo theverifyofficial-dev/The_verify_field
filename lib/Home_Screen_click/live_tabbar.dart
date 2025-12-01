@@ -9,7 +9,8 @@ class LiveTabbar extends StatefulWidget {
   final int initialIndex; // 👈 NEW
   final String? highlightPropertyId;   // 👈 NEW
 
-  const LiveTabbar({super.key, this.initialIndex = 0,
+  const LiveTabbar({super.key,
+    this.initialIndex = 0,
     this.highlightPropertyId,
 
   }); // Default = 1st tab
@@ -43,8 +44,8 @@ class _Show_New_Real_EstateState extends State<LiveTabbar> {
         ),
       ),
       body: DefaultTabController(
-        length: 2,                  // 👈 FIXED (You have only 2 tabs)
-        initialIndex: widget.initialIndex, // 👈 NEW
+        length: 2,
+        initialIndex: widget.initialIndex,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

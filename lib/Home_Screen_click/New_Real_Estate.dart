@@ -126,21 +126,30 @@ class NewRealEstateShowDateModel {
     this.dateForTarget,
     this.videoUpdatedAt,
   });
-
-  // tiny helpers so backend shenanigans don't break you
+// tiny helpers so backend shenanigans don't break you
   static int? _asInt(dynamic v) {
     if (v == null) return null;
     if (v is int) return v;
     return int.tryParse(v.toString());
   }
 
-  static String? _asStr(dynamic v) => v?.toString();
+  static String? _asStr(dynamic v) {
+    if (v == null) return null;
+
+    final str = v.toString().trim();
+
+    if (str.isEmpty) return null;
+    if (str.toLowerCase() == "null") return null; // FIX: treat "null" as null
+
+    return str;
+  }
+
 
   factory NewRealEstateShowDateModel.fromJson(Map<String, dynamic> json) {
     return NewRealEstateShowDateModel(
       pId: _asInt(json['P_id']),
       sId: _asInt(json['subid']),
-      sourceId: _asStr(json['source_id']), // "921" in your sample
+      sourceId: _asStr(json['source_id']),
       propertyPhoto: _asStr(json['property_photo']),
       locations: _asStr(json['locations']),
       flatNumber: _asStr(json['Flat_number']),
@@ -188,7 +197,9 @@ class NewRealEstateShowDateModel {
       video: _asStr(json['video_link']),
       videoStatus: _asStr(json['video_status']),
       dateForTarget: _asStr(json['date_for_target']),
-      videoUpdatedAt: _asStr(json['video_updated_at']?['date']),
+
+      // 🔥 FIXED HERE
+      videoUpdatedAt: _asStr(json['video_updated_at']),
     );
   }
 

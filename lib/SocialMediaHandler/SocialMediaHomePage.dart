@@ -38,6 +38,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
   int propertyCount = 0;
   String? selectedLabel;
   Timer? _debounce;
+  final Map<int, GlobalKey> itemKeys = {};
 
   @override
   void dispose() {
@@ -104,9 +105,11 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
 
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // fetch _number from SharedPreferences
+    _loaduserdata().then((_) => _fetchInitialData());
 
     _loaduserdata().then((_) {
+      _scheduleScrollAfterBuild();
+
       _fetchInitialData(); // Call your API after loading user data
     });
   }
@@ -116,42 +119,48 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
 
-    _name = prefs.getString('name') ?? '';      // FName
-    _number = prefs.getString('number') ?? '';  // FNumber
-    _aadhar = prefs.getString('post') ?? '';    // FAadharCard
+    _name = prefs.getString('name') ?? '';
+    _number = prefs.getString('number') ?? '';
+    _aadhar = prefs.getString('post') ?? '';
 
     print("Loaded Name: $_name");
     print("Loaded Number: $_number");
     print("Loaded Aadhar: $_aadhar");
 
+    // 🔹 1. Fetch properties
     await _fetchProperties();
+
+    // 🔹 2. Load submitted statuses
     for (var property in _allProperties) {
       final saved = await loadStatus(property.pId ?? 0);
       if (saved != null) {
         submittedStatus[property.pId!] = saved;
-        // 🔥 HIGHLIGHT & SCROLL when notification comes
-        if (widget.highlightPropertyId != null) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            int index = _filteredProperties.indexWhere(
-                  (item) => item.pId.toString() == widget.highlightPropertyId,
-            );
-
-            print("🔥 Highlight in Social Page: ${widget.highlightPropertyId}");
-            print("📍 Found index: $index");
-
-            if (index != -1) {
-              _scrollController.animateTo(
-                index * 500, // height approx
-                duration: const Duration(milliseconds: 700),
-                curve: Curves.easeOut,
-              );
-            }
-          });
-        }
-
       }
     }
 
+    // 🔥 3. Scroll to highlighted property (AFTER list is fully loaded)
+    if (widget.highlightPropertyId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        int index = _filteredProperties.indexWhere(
+              (item) => item.pId.toString() == widget.highlightPropertyId,
+        );
+
+        print("🔥 Highlight Property ID = ${widget.highlightPropertyId}");
+        print("📍 Found Index = $index");
+
+        if (index != -1) {
+          final keyContext = itemKeys[_filteredProperties[index].pId]?.currentContext;
+          if (keyContext != null) {
+            Scrollable.ensureVisible(
+              keyContext,
+              duration: Duration(milliseconds: 700),
+              alignment: 0.1,
+              curve: Curves.easeOut,
+            );
+          }
+        }
+      });
+    }
   }
   Future<void> saveStatus(int id, String status) async {
     final prefs = await SharedPreferences.getInstance();
@@ -195,6 +204,16 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
       return null;
     }
   }
+  void _scheduleScrollAfterBuild() {
+    if (widget.highlightPropertyId == null) return;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Delay allows keys to attach to RenderObjects
+      Future.delayed(const Duration(milliseconds: 300), () {
+        _scrollToHighlighted();
+      });
+    });
+  }
 
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
@@ -205,10 +224,41 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
         _filteredProperties = data;
         _isLoading = false;
       });
+
+      if (widget.highlightPropertyId != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _scrollToHighlighted();
+        });
+      }
     } catch (e) {
       print("❌ Error: $e");
       setState(() => _isLoading = false);
     }
+  }
+  void _scrollToHighlighted()
+  {
+    if (widget.highlightPropertyId == null) return;
+
+    final int? id = int.tryParse(widget.highlightPropertyId!);
+    if (id == null) return;
+
+    final key = itemKeys[id];
+    if (key == null) return;
+
+    final keyContext = key.currentContext;
+
+    if (keyContext == null) {
+      // Try again after a short delay (list is still building)
+      Future.delayed(const Duration(milliseconds: 150), _scrollToHighlighted);
+      return;
+    }
+
+    Scrollable.ensureVisible(
+      keyContext,
+      duration: Duration(milliseconds: 800),
+      alignment: 0.1,
+      curve: Curves.easeOut,
+    );
   }
 
   Future<void> _fetchInitialData() async {
@@ -375,6 +425,7 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
               child: ListView.builder(
                 controller: _scrollController,
                 itemCount: _filteredProperties.length,
+
                 itemBuilder: (context, index) {
 
                   final property = _filteredProperties[index];
@@ -423,7 +474,9 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                         "Facility": property.facility,
                         "Video": property.video,
                       };
-
+                      if (!itemKeys.containsKey(property.pId)) {
+                        itemKeys[property.pId!] = GlobalKey();
+                      }
                       final missingFields = fields.entries
                           .where((entry) {
                         final value = entry.value;
@@ -438,296 +491,285 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                       final hasMissingFields = missingFields.isNotEmpty;
                       String status = property.videoStatus?.trim().toLowerCase() ?? "";
                       bool isSubmitted = status == "video submitted" || status == "received";
-                      return Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                SharedPreferences prefs = await SharedPreferences.getInstance();
-                                prefs.setInt('id_Building', _filteredProperties[index].pId??0);
-                                prefs.setString('id_Longitude', _filteredProperties[index].longitude.toString());
-                                prefs.setString('id_Latitude', _filteredProperties[index].latitude.toString());
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AllViewDetails(id: _filteredProperties[index].pId??0),
-                                  ),
-                                );
-                                print(_filteredProperties[index].pId??0);
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                      return Container(
+                        key: itemKeys[property.pId],
+                        child: Column(
+                            children: [
+                              GestureDetector(
+                                onTap: () async {
+                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  prefs.setInt('id_Building', _filteredProperties[index].pId??0);
+                                  prefs.setString('id_Longitude', _filteredProperties[index].longitude.toString());
+                                  prefs.setString('id_Latitude', _filteredProperties[index].latitude.toString());
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => AllViewDetails(id: _filteredProperties[index].pId??0),
+                                    ),
+                                  );
+                                  print(_filteredProperties[index].pId??0);
+                                },
+                                child: Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
 
-                                child: Card(
-                                  elevation: 4,
-                                  shape: RoundedRectangleBorder(
-                                    side: property.pId.toString() == widget.highlightPropertyId
-                                        ? const BorderSide(color: Colors.red, width: 3)   // 🔥 RED HIGHLIGHT
-                                        : BorderSide.none,
-                      // :const BorderSide(color: Colors.red, width: 3),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  shadowColor:  Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
+                                  child: Card(
+                                    elevation: 4,
+                                    shape: RoundedRectangleBorder(
+                                      side: property.pId.toString() == widget.highlightPropertyId
+                                          ? const BorderSide(color: Colors.red, width: 3)   // 🔥 RED HIGHLIGHT
+                                          : BorderSide.none,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    shadowColor:  Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
 
-                                  color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
-                                  child:
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          Container(
-                                            height: 450,
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).highlightColor,
-                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                            ),
-                                            child: ClipRRect(
-                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                    color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
+                                    child:
+                                    Column(
+                                         crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Stack(
+                                          children: [
+                                            Container(
+                                              height: 450,
+                                              width: double.infinity,
+                                              decoration: BoxDecoration(
+                                                color: Theme.of(context).highlightColor,
+                                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                                              ),
+                                              child: ClipRRect(
+                                                borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
 
-                                              child: Image.network(
-                                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                                fit: BoxFit.cover,
-                                                errorBuilder: (context, error, stackTrace) => Center(
-                                                  child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
+                                                child: Image.network(
+                                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) => Center(
+                                                    child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Positioned(
-                                            top: 12,
-                                            right: 12,
-                                            child: Wrap(
-                                              spacing: 8,
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  text: "Live Property ID : ${_filteredProperties[index].pId}",
-                                                  borderColor: Colors.grey.shade700,
-                                                  backgroundColor: Colors.white,
-                                                  textColor: Colors.blue,
-                                                  shadowColor: Colors.white60,
-                                                ),  _buildFeatureItem(
-                                                  context: context,
-                                                  //
-                                                  text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
-                                                  borderColor: Colors.green.shade400,
-                                                  backgroundColor: Colors.green.shade100,
-                                                  textColor: Colors.green.shade700,
-                                                  shadowColor: Colors.green.shade100,
-                                                ),
+                                            Positioned(
+                                              top: 12,
+                                              right: 12,
+                                              child: Wrap(
+                                                spacing: 8,
+                                                children: [
+                                                  _buildFeatureItem(
+                                                    context: context,
+                                                    text: "Live Property ID : ${_filteredProperties[index].pId}",
+                                                    borderColor: Colors.grey.shade700,
+                                                    backgroundColor: Colors.white,
+                                                    textColor: Colors.blue,
+                                                    shadowColor: Colors.white60,
+                                                  ),  _buildFeatureItem(
+                                                    context: context,
+                                                    //
+                                                    text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
+                                                    borderColor: Colors.green.shade400,
+                                                    backgroundColor: Colors.green.shade100,
+                                                    textColor: Colors.green.shade700,
+                                                    shadowColor: Colors.green.shade100,
+                                                  ),
 
+                                                ],
+                                              ),
+                                            ),
+                                            Column(
+                                              children: [
+                                                if (hasMissingFields) ...[
+                                                  SizedBox(
+                                                    height: MediaQuery.of(context).size.height * 0.41,
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                                    child: Container(
+                                                      width: double.infinity,
+                                                      padding: const EdgeInsets.all(10),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.red[50],
+                                                        borderRadius: BorderRadius.circular(10),
+                                                        border: Border.all(color: Colors.redAccent, width: 1),
+                                                      ),
+                                                      child: Text(
+                                                        "⚠ Missing fields: ${missingFields.join(", ")}",
+                                                        style: TextStyle(
+                                                          fontSize: 12,
+                                                          fontWeight: FontWeight.w600,
+                                                          color: Colors.redAccent,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+
+                                                ]
                                               ],
                                             ),
-                                          ),
-                                          Column(
+                                          ],
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.all(16),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              if (hasMissingFields) ...[
-                                                SizedBox(
-                                                  height: MediaQuery.of(context).size.height * 0.41,
-                                                ),
-                                                Padding(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                              Row(
+                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                children: [
+                                                  Text(
+                                                    "₹${_filteredProperties[index].showPrice??"-"
+                                                        ".0"}"
+                                                    ,
+                                                    style: TextStyle(
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 20,
+                                                      fontFamily: "PoppinsBold",
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                  Text(
+                                                    _filteredProperties[index].locations ?? "",
+                                                    style: TextStyle(
+                                                      fontFamily: "PoppinsBold",
+                                                      color: Colors.black,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Wrap(
+                                                spacing: 4, // horizontal spacing between items
+                                                runSpacing: 8, // vertical spacing between lines
+                                                alignment: WrapAlignment.start,
+                                                children: [
+                                                  _buildFeatureItem(
+                                                    context: context,
+                                                    icon: Icons.king_bed,
+                                                    text: "${_filteredProperties[index].bhk}",
+                                                    borderColor: Colors.purple.shade200,
+                                                    backgroundColor: Colors.purple.shade50,
+                                                    textColor: Colors.purple.shade700,
+                                                    shadowColor: Colors.purple.shade100,
+                                                  ),
+                                                  _buildFeatureItem(
+                                                    context: context,
+                                                    icon: Icons.apartment,
+                                                    text: "${_filteredProperties[index].floor}",
+                                                    borderColor: Colors.teal.shade200,
+                                                    backgroundColor: Colors.teal.shade50,
+                                                    textColor: Colors.teal.shade700,
+                                                    shadowColor: Colors.teal.shade100,
+                                                  ),
+                                                  // _buildFeatureItem(
+                                                  //   context: context,
+                                                  //   icon: Icons.receipt_rounded,
+                                                  //   text: "Flat No. ${_filteredProperties[index].flatNumber}",
+                                                  //   borderColor: Colors.red.shade200,
+                                                  //   backgroundColor: Colors.red.shade50,
+                                                  //   textColor: Colors.red.shade700,
+                                                  //   shadowColor: Colors.red.shade100,
+                                                  // ),
+
+                                                  _buildFeatureItem(
+                                                    context: context,
+                                                    icon: Icons.home_work,
+                                                    text: _filteredProperties[index].typeOfProperty ?? "",
+                                                    borderColor: Colors.orange.shade200,
+                                                    backgroundColor: Colors.orange.shade50,
+                                                    textColor: Colors.orange.shade700,
+                                                    shadowColor: Colors.orange.shade100,
+                                                  ),
+
+
+
+                                                ],
+                                              ),
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                            children: [
+
+                                              Expanded(
+                                                child: InkWell(
+                                                  onTap: () async {
+                                                    String raw = (property.videoStatus ?? "").trim().toLowerCase();
+
+                                                    bool isPending = raw.isEmpty;
+                                                    bool isSubmitted = raw == "video submitted";
+                                                    bool isWorkerReason = raw == "reason";
+                                                    bool isRequested = raw == "video requested by editor";
+                                                    bool isEditingStarted = raw == "video recived and editing started";
+                                                    bool isUploaded = raw == "video uploaded";
+
+                                                    // -----------------------------------------------------
+                                                    // 🔥 If editor should upload final YouTube link
+                                                    // -----------------------------------------------------
+                                                    if (isEditingStarted && !isUploaded) {
+                                                      await Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (_) => SubmitVideoPage(
+                                                            propertyId: property.pId ?? 0,
+                                                            status: raw,
+                                                            action: "upload_video_link",
+                                                            userName: _name,
+                                                            userRole: _aadhar,
+                                                          ),
+                                                        ),
+                                                      );
+
+                                                      _fetchProperties();
+                                                      return;
+                                                    }
+
+                                                    // -----------------------------------------------------
+                                                    // 🔥 If final link already uploaded → view only
+                                                    // -----------------------------------------------------
+                                                    if (isUploaded) {
+                                                      await Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (_) => SubmitVideoPage(
+                                                            propertyId: property.pId ?? 0,
+                                                            status: raw,
+                                                            action: "view_only",
+                                                            userName: _name,
+                                                            userRole: _aadhar,
+                                                          ),
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
+
+                                                    // -----------------------------------------------------
+                                                    // 🔥 Normal editor messaging flow
+                                                    // -----------------------------------------------------
+                                                    String actionToSend = "editor_reply";
+
+                                                    if (isSubmitted || isWorkerReason || isRequested) {
+                                                      actionToSend = "editor_received";
+                                                    }
+
+                                                    final result = await Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (_) => SubmitVideoPage(
+                                                          propertyId: property.pId ?? 0,
+                                                          status: raw,
+                                                          action: actionToSend,
+                                                          userName: _name,
+                                                          userRole: _aadhar,
+                                                        ),
+                                                      ),
+                                                    );
+
+                                                    if (result == true) {
+                                                      _fetchProperties();
+                                                    }
+                                                  },
+
                                                   child: Container(
-                                                    width: double.infinity,
-                                                    padding: const EdgeInsets.all(10),
                                                     decoration: BoxDecoration(
-                                                      color: Colors.red[50],
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      border: Border.all(color: Colors.redAccent, width: 1),
-                                                    ),
-                                                    child: Text(
-                                                      "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        fontWeight: FontWeight.w600,
-                                                        color: Colors.redAccent,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-
-                                              ]
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "₹${_filteredProperties[index].showPrice??"-"
-                                                      ".0"}"
-                                                  ,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _filteredProperties[index].locations ?? "",
-                                                  style: TextStyle(
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Wrap(
-                                              spacing: 4, // horizontal spacing between items
-                                              runSpacing: 8, // vertical spacing between lines
-                                              alignment: WrapAlignment.start,
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].bhk}",
-                                                  borderColor: Colors.purple.shade200,
-                                                  backgroundColor: Colors.purple.shade50,
-                                                  textColor: Colors.purple.shade700,
-                                                  shadowColor: Colors.purple.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.apartment,
-                                                  text: "${_filteredProperties[index].floor}",
-                                                  borderColor: Colors.teal.shade200,
-                                                  backgroundColor: Colors.teal.shade50,
-                                                  textColor: Colors.teal.shade700,
-                                                  shadowColor: Colors.teal.shade100,
-                                                ),
-                                                // _buildFeatureItem(
-                                                //   context: context,
-                                                //   icon: Icons.receipt_rounded,
-                                                //   text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                //   borderColor: Colors.red.shade200,
-                                                //   backgroundColor: Colors.red.shade50,
-                                                //   textColor: Colors.red.shade700,
-                                                //   shadowColor: Colors.red.shade100,
-                                                // ),
-
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.home_work,
-                                                  text: _filteredProperties[index].typeOfProperty ?? "",
-                                                  borderColor: Colors.orange.shade200,
-                                                  backgroundColor: Colors.orange.shade50,
-                                                  textColor: Colors.orange.shade700,
-                                                  shadowColor: Colors.orange.shade100,
-                                                ),
-
-
-
-                                              ],
-                                            ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-                                          children: [
-
-                                            Expanded(
-                                              child: InkWell(
-                                                onTap: () async {
-                                                  String raw = (property.videoStatus ?? "").trim().toLowerCase();
-
-                                                  bool isPending = raw.isEmpty;
-                                                  bool isSubmitted = raw == "video submitted";
-                                                  bool isWorkerReason = raw == "reason";
-                                                  bool isRequested = raw == "video requested by editor";
-                                                  bool isEditingStarted = raw == "video recived and editing started";
-                                                  bool isUploaded = raw == "video uploaded";
-
-                                                  // -----------------------------------------------------
-                                                  // 🔥 If editor should upload final YouTube link
-                                                  // -----------------------------------------------------
-                                                  if (isEditingStarted && !isUploaded) {
-                                                    await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) => SubmitVideoPage(
-                                                          propertyId: property.pId ?? 0,
-                                                          status: raw,
-                                                          action: "upload_video_link",
-                                                          userName: _name,
-                                                          userRole: _aadhar,
-                                                        ),
-                                                      ),
-                                                    );
-
-                                                    _fetchProperties();
-                                                    return;
-                                                  }
-
-                                                  // -----------------------------------------------------
-                                                  // 🔥 If final link already uploaded → view only
-                                                  // -----------------------------------------------------
-                                                  if (isUploaded) {
-                                                    await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (_) => SubmitVideoPage(
-                                                          propertyId: property.pId ?? 0,
-                                                          status: raw,
-                                                          action: "view_only",
-                                                          userName: _name,
-                                                          userRole: _aadhar,
-                                                        ),
-                                                      ),
-                                                    );
-                                                    return;
-                                                  }
-
-                                                  // -----------------------------------------------------
-                                                  // 🔥 Normal editor messaging flow
-                                                  // -----------------------------------------------------
-                                                  String actionToSend = "editor_reply";
-
-                                                  if (isSubmitted || isWorkerReason || isRequested) {
-                                                    actionToSend = "editor_received";
-                                                  }
-
-                                                  final result = await Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (_) => SubmitVideoPage(
-                                                        propertyId: property.pId ?? 0,
-                                                        status: raw,
-                                                        action: actionToSend,
-                                                        userName: _name,
-                                                        userRole: _aadhar,
-                                                      ),
-                                                    ),
-                                                  );
-
-                                                  if (result == true) {
-                                                    _fetchProperties();
-                                                  }
-                                                },
-
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    color: () {
-                                                      String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                      if (st.isEmpty) return Colors.red;
-                                                      if (st == "video submitted") return Colors.blue;
-                                                      if (st == "reason") return Colors.blue;
-                                                      if (st == "video requested by editor") return Colors.orange;
-                                                      if (st == "video recived and editing started") return Colors.orange;
-                                                      if (st == "video uploaded") return Colors.purple;
-                                                      return Colors.red;
-                                                    }(),
-                                                    borderRadius: BorderRadius.circular(10),
-                                                    border: Border.all(
                                                       color: () {
                                                         String st = (property.videoStatus ?? "").trim().toLowerCase();
                                                         if (st.isEmpty) return Colors.red;
@@ -738,57 +780,70 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                                         if (st == "video uploaded") return Colors.purple;
                                                         return Colors.red;
                                                       }(),
-                                                    ),
-                                                  ),
-                                                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                                  child: Row(
-                                                    children: [
-                                                      Icon(
-                                                        (property.videoStatus ?? "").trim().toLowerCase() == "video submitted"
-                                                            ? Icons.check_circle
-                                                            : Icons.error_outline,
-                                                        color: Colors.white,
+                                                      borderRadius: BorderRadius.circular(10),
+                                                      border: Border.all(
+                                                        color: () {
+                                                          String st = (property.videoStatus ?? "").trim().toLowerCase();
+                                                          if (st.isEmpty) return Colors.red;
+                                                          if (st == "video submitted") return Colors.blue;
+                                                          if (st == "reason") return Colors.blue;
+                                                          if (st == "video requested by editor") return Colors.orange;
+                                                          if (st == "video recived and editing started") return Colors.orange;
+                                                          if (st == "video uploaded") return Colors.purple;
+                                                          return Colors.red;
+                                                        }(),
                                                       ),
-                                                      SizedBox(width: 8),
-                                                      Expanded(
-                                                        child: Text(
-                                                          (property.videoStatus ?? "").trim().isEmpty
-                                                              ? "Editor Request"
-                                                              : property.videoStatus!,
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
+                                                    ),
+                                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                                    child: Row(
+                                                      children: [
+                                                        Icon(
+                                                          (property.videoStatus ?? "").trim().toLowerCase() == "video submitted"
+                                                              ? Icons.check_circle
+                                                              : Icons.error_outline,
+                                                          color: Colors.white,
                                                         ),
-                                                      )
-                                                    ],
+                                                        SizedBox(width: 8),
+                                                        Expanded(
+                                                          child: Text(
+                                                            (property.videoStatus ?? "").trim().isEmpty
+                                                                ? "Editor Request"
+                                                                : property.videoStatus!,
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontWeight: FontWeight.bold,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      ],
+                                                    ),
                                                   ),
                                                 ),
                                               ),
-                                            ),
 
-                                        // space between the two containers
-                                                Expanded(
-                                                  child: _AddedByItem(
-                                                    context: context,
-                                                    text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
-                                                    borderColor: Colors.red.shade400,
-                                                    backgroundColor: Colors.red.shade200,
-                                                    textColor: Colors.white,
-                                                    shadowColor: Colors.white60,
+                                          // space between the two containers
+                                                  Expanded(
+                                                    child: _AddedByItem(
+                                                      context: context,
+                                                      text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
+                                                      borderColor: Colors.red.shade400,
+                                                      backgroundColor: Colors.red.shade200,
+                                                      textColor: Colors.white,
+                                                      shadowColor: Colors.white60,
 
+                                                    ),
                                                   ),
-                                                ),
-                                          ],),
-                                          ],
+                                            ],),
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ]
+                            ]
+                        ),
                       );
                     },
                   );

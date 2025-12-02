@@ -413,29 +413,29 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[7],
       },
-      {
-        "image": AppImages.calendar,
-        "title": "Task Calendar",
-        "onTap": () {
-          Navigator.push(
-              context, MaterialPageRoute(
-              builder: (_) => const CalendarTaskPage()));
-        },
-        "gradient": cardGradients[8],
+      // {
+      //   "image": AppImages.calendar,
+      //   "title": "Task Calendar",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context, MaterialPageRoute(
+      //         builder: (_) => const CalendarTaskPage()));
+      //   },
+      //   "gradient": cardGradients[8],
+      //
+      // },
 
-      },
-
-      {
-        "image": AppImages.demand_2,
-        "title": "Costumer Demands 2.O",
-        "onTap": () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CostumerDemand()),
-        ),
-        "gradient": LinearGradient(
-          colors: [Colors.purple, Colors.blue,],
-        ),
-      },
+      // {
+      //   "image": AppImages.demand_2,
+      //   "title": "Costumer Demands 2.O",
+      //   "onTap": () => Navigator.push(
+      //     context,
+      //     MaterialPageRoute(builder: (context) => CostumerDemand()),
+      //   ),
+      //   "gradient": LinearGradient(
+      //     colors: [Colors.purple, Colors.blue,],
+      //   ),
+      // },
 
 
     ];

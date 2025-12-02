@@ -276,67 +276,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
   }
 
-  Widget _kvImage(String k, dynamic url) {
-    if (url == null) return const SizedBox.shrink();
-    final imageUrl = url.toString().trim();
-    if (imageUrl.isEmpty) return const SizedBox.shrink();
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                ImagePreviewScreen(imageUrl: 'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl'),
-          ),
-        );
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 140,
-              child: Text(
-                '$k:',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-            ),
-            Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.network(
-                  "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
-                  height: 150,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) =>
-                  const Icon(Icons.broken_image, color: Colors.red),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  MediaType _mediaTypeFromHeader(String? ct, {String fallback = 'application/octet-stream'}) {
-    final v = (ct ?? fallback).split(';').first.trim();
-    final parts = v.split('/');
-    if (parts.length == 2) return MediaType(parts[0], parts[1]);
-    return MediaType('application', 'octet-stream');
-  }
-
-  String _filenameFromUrl(String url, {required String defaultBase, required String defaultExt}) {
-    try {
-      final p = Uri.parse(url).pathSegments;
-      if (p.isNotEmpty && p.last.contains('.')) return p.last;
-    }
-    catch (_) {}
-    final rand = math.Random().nextInt(1 << 32);
-    return '${defaultBase}_$rand.$defaultExt';
-  }
 
   Future<void> _submitAll() async {
     if (agreement == null) return;
@@ -348,12 +287,19 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     );
 
     try {
-      final uri = Uri.parse("https://theverify.in/insert.php");
+      final uri = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/insert.php",
+      );
+
       final request = http.MultipartRequest('POST', uri);
       request.headers['Accept'] = 'application/json';
 
-      // Basic fields
-      final Map<String, String> fields = {
+      final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+
+      // ----------------------
+      // BASIC FIELDS
+      // ----------------------
+      final fields = <String, String>{
         "accept_delete_id": widget.agreementId,
         "owner_name": agreement?["owner_name"] ?? "",
         "owner_relation": agreement?["owner_relation"] ?? "",
@@ -387,76 +333,110 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "furniture": agreement?["furniture"] ?? "",
       };
 
-      // Add fields to request
       fields.forEach((k, v) {
         if (v.trim().isNotEmpty) request.fields[k] = v.trim();
       });
 
-      // Upload file helper
+      // ----------------------
+      // FILE ATTACH FUNCTION
+      // ----------------------
       Future<void> attachFile(String key, File? file) async {
         if (file == null) return;
+        final mime = lookupMimeType(file.path) ?? "application/octet-stream";
+        final parts = mime.split("/");
         request.files.add(await http.MultipartFile.fromPath(
           key,
           file.path,
-          contentType: _mediaTypeFromPath(file.path),
+          contentType: MediaType(parts[0], parts[1]),
         ));
-        print("✅ Attached $key");
       }
 
-      final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+      // ----------------------
+      // DOWNLOAD OLD DB IMAGES
+      // ----------------------
+      Future<File?> downloadIfNeeded(String? imgPath, String name) async {
+        if (imgPath == null || imgPath.isEmpty) return null;
 
-      // 🔥 POLICE VERIFICATION MODE
+        final url =
+            "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imgPath";
+
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode != 200) return null;
+
+        final dir = Directory.systemTemp;
+        final file = File("${dir.path}/$name");
+        return file.writeAsBytes(response.bodyBytes);
+      }
+
+      // ----------------------
+      // REQUIRED DB IMAGES
+      // ----------------------
+      final ownerFront = await downloadIfNeeded(
+          agreement?["owner_aadhar_front"], "owner_front.jpg");
+      final ownerBack = await downloadIfNeeded(
+          agreement?["owner_aadhar_back"], "owner_back.jpg");
+      final tenantFront = await downloadIfNeeded(
+          agreement?["tenant_aadhar_front"], "tenant_front.jpg");
+      final tenantBack = await downloadIfNeeded(
+          agreement?["tenant_aadhar_back"], "tenant_back.jpg");
+      final tenantImg = await downloadIfNeeded(
+          agreement?["tenant_image"], "tenant_img.jpg");
+
+      // ----------------------
+      // POLICE VERIFICATION MODE
+      // ----------------------
       if (isPolice) {
         if (policeVerificationFile == null) {
           Navigator.pop(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Please upload Police Verification PDF")),
+            const SnackBar(content: Text("Upload Police Verification PDF")),
           );
           return;
         }
 
-        // Only Police PDF
+        // Only upload police verification PDF
         await attachFile("police_verification_pdf", policeVerificationFile);
 
-        // Other files MUST be empty string
-        request.fields["notry_img"] = "";
-        request.fields["agreement_pdf"] = "";
+        // Still upload Aadhar & tenant images from DB
+        await attachFile("owner_aadhar_front", ownerFront);
+        await attachFile("owner_aadhar_back", ownerBack);
+        await attachFile("tenant_aadhar_front", tenantFront);
+        await attachFile("tenant_aadhar_back", tenantBack);
+        await attachFile("tenant_image", tenantImg);
 
       } else {
-        // Regular Agreement
+        // ----------------------
+        // NORMAL AGREEMENT
+        // ----------------------
         await attachFile("police_verification_pdf", policeVerificationFile);
         await attachFile("notry_img", notaryImageFile);
         await attachFile("agreement_pdf", pdfFile);
+
+        // Attach DB images
+        await attachFile("owner_aadhar_front", ownerFront);
+        await attachFile("owner_aadhar_back", ownerBack);
+        await attachFile("tenant_aadhar_front", tenantFront);
+        await attachFile("tenant_aadhar_back", tenantBack);
+        await attachFile("tenant_image", tenantImg);
       }
 
-      // 🔥 MOST IMPORTANT FIX
-      // Do NOT download from URL ❌
-      // Only send existing DB paths ✔
-      request.fields["owner_aadhar_front"]  = agreement?["owner_aadhar_front"] ?? "";
-      request.fields["owner_aadhar_back"]   = agreement?["owner_aadhar_back"] ?? "";
-      request.fields["tenant_aadhar_front"] = agreement?["tenant_aadhar_front"] ?? "";
-      request.fields["tenant_aadhar_back"]  = agreement?["tenant_aadhar_back"] ?? "";
-      request.fields["tenant_image"]        = agreement?["tenant_image"] ?? "";
-
+      // ----------------------
       // SEND REQUEST
+      // ----------------------
       final streamed = await request.send();
       final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        print("✅ SUCCESS: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Submitted successfully!")),
         );
         Navigator.pop(context, true);
       } else {
-        print("❌ FAILED ${response.statusCode}: ${response.body}");
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Submit failed (${response.statusCode})")),
         );
       }
-
     } catch (e) {
-      print("🔥 ERROR: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
       );
@@ -833,18 +813,6 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
             const SizedBox(height: 30),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _docLabel(String text) {
-    return Container(
-      width: 160,
-      margin: const EdgeInsets.only(right: 12),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
       ),
     );
   }

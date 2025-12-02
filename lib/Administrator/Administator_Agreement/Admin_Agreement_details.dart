@@ -113,7 +113,7 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     print("Updating agreement status: $action"); // debug
     try {
       final url = Uri.parse(
-          " ");
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
 
       print("Sending POST request to $url with id=${widget.agreementId}");
       final response = await http.post(
@@ -140,14 +140,12 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             ),
           );
 
-          // Wait 1 second, then navigate
           await Future.delayed(const Duration(seconds: 1));
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const AdminDashboard()),
                 (route) => false,
           );
-
         }
 
         else {
@@ -159,7 +157,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             ),
           );
         }
-      } else {
+      }
+      else {
         print("Server error");
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

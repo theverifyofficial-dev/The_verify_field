@@ -17,6 +17,8 @@ import '../add_properties_firstpage.dart';
 import '../profile.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_Ads.dart';
+import 'Detail_page.dart';
+import 'Metadata_details.dart';
 import 'VideoSubmitPage.dart';
 
 class   AdvertisePage extends StatefulWidget {
@@ -425,7 +427,7 @@ class _AllLiveProperty extends State<AdvertisePage> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => AllViewDetails(id: _filteredProperties[index].pId??0),
+                                    builder: (context) => DetailPage(id: _filteredProperties[index].pId??0),
                                   ),
                                 );
                                 print(_filteredProperties[index].pId??0);
@@ -609,6 +611,33 @@ class _AllLiveProperty extends State<AdvertisePage> {
                                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                                               ),
 
+                                            ),
+                                            SizedBox(height: 10,),
+                                            ElevatedButton.icon(
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (_) => MetaAdsDetailPage(
+                                                      subId: _filteredProperties[index].pId.toString(),
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                elevation: 3,
+                                                backgroundColor: Colors.blueAccent,
+                                                foregroundColor: Colors.white,
+                                                minimumSize: const Size(double.infinity, 50),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius: BorderRadius.circular(14),
+                                                ),
+                                              ),
+                                              icon: const Icon(Icons.bar_chart_rounded, size: 22),
+                                              label: const Text(
+                                                "View Meta Ads Details",
+                                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                              ),
                                             ),
 
                                           ],

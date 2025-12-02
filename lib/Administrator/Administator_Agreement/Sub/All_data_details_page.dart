@@ -168,7 +168,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     try {
       final request = http.MultipartRequest(
         "POST",
-        Uri.parse("https://theverify.in/update_police_verifification_notry_img.php"),
+        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/update_notry_and_police_verification.php"),
       );
 
       request.fields["id"] = widget.agreementId;
@@ -560,7 +560,6 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                // 🔹 Police Verification Button
                 ElevatedButton(
                   onPressed: () {
                     final pdf = agreement?["police_verification_pdf"];
@@ -597,7 +596,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => ImagePreviewScreen(
-                                imageUrl: 'https://theverify.in/$notary'),
+                                imageUrl: 'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$notary'),
                           ),
                         );
                       }
@@ -629,7 +628,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                 ElevatedButton(
                   onPressed: () =>
                       _launchURL(
-                      'https://theverify.in/${agreement?["agreement_pdf"]}'),
+                      'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/${agreement?["agreement_pdf"]}'),
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue, foregroundColor: Colors.black),
                   child: const Text('View Agreement PDF'),
@@ -663,7 +662,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
           MaterialPageRoute(
             builder: (_) => ImagePreviewScreen(
               imageUrl:
-              'https://theverify.in/$imageUrl',
+              'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl',
             ),
           ),
         );
@@ -675,7 +674,7 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(10),
           child: Image.network(
-            "https://theverify.in/$imageUrl",
+            "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$imageUrl",
             width: 160,   // force same as container
             height: 120,  // force same as container
             fit: BoxFit.cover, // ensures full fill

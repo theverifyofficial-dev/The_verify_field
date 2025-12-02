@@ -288,9 +288,19 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 20),
+      footer: (context) {
+        return pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(top: 20),
+          child: pw.Text(
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+        );
+      },
       build: (context) => [
         // PAGE 1 (title + intro + clauses 1-5)
-        pw.Center(child: pw.Text('RENT AGREEMENT', style: titleStyle)),
+        pw.Center(child: pw.Text('Leave & License', style: titleStyle)),
         pw.SizedBox(height: 10),
 
         pw.RichText(
@@ -427,7 +437,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             style: baseStyle,
           ),
         ),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 9),
 
         pw.RichText(
           text: pw.TextSpan(
@@ -440,17 +450,16 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             style: baseStyle,
           ),
         ),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 9),
         clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement. (IPC 420, 468, 471)'),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 9),
         clause('7. Mandatory Police Verification & Visitor Compliance:', 'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188)'),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 9),
         clause('8. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.(IPC 425, 427)'),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 9),
         clause('9. Damage and Handover:', 'The Tenant shall keep the premises in good condition. Any damage, other than normal wear and tear, must be repaired at the Tenant\'s cost. At the end of tenancy, the Tenant must vacate and return the premises as received. Delay or failure to hand over possession will make the Tenant liable for damages and legal action. (IPC 441, 447, 427)'),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 9),
         clause('10. Inspection & Emergency Entry:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188'),
-        pw.SizedBox(height: 10),
       ],
     ),
   );
@@ -460,34 +469,44 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
+      footer: (context) {
+        return pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(top: 20),
+          child: pw.Text(
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+        );
+      },
       build: (context) => [
 
         clause('11. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 12),
         clause('12. Vacating & Termination:', 'The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing. (IPC 441, 447)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('13. Termination on Grounds of Misconduct:', 'If the Tenant engages in any unlawful, improper, or socially unacceptable activity, or causes trouble in the society or locality such as fighting or disturbing peace, the Landlord shall have the right to terminate this tenancy by giving one month\'s written notice. After the notice period ends, the Tenant must vacate the premises without objection. (IPC 268, 290, 504, 506, 323)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('14. Tenant Information:', 'The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the term ends. (IPC 188, 177)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('15. Lock-in Period:', 'The Second Party shall not terminate the lease within the first Six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('16. Prohibited Activities:', 'The Second Party shall not engage in illegal or unlawful activities in the premises. The Second Party shall not keep any unauthorized inflammable or explosive items in the premises. (IPC 285, 286, 188, 120B)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('17. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same. (IPC 420, 468, 471)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('18. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. (IPC 420, 468, 471)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('19. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic. (IPC 268)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('20. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('21. Unauthorized Occupants:', 'No person other than the Second Party/Tenant shall occupy the premises without prior written consent from the First Party/Landlord. Unauthorized occupants will be considered a violation of this agreement and may result in termination. (IPC 441, 447)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('22. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403)'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('23. Living Relationships:', 'The Second Party/Tenant shall not enter into or maintain a live-in relationship within the premises without notifying the First Party/Landlord. Any legal issues arising from such arrangements shall be the sole responsibility of the Second Party/Tenant, and the First Party/Landlord shall not be held liable.'),
-        pw.SizedBox(height: 15),
+        pw.SizedBox(height: 12),
         clause('24. Disputes:', 'Any legal disagreements stemming from this agreement must exclusively be resolved by the courts located within Delhi or New Delhi.'),
       ],
     ),
@@ -496,6 +515,16 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   // PAGE 3 (clauses 14 - 24, witness, signatures)
   pdf.addPage(
     pw.MultiPage(
+      footer: (context) {
+        return pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(top: 20),
+          child: pw.Text(
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+        );
+      },
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [
@@ -568,6 +597,16 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   // PAGE 4 - SHO letter (rent verification)
   pdf.addPage(
     pw.MultiPage(
+      footer: (context) {
+        return pw.Container(
+          alignment: pw.Alignment.center,
+          margin: const pw.EdgeInsets.only(top: 20),
+          child: pw.Text(
+            'Page ${context.pageNumber} of ${context.pagesCount}',
+            style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold),
+          ),
+        );
+      },
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [

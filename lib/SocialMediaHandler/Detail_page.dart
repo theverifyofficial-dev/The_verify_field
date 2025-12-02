@@ -179,17 +179,17 @@ class Catid {
   }
 }
 
-class AllViewDetails extends StatefulWidget {
+class DetailPage extends StatefulWidget {
 
   final int id;
 
-  const AllViewDetails({super.key, required this.id});
+  const DetailPage({super.key, required this.id});
 
   @override
-  State<AllViewDetails> createState() => _View_DetailsState();
+  State<DetailPage> createState() => _View_DetailsState();
 }
 
-class _View_DetailsState extends State<AllViewDetails> {
+class _View_DetailsState extends State<DetailPage> {
 
 
 

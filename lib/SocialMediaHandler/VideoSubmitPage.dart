@@ -307,13 +307,11 @@ class _SubmitVideoPageState extends State<SubmitVideoPage> {
                     ],
                   ),
                   const SizedBox(height: 10),
-
                   ...List.generate(
                     (editorInfo?["messages"] ?? []).length,
                         (i) {
                       var msg = editorInfo!["messages"][i];
-                      bool isEditorMessage = msg["role"] == "editor";
-
+                      bool isEditorMessage = msg["role"] == "Editor";
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         padding: const EdgeInsets.all(12),

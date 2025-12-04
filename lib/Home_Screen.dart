@@ -163,12 +163,16 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   void initState() {
     super.initState();
     Timer.periodic(const Duration(seconds: 1), (_) {
-      final now = DateTime.now();
+      final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30)); // IST Time
+
+      final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
+      final ampm = now.hour >= 12 ? "PM" : "AM";
+
       setState(() {
         currentTime =
-        "${now.hour.toString().padLeft(2, '0')}:"
+        "${hour.toString().padLeft(2, '0')}:"
             "${now.minute.toString().padLeft(2, '0')}:"
-            "${now.second.toString().padLeft(2, '0')}";
+            "${now.second.toString().padLeft(2, '0')} $ampm";
       });
     });
     _controller = AnimationController(
@@ -244,421 +248,434 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         todayCounts!.futureProperties +
         todayCounts!.websiteVisits;
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: isDark
-              ? [
-            Colors.grey.shade900,
-            Colors.black87,
-            Colors.black,
-          ]
-              : [
-            Colors.white,
-            Colors.blueGrey.shade50,
+      return GestureDetector(
+        onTap: (){
+          Navigator.push(
+              context, MaterialPageRoute(
+              builder: (_) => const CalendarTaskPage()));
+
+        },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+              Colors.grey.shade900,
+              Colors.black87,
+              Colors.grey.shade900,
+            ]
+                : [
+              Colors.white,
+              Colors.blueGrey.shade50,
+            ],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+              blurRadius: 25,
+              spreadRadius: 1,
+              offset: const Offset(0, 12),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
-            blurRadius: 25,
-            spreadRadius: 1,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          // Decorative background elements
-          Positioned(
-            top: -20,
-            right: -20,
-            child: Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    Colors.blueAccent.withOpacity(0.1),
-                    Colors.transparent,
-                  ],
+        child: Stack(
+          children: [
+            // Decorative background elements
+            Positioned(
+              top: -20,
+              right: -20,
+              child: Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      Colors.blueAccent.withOpacity(0.1),
+                      Colors.transparent,
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
 
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                /// ---------------- HEADER ----------------
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // DATE SECTION
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.blueAccent,
-                            Colors.purpleAccent,
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// ---------------- HEADER ----------------
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // DATE SECTION
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.blueAccent,
+                              Colors.purpleAccent,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
                         ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              weekNames[today.weekday - 1],
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              today.day.toString(),
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                height: 0.9,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              monthNames[today.month - 1],
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const Spacer(),
+
+                      /// ---------------- DIGITAL TIMER ----------------
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isDark
+                                ? [
+                              Colors.grey.shade800.withOpacity(0.8),
+                              Colors.grey.shade900.withOpacity(0.9),
+                            ]
+                                : [
+                              Colors.white,
+                              Colors.blueGrey.shade100,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.1),
+                            width: 1,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                              isDark?
+                              Colors.black.withOpacity(0.4): Colors.grey.withOpacity(0.4),
+                              blurRadius: 15,
+                              offset: const Offset(0, 6),
+                            ),
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.1),
+                              blurRadius: 10,
+                              spreadRadius: 1,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              "NOW",
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.blueAccent.shade200,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              currentTime,
+                              style:  TextStyle(
+                                fontSize: 16,
+                                color: isDark?Colors.white:Colors.grey.shade900,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 2,
+                                fontFamily: 'Courier',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 4),
+
+                  /// ---------------- TODAY EVENTS ----------------
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.redAccent, Colors.orangeAccent],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        totalToday == 0 ? "No Events Today" : "Today's Events",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const Spacer(),
+                      if (totalToday > 0)
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.greenAccent.withOpacity(0.15),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.greenAccent.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Text(
+                            "$totalToday total",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color:
+                              Theme.of(context).brightness==Brightness.dark?
+                              Colors.greenAccent.shade200:Colors.black87,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+
+                  if (totalToday > 0) ...[
+                    const SizedBox(height: 6),
+
+                    // ENHANCED COUNT BOXES
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+                        ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blueAccent.withOpacity(0.3),
-                            blurRadius: 10,
+                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                            blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
                         ],
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      child: Row(
                         children: [
-                          Text(
-                            weekNames[today.weekday - 1],
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.2,
+                          _enhancedCountBox(
+                            "Agreements",
+                            todayCounts!.agreements,
+                            LinearGradient(
+                              colors: [Colors.redAccent, Colors.orangeAccent],
                             ),
+                            Icons.handshake,
+                            isDark,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            today.day.toString(),
-                            style: const TextStyle(
-                              fontSize: 36,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              height: 0.9,
+                          _enhancedCountBox(
+                            "Future",
+                            todayCounts!.futureProperties,
+                            LinearGradient(
+                              colors: [Colors.blueAccent, Colors.indigoAccent],
                             ),
+                            Icons.fitbit_outlined,
+                            isDark,
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            monthNames[today.month - 1],
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.9),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                          _enhancedCountBox(
+                            "Web Visit",
+                            todayCounts!.websiteVisits,
+                            LinearGradient(
+                              colors: [Colors.greenAccent, Colors.tealAccent],
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const Spacer(),
-
-                    /// ---------------- DIGITAL TIMER ----------------
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.grey.shade800.withOpacity(0.8),
-                            Colors.grey.shade900.withOpacity(0.9),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.1),
-                          width: 1,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.4),
-                            blurRadius: 15,
-                            offset: const Offset(0, 6),
-                          ),
-                          BoxShadow(
-                            color: Colors.blueAccent.withOpacity(0.1),
-                            blurRadius: 10,
-                            spreadRadius: 1,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            "NOW",
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.blueAccent.shade200,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            currentTime,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 2,
-                              fontFamily: 'Courier',
-                            ),
+                            Icons.travel_explore,
+                            isDark,
                           ),
                         ],
                       ),
                     ),
                   ],
-                ),
 
-                const SizedBox(height: 4),
+                  const SizedBox(height: 8),
 
-                /// ---------------- TODAY EVENTS ----------------
-                Row(
-                  children: [
-                    Container(
-                      width: 4,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Colors.redAccent, Colors.orangeAccent],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
+                  // ---------------- TOMORROW SECTION ----------------
+
+
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Tomorrow",
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
                         ),
-                        borderRadius: BorderRadius.circular(2),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Text(
-                      totalToday == 0 ? "No Events Today" : "Today's Events",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                    const Spacer(),
-                    if (totalToday > 0)
+                      const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.greenAccent.withOpacity(0.15),
+                          color: Colors.blueAccent.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: Colors.greenAccent.withOpacity(0.3),
-                          ),
                         ),
                         child: Text(
-                          "$totalToday total",
+                          "${weekNames[tomorrow.weekday - 1]}, ${tomorrow.day} ${monthNames[tomorrow.month - 1]}",
                           style: TextStyle(
+                            color: Colors.blueAccent.shade200,
                             fontSize: 11,
-                            color: Colors.greenAccent.shade200,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                  ],
-                ),
-
-                if (totalToday > 0) ...[
-                  const SizedBox(height: 6),
-
-                  // ENHANCED COUNT BOXES
-                  Container(
-                    padding: const EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        _enhancedCountBox(
-                          "Agreements",
-                          todayCounts!.agreements,
-                          LinearGradient(
-                            colors: [Colors.redAccent, Colors.orangeAccent],
-                          ),
-                          Icons.handshake,
-                          isDark,
-                        ),
-                        _enhancedCountBox(
-                          "Future",
-                          todayCounts!.futureProperties,
-                          LinearGradient(
-                            colors: [Colors.blueAccent, Colors.indigoAccent],
-                          ),
-                          Icons.fitbit_outlined,
-                          isDark,
-                        ),
-                        _enhancedCountBox(
-                          "Web Visit",
-                          todayCounts!.websiteVisits,
-                          LinearGradient(
-                            colors: [Colors.greenAccent, Colors.tealAccent],
-                          ),
-                          Icons.travel_explore,
-                          isDark,
-                        ),
-                      ],
-                    ),
+                    ],
                   ),
-                ],
 
-                const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
-                // ---------------- TOMORROW SECTION ----------------
+                  if (tomorrowEvents.isNotEmpty) ...[
 
-
-                Row(
-                  children: [
-                    Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
-                    const SizedBox(width: 8),
-                    Text(
-                      "Tomorrow",
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.blueAccent.withOpacity(0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        "${weekNames[tomorrow.weekday - 1]}, ${tomorrow.day} ${monthNames[tomorrow.month - 1]}",
-                        style: TextStyle(
-                          color: Colors.blueAccent.shade200,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                if (tomorrowEvents.isNotEmpty) ...[
-
-                  // Event CARD BOX
-                  Column(
-                    children: tomorrowEvents.take(3).map((event) =>
-                        Container(
-                          // margin: const EdgeInsets.only(bottom: 0),
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: isDark ? Colors.grey.shade900 : Colors.white.withOpacity(0.08),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(
-                              color: Colors.blueAccent.withOpacity(0.15),
+                    // Event CARD BOX
+                    Column(
+                      children: tomorrowEvents.take(3).map((event) =>
+                          Container(
+                            // margin: const EdgeInsets.only(bottom: 0),
+                            padding: const EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: isDark ? Colors.grey.shade900 : Colors.white.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.blueAccent.withOpacity(0.15),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.15),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
                             ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.15),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              )
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              // Time Box
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.blueAccent.withOpacity(0.15),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  event.time,
-                                  style: TextStyle(
-                                    color: Colors.blueAccent.shade200,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                            child: Row(
+                              children: [
+                                // Time Box
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blueAccent.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    event.time,
+                                    style: TextStyle(
+                                      color: Colors.blueAccent.shade200,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
 
-                              const SizedBox(width: 12),
+                                const SizedBox(width: 12),
 
-                              // Event TITLE
-                              Expanded(
-                                child: Text(
-                                  event.title,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.white.withOpacity(0.9),
+                                // Event TITLE
+                                Expanded(
+                                  child: Text(
+                                    event.title,
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                 ),
-                              ),
 
-                              // Type Dot
-                              Container(
-                                width: 10,
-                                height: 10,
-                                decoration: BoxDecoration(
-                                  color: _getEventColor(event.type),
-                                  shape: BoxShape.circle,
+                                // Type Dot
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    color: _getEventColor(event.type),
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                    ).toList(),
-                  ),
+                      ).toList(),
+                    ),
 
-                  if (tomorrowEvents.length > 3)
-                    Center(
-                      child: Text(
-                        "View ${tomorrowEvents.length - 3} more →",
-                        style: TextStyle(
-                          color: Colors.blueAccent.shade200,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                    if (tomorrowEvents.length > 3)
+                      Center(
+                        child: Text(
+                          "View ${tomorrowEvents.length - 3} more →",
+                          style: TextStyle(
+                            color: Colors.blueAccent.shade200,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
-                    ),
 
-                ] else ...[
-                  // NO EVENT UI
-                  Text(
-                    "No events scheduled",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w600,
+                  ] else ...[
+                    // NO EVENT UI
+                    Text(
+                      "No events scheduled",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ]
+                  ]
 
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -870,6 +887,24 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       ),
     );
   }
+  Future<void> _refreshDashboard() async {
+    // Reload today counts
+    await fetchTodayCounts().then((value) {
+      if (mounted) {
+        setState(() {
+          todayCounts = value;
+          todayLoading = false;
+        });
+      }
+    });
+
+    // Reload stats
+    await _loadStats();
+
+    // Reload user data if required
+    await loadUserName();
+    await _loaduserdata();
+  }
 
   Future<void> _loadStats() async {
     try {
@@ -994,7 +1029,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
   }
 
-  void _loaduserdata() async {
+  Future<void> _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {
@@ -1442,54 +1477,70 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           ),
           // Dashboard Section with 16 padding - Now in Expanded for scrolling grid
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 12),
-                  // Space after header
-                  _todayCard(isDark),
+            child: RefreshIndicator(
+              color: Colors.blueAccent,
+              strokeWidth: 2.5,
+              backgroundColor: Theme.of(context).cardColor,
+              onRefresh: _refreshDashboard,
+              child: Scrollbar(
+                thumbVisibility: true,
+                radius: const Radius.circular(20),
+                child: CustomScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  slivers: [
 
-                  Expanded(
-                    child: AnimationLimiter(
-                      child: GridView.count(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        crossAxisCount: gridCrossAxisCount, // Responsive crossAxisCount
-                        crossAxisSpacing: verticalSpacing,
-                        mainAxisSpacing: verticalSpacing,
-                        childAspectRatio: cardAspectRatio,
-                        children: List.generate(cardData.length, (index) {
-                          final item = cardData[index];
+                    // TODAY CARD (scrollable)
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: _todayCard(isDark),
+                      ),
+                    ),
 
-                          return AnimationConfiguration.staggeredGrid(
-                            position: index,
-                            duration: const Duration(milliseconds: 600),
-                            columnCount: gridCrossAxisCount, // Match responsive column count for animation
-                            child: ScaleAnimation(
-                              scale: 0.8,
-                              child: FadeInAnimation(
-                                child: SlideAnimation(
-                                  horizontalOffset: 30.0,
-                                  verticalOffset: 0.0,
-                                  child: _PremiumDashboardCard(
-                                    image: item["image"],
-                                    title: item["title"],
-                                    onTap: item["onTap"],
-                                    gradient: item["gradient"],
+                    // GRID CARDS (scrollable)
+                    SliverPadding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      sliver: SliverGrid(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: gridCrossAxisCount,
+                          crossAxisSpacing: verticalSpacing,
+                          mainAxisSpacing: verticalSpacing,
+                          childAspectRatio: cardAspectRatio,
+                        ),
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final item = cardData[index];
+
+                            return AnimationConfiguration.staggeredGrid(
+                              position: index,
+                              duration: const Duration(milliseconds: 600),
+                              columnCount: gridCrossAxisCount,
+                              child: ScaleAnimation(
+                                scale: 0.8,
+                                child: FadeInAnimation(
+                                  child: SlideAnimation(
+                                    horizontalOffset: 30.0,
+                                    child: _PremiumDashboardCard(
+                                      image: item["image"],
+                                      title: item["title"],
+                                      onTap: item["onTap"],
+                                      gradient: item["gradient"],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          );
-                        }),
+                            );
+                          },
+                          childCount: cardData.length,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+
+                  ],
+                ),
               ),
             ),
-          ),
+          )
         ],
       ),
     );

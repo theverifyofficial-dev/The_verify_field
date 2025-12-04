@@ -119,6 +119,18 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
       setState(() => isLoading = false);
     }
   }
+  List<Color> _getCardColors(String? type, bool isDark) {
+    if (type != null && type.toLowerCase() == "police verification") {
+      return isDark
+          ? [Colors.blue.shade900, Colors.black]
+          : [ Colors.blue.shade400,Colors.grey.shade400,];
+    }
+
+    // Default green theme
+    return isDark
+        ? [Colors.green.shade900, Colors.black]
+        : [Colors.grey.shade500, Colors.green.shade400];
+  }
 
   Widget _buildAgreementCard(AgreementData agreement) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -127,12 +139,14 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
     final bool isRejected = status == "rejected";
     final bool isUpdated = status == "fields updated";
 
-    // 🟢 Use Green as the base theme instead of Blue
+    final bool isPolice = agreement.Type.toLowerCase() == "police verification";
+
     final Color glowColor = isRejected
         ? Colors.redAccent
         : isUpdated
-        ? Colors.greenAccent
-        : Colors.green; // ✅ Green replaces blue
+        ? (isPolice ? Colors.blueAccent : Colors.greenAccent)
+        : (isPolice ? Colors.blue : Colors.green);
+
 
     final size = MediaQuery.of(context).size;
     final double textScale = size.width < 360
@@ -141,8 +155,8 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
         ? 0.95
         : 1.0;
 
-    final baseTextColor = isDark ? Colors.white : Colors.black87;
-    final subTextColor = isDark ? Colors.white70 : Colors.black;
+    final baseTextColor = isDark ? Colors.white : Colors.white;
+    final subTextColor = isDark ? Colors.white70 : Colors.white;
 
     return Container(
       margin: EdgeInsets.symmetric(
@@ -155,9 +169,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(
-              colors: isDark
-                  ? [Colors.green.shade700, Colors.black]   // 🌙 Dark Mode
-                  : [ Colors.green.shade400,Colors.white],  // ☀️ Light Mode
+              colors: _getCardColors(agreement.Type, isDark),
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -286,9 +298,7 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
                         child: Text(
                           "${agreement.status ?? 'Pending'} | Reason : ${agreement.messages ?? 'On Hold'}",
                           style: TextStyle(
-                            color: isDark
-                                ? Colors.grey.shade100
-                                : Colors.black,
+                            color: Colors.white,
                             fontSize: 13.5 * textScale,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.2,

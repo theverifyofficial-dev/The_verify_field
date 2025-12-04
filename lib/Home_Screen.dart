@@ -34,6 +34,28 @@ import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
 import 'add_properties_firstpage.dart';
 import 'main.dart';
+class TodayCounts {
+  final int agreements;
+  final int futureProperties;
+  final int websiteVisits;
+
+  TodayCounts({
+    required this.agreements,
+    required this.futureProperties,
+    required this.websiteVisits,
+  });
+}
+class TomorrowEvent {
+  final String time;
+  final String title;
+  final String type; // agreement / future / website
+
+  TomorrowEvent({
+    required this.time,
+    required this.title,
+    required this.type,
+  });
+}
 
 class Catid1122 {
   final int id;
@@ -135,10 +157,20 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  String currentTime = "";
 
   @override
   void initState() {
     super.initState();
+    Timer.periodic(const Duration(seconds: 1), (_) {
+      final now = DateTime.now();
+      setState(() {
+        currentTime =
+        "${now.hour.toString().padLeft(2, '0')}:"
+            "${now.minute.toString().padLeft(2, '0')}:"
+            "${now.second.toString().padLeft(2, '0')}";
+      });
+    });
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -149,17 +181,694 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     _slideAnimation = Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
+    fetchTodayCounts().then((value) {
+      if (mounted) {
+        setState(() {
+          todayCounts = value;
+          todayLoading = false;
+        });
+      }
+    });
+
     _loaduserdata();
     loadUserName();
     _requestLocationPermissionAndGetLocation();
     _loadStats();
     _controller.forward();
   }
+  List<AgreementTask> todayAgreements = [];
+  List<FutureProperty> todayFutureProperties = [];
+  List<WebsiteVisit> todayWebsiteVisits = [];
+  List<TomorrowEvent> tomorrowEvents = [];
+
+  Widget _todayCard(bool isDark) {
+    final today = DateTime.now();
+    final tomorrow = today.add(const Duration(days: 1));
+
+    final monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    final weekNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+
+    if (todayLoading || todayCounts == null) {
+      return Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16),
+        padding: const EdgeInsets.all(32),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [Colors.grey.shade900, Colors.black87]
+                : [Colors.blueGrey.shade50, Colors.white],
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              isDark ? Colors.blueAccent : Colors.blue.shade800,
+            ),
+          ),
+        ),
+      );
+    }
+
+    int totalToday = todayCounts!.agreements +
+        todayCounts!.futureProperties +
+        todayCounts!.websiteVisits;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isDark
+              ? [
+            Colors.grey.shade900,
+            Colors.black87,
+            Colors.black,
+          ]
+              : [
+            Colors.white,
+            Colors.blueGrey.shade50,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+            blurRadius: 25,
+            spreadRadius: 1,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          // Decorative background elements
+          Positioned(
+            top: -20,
+            right: -20,
+            child: Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Colors.blueAccent.withOpacity(0.1),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                /// ---------------- HEADER ----------------
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // DATE SECTION
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.blueAccent,
+                            Colors.purpleAccent,
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.blueAccent.withOpacity(0.3),
+                            blurRadius: 10,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            weekNames[today.weekday - 1],
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            today.day.toString(),
+                            style: const TextStyle(
+                              fontSize: 36,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 0.9,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            monthNames[today.month - 1],
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const Spacer(),
+
+                    /// ---------------- DIGITAL TIMER ----------------
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.grey.shade800.withOpacity(0.8),
+                            Colors.grey.shade900.withOpacity(0.9),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.4),
+                            blurRadius: 15,
+                            offset: const Offset(0, 6),
+                          ),
+                          BoxShadow(
+                            color: Colors.blueAccent.withOpacity(0.1),
+                            blurRadius: 10,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            "NOW",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blueAccent.shade200,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            currentTime,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 2,
+                              fontFamily: 'Courier',
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 4),
+
+                /// ---------------- TODAY EVENTS ----------------
+                Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.redAccent, Colors.orangeAccent],
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      totalToday == 0 ? "No Events Today" : "Today's Events",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const Spacer(),
+                    if (totalToday > 0)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.greenAccent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: Colors.greenAccent.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Text(
+                          "$totalToday total",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.greenAccent.shade200,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+
+                if (totalToday > 0) ...[
+                  const SizedBox(height: 6),
+
+                  // ENHANCED COUNT BOXES
+                  Container(
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        _enhancedCountBox(
+                          "Agreements",
+                          todayCounts!.agreements,
+                          LinearGradient(
+                            colors: [Colors.redAccent, Colors.orangeAccent],
+                          ),
+                          Icons.handshake,
+                          isDark,
+                        ),
+                        _enhancedCountBox(
+                          "Future",
+                          todayCounts!.futureProperties,
+                          LinearGradient(
+                            colors: [Colors.blueAccent, Colors.indigoAccent],
+                          ),
+                          Icons.fitbit_outlined,
+                          isDark,
+                        ),
+                        _enhancedCountBox(
+                          "Web Visit",
+                          todayCounts!.websiteVisits,
+                          LinearGradient(
+                            colors: [Colors.greenAccent, Colors.tealAccent],
+                          ),
+                          Icons.travel_explore,
+                          isDark,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 8),
+
+                // ---------------- TOMORROW SECTION ----------------
+
+
+                Row(
+                  children: [
+                    Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
+                    const SizedBox(width: 8),
+                    Text(
+                      "Tomorrow",
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blueAccent.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        "${weekNames[tomorrow.weekday - 1]}, ${tomorrow.day} ${monthNames[tomorrow.month - 1]}",
+                        style: TextStyle(
+                          color: Colors.blueAccent.shade200,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                if (tomorrowEvents.isNotEmpty) ...[
+
+                  // Event CARD BOX
+                  Column(
+                    children: tomorrowEvents.take(3).map((event) =>
+                        Container(
+                          // margin: const EdgeInsets.only(bottom: 0),
+                          padding: const EdgeInsets.all(5),
+                          decoration: BoxDecoration(
+                            color: isDark ? Colors.grey.shade900 : Colors.white.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: Colors.blueAccent.withOpacity(0.15),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.15),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              )
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              // Time Box
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.blueAccent.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  event.time,
+                                  style: TextStyle(
+                                    color: Colors.blueAccent.shade200,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+
+                              const SizedBox(width: 12),
+
+                              // Event TITLE
+                              Expanded(
+                                child: Text(
+                                  event.title,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+
+                              // Type Dot
+                              Container(
+                                width: 10,
+                                height: 10,
+                                decoration: BoxDecoration(
+                                  color: _getEventColor(event.type),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ).toList(),
+                  ),
+
+                  if (tomorrowEvents.length > 3)
+                    Center(
+                      child: Text(
+                        "View ${tomorrowEvents.length - 3} more →",
+                        style: TextStyle(
+                          color: Colors.blueAccent.shade200,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+
+                ] else ...[
+                  // NO EVENT UI
+                  Text(
+                    "No events scheduled",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ]
+
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Color _getEventColor(String eventType) {
+    switch (eventType.toLowerCase()) {
+      case 'agreement':
+        return Colors.redAccent;
+      case 'future':
+        return Colors.blueAccent;
+      case 'website':
+        return Colors.greenAccent;
+      default:
+        return Colors.blueGrey;
+    }
+  }
+  Widget _enhancedCountBox(String title, int count, Gradient gradient, IconData icon, bool isDark) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+        child: Column(
+          children: [
+            // Icon with gradient background
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                gradient: gradient,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: gradient.colors.first.withOpacity(0.4),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Icon(
+                icon,
+                size: 18,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              count.toString(),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                foreground: Paint()
+                  ..shader = gradient.createShader(
+                    const Rect.fromLTWH(0, 0, 200, 100),
+                  ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? Colors.white70 : Colors.grey.shade700,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<TodayCounts> fetchTodayCounts() async {
+    final now = DateTime.now();
+    final today =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+    final fieldNo = _fieldworkarnumber;
+
+    final res = await Future.wait([
+      http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo")),
+
+      http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$today&fieldworkarnumber=$fieldNo")),
+
+      http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo")),
+    ]);
+
+    try {
+      todayAgreements = AgreementTaskResponse.fromRawJson(res[0].body).data;
+    } catch (_) {
+      todayAgreements = [];
+    }
+
+    try {
+      todayFutureProperties = FuturePropertyResponse.fromRawJson(res[1].body).data;
+    } catch (_) {
+      todayFutureProperties = [];
+    }
+
+    try {
+      todayWebsiteVisits = WebsiteVisitResponse.fromRawJson(res[2].body).data;
+    } catch (_) {
+      todayWebsiteVisits = [];
+    }
+
+    return TodayCounts(
+      agreements: todayAgreements.length,
+      futureProperties: todayFutureProperties.length,
+      websiteVisits: todayWebsiteVisits.length,
+    );
+  }
+
+  TodayCounts? todayCounts;
+  bool todayLoading = true;
+
+  Widget _buildTodayTile(bool isDark) {
+    final today = DateTime.now();
+
+    final monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+    final formatted = "${today.day} ${monthNames[today.month - 1]}, ${today.year}";
+
+    // Use your TodayCounts model here instead of agreements list
+    int totalCount = todayCounts == null
+        ? 0
+        : todayCounts!.agreements +
+        todayCounts!.futureProperties +
+        todayCounts!.websiteVisits;
+
+    return GestureDetector(
+      onTap: () {
+        // Open Calendar Page (CalendarTaskPage will handle _fetchData and _selectedDay)
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const CalendarTaskPage()),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: isDark ? Colors.black45 : Colors.black12,
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            // ⭕ Circle date icon
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: const BoxDecoration(
+                color: Colors.indigo,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                today.day.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 16),
+
+            // 📅 Text info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    formatted,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Today’s Tasks: $totalCount",
+                    style: const TextStyle(
+                      color: Colors.indigo,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.indigo),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _loadStats() async {
@@ -285,7 +994,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
   }
 
-  //jkkh;kj.nk,hukjbjhguibjhiul
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -293,7 +1001,186 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       _fieldworkarnumber = prefs.getString('number') ?? '';
       _fieldworkarname = prefs.getString('name') ?? '';
     });
+
+    // 🔥 Now call API — number is READY
+    fetchTodayCounts().then((value) {
+      if (mounted) {
+        setState(() {
+          todayCounts = value;
+          todayLoading = false;
+        });
+      }
+    });
   }
+
+  Widget buildSmallAgreementCard(AgreementTask a, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: Colors.red.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 16),
+          ),
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  a.agreementType ?? "Agreement",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  a.ownerName ?? "",
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildSmallFuturePropertyCard(FutureProperty f, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: Colors.blue.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.home_work, color: Colors.blue, size: 16),
+          ),
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  f.propertyName,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  "${f.place} • ${f.buyRent}",
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget buildSmallWebsiteVisitCard(WebsiteVisit w, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          )
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.language, color: Colors.green, size: 16),
+          ),
+          const SizedBox(width: 10),
+
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  w.name ?? "Website Visit",
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  w.contactNo ?? "",
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -455,6 +1342,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                   padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8),
                   child: Column(
                     children: [
+
                       // Top Row: Profile, Logo with premium styling
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -546,89 +1434,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           ],
                         ),
                       ),
-                      // Enhanced Stats Row with premium cards - Compact without greeting
-                      // Expanded(
-                      //   child: ClipRect(
-                      //     child: FadeTransition(
-                      //       opacity: _fadeAnimation,
-                      //       child: SlideTransition(
-                      //         position: _slideAnimation,
-                      //         child: Container(
-                      //           width: double.infinity,
-                      //           margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8), // Reduced vertical margin
-                      //           decoration: BoxDecoration(
-                      //             gradient: LinearGradient(
-                      //               colors: [
-                      //                 Colors.white.withOpacity(0.1),
-                      //                 Colors.transparent,
-                      //               ],
-                      //               begin: Alignment.topLeft,
-                      //               end: Alignment.bottomRight,
-                      //             ),
-                      //             borderRadius: BorderRadius.circular(16),
-                      //             border: Border.all(
-                      //               color: Colors.white.withOpacity(0.2),
-                      //               width: 1,
-                      //             ),
-                      //             boxShadow: [
-                      //               BoxShadow(
-                      //                 color: Colors.black.withOpacity(0.1),
-                      //                 blurRadius: 15,
-                      //                 offset: const Offset(0, 8),
-                      //               ),
-                      //             ],
-                      //           ),
-                      //           child: Padding(
-                      //             padding: const EdgeInsets.all(8), // Reduced padding
-                      //             child: SingleChildScrollView(
-                      //               scrollDirection: Axis.horizontal,
-                      //               child: Row(
-                      //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      //                 children: [
-                      //                   _PremiumStatCard(
-                      //                     icon: Icons.home_outlined,
-                      //                     label: 'Rent Properties',
-                      //                     value: rentPropertiesCount.toString(),
-                      //                     gradient: LinearGradient(
-                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                      //                     ),
-                      //                   ),
-                      //                   const SizedBox(width: 8),
-                      //                   _PremiumStatCard(
-                      //                     icon: Icons.schedule_outlined,
-                      //                     label: 'Future Properties',
-                      //                     value: futurePropertiesCount.toString(),
-                      //                     gradient: LinearGradient(
-                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                      //                     ),
-                      //                   ),
-                      //                   const SizedBox(width: 8),
-                      //                   _PremiumStatCard(
-                      //                     icon: Icons.description_outlined,
-                      //                     label: 'Agreements',
-                      //                     value: agreementCount.toString(),
-                      //                     gradient: LinearGradient(
-                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                      //                     ),
-                      //                   ),
-                      //                   const SizedBox(width: 8),
-                      //                   _PremiumStatCard(
-                      //                     icon: Icons.trending_up_outlined,
-                      //                     label: 'Targets',
-                      //                     value: '85%',
-                      //                     gradient: LinearGradient(
-                      //                       colors: [Colors.white.withOpacity(0.2), Colors.transparent],
-                      //                     ),
-                      //                   ),
-                      //                 ],
-                      //               ),
-                      //             ),
-                      //           ),
-                      //         ),
-                      //       ),
-                      //     ),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),
@@ -642,16 +1447,10 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 12), // Space after header
-                  // Text(
-                  //   'Dashboard',
-                  //   style: theme.textTheme.headlineMedium?.copyWith(
-                  //     fontWeight: FontWeight.bold,
-                  //     color: theme.textTheme.bodyLarge?.color,
-                  //     letterSpacing: 0.8,
-                  //   ),
-                  // ),
-                  // Enhanced Grid with better animations and shadows - Now scrollable
+                  const SizedBox(height: 12),
+                  // Space after header
+                  _todayCard(isDark),
+
                   Expanded(
                     child: AnimationLimiter(
                       child: GridView.count(
@@ -794,8 +1593,10 @@ class _PremiumDashboardCard extends StatefulWidget {
 class _PremiumDashboardCardState extends State<_PremiumDashboardCard> {
   bool _isPressed = false;
 
+
   @override
   Widget build(BuildContext context) {
+
     final theme = Theme.of(context);
     final accentColor = widget.gradient.colors.first;
     return GestureDetector(
@@ -901,4 +1702,5 @@ class _PremiumDashboardCardState extends State<_PremiumDashboardCard> {
       ),
     );
   }
+
 }

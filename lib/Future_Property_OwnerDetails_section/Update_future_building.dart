@@ -225,7 +225,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String? _selectedItem;
   String? apiImageUrl;
 
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj','Ghitorni',''];
+  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj',''];
   String? _selectedItem1;
   final List<String> _items1 = ['Buy','Rent',''];
   List<String> name = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial SP',''];
@@ -377,18 +377,31 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
 
     FormData formData = FormData();
 
-    // New image or keep old
+    // IMAGE HANDLING
     if (imageFile != null) {
+      final fileName = imageFile.path.split('/').last;
+      print("📸 New Image Selected: $fileName");
+
       formData.files.add(
         MapEntry(
-          "images",
-          await MultipartFile.fromFile(imageFile.path, filename: imageFile.path.split('/').last),
+          "images",   // <-- CORRECT KEY
+          await MultipartFile.fromFile(
+            imageFile.path,
+            filename: fileName,
+          ),
         ),
       );
     } else if (apiImageUrl != null && apiImageUrl!.isNotEmpty) {
-      // send existing image name so API knows it didn't change
-      formData.fields.add(MapEntry("images", apiImageUrl!));
+      print("📁 Using OLD image: $apiImageUrl");
+
+      formData.fields.add(
+        MapEntry(
+          "images",   // <-- SAME KEY BACKEND EXPECTS
+          apiImageUrl!,
+        ),
+      );
     }
+
 
     // localities string
     final localityListString = selectedLocalities.join(', ');
@@ -731,7 +744,32 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         validator: validator,
         autovalidateMode: AutovalidateMode.always,
         dropdownColor: Colors.grey.shade100,
-        decoration: InputDecoration(filled: true, fillColor: Colors.grey.shade200, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10))),
+        decoration: InputDecoration(filled: true, fillColor: Colors.grey.shade200, border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+          color: Colors.red, // deep red text
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+        ),
+
+        // ✅ Error border (deep red)
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
+
+        // ✅ Focused border when error
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(
+            color: Colors.red,
+            width: 2,
+          ),
+        ),
+        ),
         icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
         onChanged: onChanged,
         items: items.map((item) => DropdownMenuItem<String>(value: item, child: Text(item, style: TextStyle(color: Colors.grey.shade800, fontSize: 11)))).toList(),

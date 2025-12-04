@@ -68,30 +68,11 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
   String parking = 'Car';
   final customMaintanceAmount = TextEditingController();
 
-  String baseUrl1 = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
-  String baseUrl2 = "https://theverify.in/";
-
 
   final ImagePicker _picker = ImagePicker();
 
   // animations
   late final AnimationController _fabController;
-
-
-  String resolveUrl(String? url) {
-    if (url == null || url.isEmpty) return "";
-
-    // If the API already sent full URL
-    if (url.startsWith("http")) return url;
-
-    // If the path contains "uploads/", use baseUrl2
-    if (url.contains("uploads/")) {
-      return "$baseUrl2$url";
-    }
-
-    // Otherwise, assume it's from the verifyserve.social system
-    return "$baseUrl1$url";
-  }
 
 
   String convertToWords(int number) {
@@ -334,7 +315,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
   }
 
   String? _buildUrl(String? path) {
-    if (path?.isNotEmpty ?? false) return "https://theverify.in/$path";
+    if (path?.isNotEmpty ?? false) return "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
     return null;
   }
 
@@ -856,7 +837,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
             ? Image.file(file, fit: BoxFit.cover)
             : (url != null && url.isNotEmpty)
             ? Image.network(
-          resolveUrl(url),
+          url,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => const Center(
             child: Text('Error', style: TextStyle(fontSize: 12)),

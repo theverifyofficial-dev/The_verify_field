@@ -194,12 +194,12 @@ class ADministaterShow_realestete extends StatefulWidget {
 }
 
 class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
-  final _formKey = GlobalKey<FormState>();
 
 
   String _name = '';
   String _number = '';
   String _location = '';
+  String _post = '';
 
 // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
@@ -228,21 +228,23 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     // Otherwise assume the decoded JSON is already the payload
     return decoded;
   }
+
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _name = prefs.getString('name') ?? '';
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
+      _post = prefs.getString('FAadharCard') ?? '';
     });
 
     print("===== SHARED PREF DATA LOADED =====");
     print("Name: $_name");
     print("Number: $_number");
     print("Location: $_location");
+    print("Post: $_post");
     print("===================================");
   }
-
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
     final resp = await http.get(url);
@@ -309,9 +311,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   }
 
   String? _highlightedFlatId;
-  bool _hasHighlighted = false;
-  List<Catid> _properties = [];
-  bool _didAutoScroll = false;
   final ScrollController _scrollController = ScrollController();
   bool _hasScrolled = false;
   final Map<String, GlobalKey> _cardKeys = {};
@@ -380,17 +379,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
   }
 
-  Future<void> _scrollAfterAllLoaded() async {
-    await Future.wait([
-      fetchData(),
-      fetchData1(),
-      fetchData2(),
-      av(),
-      fetchData_manishProperty(),
-    ]);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
-  }
 
 
   @override
@@ -405,8 +393,12 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   Widget build(BuildContext context) {
     final loc = _location.trim().toLowerCase();
 
+    final post = _post.trim().toLowerCase();
+
+    bool isSubAdmin = post == "sub administrator";
+    bool isAdmin = post == "administrator";
+
     return Scaffold(
-      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
@@ -451,7 +443,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            if (loc == "sultanpur")
+            if (isAdmin || loc == "sultanpur")
               SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -570,7 +562,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 childCount: 1,
               ),
             ),
-            if (loc == "sultanpur")
+            if (isAdmin || loc == "sultanpur")
               SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -746,7 +738,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 childCount: 1,
               ),
             ),
-            if (loc == "sultanpur")
+            if (isAdmin || loc == "sultanpur")
               SliverList(
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
@@ -923,7 +915,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
               ),
             ),
 
-            if (loc.contains("rajpur") || loc.contains("chhattar"))
+            if (isAdmin || loc.contains("rajpur") || loc.contains("chhattar"))
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -1035,7 +1027,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                   childCount: 1,
                 ),
               ),
-            if (loc.contains("rajpur") || loc.contains("chhattar"))
+            if (isAdmin || loc.contains("rajpur") || loc.contains("chhattar"))
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -1154,50 +1146,10 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
     );
   }
-// Helper Widget for Feature Pills
-  Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color iconColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 14,
-            color: iconColor,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: iconColor,
-              fontWeight: FontWeight.w600,
-              fontFamily: "Poppins",
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _launchDialer(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    if (await canLaunch(launchUri.toString())) {
-      await launch(launchUri.toString());
-    } else {
-      throw 'Could not launch $phoneNumber';
-    }
-  }
 
 }
+
+
 class PropertyCard extends StatelessWidget {
   final Catid property;
   final int displayIndex;

@@ -67,8 +67,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   String parking = 'Car';
   final customMaintanceAmount = TextEditingController();
 
-  String baseUrl1 = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
-  String baseUrl2 = "https://theverify.in/";
+  static const String kStaticBasePath =
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/";
 
 
 
@@ -81,21 +81,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   // animations
   late final AnimationController _fabController;
 
-
-  String resolveUrl(String? url) {
-    if (url == null || url.isEmpty) return "";
-
-    // If the API already sent full URL
-    if (url.startsWith("http")) return url;
-
-    // If the path contains "uploads/", use baseUrl2
-    if (url.contains("uploads/")) {
-      return "$baseUrl2$url";
-    }
-
-    // Otherwise, assume it's from the verifyserve.social system
-    return "$baseUrl1$url";
-  }
 
 
   String convertToWords(int number) {
@@ -337,23 +322,26 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     _number = prefs.getString('number') ?? '';
   }
 
-  /// Helper to build full URL or return null if empty
   String? _buildUrl(String? path) {
-    if (path?.isNotEmpty ?? false) return "https://theverify.in/$path";
-    return null;
+    if (path == null || path.isEmpty) return null;
+    return "$kStaticBasePath$path";
   }
 
-  /// Generic fetch for owner/tenant
   Future<void> _fetchUserData({
-    required bool isOwner,                // true for owner, false for tenant
-    required String? aadhaar,             // value in the Aadhaar field
-    required String? mobile,              // value in the mobile field
+    required bool isOwner,
+    required String? aadhaar,
+    required String? mobile,
   }) async {
+    print("\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    print("🔥 START FETCH (${isOwner ? "OWNER" : "TENANT"})");
+    print("🔥 Aadhaar: $aadhaar");
+    print("🔥 Mobile : $mobile");
+
     String query;
     String paramKey;
     bool searchedByAadhaar;
 
-    // Determine which field to search by
+    // Determine which field to use
     if (aadhaar?.trim().isNotEmpty ?? false) {
       query = aadhaar!.trim();
       paramKey = isOwner ? "owner_addhar_no" : "tenant_addhar_no";
@@ -363,53 +351,76 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       paramKey = isOwner ? "owner_mobile_no" : "tenant_mobile_no";
       searchedByAadhaar = false;
     } else {
-      _showToast("Enter Aadhaar or Mobile to fetch ${isOwner ? 'owner' : 'tenant'} data");
+      print("❌ ERROR: No Aadhaar or Mobile entered.");
+      _showToast("Enter Aadhaar or Mobile");
       return;
     }
 
-    try {
-      final uri = Uri.parse(
-        isOwner
-            ? "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php"
-            : "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_tenant_addhar_number.php",
-      );
+    final uri = Uri.parse(
+      isOwner
+          ? "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php"
+          : "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_tenant_addhar_number.php",
+    );
 
+    print("🌍 API URL: $uri");
+    print("📤 POST Body: { $paramKey: $query }");
+
+    try {
       final response = await http.post(uri, body: {paramKey: query});
-      print("📩 API Response: ${response.body}");
+      print("📩 Raw Response:");
+      print(response.body);
 
       if (response.statusCode != 200) {
-        return _showToast("${response.statusCode} Not Found");
+        print("❌ ERROR: Status Code = ${response.statusCode}");
+        _showToast("${response.statusCode} Not Found");
+        return;
       }
 
       final decoded = jsonDecode(response.body);
-      if (decoded['status'] != 'success' || decoded['data'] == null) {
-        return _showToast("No data found");
+      print("📦 Decoded JSON: $decoded");
+
+      if (decoded["status"] != "success") {
+        print("⚠️ No success status in JSON.");
+        _showToast("No data found");
+        return;
       }
 
-      final rawData = decoded['data'];
-      if (rawData is! List || rawData.isEmpty) {
-        return _showToast("No data found");
+      if (decoded["data"] == null || decoded["data"].isEmpty) {
+        print("⚠️ Data array is empty.");
+        _showToast("No data found");
+        return;
       }
 
-      final data = rawData[0];
+      final data = decoded["data"][0];
+      print("📌 Extracted record: $data");
 
       setState(() {
         if (isOwner) {
+          print("📥 Updating OWNER fields...");
+
           ownerName.text = data['owner_name'] ?? '';
           ownerRelation = data['owner_relation'] ?? 'S/O';
           ownerRelationPerson.text = data['relation_person_name_owner'] ?? '';
           ownerAddress.text = data['parmanent_addresss_owner'] ?? '';
 
-          // Only update opposite field
           if (searchedByAadhaar) {
             ownerMobile.text = data['owner_mobile_no'] ?? '';
           } else {
             ownerAadhaar.text = data['owner_addhar_no'] ?? '';
           }
 
+          print("🌐 owner_aadhar_front = ${data['owner_aadhar_front']}");
+          print("🌐 owner_aadhar_back  = ${data['owner_aadhar_back']}");
+
           ownerAadharFrontUrl = _buildUrl(data['owner_aadhar_front']);
           ownerAadharBackUrl = _buildUrl(data['owner_aadhar_back']);
+
+          print("➡️ Final ownerAadharFrontUrl: $ownerAadharFrontUrl");
+          print("➡️ Final ownerAadharBackUrl : $ownerAadharBackUrl");
+
         } else {
+          print("📥 Updating TENANT fields...");
+
           tenantName.text = data['tenant_name'] ?? '';
           tenantRelation = data['tenant_relation'] ?? 'S/O';
           tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
@@ -421,18 +432,29 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
             tenantAadhaar.text = data['tenant_addhar_no'] ?? '';
           }
 
+          print("🌐 tenant_aadhar_front = ${data['tenant_aadhar_front']}");
+          print("🌐 tenant_aadhar_back  = ${data['tenant_aadhar_back']}");
+          print("🌐 tenant_image       = ${data['tenant_image']}");
+
           tenantAadharFrontUrl = _buildUrl(data['tenant_aadhar_front']);
           tenantAadharBackUrl = _buildUrl(data['tenant_aadhar_back']);
           tenantPhotoUrl = _buildUrl(data['tenant_image']);
+
+          print("➡️ Final tenantAadharFrontUrl: $tenantAadharFrontUrl");
+          print("➡️ Final tenantAadharBackUrl : $tenantAadharBackUrl");
+          print("➡️ Final tenantPhotoUrl      : $tenantPhotoUrl");
         }
       });
 
-      print("✅ ${isOwner ? 'Owner' : 'Tenant'} data loaded successfully");
+      print("✅ FETCH DONE SUCCESSFULLY");
+      print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n");
+
     } catch (e) {
-      print("🔥 Exception while fetching ${isOwner ? 'owner' : 'tenant'}: $e");
+      print("🔥 EXCEPTION: $e");
       _showToast("Error: $e");
     }
   }
+
 
   /// Wrappers for owner/tenant
   _fetchOwnerData() {
@@ -528,12 +550,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           ));
           print("✅ File added: $key (${file.path})");
         } else if (existingUrl != null && existingUrl.isNotEmpty) {
-          final relativePath = existingUrl.replaceAll(
-            RegExp(r"^https?:\/\/(theverify\.in|verifyserve\.social)\/(Second%20PHP%20FILE\/main_application\/agreement\/)?"),
-            "",
-          );
-          request.fields[key] = relativePath;
-          print("🔄 Preserved existing $key: $relativePath (from $existingUrl)");
+          request.fields[key] = existingUrl!.split("/agreement/").last;
+
         }
       }
 
@@ -855,19 +873,34 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         borderRadius: BorderRadius.circular(8),
         child: file != null
             ? Image.file(file, fit: BoxFit.cover)
+
             : (url != null && url.isNotEmpty)
-            ? Image.network(
-          resolveUrl(url),
-          fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Center(
-            child: Text('Error', style: TextStyle(fontSize: 12)),
-          ),
+            ? Builder(
+          builder: (context) {
+            print("🔍 FINAL IMAGE URL => $url");
+
+            return Image.network(
+              url!,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => const Center(
+                child: Text(
+                  'Error',
+                  style: TextStyle(fontSize: 12, color: Colors.black),
+                ),
+              ),
+            );
+          },
         )
-            : Center(child: Text(hint, style: const TextStyle(fontSize: 12,color: Colors.black))),
+
+            : Center(
+          child: Text(
+            hint,
+            style: const TextStyle(fontSize: 12, color: Colors.black),
+          ),
+        ),
       ),
     );
   }
-
 
 
   // ---------- Build UI ----------

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
 import '../../Administrator/Administator_Agreement/Sub/All_data_details_page.dart';
+import '../All_detailpage.dart';
 
 class AllAgreement extends StatefulWidget {
   const AllAgreement({super.key});
@@ -275,7 +276,7 @@ class _AllAgreementState extends State<AllAgreement> {
                           await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => AllDataDetailsPage(
+                              builder: (_) => AllDetailpage(
                                 agreementId: item.id.toString(),
                               ),
                             ),

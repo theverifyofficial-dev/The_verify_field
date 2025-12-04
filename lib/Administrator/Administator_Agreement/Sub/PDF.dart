@@ -272,11 +272,11 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         children: [
           pw.TextSpan(
             text: '$heading ',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
           ),
           pw.TextSpan(
             text: body,
-            style: pw.TextStyle(fontSize: 11),
+            style: pw.TextStyle(fontSize: 10),
           ),
         ],
       ),
@@ -307,7 +307,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
           text: pw.TextSpan(
             children: [
               pw.TextSpan(
-                text: 'This Rent Agreement is made and executed on this ',
+                text: 'This Leave & License is made and executed on this ',
                 style: baseStyle,
               ),
               pw.TextSpan(
@@ -339,10 +339,10 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.Text(fullAddress, style: boldStyle),
         pw.SizedBox(height: 6),
 
-        pw.Text('And the tenant also has agreed to take on rent the said property on the following terms and conditions of this Rent Agreement:-', style: baseStyle),
+        pw.Text('And the tenant also has agreed to take on rent the said property on the following terms and conditions of this Leave & License:-', style: baseStyle),
         pw.SizedBox(height: 10),
 
-        pw.Text('NOW THIS RENT AGREEMENT WITNESSETH AS UNDER:', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
+        pw.Text('NOW THIS LEAVE & LICENSE WITNESSETH AS UNDER:', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 15),
 
         pw.RichText(
@@ -418,8 +418,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             pw.TextSpan(text: '3. Security Deposit: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
             pw.TextSpan(text: 'A security deposit of ', style: baseStyle),
             pw.TextSpan(text: formatAmount(securityRaw), style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11)),
-            pw.TextSpan(text: ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Rent Agreement after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges as per actual.', style: baseStyle),
-            pw.TextSpan(text: '(IPC 425, 403)', style: baseStyle),
+            pw.TextSpan(text: ' is paid by the Second Party to the First Party This deposit is interest-free and shall be adjustable/refundable at the time of termination of this Leave & License after accounting for any dues, damages, remaining rent, electricity bill, cleaning, and other maintenance charges as per actual.', style: baseStyle),
+            pw.TextSpan(text: '(BNS 324, 316(2))', style: baseStyle),
 
           ]),
         ),
@@ -431,8 +431,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
               pw.TextSpan(text: 'The rented premises shall be used for '),
               pw.TextSpan(text: 'residential', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.TextSpan(text: ' purposes only.'),
-              pw.TextSpan(text: '(IPC 420, 406)', style: baseStyle),
-
+              pw.TextSpan(text: '(IPC 420, 406)  (BNS 318, 316(1))', style: baseStyle),
             ],
             style: baseStyle,
           ),
@@ -444,22 +443,25 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             children: [
               pw.TextSpan(text: '5. Electricity & Water Charges: ', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               getMeterClause(data),
-              pw.TextSpan(text: '(IPC 379, Electricity Act 135)', style: baseStyle),
+              pw.TextSpan(text: '(IPC 379, Electricity Act 135) (BNS 303(2))', style: baseStyle),
 
             ],
             style: baseStyle,
           ),
         ),
         pw.SizedBox(height: 9),
-        clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement. (IPC 420, 468, 471)'),
+        clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement. (IPC 420, 468, 471) (BNS 318, 326, 327(2))'),
         pw.SizedBox(height: 9),
-        clause('7. Mandatory Police Verification & Visitor Compliance:', 'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188)'),
+        clause('7. Mandatory Police Verification & Visitor Compliance:', 'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188) (BNS 223(3))'),
         pw.SizedBox(height: 9),
-        clause('8. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.(IPC 425, 427)'),
+        clause('8. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.(IPC 425, 427) (BNS 324, 303)'),
         pw.SizedBox(height: 9),
-        clause('9. Damage and Handover:', 'The Tenant shall keep the premises in good condition. Any damage, other than normal wear and tear, must be repaired at the Tenant\'s cost. At the end of tenancy, the Tenant must vacate and return the premises as received. Delay or failure to hand over possession will make the Tenant liable for damages and legal action. (IPC 441, 447, 427)'),
+        clause('9. Rules for Using Common Areas:', 'The Tenant shall not block staircases, corridors, terrace, or parking areas with personal belongings. Any violation may lead to penalty or termination.'),
         pw.SizedBox(height: 9),
-        clause('10. Inspection & Emergency Entry:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188'),
+        clause('10. Pet Policy:', 'No pets shall be kept on the premises without prior written approval of the Landlord. Any damage caused by pets shall be borne by the Tenant.'),
+        pw.SizedBox(height: 9),
+        clause('11. Inspection & Emergency Entry:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188) (BNS 280, 285, 281, 223(3))'),
+
       ],
     ),
   );
@@ -480,34 +482,32 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         );
       },
       build: (context) => [
-
-        clause('11. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
         pw.SizedBox(height: 12),
-        clause('12. Vacating & Termination:', 'The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing. (IPC 441, 447)'),
+        clause('12. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
         pw.SizedBox(height: 12),
-        clause('13. Termination on Grounds of Misconduct:', 'If the Tenant engages in any unlawful, improper, or socially unacceptable activity, or causes trouble in the society or locality such as fighting or disturbing peace, the Landlord shall have the right to terminate this tenancy by giving one month\'s written notice. After the notice period ends, the Tenant must vacate the premises without objection. (IPC 268, 290, 504, 506, 323)'),
+        clause('13. Damage, Handover, and Last Month Rent Adjustment:', 'The Tenant shall keep the premises in good, clean, and well-maintained condition. Any damage beyond normal wear and tear shall be repaired at the Tenant\'s cost. At the end of the tenancy, the Tenant must vacate and hand over the premises in the same condition as received. The Tenant shall not adjust or deduct the last month\'s rent from the security deposit under any circumstances. The security deposit will be refunded only after final inspection, verification of damages, and settlement of all outstanding dues including rent, electricity, cleaning charges, or repair expenses. Delay or failure to hand over possession, or refusal to pay for damages, will make the Tenant liable for penalties, recovery proceedings, and legal action under IPC Sections 441, 447, and 427 (BNS 329(5), 330, 303).'),
         pw.SizedBox(height: 12),
-        clause('14. Tenant Information:', 'The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the term ends. (IPC 188, 177)'),
+        clause('14. Vacating & Termination:', 'The Tenant must vacate the premises in its original condition, with whitewashing done before leaving. Either party may terminate the agreement by giving one month\'s written notice. If the tenancy is extended beyond the initial term, the monthly rent shall increase by 10%, unless both parties agree otherwise in writing. (IPC 441, 447) (BNS 329(5), 330)'),
         pw.SizedBox(height: 12),
-        clause('15. Lock-in Period:', 'The Second Party shall not terminate the lease within the first Six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.'),
+        clause('15. Misconduct, Noise, and Community Disturbance:', 'The Tenant shall not engage in loud music, shouting, fighting, or any activity that disturbs neighbors, disrupts peace, or causes trouble in the society or locality. Any unlawful, improper, socially unacceptable behavior, repeated complaints from neighbors, or disturbance of public tranquility shall be treated as misconduct. In such cases, the Landlord shall have the right to terminate the tenancy by giving one month\'s written notice. After the notice period ends, the Tenant must vacate the premises without objection. Violations under this clause may attract action under IPC Sections 268, 290, 504, 506, and 323. (BNS 280, 356, 351, 115)'),
         pw.SizedBox(height: 12),
-        clause('16. Prohibited Activities:', 'The Second Party shall not engage in illegal or unlawful activities in the premises. The Second Party shall not keep any unauthorized inflammable or explosive items in the premises. (IPC 285, 286, 188, 120B)'),
+        clause('16. Tenant Information:', 'The Tenant and their visitors must provide valid ID and required details to the Owner before moving in. In case of disputes or misconduct, the Owner may evict the Tenant. The Owner also reserves the right to terminate the agreement with one month\'s notice before the term ends. (IPC 188, 177) (BNS 223(3), 223(2))'),
         pw.SizedBox(height: 12),
-        clause('17. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same. (IPC 420, 468, 471)'),
+        clause('17. Lock-in Period:', 'The Second Party shall not terminate the lease within the first Six months. If terminated within this period, the security deposit shall be forfeited. After the lock-in period, the Second Party must give one month\'s notice to vacate, and the First Party must give the same notice to repossess the premises.'),
         pw.SizedBox(height: 12),
-        clause('18. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. (IPC 420, 468, 471)'),
+        clause('18. Prohibited Activities:', 'The Second Party shall not engage in illegal or unlawful activities in the premises. The Second Party shall not keep any unauthorized inflammable or explosive items in the premises. (IPC 285, 286, 188, 120B) (BNS 281(2), 282, 223(3), 61)'),
         pw.SizedBox(height: 12),
-        clause('19. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic. (IPC 268)'),
+        clause('19. Loan & Credit Application:', 'The Second Party will not apply for any loan or credit card using the said address. If any loan is pending against the Second Party, the First Party will not be liable or responsible for the same. (IPC 420, 468, 471)  (BNS 318, 326, 327(2))'),
         pw.SizedBox(height: 12),
-        clause('20. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
+        clause('20. Restriction on GST Registration:', 'The Tenant is strictly prohibited from registering for GST using the Property\'s address. In the event that the Tenant obtains GST registration at the Property\'s address, the Owner shall bear no responsibility for any liabilities, penalties, or legal consequences arising therefrom. The Tenant shall be solely liable for any disputes, claims, or regulatory actions related to such unauthorized use. (IPC 420, 468, 471) (BNS 318, 326, 327(2))'),
         pw.SizedBox(height: 12),
-        clause('21. Unauthorized Occupants:', 'No person other than the Second Party/Tenant shall occupy the premises without prior written consent from the First Party/Landlord. Unauthorized occupants will be considered a violation of this agreement and may result in termination. (IPC 441, 447)'),
+        clause('21. Repair and Cleanliness:', 'The Tenant is responsible for minor, day-to-day repairs at their own expense. They must return the premises in the same condition as received and keep it clean and hygienic. (IPC 268) (BNS 280)'),
         pw.SizedBox(height: 12),
-        clause('22. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403)'),
+        clause('22. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
         pw.SizedBox(height: 12),
-        clause('23. Living Relationships:', 'The Second Party/Tenant shall not enter into or maintain a live-in relationship within the premises without notifying the First Party/Landlord. Any legal issues arising from such arrangements shall be the sole responsibility of the Second Party/Tenant, and the First Party/Landlord shall not be held liable.'),
+        clause('23. Restriction on Subletting & Unauthorized Occupancy:', 'The Second Party/Tenant shall not sublet, share, transfer, or allow any third party to occupy the premises or any portion of it without the prior written consent of the First Party/Landlord. No person other than the Tenant is permitted to stay, reside, or use the premises in any manner without such written approval. Any form of unauthorized occupancy, shared accommodation, subletting, or permitting outsiders to stay whether temporary or permanent shall be treated as a violation of this Agreement and may result in immediate termination and legal action under IPC Sections 441 and 447. (BNS 329(5), 330)'),
         pw.SizedBox(height: 12),
-        clause('24. Disputes:', 'Any legal disagreements stemming from this agreement must exclusively be resolved by the courts located within Delhi or New Delhi.'),
+        clause('24. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403) (BNS 319(3), 316(2))'),
       ],
     ),
   );
@@ -528,28 +528,30 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [
-
-        pw.SizedBox(height: 15),
-        clause('25. Digital Communication & E-Signature Validity:', 'Both parties agree that communication done through WhatsApp, Email, SMS, or any digital platform shall be considered valid. Digital signatures or scanned signatures shall be treated as legally binding under the Information Technology Act, 2000. (IPC 465, 471)'),
-        pw.SizedBox(height: 10),
-        clause('26. Fire Safety & Hazardous Materials Prohibition:', 'The Tenant shall not store flammable, chemical, explosive, or hazardous materials. Violation may attract action under IPC Section 285 and IPC Section 286, and may result in immediate termination.(IPC 285, 286)'),
-        pw.SizedBox(height: 10),
-        clause('27. Full Landlord & Property Non-Liability for Tenant\'s Actions:', 'The First Party/Landlord and the property itself shall not be held liable for any actions, misconduct, illegal activity, disputes, fraud, civil matters, criminal cases, or legal violations committed by the Second Party/Tenant. All consequences arising from the behavior, actions, or omissions of the Tenant shall be the sole responsibility of the Tenant alone.'),
-        pw.SizedBox(height: 10),
-        clause('28. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 12),
+        clause('25. Living Relationships:', 'The Tenant shall not enter into or maintain a live-in relationship in the premises without informing the Landlord in advance. If the Tenant hides such information, the Tenant will be solely responsible for any legal issues, disputes, or complaints that arise from the live-in arrangement. The Landlord will not be liable for any trouble caused due to the Tenant\'s personal relationship, and the Landlord may take necessary action, including termination of the tenancy, if such a situation creates disturbance or legal problems.'),
+        pw.SizedBox(height: 12),
+        clause('26. Disputes:', 'All disputes or legal matters arising out of this Leave & License shall be settled exclusively in the court that has lawful jurisdiction over the area in which the rented property is situated. Only the court designated by the Government for this locality shall have the authority to hear and decide such cases.'),
+        pw.SizedBox(height: 12),
+        clause('27. Digital Communication & E-Signature Validity:', 'Both parties agree that communication done through WhatsApp, Email, SMS, or any digital platform shall be considered valid. Digital signatures or scanned signatures shall be treated as legally binding under the Information Technology Act, 2000. (IPC 465, 471) (BNS 325(1), 327(2))'),
+        pw.SizedBox(height: 12),
+        clause('28. Fire Safety & Hazardous Materials Prohibition:', 'The Tenant shall not store flammable, chemical, explosive, or hazardous materials. Violation may attract action under IPC Section 285 and IPC Section 286, and may result in immediate termination.(IPC 285, 286) (BNS 281(2), 282)'),
+        pw.SizedBox(height: 12),
+        clause('29. Full Non-Liability & Internet/Cyber Responsibility Clause', 'The First Party/Landlord and the property itself shall not be held liable for any actions, misconduct, illegal activity, disputes, fraud, civil matters, criminal cases, online offences, cyber crimes, internet misuse, illegal downloads, harassment, or any other legal violations committed by the Second Party/Tenant through physical means or through the use of the internet/Wi-Fi connection within the premises.All consequences arising from the behavior, actions, omissions, digital activities, or cyber activities of the Tenant shall be the sole responsibility of the Tenant alone, and the Landlord shall bear no legal, civil, or financial liability in any manner whatsoever.'),
+        pw.SizedBox(height: 12),
+        clause('30. Legal Issues or Police Cases:', 'If the Second Party/Tenant is involved in any police case or legal issue, the First Party/Landlord shall not be held responsible or liable for any consequences arising therefrom.'),
+        pw.SizedBox(height: 12),
 
 
       if (agreement_type.trim().toLowerCase() != "external rental agreement" &&
       agreement_type.trim().toLowerCase() != "renewal agreement")
         clause(
-        '29. Mediator:',
+        '31. Mediator:',
         'Swaven Realty Pvt. Ltd. ("Mediator") acts solely as a facilitator between the Owner and the Tenant. It operates as a pure agent, collecting the first month\'s rent from the Tenant, deducting commission, and transferring the balance to the Owner. From the second month onward, the Tenant shall pay rent directly to the Owner. The Mediator holds no responsibility for any disputes between the parties after the initial transaction.',
         ),
-
         pw.SizedBox(height: 18),
         pw.Text('IN WITNESS WHEREOF, both the parties have signed this Deed of Agreement on the day, month and year first above written. That both the parties have read and understood the contents of this Agreement and have signed the same without any force or pressure from any side.', style: baseStyle),
-        pw.SizedBox(height: 20),
+        pw.SizedBox(height: 10),
 
         // Signatures section, two columns
         pw.Row(
@@ -579,7 +581,7 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             ),
           ],
         ),
-        pw.SizedBox(height: 30),
+        pw.SizedBox(height: 20),
 
         pw.Text('WITNESS:-', style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
         pw.SizedBox(height: 10),
@@ -677,12 +679,12 @@ pw.Widget clause(String heading, String body) {
             text: heading,
             style: pw.TextStyle(
               fontWeight: pw.FontWeight.bold,
-              fontSize: 11,
+              fontSize: 9,
             ),
           ),
           pw.TextSpan(
             text: body,
-            style: pw.TextStyle(fontSize: 11),
+            style: pw.TextStyle(fontSize: 9),
           ),
         ],
       ),

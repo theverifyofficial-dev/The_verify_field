@@ -3210,47 +3210,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                       SizedBox(
                                                         height: 10,
                                                       ),
-                                                      Row(
-                                                        crossAxisAlignment: CrossAxisAlignment.center,
-                                                        mainAxisAlignment: MainAxisAlignment.start,
-                                                        children: [
-                                                          Column(
-                                                            children: [
-                                                              ClipRRect(
-                                                                borderRadius:
-                                                                const BorderRadius.all(Radius.circular(10)),
-                                                                child: Container(
-                                                                  height: 100,
-                                                                  width: 220,
-                                                                  child: CachedNetworkImage(
-                                                                    imageUrl:
-                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
-                                                                    fit: BoxFit.cover,
-                                                                    placeholder: (context, url) => Image.asset(
-                                                                      AppImages.loading,
-                                                                      fit: BoxFit.cover,
-                                                                    ),
-                                                                    errorWidget: (context, error, stack) =>
-                                                                        Image.asset(
-                                                                          AppImages.imageNotFound,
-                                                                          fit: BoxFit.fill,
-                                                                        ),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 10,
-                                                              ),
-
-                                                            ],
-                                                          ),
-
-
-
-
-
-                                                        ],
-                                                      ),
 
                                                       SizedBox(height: 6,),
 
@@ -3870,6 +3829,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                           final List<String> localityChips =
                           abc.data![0].localitiesList.split(',').map((e) => e.trim()).toList();
                           print('Locality list: $localityChips');
+                          print('Image Path: ${abc.data![0].images}');
+
                           return SingleChildScrollView(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -3904,6 +3865,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                   ),
 
                                 ),
+
                                 const SizedBox(height: 20),
                                 Card(
                                   elevation: 1,
@@ -3916,6 +3878,48 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          children: [
+                                            Column(
+                                              children: [
+                                                ClipRRect(
+                                                  borderRadius:
+                                                  const BorderRadius.all(Radius.circular(10)),
+                                                  child: Container(
+                                                    margin: EdgeInsets.symmetric(horizontal: 20),
+                                                    height: 200,
+                                                    width: 280,
+                                                    child: CachedNetworkImage(
+                                                      imageUrl:
+                                                      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/"+abc.data![0].images,
+                                                      fit: BoxFit.cover,
+                                                      placeholder: (context, url) => Image.asset(
+                                                        AppImages.loading,
+                                                        fit: BoxFit.cover,
+                                                      ),
+                                                      errorWidget: (context, error, stack) =>
+                                                          Image.asset(
+                                                            AppImages.imageNotFound,
+                                                            fit: BoxFit.fill,
+                                                          ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 10,
+                                                ),
+
+                                              ],
+                                            ),
+
+
+
+
+
+                                          ],
+                                        ),
 
                                         /// Property Type Tags
                                         Wrap(

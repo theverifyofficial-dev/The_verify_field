@@ -929,10 +929,10 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                                                       .showPrice +
                                                                   "  |  " +
                                                                   abc.data![len]
-                                                                      .lastPrice +
+                                                                      .askingPrice +
                                                                   "  |  " +
                                                                   abc.data![len]
-                                                                      .askingPrice,
+                                                                      .lastPrice,
                                                               overflow:
                                                                   TextOverflow
                                                                       .ellipsis,

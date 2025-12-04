@@ -12,6 +12,7 @@ import '../../Administrator/Administator_Realestate.dart';
 import '../../Administrator/New_TenandDemand/Tenant_demand.dart';
 import '../../Dashboard/AllFieldWorkers.dart';
 import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../../Social_Media_links.dart';
 import '../../Statistics/Target_MainPage.dart';
 import '../../main.dart';
 import '../../profile.dart';
@@ -183,6 +184,26 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
             onPressed: () {
               ThemeSwitcher.of(context)?.toggleTheme();
             },
+          ),
+          SizedBox(width: 5,),
+          GestureDetector(
+            onTap: () {
+              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
+            },
+            child: Column(
+              children: [
+                SizedBox(height: 10,),
+                Row(
+                  children: [
+                    const Text('🌐'),
+                  ],
+                ),
+                const Text('Web'),
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 10,
           ),
         ],
       ),

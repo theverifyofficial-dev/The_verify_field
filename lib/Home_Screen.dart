@@ -435,25 +435,43 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       //   ),
                       // ),
 
-                      SizedBox(
-                        width: 80,
-                        height: 80,
-                        child: AnimatedAnalogClock(
-                          size: 80,
-                          isLive: true,
-                          hourHandColor: isDark ? Colors.white : Colors.black,
-                          minuteHandColor: isDark ? Colors.white70 : Colors.black87,
-                          secondHandColor: Colors.redAccent,
-                          numberColor: isDark ? Colors.white70 : Colors.black54,
-                          tickColor: isDark ? Colors.white30 : Colors.black26,
-                          borderColor: isDark ? Colors.white24 : Colors.black26,
-                          centerPointColor: Colors.blueAccent,
-                          dialColor: isDark ? Colors.black : Colors.white,
-                          showNumbers: true,
-                          showTicks: true,
-                          thickness: 3,     // outline width
+                      Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white,
+                              Colors.blueGrey.shade100,
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                          border: Border.all(
+                            color: Colors.blueGrey.shade200,
+                            width: 1.5,
+                          ),
                         ),
-                      ),
+                        child: ClipOval(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: AnimatedAnalogClock(
+                              size: 90,
+                              hourHandColor: Colors.black,
+                              minuteHandColor: Colors.black87,
+                              secondHandColor: Colors.redAccent,
+                            ),
+                          ),
+                        ),
+                      )
 
                     ],
                   ),

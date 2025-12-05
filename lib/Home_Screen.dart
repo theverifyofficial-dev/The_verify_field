@@ -256,7 +256,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
         },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
+        margin:  EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -269,7 +269,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
             ]
                 : [
               Colors.white,
-              Colors.blueGrey.shade50,
+              Colors.white,
+
             ],
           ),
           borderRadius: BorderRadius.circular(24),

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:ui';
+import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import 'package:dio/dio.dart';
@@ -372,67 +373,88 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       const Spacer(),
 
                       /// ---------------- DIGITAL TIMER ----------------
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: isDark
-                                ? [
-                              Colors.grey.shade800.withOpacity(0.8),
-                              Colors.grey.shade900.withOpacity(0.9),
-                            ]
-                                : [
-                              Colors.white,
-                              Colors.blueGrey.shade100,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.1),
-                            width: 1,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                              isDark?
-                              Colors.black.withOpacity(0.4): Colors.grey.withOpacity(0.4),
-                              blurRadius: 15,
-                              offset: const Offset(0, 6),
-                            ),
-                            BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.1),
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Text(
-                              "NOW",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.blueAccent.shade200,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              currentTime,
-                              style:  TextStyle(
-                                fontSize: 16,
-                                color: isDark?Colors.white:Colors.grey.shade900,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 2,
-                                fontFamily: 'Courier',
-                              ),
-                            ),
-                          ],
+                      // Container(
+                      //   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      //   decoration: BoxDecoration(
+                      //     gradient: LinearGradient(
+                      //       colors: isDark
+                      //           ? [
+                      //         Colors.grey.shade800.withOpacity(0.8),
+                      //         Colors.grey.shade900.withOpacity(0.9),
+                      //       ]
+                      //           : [
+                      //         Colors.white,
+                      //         Colors.blueGrey.shade100,
+                      //       ],
+                      //       begin: Alignment.topLeft,
+                      //       end: Alignment.bottomRight,
+                      //     ),
+                      //     borderRadius: BorderRadius.circular(16),
+                      //     border: Border.all(
+                      //       color: Colors.white.withOpacity(0.1),
+                      //       width: 1,
+                      //     ),
+                      //     boxShadow: [
+                      //       BoxShadow(
+                      //         color:
+                      //         isDark?
+                      //         Colors.black.withOpacity(0.4): Colors.grey.withOpacity(0.4),
+                      //         blurRadius: 15,
+                      //         offset: const Offset(0, 6),
+                      //       ),
+                      //       BoxShadow(
+                      //         color: Colors.blueAccent.withOpacity(0.1),
+                      //         blurRadius: 10,
+                      //         spreadRadius: 1,
+                      //       ),
+                      //     ],
+                      //   ),
+                      //   child: Column(
+                      //     children: [
+                      //       Text(
+                      //         "NOW",
+                      //         style: TextStyle(
+                      //           fontSize: 10,
+                      //           color: Colors.blueAccent.shade200,
+                      //           fontWeight: FontWeight.bold,
+                      //           letterSpacing: 1,
+                      //         ),
+                      //       ),
+                      //       const SizedBox(height: 4),
+                      //       Text(
+                      //         currentTime,
+                      //         style:  TextStyle(
+                      //           fontSize: 16,
+                      //           color: isDark?Colors.white:Colors.grey.shade900,
+                      //           fontWeight: FontWeight.w700,
+                      //           letterSpacing: 2,
+                      //           fontFamily: 'Courier',
+                      //         ),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // ),
+
+                      SizedBox(
+                        width: 80,
+                        height: 80,
+                        child: AnimatedAnalogClock(
+                          size: 80,
+                          isLive: true,
+                          hourHandColor: isDark ? Colors.white : Colors.black,
+                          minuteHandColor: isDark ? Colors.white70 : Colors.black87,
+                          secondHandColor: Colors.redAccent,
+                          numberColor: isDark ? Colors.white70 : Colors.black54,
+                          tickColor: isDark ? Colors.white30 : Colors.black26,
+                          borderColor: isDark ? Colors.white24 : Colors.black26,
+                          centerPointColor: Colors.blueAccent,
+                          dialColor: isDark ? Colors.black : Colors.white,
+                          showNumbers: true,
+                          showTicks: true,
+                          thickness: 3,     // outline width
                         ),
                       ),
+
                     ],
                   ),
 

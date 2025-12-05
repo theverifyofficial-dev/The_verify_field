@@ -145,6 +145,8 @@ class _ADministaterShow_FuturePropertyState
   bool _isLoading = true;
   String _number = '';
   String _location = '';
+  String _post = '';
+
 
   List<Map<String, String>> fieldWorkers = [
     {"name": "Sumit", "id": "9711775300"},
@@ -195,9 +197,15 @@ class _ADministaterShow_FuturePropertyState
     setState(() {
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
+      _post = prefs.getString('post') ?? '';
+
     });
 
-    print("User Location: $_location");
+    print("===== SHARED PREF DATA LOADED =====");
+    print("Number: $_number");
+    print("Location: $_location");
+    print("Post: $_post");
+    print("===================================");
   }
 
 
@@ -541,57 +549,7 @@ class _ADministaterShow_FuturePropertyState
       ),
     );
   }
-  Widget _buildCompactDetailItem(String title, String value,BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // more space
-      decoration: BoxDecoration(
-        color:  Colors.grey.shade100,
 
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Row(
-
-          children: [
-            Text(
-              "$title: ",
-              style: TextStyle(
-                fontSize: 13, // bigger text
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.black
-                    : Colors.white,
-              ),
-            ),
-            Expanded(
-              child: Text(
-                value,
-                style: TextStyle(
-                  color:
-                  Theme.of(context).brightness==Brightness.dark?
-                  Colors.black:
-                  Colors.white,
-                  // shadows: [
-                  //   Shadow(
-                  //     blurRadius: 1,
-                  //     // offset: Offset(2, 2),
-                  //     color: Theme.of(context).brightness == Brightness.dark
-                  //         ? Colors.amber
-                  //         : Colors.black87,
-                  //   )
-                  // ],
-                  fontSize: 15, // bigger text
-                  fontWeight: FontWeight.w700,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -654,6 +612,11 @@ class _ADministaterShow_FuturePropertyState
   Widget build(BuildContext context) {
     final loc = _location.trim().toLowerCase();
 
+    final post = _post.trim().toLowerCase();
+
+    bool isSubAdmin = post == "sub administrator";
+    bool isAdmin = post == "administrator";
+
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -680,14 +643,16 @@ class _ADministaterShow_FuturePropertyState
               .where((fw) {
             final name = fw['name']!.toLowerCase();
 
-            // Sultanpur Field Workers
+            // ADMIN → SHOW EVERYONE
+            if (isAdmin) return true;
+
+            // SUB-ADMIN → FILTER BY LOCATION
             if (loc.contains("sultanpur")) {
               return name == "sumit" || name == "ravi" || name == "faizan";
             }
 
-            // Rajpur Khurd or ChhattarPur Field Workers
             if (loc.contains("rajpur") || loc.contains("chhattar")) {
-              return name == "manish" || name == "abhay";
+              return name == "manish" || name == "abhay" || name == "abhey";
             }
 
             return false;

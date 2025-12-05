@@ -119,7 +119,7 @@ class Catid {
       locations: json['locations'] ?? '',
       flatNumber: json['Flat_number'] ?? '',
       buyRent: json['Buy_Rent'] ?? '',
-      residenceCommercial: json['Residence_Commercial'] ?? '',
+      residenceCommercial: json['Residence_commercial'] ?? '',
       typeofProperty: json['Typeofproperty'] ?? '',
       bhk: json['Bhk'] ?? '',
       showPrice: json['show_Price'] ?? '',
@@ -168,6 +168,7 @@ final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<Scaffol
 // ----------------- Update Form -----------------
 class UpdateRealEstateProperty extends StatefulWidget {
   final int propertyId;
+
 
   const UpdateRealEstateProperty({super.key, required this.propertyId});
 
@@ -234,7 +235,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   String _longitude = '';
 
   bool _isLoading = true;
-  Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [
     'Fully Furnished',
     'Semi Furnished',
@@ -372,85 +372,80 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     return result;
   }
 
+
   Future<void> updateImageWithTitle(File? imageFile) async {
-    String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_allfeilds_with_single_image.php';
+    String uploadUrl =
+        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/update_allfeilds_with_single_image.php';
 
-    FormData formData = FormData();
+    var uri = Uri.parse(uploadUrl);
+    var request = http.MultipartRequest('POST', uri);
 
-    // IMAGE HANDLING
+    // ----------------------------------------------------------
+    // IMAGE HANDLING (NEW IMAGE / OLD IMAGE / NO IMAGE)
+    // ----------------------------------------------------------
     if (imageFile != null) {
-      final fileName = imageFile.path.split('/').last;
-      print("📸 New Image Selected: $fileName");
+      final fileName = imageFile.path.split("/").last;
+      print("📸 Sending NEW image: $fileName");
 
-      formData.files.add(
-        MapEntry(
-          "images",   // <-- CORRECT KEY
-          await MultipartFile.fromFile(
-            imageFile.path,
-            filename: fileName,
-          ),
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'images',
+          imageFile.path,
+          contentType: http.MediaType('image', 'jpeg'),
         ),
       );
     } else if (apiImageUrl != null && apiImageUrl!.isNotEmpty) {
-      print("📁 Using OLD image: $apiImageUrl");
-
-      formData.fields.add(
-        MapEntry(
-          "images",   // <-- SAME KEY BACKEND EXPECTS
-          apiImageUrl!,
-        ),
-      );
+      print("📁 Sending OLD image path: $apiImageUrl");
+      request.fields['images'] = apiImageUrl!;
+    } else {
+      print("⚠️ No image sent — backend will keep old image.");
     }
 
-
-    // localities string
+    // ----------------------------------------------------------
+    // LOCALITY LIST
+    // ----------------------------------------------------------
     final localityListString = selectedLocalities.join(', ');
 
-    List<MapEntry<String, String>> fields = [
-      MapEntry("id", widget.propertyId.toString()),
-      MapEntry("ownername", _Ownername.text ?? ''),
-      MapEntry("ownernumber", _Owner_number.text ?? ''),
-      MapEntry("caretakername", _CareTaker_name.text ?? ''),
-      MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
-      MapEntry("place", _selectedItem ?? ''),
-      MapEntry("buy_rent", _selectedItem1 ?? ''),
-      MapEntry("propertyname_address", _address.text),
-      MapEntry("building_information_facilitys", _Building_information.text),
-      MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
-      MapEntry("owner_vehical_number", _vehicleno.text ?? ''),
-      MapEntry("your_address", _Google_Location.text),
-      MapEntry("road_size", selectedRoadSize ?? ''),
-      MapEntry("metro_distance", selectedMetroDistance ?? ''),
-      // send metro name & locality_list from controllers / selectedLocalities
-      MapEntry("metro_name", metroController.text),
-      MapEntry("locality_list", localityListString),
-      MapEntry("main_market_distance", selectedMarketDistance ?? ''),
-      MapEntry("age_of_property", _ageOfProperty ?? ''),
-      MapEntry("total_floor", _totalFloor ?? ''),
-      MapEntry("Residence_Commercial", _selectedPropertyType.toString()),
-      MapEntry("lift", _selectedLift.toString()),
-      MapEntry("parking", _selectedParking.toString()),
-      MapEntry("facility", _facilityController.text),
-    ];
+    // ----------------------------------------------------------
+    // ALL OTHER FIELDS
+    // ----------------------------------------------------------
+    request.fields.addAll({
+      "id": widget.propertyId.toString(),
+      "ownername": _Ownername.text,
+      "ownernumber": _Owner_number.text,
+      "caretakername": _CareTaker_name.text,
+      "caretakernumber": _CareTaker_number.text,
+      "place": _selectedItem ?? '',
+      "buy_rent": _selectedItem1 ?? '',
+      "propertyname_address": _address.text,
+      "building_information_facilitys": _Building_information.text,
+      "property_address_for_fieldworkar": _Address_apnehisaabka.text,
+      "owner_vehical_number": _vehicleno.text,
+      "your_address": _Google_Location.text,
+      "road_size": selectedRoadSize ?? '',
+      "metro_distance": selectedMetroDistance ?? '',
+      "metro_name": metroController.text,
+      "locality_list": localityListString,
+      "main_market_distance": selectedMarketDistance ?? '',
+      "age_of_property": _ageOfProperty ?? '',
+      "total_floor": _totalFloor ?? '',
+      "Residence_commercial": _selectedPropertyType.toString(),
+      "lift": _selectedLift.toString(),
+      "parking": _selectedParking.toString(),
+      "facility": _facilityController.text,
+    });
 
-    formData.fields.addAll(fields);
-
-    print('📝 Fields to send:');
-    for (var f in fields) print(' - ${f.key}: ${f.value}');
-
-    Dio dio = Dio();
+    print("📝 Sending fields:");
+    request.fields.forEach((k, v) => print(" - $k: $v"));
 
     try {
-      Response response = await dio.post(
-        uploadUrl,
-        data: formData,
-        options: Options(
-          contentType: 'multipart/form-data',
-          validateStatus: (status) => status! < 500,
-        ),
-      );
-      print('Status Code: ${response.statusCode}');
-      print('Response: ${response.data}');
+      // SEND REQUEST
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      print("Status Code: ${response.statusCode}");
+      print("🔍 RAW RESPONSE BODY:");
+      print(response.body);
 
       if (response.statusCode == 200) {
         showSnack("Property Updated Successfully");
@@ -558,6 +553,52 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
               buildTextInput('CareTaker No. (Optional)', _CareTaker_number, keyboardType: TextInputType.phone, validateLength: true),
               _buildTextInput('Property Name & Address', _address),
 
+              _buildSectionCard(
+                child: TextFormField(
+                  controller: _facilityController,
+                  readOnly: true, // Prevents manual editing
+                  onTap: _showFacilitySelectionDialog, // Opens the selection dialog
+                  style:  TextStyle(color: Colors.black,fontWeight: FontWeight.w700),
+                  decoration: InputDecoration(
+                    hintText: 'Select Facilities',
+                    hintStyle:  TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                    border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+                    filled: true,
+                    fillColor: Colors.white,
+
+                    // ✅ Error text style
+                    errorStyle: const TextStyle(
+                      color: Colors.redAccent, // deep red text
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+                    // ✅ Error border (deep red)
+                    errorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2,
+                      ),
+                    ),
+
+                    // ✅ Focused border when error
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      borderSide: const BorderSide(
+                        color: Colors.redAccent,
+                        width: 2,
+                      ),
+                    ),
+
+                  ),
+                  validator: (val) =>
+                  val == null || val.isEmpty
+                      ? "Select facilities"
+                      : null,
+                ), title: 'Facility',
+              ),
+
               /// METRO STATION
               _buildSectionCard(
                 title: "Metro Station",
@@ -652,6 +693,33 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                 ],
               ),
 
+
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDropdownRow(
+                      'Parking',
+                      parkingOptions,
+                      _selectedParking,
+                          (val) => setState(() => _selectedParking = val),
+                      validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
+                    ),
+                  ),
+                  SizedBox(width: 6,),
+
+                  Expanded(
+                    child: _buildDropdownRow(
+                      'Lift Availability',
+                      parkingOptions,
+                      _selectedLift,
+                          (val) => setState(() => _selectedLift = val),
+                      validator: (val) =>
+                      val == null || val.isEmpty ? 'Lift Availability' : null,
+                    ),
+                  ),
+                ],
+              ),
+
               _buildDropdownRow('Road width (in ft)', roadSizeOptions, selectedRoadSize, (val) => setState(() => selectedRoadSize = val),
                   validator: (val) => val == null || val.isEmpty ? 'Please select road size' : null),
 
@@ -688,6 +756,24 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         ),
       ),
     );
+  }
+
+  void _showFacilitySelectionDialog() async {
+    final result = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _FacilityBottomSheet(
+        options: allFacilities,
+        selected: selectedFacilities,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        selectedFacilities = result;
+        _facilityController.text = selectedFacilities.join(', ');
+      });
+    }
   }
 
   Widget _buildSectionCard({required String title, required Widget child}) {
@@ -781,11 +867,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.black, fontFamily: 'Poppins');
   }
 }
-
-// ----------------- Re-used helper: Metro + Locality Picker -----------------
-// NOTE: This expects MetroAPI.fetchStations and MetroAPI.fetchNearby to exist (you had them in Add form).
-// If you keep your original metro picker in a separate file, ensure you import it instead.
-// For convenience, I'm reusing the same showMetroLocalityPicker function from your Add form:
 
 void showMetroLocalityPicker(BuildContext context, Function(String metro, List<String> localities) onSelected) {
   showModalBottomSheet(
@@ -965,7 +1046,6 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
   }
 }
 
-// ----------------- FutureProperty2 model (used earlier in your project) -----------------
 class FutureProperty2 {
   final String id;
   final String images;
@@ -1092,4 +1172,85 @@ class FutureProperty2 {
     );
   }
 
+
+}
+
+class _FacilityBottomSheet extends StatefulWidget {
+  final List<String> options;
+  final List<String> selected;
+
+  const _FacilityBottomSheet({
+    required this.options,
+    required this.selected,
+  });
+
+  @override
+  State<_FacilityBottomSheet> createState() => _FacilityBottomSheetState();
+}
+
+class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
+  late List<String> _tempSelected;
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelected = List.from(widget.selected);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+
+      child: Container(
+        // color: Colors.white,
+        child: Padding(
+          padding:
+          EdgeInsets.only(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "Select Facilities",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                ),
+              ),
+              ...widget.options.map((option) {
+                final isSelected = _tempSelected.contains(option);
+                return CheckboxListTile(
+                  title: Text(option,style: TextStyle(),),
+                  value: isSelected,
+                  onChanged: (val) {
+                    setState(() {
+                      if (val == true) {
+                        _tempSelected.add(option);
+                      } else {
+                        _tempSelected.remove(option);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, // Button background
+                  foregroundColor: Colors.black, // Text/icon color
+                  side: const BorderSide(color: Colors.black), // Optional border
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () => Navigator.pop(context, _tempSelected),
+                child: const Text("Done"),
+              ),
+              SizedBox(height: 10,)
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

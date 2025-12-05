@@ -592,17 +592,7 @@ class _View_DetailsState extends State<AllViewDetails> {
           
                             SizedBox(height: 10),
           
-                            Row(
-                              children: [
-                                _FactChip(
-                                  icon: Icons.install_desktop_sharp,
-                                  label: "Live Property Id : "+ property.id.toString(),
-                                  color: Colors.lightGreen,
-                                  isDarkMode: isDarkMode,
-                                ),
-                              ]
-                            ),
-                            SizedBox(height: 10),
+
           
                             // Property Details
                             _SectionHeader(

@@ -235,7 +235,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       _name = prefs.getString('name') ?? '';
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
-      _post = prefs.getString('FAadharCard') ?? '';
+      _post = prefs.getString('post') ?? '';
     });
 
     print("===== SHARED PREF DATA LOADED =====");
@@ -304,8 +304,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   }
   Future<List<Catid>> fetchData_abheyProperty() async {
     final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-          "?field_workar_number=9675383184&live_unlive=Live",
+      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=9675383184&live_unlive=Live",
     );
     return _fetchCommon(url);
   }

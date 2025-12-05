@@ -45,6 +45,7 @@ class TodayCounts {
     required this.websiteVisits,
   });
 }
+
 class TomorrowEvent {
   final String time;
   final String title;
@@ -131,6 +132,76 @@ class Catid {
     return Catid(id: json['logg']);
   }
 }
+
+
+
+class ActivityCard extends StatelessWidget {
+  final String title;
+  final String dateTime;
+  final String duration;
+  final String kcal;
+  final String bpm;
+  final String score;
+  final VoidCallback onTap;
+
+  const ActivityCard({
+    super.key,
+    required this.title,
+    required this.dateTime,
+    required this.duration,
+    required this.kcal,
+    required this.bpm,
+    required this.score,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Icon(Icons.directions_walk,
+                size: 32,
+                color: isDark ? Colors.white : Colors.black87),
+            const SizedBox(width: 14),
+
+            /// TEXTS
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black)),
+
+                  const SizedBox(height: 4),
+                  Text(dateTime,
+                      style: TextStyle(
+                          fontSize: 14,
+                          color: isDark
+                              ? Colors.white70
+                              : Colors.black.withOpacity(0.6))),
+                ],
+              ),
+            ),
+
+            Icon(Icons.chevron_right,
+                color: isDark ? Colors.white : Colors.black54),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class Home_Screen extends StatefulWidget {
   static const route = "/Home_Screen";
@@ -1440,7 +1511,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               ),
             ),
           ),
-          // Dashboard Section with 16 padding - Now in Expanded for scrolling grid
+
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -1448,8 +1519,10 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 12),
-                  // Space after header
+
                   _todayCard(isDark),
+
+
 
                   Expanded(
                     child: AnimationLimiter(

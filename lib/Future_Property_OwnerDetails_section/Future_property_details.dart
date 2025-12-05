@@ -3211,6 +3211,48 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                                                         height: 10,
                                                       ),
 
+                                                      Row(
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        mainAxisAlignment: MainAxisAlignment.start,
+                                                        children: [
+                                                          Column(
+                                                            children: [
+                                                              ClipRRect(
+                                                                borderRadius:
+                                                                const BorderRadius.all(Radius.circular(10)),
+                                                                child: Container(
+                                                                  height: 100,
+                                                                  width: 220,
+                                                                  child: CachedNetworkImage(
+                                                                    imageUrl:
+                                                                    "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+abc.data![len].propertyPhoto,
+                                                                    fit: BoxFit.cover,
+                                                                    placeholder: (context, url) => Image.asset(
+                                                                      AppImages.loading,
+                                                                      fit: BoxFit.cover,
+                                                                    ),
+                                                                    errorWidget: (context, error, stack) =>
+                                                                        Image.asset(
+                                                                          AppImages.imageNotFound,
+                                                                          fit: BoxFit.fill,
+                                                                        ),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 10,
+                                                              ),
+
+                                                            ],
+                                                          ),
+
+
+
+
+
+                                                        ],
+                                                      ),
+
                                                       SizedBox(height: 6,),
 
                                                       Row(

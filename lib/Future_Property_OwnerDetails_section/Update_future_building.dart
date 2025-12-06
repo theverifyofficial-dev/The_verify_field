@@ -24,15 +24,11 @@ class Catid {
   final String flatNumber;
   final String buyRent;
   final String residenceCommercial;
-  final String typeofProperty;
-  final String bhk;
   final String showPrice;
   final String lastPrice;
   final String askingPrice;
-  final String floor;
   final String totalFloor;
   final String balcony;
-  final String squarefit;
   final String maintenance;
   final String parking;
   final String ageOfProperty;
@@ -71,15 +67,11 @@ class Catid {
     required this.flatNumber,
     required this.buyRent,
     required this.residenceCommercial,
-    required this.typeofProperty,
-    required this.bhk,
     required this.showPrice,
     required this.lastPrice,
     required this.askingPrice,
-    required this.floor,
     required this.totalFloor,
     required this.balcony,
-    required this.squarefit,
     required this.maintenance,
     required this.parking,
     required this.ageOfProperty,
@@ -120,15 +112,11 @@ class Catid {
       flatNumber: json['Flat_number'] ?? '',
       buyRent: json['Buy_Rent'] ?? '',
       residenceCommercial: json['Residence_commercial'] ?? '',
-      typeofProperty: json['Typeofproperty'] ?? '',
-      bhk: json['Bhk'] ?? '',
       showPrice: json['show_Price'] ?? '',
       lastPrice: json['Last_Price'] ?? '',
       askingPrice: json['asking_price'] ?? '',
-      floor: json['Floor_'] ?? '',
       totalFloor: json['Total_floor'] ?? '',
       balcony: json['Balcony'] ?? '',
-      squarefit: json['squarefit'] ?? '',
       maintenance: json['maintance'] ?? '',
       parking: json['parking'] ?? '',
       ageOfProperty: json['age_of_property'] ?? '',
@@ -200,7 +188,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final TextEditingController _vehicleno = TextEditingController();
   final TextEditingController _Google_Location = TextEditingController();
   final TextEditingController _address = TextEditingController();
-  final TextEditingController _Building_information = TextEditingController();
   final TextEditingController _facilityController = TextEditingController();
 
   // NEW: metro/locality controllers and list
@@ -229,7 +216,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Ghitorni','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj',''];
   String? _selectedItem1;
   final List<String> _items1 = ['Buy','Rent',''];
-  List<String> name = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial SP',''];
 
   String _latitude = '';
   String _longitude = '';
@@ -318,7 +304,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _Owner_number.text = data.ownerNumber;
         _CareTaker_name.text = data.caretakerName;
         _CareTaker_number.text = data.caretakerNumber;
-        _Building_information.text = data.buildingInformationFacilities;
         metro_name = data.metroName;
         _ageOfProperty = data.ageOfProperty;
         selectedMetroDistance = data.metroDistance;
@@ -418,7 +403,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       "place": _selectedItem ?? '',
       "buy_rent": _selectedItem1 ?? '',
       "propertyname_address": _address.text,
-      "building_information_facilitys": _Building_information.text,
       "property_address_for_fieldworkar": _Address_apnehisaabka.text,
       "owner_vehical_number": _vehicleno.text,
       "your_address": _Google_Location.text,
@@ -731,23 +715,203 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
               _buildTextInput('Google Location', _Google_Location, icon: PhosphorIcons.map_pin),
 
               const SizedBox(height: 20),
-              Center(
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    if (!_formKey.currentState!.validate()) {
-                      showDialog(context: context, builder: (context) => AlertDialog(
-                        title: const Text("Form Incomplete"),
-                        content: const Text("Please fill all the required fields before submitting."),
-                        actions: [TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("OK"))],
-                      ));
-                      return;
-                    }
-                    setState(() { _isLoading = true; });
-                    await updateImageWithTitle(_imageFile);
-                    setState(() { _isLoading = false; });
-                  },
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700, padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                  child: _isLoading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : const Text("Submit", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              GestureDetector(
+                onTap: _isLoading
+                    ? null
+                    : () async {
+                  // ✅ Validate form before starting countdown
+                  if (!_formKey.currentState!.validate()) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text(
+                          "Form Incomplete",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        content: const Text(
+                          "Please fill all the required fields before submitting.",
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            child: const Text("OK"),
+                          )
+                        ],
+                      ),
+                    );
+                    return; // Stop here if any field is empty
+                  }
+
+                  setState(() {
+                    _isLoading = true;
+                  });
+
+                  int countdown = 3;
+                  bool actionStarted = false; // 🔥 prevents multiple triggers
+
+                  // Show countdown dialog
+                  await showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return StatefulBuilder(
+                        builder: (context, setStateDialog) {
+                          Future.delayed(const Duration(seconds: 1), () async {
+
+                            // if (!actionStarted) {
+                            //   actionStarted = true;
+                            //   updateImageWithTitle(_imageFile).then((_) {
+                            //     if (!mounted) return;
+                            //
+                            //     ScaffoldMessenger.of(context).showSnackBar(
+                            //       const SnackBar(
+                            //         content: Text("✅ Submitted Successfully!"),
+                            //         backgroundColor: Colors.green,
+                            //       ),
+                            //     );
+                            //     Navigator.pop(context);
+                            //   });
+                            // }
+
+                            if (countdown > 1) {
+                              setStateDialog(() {
+                                countdown--;
+                              });
+                            } else {
+                              setStateDialog(() {
+                                countdown = 0;
+                              });
+
+                              await Future.delayed(const Duration(milliseconds: 1));
+                              if (Navigator.of(context).canPop()) {
+                                Navigator.of(context).pop(); // close dialog
+                              }
+
+                              // Run your upload logic
+                              await updateImageWithTitle(_imageFile);
+
+                              if (!mounted) return;
+
+                              // Show success message
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("✅ Submitted Successfully!"),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          });
+
+                          return AlertDialog(
+                            backgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey[900]
+                                : Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            title: const Text(
+                              "Submitting...",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 500),
+                                  transitionBuilder: (child, animation) =>
+                                      ScaleTransition(scale: animation, child: child),
+                                  child: countdown > 0
+                                      ? Text(
+                                    "$countdown",
+                                    key: ValueKey<int>(countdown),
+                                    style: TextStyle(
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: Theme.of(context).brightness ==
+                                          Brightness.dark
+                                          ? Colors.red[300]
+                                          : Colors.red,
+                                    ),
+                                  )
+                                      : const Icon(
+                                    Icons.verified_rounded,
+                                    key: ValueKey<String>("verified"),
+                                    color: Colors.green,
+                                    size: 60,
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                                Text(
+                                  countdown > 0 ? "Please wait..." : "Verified!",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+
+                  setState(() {
+                    _isLoading = false;
+                  });
+                },
+                child: Center(
+                  child: Container(
+                    height: 50,
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      color: Colors.red,
+                    ),
+                    child: _isLoading
+                        ? Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        SizedBox(
+                          width: 18,
+                          height: 30,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          "Processing...",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    )
+                        : const Center(
+                      child: Text(
+                        "Submit",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontFamily: 'Poppins',
+                          letterSpacing: 0.8,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 50),

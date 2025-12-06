@@ -53,7 +53,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   final TextEditingController _Longitude = TextEditingController();
   final TextEditingController _Latitude = TextEditingController();
   final TextEditingController _address = TextEditingController();
-  final TextEditingController _Building_information = TextEditingController();
   final TextEditingController _facilityController = TextEditingController();
   final TextEditingController metroController = TextEditingController();
   final TextEditingController localityController = TextEditingController();
@@ -205,9 +204,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
-      MapEntry("typeofproperty", _typeofproperty ?? ''),
       MapEntry("propertyname_address", _address.text),
-      MapEntry("building_information_facilitys", _Building_information.text),
       MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
       MapEntry("owner_vehical_number", _vehicleno.text),
       MapEntry("your_address", _Google_Location.text),
@@ -226,8 +223,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("current_date_", DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now()),),
       MapEntry("Residence_commercial", _selectedPropertyType!),
       MapEntry("facility", selectedFacilities.join(', ')),
-      // MapEntry("metro_name", metro_name ?? ''),
-      // MapEntry("locality_list", selectedLocality ?? ''),
       MapEntry("metro_name", metroController.text),
       MapEntry("locality_list", localityController.text),
 
@@ -300,9 +295,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   List<String> parkingOptions = ['Yes','No'];
   String? _selectedParking;
 
-  String? _typeofproperty;
 
-  List<String> name = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial SP'];
 
   List<String> tempArray = [];
 

@@ -108,8 +108,6 @@
     google_fonts: ^6.2.1
     animated_analog_clock: ^0.2.0
 
-
-
   dev_dependencies:
     flutter_launcher_icons: ^0.13.1
     flutter_test:

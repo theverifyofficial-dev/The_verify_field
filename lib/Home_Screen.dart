@@ -3,38 +3,26 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
 import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
-import 'Add_Rented_Flat/Field_Worker_Target.dart';
-import 'Administrator/agreement_details.dart';
 import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Costumer_demand.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
-import 'Home_Screen_click/New_Real_Estate.dart';
-import 'Home_Screen_click/live_tabbar.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
-import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
-import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
-import 'add_properties_firstpage.dart';
-import 'main.dart';
+import 'demand_homeUI.dart';
+
 class TodayCounts {
   final int agreements;
   final int futureProperties;
@@ -1388,17 +1376,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
       },
 
-      {
-        "image": AppImages.demand_2,
-        "title": "Costumer Demands 2.O",
-        "onTap": () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CostumerDemand()),
-        ),
-        "gradient": LinearGradient(
-          colors: [Colors.purple, Colors.blue,],
-        ),
-      },
+      // {
+      //   "image": AppImages.demand_2,
+      //   "title": "Costumer Demands 2.O",
+      //   "onTap": () => Navigator.push(
+      //     context,
+      //     MaterialPageRoute(builder: (context) => CostumerDemand()),
+      //   ),
+      //   "gradient": LinearGradient(
+      //     colors: [Colors.purple, Colors.blue,],
+      //   ),
+      // },
 
 
     ];
@@ -1409,7 +1397,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         children: [
           // Top Header without curve - straight container with gradient
           SizedBox(
-            height: 150,
+            height: 125,
             child: Container(
               width: double.infinity,
               decoration: BoxDecoration(gradient: primaryGradient),
@@ -1476,7 +1464,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                 ),
                               ),
                             ),
-                            // Notification icon on right for balance and premium touch
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
@@ -1535,6 +1522,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: _todayCard(isDark),
+                      ),
+                    ),
+
+                    SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: WeeklyActivityCard(),
                       ),
                     ),
 

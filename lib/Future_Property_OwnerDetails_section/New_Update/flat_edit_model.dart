@@ -27,7 +27,7 @@ class Property1 {
   final String meter;
   final String ownerName;
   final String ownerNumber;
-  final DateTime currentDates;
+  final DateTime? currentDates;
   final DateTime? availableDate; // ✅ made nullable
   final String kitchen;
   final String bathroom;
@@ -127,11 +127,15 @@ class Property1 {
       meter: json['meter'] ?? '',
       ownerName: json['owner_name'] ?? '',
       ownerNumber: json['owner_number'] ?? '',
-      currentDates: DateTime.parse(json['current_dates']),
+      currentDates: (json['current_dates'] != null &&
+          json['current_dates'].toString().trim().isNotEmpty)
+          ? DateTime.tryParse(json['current_dates'])
+          : null,
+
       availableDate: (json['available_date'] != null &&
-          json['available_date'].toString().isNotEmpty)
+          json['available_date'].toString().trim().isNotEmpty)
           ? DateTime.tryParse(json['available_date'])
-          : null, // ✅ safe parsing
+          : null,
       kitchen: json['kitchen'] ?? '',
       bathroom: json['bathroom'] ?? '',
       lift: json['lift'] ?? '',
@@ -182,7 +186,7 @@ class Property1 {
       "meter": meter,
       "owner_name": ownerName,
       "owner_number": ownerNumber,
-      "current_dates": currentDates.toIso8601String(),
+      "current_dates": currentDates?.toIso8601String() ?? '',
       "available_date": availableDate?.toIso8601String() ?? '',
       "kitchen": kitchen,
       "bathroom": bathroom,

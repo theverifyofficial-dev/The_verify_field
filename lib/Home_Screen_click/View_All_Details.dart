@@ -137,6 +137,7 @@ class Catid {
     required this.videoLink,
     required this.subid,
     this.sourceId, // NEW
+
   });
 
   static String _s(dynamic v) => v?.toString() ?? '';
@@ -285,33 +286,7 @@ class _View_DetailsState extends State<View_Details> {
   }
 
 
-
-  bool _isDeleting = false;
-
-  //Delete api
-  Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
-    final response = await http.get(url);
-    // await Future.delayed(Duration(seconds: 1));
-    if (response.statusCode == 200) {
-      setState(() {
-        _isDeleting = false;
-        //ShowVehicleNumbers(id);
-        //showVehicleModel?.vehicleNo;
-      });
-      print(response.body.toString());
-      print('Item deleted successfully');
-    } else {
-      print('Error deleting item. Status code: ${response.statusCode}');
-      throw Exception('Failed to load data');
-    }
-  }
-
- // final result = await fetchData();
-
   List<String> name = [];
-
- // late final int iid;
 
   int _id = 0;
 
@@ -1062,17 +1037,7 @@ class _View_DetailsState extends State<View_Details> {
           },
         ),
       ),
-      // bottomNavigationBar: _BottomActionBar(
-      //
-      //   onAddImages: () {
-      //     // Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImageCompressor(id: _id.toString(),)));
-      //     Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImagePickerPage(propertyId: _id,)));
-      //
-      //   }, onEdit: () {
-      //   Navigator.of(context).push(MaterialPageRoute(builder: (context)=>  UpdateRealEstateProperty(propertyId: _id,)));
-      //
-      // },
-      // ),
+
     );
   }
 
@@ -1685,90 +1650,6 @@ class _FactChip extends StatelessWidget {
       shape: RoundedRectangleBorder(
         side: BorderSide(color: color),
         borderRadius: BorderRadius.circular(8),
-      ),
-    );
-  }
-}
-
-
-class _BottomActionBar extends StatelessWidget {
-  final VoidCallback onEdit;
-  final VoidCallback onAddImages;
-  final bool isDarkMode;
-
-  const _BottomActionBar({
-    required this.onEdit,
-    required this.onAddImages,
-    this.isDarkMode = true,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 30.0,top: 5,left: 8,right: 8),
-        child: Row(
-          children: [
-
-
-            // 🌈 Add Images Button with Gradient
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDarkMode
-                        ? [Colors.blue.shade400, Colors.blueAccent]
-                        : [Colors.blueAccent, Colors.blue.shade700],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.folder_copy_sharp,size: 25,),
-                  label: const Text('Update data ',style: TextStyle(fontFamily: "PoppinsBold",fontSize: 15),),
-                  onPressed:  onEdit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SizedBox(width: 6,),
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: isDarkMode
-                        ? [Colors.deepPurple.shade700, Colors.purpleAccent]
-                        : [Colors.purple, Colors.purpleAccent],
-                  ),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: ElevatedButton.icon(
-                  icon: const Icon(Icons.add_photo_alternate,size: 25,),
-                  label: const Text('Add Images',style: TextStyle(fontFamily: "PoppinsBold",fontSize: 15),),
-                  onPressed:
-                    onAddImages,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shadowColor: Colors.transparent,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          ],
-        ),
       ),
     );
   }

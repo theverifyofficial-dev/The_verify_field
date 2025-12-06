@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
@@ -8,14 +10,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Model.dart';
 
+import '../Home_Screen_click/All_view_details.dart';
 import '../Home_Screen_click/Preview_Image.dart';
 import '../property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
+import 'Admin_future _property/Future_Property_Details.dart';
 import 'Administator_Realestate.dart';
 import 'package:intl/intl.dart';
 
@@ -243,135 +248,82 @@ class Administater_View_Details extends StatefulWidget {
 class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
 
-  int _currentIndex = 0;
-
-  Future<List<Catid>> fetchData() async {
-
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=${widget.idd}",
-    );
-
-    final resp = await http.get(url);
-    if (resp.statusCode != 200) {
-      throw Exception("HTTP ${resp.statusCode}: ${resp.body}");
-    }
-
-    // Step 1: decode the outer body
-    final decoded = json.decode(resp.body);
-
-    // Step 2: unwrap payloads (.asmx "d" or {success,data})
-    dynamic payload;
-    if (decoded is Map<String, dynamic> && decoded.containsKey('d')) {
-      // .asmx often returns {"d":"[...json...]"} or {"d": {...}}
-      final d = decoded['d'];
-      try {
-        payload = d is String ? json.decode(d) : d;
-      } catch (_) {
-        payload = d; // if it's not valid JSON string, just use as-is
-      }
-    } else if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
-      payload = decoded['data'];
-    } else {
-      payload = decoded; // already the array/object
-    }
-
-    // Step 3: normalize to a List<Map<String,dynamic>>
-    final List<Map<String, dynamic>> list;
-    if (payload is List) {
-      list = payload.map((e) => Map<String, dynamic>.from(e as Map)).toList();
-    } else if (payload is Map) {
-      list = [Map<String, dynamic>.from(payload)];
-    } else {
-      list = const [];
-    }
-
-    // Optional: sort by P_id desc if multiple come back
-    int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
-    list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
-
-    return list.map((m) => Catid.fromJson(m)).toList();
-  }
-
-
-  Future<void> Book_property() async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.idd}&looking=Book'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
-
-    if(responce.statusCode == 200){
-      print(responce.body);
-
-      //SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    } else {
-      print('Failed Registration');
-    }
-
-  }
-
-  bool _isDeleting = false;
-
-  //Delete api
-  Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
-    final response = await http.get(url);
-    // await Future.delayed(Duration(seconds: 1));
-    if (response.statusCode == 200) {
-      setState(() {
-        _isDeleting = false;
-        //ShowVehicleNumbers(id);
-        //showVehicleModel?.vehicleNo;
-      });
-      print(response.body.toString());
-      print('Item deleted successfully');
-    } else {
-      print('Error deleting item. Status code: ${response.statusCode}');
-      throw Exception('Failed to load data');
-    }
-  }
-
-  // final result = await fetchData();
-
-  List<String> name = [];
-
-  // late final int iid;
-  late PageController _pageController;
-  String _formatDate(String? dateString) {
-    if (dateString == null || dateString.isEmpty) return "-";
-    try {
-      DateTime date = DateTime.parse(dateString); // expects yyyy-MM-dd or full ISO format
-      return DateFormat('dd-MM-yyyy').format(date); // Example: 29-08-2025
-    } catch (e) {
-      return dateString; // fallback if parsing fails
-    }
-  }
-  int _id = 0;
-// Declare this at the top of your widget class
-  late Future<List<RealEstateSlider>> _futureCarousel;
-
   @override
   void initState() {
     super.initState();
-
-    _pageController = PageController(initialPage: 0);
-
-    // ✅ Assign Future<List<RealEstateSlider>> directly
-    _futureCarousel = fetchCarouselData(int.parse(widget.idd));
-
-    // ✅ Optionally call other setup methods, if needed
-    _loaduserdata(); // but don't assign it to _futureCarousel
+    _propertyFuture = fetchData(widget.idd);
+    _galleryFuture = fetchCarouselData(widget.idd); // pass _id her
   }
 
 
-  Future<List<RealEstateSlider>> fetchCarouselData(int subid) async {
-    final response = await http.get(Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid'));
+  Future<List<Catid>> fetchData(String id) async {
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
+    );
+
+    final response = await http.get(url);
+    if (response.statusCode != 200) {
+      throw Exception("HTTP ${response.statusCode}: ${response.body}");
+    }
+    print('data response : ${response.body}');
+
+    final decoded = json.decode(response.body);
+    final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
+
+    final List<Map<String, dynamic>> listResponse;
+    if (raw is List) {
+      listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
+    } else if (raw is Map) {
+      listResponse = [Map<String, dynamic>.from(raw)];
+    } else {
+      listResponse = const [];
+    }
+
+    final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
+
+    return properties;
+  }
+
+
+  List<String> name = [];
+  Future<List<Catid>>? _propertyFuture;
+  Future<List<RealEstateSlider>>? _galleryFuture;
+
+  Future<List<RealEstateSlider>> fetchCarouselData(String id) async {
+    final url =
+        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
+
+    final response = await http.get(Uri.parse(url));
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
 
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((item) => RealEstateSlider.fromJson(item)).toList();
+      final data = json.decode(response.body);
+      if (data is String) {
+        final innerData = json.decode(data);
+        return (innerData as List)
+            .map((item) => RealEstateSlider.fromJson(item))
+            .toList();
+      }
+      return (data as List)
+          .map((item) => RealEstateSlider.fromJson(item))
+          .toList();
+    } else if (response.statusCode == 404) {
+      return [];
     } else {
-      throw Exception('Failed to load carousel data');
+      throw Exception('Server error with status code: ${response.statusCode}');
     }
+  }
+
+
+  void _refreshData() {
+    setState(() {
+      _propertyFuture = fetchData(widget.idd);
+      _galleryFuture = fetchCarouselData(widget.idd);
+      data = 'Refreshed Data at ${DateTime.now()}';
+
+    });
   }
 
 
@@ -405,527 +357,1061 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
             ],
           ),
         ),
-        // actions:  [
-        //   GestureDetector(
-        //     onTap: () async {
-        //
-        //       showDialog<bool>(
-        //         context: context,
-        //         builder: (context) => AlertDialog(
-        //           title: Text('Delete Property'),
-        //           content: Text('Do you really want to Delete This Property?'),
-        //           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        //           backgroundColor: Theme.of(context).brightness==Brightness.dark?Colors.black:Colors.white,
-        //           actions: <Widget>[
-        //             ElevatedButton(
-        //               onPressed: () => Navigator.of(context).pop(false),
-        //               child: Text('No'),
-        //             ),
-        //             ElevatedButton(
-        //               onPressed: () async {
-        //                 final result_delete = await fetchData();
-        //                 print(result_delete.first.id);
-        //                 DeletePropertybyid('${result_delete.first.id}');
-        //                 setState(() {
-        //                   _isDeleting = true;
-        //                 });
-        //                 Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => ADministaterShow_realestete(),), (route) => route.isFirst);
-        //               },
-        //               child: Text('Yes'),
-        //             ),
-        //           ],
-        //         ),
-        //       ) ?? false;
-        //       /*final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Delete_Image()));
-        //
-        //       if (result == true) {
-        //         _refreshData();
-        //       }*/
-        //     },
-        //     child: const Icon(
-        //       PhosphorIcons.trash,
-        //       color: Colors.white,
-        //       size: 30,
-        //     ),
-        //   ),
-        //   const SizedBox(
-        //     width: 20,
-        //   ),
-        // ],
       ),
-      body: SingleChildScrollView(
+      body:RefreshIndicator(
+        onRefresh: () async {
+          _refreshData();
+          // Wait for futures to complete to reflect changes in UI
+          if (_propertyFuture != null && _galleryFuture != null) {
+            await Future.wait([
+              _propertyFuture!,
+              _galleryFuture!,
+            ]);
+          }
+
+        },
         child: FutureBuilder<List<Catid>>(
-            future: fetchData(),
-            builder: (context,abc){
-              if(abc.connectionState == ConnectionState.waiting){
-                return  Center(
-                    child:Image.asset(AppImages.loader,height: 50,width: 50,)
-                );
-              }
-              else if(abc.hasError){
-                return Text('${abc.error}');
-              }
-              else if (abc.data == null || abc.data!.isEmpty) {
-                // If the list is empty, show an empty image
-                return Center(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      // Lottie.asset("assets/images/no data.json",width: 450),
-                      Text("${widget.idd} No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                    ],
-                  ),
-                );
-              }
-              else{
-                return ListView.builder(
-                  itemCount: 1,
-                  shrinkWrap: true,
-                  physics: NeverScrollableScrollPhysics(),
-                  itemBuilder: (BuildContext context, int len) {
-                    return Column(
+          future: _propertyFuture,
+          builder: (context, propertySnapshot) {
+            // Determine current theme mode
+            final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+            final theme = Theme.of(context);
+
+            if (propertySnapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (propertySnapshot.hasError) {
+              return Center(child: Text('Error: ${propertySnapshot.error}'));
+            } else if (propertySnapshot.data == null || propertySnapshot.data!.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "No Data Found!",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w500,
+                        color: isDarkMode ? Colors.white : Colors.black87,
+                        fontFamily: 'Poppins',
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            else {
+              final property = propertySnapshot.data!.first;
+              return SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Column(
                       children: [
-                        // Professional Image Carousel with Interactive Elements
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          child: FutureBuilder<List<RealEstateSlider>>(
-                            future: _futureCarousel,
-                            builder: (context, snapshot) {
-                              if (snapshot.connectionState == ConnectionState.waiting) {
-                                return const Center(child: CircularProgressIndicator());
-                              } else if (snapshot.hasError) {
-                                return Text('Error: ${snapshot.error}');
-                              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                                return const Text('No images available');
-                              }
-                              final List<RealEstateSlider> images = snapshot.data!;
-                              return SizedBox(
-                                height: 200,
-                                child: PageView.builder(
-                                  controller: _pageController,
+                        Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.only(
+                                bottomLeft: Radius.circular(20),
+                                bottomRight: Radius.circular(20),
+                              ),
+                              child: (property.videoLink != null && property.videoLink!.isNotEmpty)
+                                  ? LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return AspectRatio(
+                                    aspectRatio: 16 / 9, // standard YouTube aspect ratio
+                                    child: VideoPlayerWidget(videoUrl: property.videoLink!),
+                                  );
+                                },
+                              )
+                                  : GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => PropertyPreview(
+                                        ImageUrl:
+                                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: CachedNetworkImage(
+                                  imageUrl:
+                                  "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+                                  height: MediaQuery.of(context).size.height * 0.25,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => Container(
+                                    color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                    child: Center(
+                                      child: Image.asset(AppImages.loader, height: 70, fit: BoxFit.contain),
+                                    ),
+                                  ),
+                                  errorWidget: (context, url, error) => Container(
+                                    color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                    child: Center(
+                                      child: Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            )
+                          ],
+                        ),
+                      ],
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Quick Facts Row
+                          Wrap(
+                            children: [
+                              _FactChip(
+                                icon: Icons.bed,
+                                label: "${property.bhk}",
+                                color: Colors.redAccent,
+                                isDarkMode: isDarkMode,
+                              ),
+                              SizedBox(width: 8),
+                              _FactChip(
+                                icon: Icons.gite_rounded,
+                                label: property.floor,
+                                color: Colors.blueAccent,
+                                isDarkMode: isDarkMode,
+                              ),
+                              SizedBox(width: 8),
+                              _FactChip(
+                                icon: Icons.type_specimen,
+                                label: property.buyRent,
+                                color: Colors.green,
+                                isDarkMode: isDarkMode,
+                              ),
+
+                            ],
+                          ),
+                          SizedBox(height: 10
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+
+                                  Text(
+                                    '₹ ${property.showPrice ?? ""}',
+                                    style: theme.textTheme.headlineSmall?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      fontFamily: "PoppinsBold",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // _InfoChip(
+                              //   icon: Icons.star,
+                              //   value: property.id.toString(),
+                              //   color: Colors.amber,
+                              //   isDarkMode: isDarkMode,
+                              // ),
+                            ],
+                          ),
+                          _DetailRow(
+                            icon: Icons.home_repair_service,
+                            title: "Maintenance",
+                            value: "₹ ${property.maintance}",
+                            color: Colors.orangeAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+
+                          SizedBox(height: 4),
+                          Wrap(
+                            children: [
+                              _FactChip(
+                                icon: Icons.location_on_sharp,
+                                label: "${property.locations}",
+                                color: Colors.redAccent,
+                                isDarkMode: isDarkMode,
+                              ),
+                              SizedBox(width: 8),
+                              _FactChip(
+                                icon: Icons.gite_rounded,
+                                label: property.typeOfProperty,
+                                color: Colors.blueAccent,
+                                isDarkMode: isDarkMode,
+                              ),
+                              SizedBox(width: 8),
+                              _FactChip(
+                                icon: Icons.square_foot,
+                                label: "${property.squareFit} sqft",
+                                color: Colors.purpleAccent,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 4),
+                          // Contact Information
+                          _SectionHeader(
+                            title: "Contact Information",
+                            isDarkMode: isDarkMode,
+                          ),
+                          _ContactCard(
+                            name: property.ownerName,
+                            phone: property.ownerNumber,
+                            role: "Owner",
+                            color: Colors.amber,
+                            onCall: () => _showCallConfirmation(
+                              context,
+                              property.ownerName,
+                              property.ownerNumber,
+                            ),
+                            isDarkMode: isDarkMode,
+                          ),
+                          SizedBox(height: 12),
+                          _ContactCard(
+                            name: property.careTakerName,
+                            phone: property.careTakerNumber,
+                            role: "Caretaker",
+                            color: Colors.purpleAccent,
+                            onCall: () => _showCallConfirmation(
+                              context,
+                              property.careTakerNumber,
+                              property.careTakerNumber,
+                            ),
+                            isDarkMode: isDarkMode,
+                          ),
+
+                          SizedBox(height: 10),
+
+                          // Property Details
+                          _SectionHeader(
+                            title: "Property Details",
+                            isDarkMode: isDarkMode,
+                          ),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: [
+                              _FactChip(
+                                icon: Icons.install_desktop_sharp,
+                                label: "Live Property Id : ${property.id}",
+                                color: Colors.lightGreen,
+                                isDarkMode: isDarkMode,
+                              ),
+                              _FactChip(
+                                icon: Icons.apartment_sharp,
+                                label: "Building Id : ${property.subid}",
+                                color: Colors.lightBlue,
+                                isDarkMode: isDarkMode,
+                              ),
+                            ],
+                          ),
+                          _FactChip(
+                            icon: Icons.file_open,
+                            label: "Building Flat Id : "+ property.sourceId.toString(),
+                            color: Colors.deepOrange,
+                            isDarkMode: isDarkMode,
+                          ),
+
+                          // Full Address
+                          _SectionHeader(
+                            title: "Full Address",
+                            isDarkMode: isDarkMode,
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                              property.apartmentAddress,
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 10,),
+                          if(property.fieldWorkerCurrentLocation!=""&&property.fieldWorkerCurrentLocation!=null)
+                            InkWell(
+                              onTap: () async {
+                                final address = property.fieldWorkerCurrentLocation;
+                                final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
+
+                                if (await canLaunchUrl(url)) {
+                                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                                } else {
+                                  throw 'Could not launch $url';
+                                }
+                              },
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  const Icon(Icons.location_on, color: Colors.red, size: 25),
+                                  const SizedBox(width: 15),
+                                  Expanded(
+                                    child: RichText(
+                                      text: TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: "Current Location : ",
+                                            style: TextStyle(
+                                              color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
+
+                                              fontFamily: "Poppins",
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: property.fieldWorkerCurrentLocation,
+                                            style: const TextStyle(
+                                              color: Colors.blue,
+                                              fontFamily: "Poppins",
+                                              decoration: TextDecoration.underline,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.location_on, color: Colors.red, size: 25),
+                                const SizedBox(width: 15),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      children: [
+                                        TextSpan(
+                                          text: "Current Location : ",
+                                          style: TextStyle(
+                                            color: Theme.of(context).brightness == Brightness.dark?Colors.white:Colors.black,
+                                            fontFamily: "Poppins",
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: "Not Available",
+                                          style:  TextStyle(
+                                            color: Colors.blue,
+                                            fontFamily: "Poppins",
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                          SizedBox(height: 8),
+
+                          _DetailRow(
+                            icon: Icons.construction,
+                            title: "Facilities",
+                            value: property.facility,
+                            color: Colors.blueGrey,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.upload_sharp,
+                            title: "Lift Availability",
+                            value:
+                            "${property.lift.toLowerCase() == 'yes' ? 'Available' : 'Not Available'}",
+                            color: Colors.deepPurpleAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.gas_meter_rounded,
+                            title: "Meter Type",
+                            value:  "${property.meter}/- per unit",
+                            color: Colors.deepPurpleAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.chair,
+                            title: "Furnishing",
+                            value: "${property.furnishedUnfurnished}, ${property.apartmentName}",
+                            color: Colors.brown,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.kitchen,
+                            title: "Kitchen & Bathroom",
+                            value: "${property.kitchen} Kitchen | ${property.bathroom} Bathroom",
+                            color: Colors.indigoAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.local_parking,
+                            title: "Parking & Main Market Distance",
+                            value: property.parking+" | "+ property.mainMarketDistance  ,
+                            color: Colors.teal,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.balcony,
+                            title: "Balcony",
+                            value: property.balcony,
+                            color: Colors.lightGreen,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.train,
+                            title: "Near Metro & Metro Distance",
+                            value:  property.metroDistance + " | "+property.highwayDistance,
+                            color: Colors.amber,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.home,
+                            title: "Flat Number & Total Floor",
+                            value:  property.flatNumber+" | "+property.totalFloor ,
+                            color: Colors.cyanAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.real_estate_agent_rounded,
+                            title: "Age of Property & Road Size",
+                            value:  property.ageOfProperty+" | "+property.roadSize ,
+                            color: Colors.redAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.app_registration,
+                            title: "Registry & GPA",
+                            value:  property.registryAndGpa ,
+                            color: Colors.greenAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.screen_lock_landscape,
+                            title: "Loan Availability",
+                            value:  property.loan ,
+                            color: Colors.orangeAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+
+                          _DetailRow(
+                            icon: Icons.place,
+                            title: "Residence / Commercial",
+                            value:  property.residenceCommercial ,
+                            color: Colors.green,
+                            isDarkMode: isDarkMode,
+                          ),
+                          SizedBox(height: 24),
+
+
+                          SizedBox(height: 24),
+
+                          // Gallery Section
+                          _SectionHeader(
+                            title: "Gallery",
+                            isDarkMode: isDarkMode,
+                          ),
+                          SizedBox(height: 8),
+                          FutureBuilder<List<RealEstateSlider>>(
+                            future: _galleryFuture,
+                            builder: (context, gallerySnapshot) {
+                              if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                                return Center(child: CircularProgressIndicator());
+                              } else if (gallerySnapshot.hasError) {
+                                return Center(child: Text("Error loading gallery"));
+                              } else if (!gallerySnapshot.hasData || gallerySnapshot.data!.isEmpty) {
+                                return Center(child: Text("No images available"));
+                              } else {
+                                final images = gallerySnapshot.data!;
+                                return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: NeverScrollableScrollPhysics(),
                                   itemCount: images.length,
                                   itemBuilder: (context, index) {
+                                    final image = images[index];
                                     return GestureDetector(
                                       onTap: () {
                                         Navigator.push(
                                           context,
                                           MaterialPageRoute(
                                             builder: (_) => PropertyPreview(
-                                              ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${images[index].mImages}",
+                                              ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
                                             ),
                                           ),
                                         );
                                       },
-                                      child: ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${images[index].mImages}',
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          errorBuilder: (context, error, stackTrace) =>
-                                          const Center(child: Icon(Icons.broken_image)),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                        child: Container(
+                                          // height: 200,
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: Colors.black.withOpacity(isDarkMode ? 0.4 : 0.2),
+                                                blurRadius: 4,
+                                                offset: Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadiusGeometry.circular(10),
+                                            child: CachedNetworkImage(
+                                              imageUrl:
+                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${image.mImages}",
+                                              fit: BoxFit.fill,
+                                              placeholder: (context, url) => Container(
+                                                color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                                child: Center(
+                                                  child: Image.asset(
+                                                    AppImages.loader,
+                                                    height: 50,
+                                                    width: 50,
+                                                  ),
+                                                ),
+                                              ),
+                                              errorWidget: (context, url, error) => Container(
+                                                color: isDarkMode ? Colors.grey[800] : Colors.grey[200],
+                                                child: Icon(
+                                                  Icons.broken_image,
+                                                  color: isDarkMode ? Colors.white : Colors.black54,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     );
                                   },
+                                );
+                              }
+                            },
+                          ),
+
+                          SizedBox(height: 12),
+                          _ContactCard(
+                            name: property.fieldWorkerName,
+                            phone: property.fieldWorkerNumber,
+                            role: "Field Worker",
+                            color: Colors.blueAccent,
+                            onCall: () => _showCallConfirmation(
+                              context,
+                              property.fieldWorkerName,
+                              property.fieldWorkerNumber,
+                            ),
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.location_history,
+                            title: "Worker Address",
+                            value: property.fieldWorkerAddress,
+                            color: Colors.cyan,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.pages_outlined,
+                            title: "Property Added Date",
+                            value: formatDate(property.availableDate),
+                            color: Colors.orangeAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+                          _DetailRow(
+                            icon: Icons.price_change_sharp,
+                            title: "Property Ask & Last Price",
+                            value: "₹ ${property.askingPrice}"+" | " + "₹ ${property.lastPrice}",
+                            color: Colors.greenAccent,
+                            isDarkMode: isDarkMode,
+                          ),
+
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => Administater_Future_Property_details(
+                                    buildingId: property.subid.toString(),
+                                  ),
                                 ),
                               );
                             },
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                          child: Divider(),
-                        ),
-                        // Property Details Card
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Basic Info Row
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // Property Image
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(8),
-                                      child: Container(
-                                        width: 120,
-                                        height: 120,
-                                        child: CachedNetworkImage(
-                                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${abc.data![len].propertyPhoto}",
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) => Container(color: Colors.grey[200]),
-                                          errorWidget: (context, url, error) => Icon(Icons.home),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(width: 12),
-                                    // Property Details
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            abc.data![len].locations,
-                                            style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold,
-                                              fontFamily: 'Poppins',
-                                            ),
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 8,
-                                            runSpacing: 8,
-                                            children: [
-                                              _buildDetailChip(abc.data![len].typeOfProperty, Colors.blue),
-                                              _buildDetailChip(abc.data![len].bhk, Colors.green),
-                                              _buildDetailChip(abc.data![len].floor, Colors.orange),
-                                              _buildDetailChip(abc.data![len].buyRent, Colors.purple),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-                                // Price Section
-                                Container(
-                                  padding: EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green[50],
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        'Price',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Poppins',
-                                        ),
-                                      ),
-                                      Text(
-                                        "₹${abc.data![len].showPrice}",
-                                        style: TextStyle(
-                                          fontSize: 18,
-                                          color: Colors.green[800],
-                                          fontWeight: FontWeight.bold,
-                                          fontFamily: 'Poppins',
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(height: 16),
-                                // Property Information Sections
-                                _buildSection(
-                                  title: 'Property Information',
-                                  icon: Icons.info_outline,
-                                  children: [
-                                    _buildInfoRow('Flat Number', abc.data![len].flatNumber),
-                                    _buildInfoRow('Sqft', abc.data![len].squareFit),
-                                    _buildInfoRow('Balcony', abc.data![len].balcony),
-                                    _buildInfoRow('Total Floor', abc.data![len].totalFloor),
-                                    _buildInfoRow('Parking', "${abc.data![len].parking} Parking"),
-                                    _buildInfoRow('Kitchen', "${abc.data![len].kitchen} Kitchen"),
-                                    _buildInfoRow('Bathroom', "${abc.data![len].bathroom} Bathroom"),
-                                    _buildInfoRow('Balcony', "${abc.data![len].balcony} "),
-                                    _buildInfoRow('Maintance', "${abc.data![len].maintance} "),
-                                    _buildInfoRow('Age Of Property', "${abc.data![len].ageOfProperty} "),
-                                    _buildInfoRow('Road Size', "${abc.data![len].roadSize} "),
-                                    _buildInfoRow('Near Metro', "${abc.data![len].metroDistance} "),
-                                    _buildInfoRow('Metro Distance', "${abc.data![len].highwayDistance} "),
-                                    _buildInfoRow('Main Market Distance', "${abc.data![len].mainMarketDistance} "),
-                                    _buildInfoRow('Registry and Gpa', "${abc.data![len].registryAndGpa} "),
-                                    _buildInfoRow('Loan', "${abc.data![len].loan} "),
-                                    _buildInfoRow('Meter', "${abc.data![len].meter} unit "),
-                                    _buildInfoRow('Lift', "${abc.data![len].lift}"),
-                                    _buildInfoRow('Residence /Commercial', "${abc.data![len].residenceCommercial}"),
-                                    _buildInfoRow('Facility', "${abc.data![len].facility}"),
-                                    _buildInfoRow('Furnished', "${abc.data![len].furnishedUnfurnished}, ${abc.data![len].apartmentName}"),
-                                  ],
-                                ),
-                                _buildSection(
-                                  title: 'Facilities',
-                                  icon: Icons.emoji_food_beverage_outlined,
-                                  children: [
-                                    Text(
-                                      abc.data![len].facility,
-                                      style: TextStyle(fontFamily: 'Poppins'),
-                                    ),
-                                  ],
-                                ),
-
-                                _buildSection(
-                                  title: 'Address',
-                                  icon: Icons.location_on_outlined,
-                                  children: [
-                                    Text(
-                                      abc.data![len].apartmentAddress,
-                                      style: TextStyle(fontFamily: 'Poppins'),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: 16),
-                                if(abc.data![len].fieldWorkerCurrentLocation!=""&& abc.data![len].fieldWorkerCurrentLocation!=null)
-                                  Column(
-                                    children: [
-                                      InkWell(
-                                        onTap: () async {
-                                          final address =  abc.data![len]
-                                              .fieldWorkerCurrentLocation;
-                                          final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
-
-                                          if (await canLaunchUrl(url)) {
-                                            await launchUrl(url, mode: LaunchMode.externalApplication);
-                                          } else {
-                                            throw 'Could not launch $url';
-                                          }
-                                        },
-                                        child: Row(
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            const Icon(Icons.location_on, color: Colors.red, size: 20),
-                                            const SizedBox(width: 6),
-                                            Expanded(
-                                              child: RichText(
-                                                text: TextSpan(
-                                                  children: [
-                                                    const TextSpan(
-                                                      text: "Current Location: ",
-                                                      style: TextStyle(
-                                                          fontFamily: "Poppins",
-                                                          fontWeight: FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                    TextSpan(
-                                                      text: abc.data![0].fieldWorkerCurrentLocation,
-                                                      style: const TextStyle(
-                                                        color: Colors.blue,
-                                                        fontFamily: "Poppins",
-                                                        decoration: TextDecoration.underline,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                    ],
-                                  ),
-                                // Contact Sections
-                                _buildSection(
-                                  title: 'Property Owner',
-                                  icon: Icons.person_outline,
-                                  children: [
-                                    _buildContactRow(
-                                      name: abc.data![len].ownerName,
-                                      number: abc.data![len].ownerNumber,
-                                      context: context,
-                                    ),
-                                  ],
-                                ),
-                                _buildSection(
-                                  title: 'CareTaker',
-                                  icon: Icons.support_agent_outlined,
-                                  children: [
-                                    _buildContactRow(
-                                      name: abc.data![len].careTakerName,
-                                      number: abc.data![len].careTakerNumber,
-                                      context: context,
-                                    ),
-                                  ],
-                                ),
-                                _buildSection(
-                                  title: 'Field Worker',
-                                  icon: Icons.engineering_outlined,
-                                  children: [
-                                    _buildInfoRow('Name', abc.data![len].fieldWorkerName),
-                                    _buildInfoRow('Number', abc.data![len].fieldWorkerNumber),
-                                    _buildInfoRow('Address', abc.data![len].fieldWorkerAddress),
-                                  ],
-                                ),
-                                // Additional Info
-                                _buildSection(
-                                  title: 'Additional Information',
-                                  icon: Icons.note_outlined,
-                                  children: [
-                                    _buildInfoRow('Added Date',  _formatDate(abc.data![len].availableDate),),
-                                    _buildInfoRow('Show Price', abc.data![len].showPrice),
-                                    _buildInfoRow('Ask Price', abc.data![len].askingPrice),
-                                    _buildInfoRow('Last Price', abc.data![len].lastPrice),
-                                    _buildInfoRow('Property ID', abc.data![len].id.toString(),),
-                                  ],
-                                ),
-                              ],
+                            style: ElevatedButton.styleFrom(
+                              elevation: 3,
+                              backgroundColor: Colors.purple.shade300,
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(double.infinity, 50),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
+                            icon: const Icon(Icons.move_up_sharp, size: 22),
+                            label: const Text(
+                              "Go to Building",
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            ),
+
                           ),
-                        ),
-                        SizedBox(height: 20),
-                      ],
-                    );
-                  },
-                );
-              }
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
             }
+          },
         ),
+      ),
+
+    );
+
+  }
+
+}
+class _FactChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final bool isDarkMode;
+
+  const _FactChip({
+    required this.icon,
+    required this.label,
+    required this.color,
+    this.isDarkMode = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Chip(
+      backgroundColor: color.withOpacity(isDarkMode ? 0.2 : 0.1),
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black87,
+            ),
+          ),
+        ],
+      ),
+      shape: RoundedRectangleBorder(
+        side: BorderSide(color: color),
+        borderRadius: BorderRadius.circular(8),
       ),
     );
   }
-  Widget _buildSection({required String title, required IconData icon, required List<Widget> children}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(height: 16),
-        Row(
-          children: [
-            Icon(icon, size: 20, color: Colors.red),
-            SizedBox(width: 8),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Poppins',
-              ),
-            ),
-          ],
-        ),
-        SizedBox(height: 8),
-        ...children,
-      ],
-    );
-  }
-  Widget _buildInfoRow(String label, String value) {
+}
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final Color color;
+  final bool isDarkMode;
+
+  const _DetailRow({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.color,
+    this.isDarkMode = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(
-            width: 120,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
+          Icon(icon, color: color, size: 24),
+          const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                fontFamily: 'Poppins',
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontFamily: "Poppins",
+                    fontWeight: FontWeight.w500,
+                    color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontFamily: "Poppins",
+                    color: isDarkMode ? Colors.white : Colors.black,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
-  Widget _buildContactRow({required String name, required String number, required BuildContext context}) {
-    return Column(
-      children: [
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: CircleAvatar(
-            child: Icon(Icons.person),
-          ),
-          title: Text(
-            name,
-            style: TextStyle(fontFamily: 'Poppins'),
-          ),
-          subtitle: Text(
-            number,
-            style: TextStyle(fontFamily: 'Poppins'),
-          ),
-          trailing: IconButton(
-            icon: Icon(Icons.call, color: Colors.green),
-            onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Confirm Call'),
-                  content: Text('Call $name?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: Text('Cancel'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        FlutterPhoneDirectCaller.callNumber(number);
-                      },
-                      child: Text('Call'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-        Divider(height: 1),
-      ],
-    );
-  }
-  Widget _buildDetailChip(String text, Color color) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: color.withOpacity(0.3)),
+}
+class _ContactCard extends StatelessWidget {
+  final String name;
+  final String phone;
+  final String role;
+  final Color color;
+  final VoidCallback onCall;
+  final bool isDarkMode;
+
+  const _ContactCard({
+    required this.name,
+    required this.phone,
+    required this.role,
+    required this.color,
+    required this.onCall,
+    this.isDarkMode = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      color: isDarkMode ? Colors.grey[850] : Colors.grey[100],
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          fontFamily: 'Poppins',
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: color),
+              ),
+              child: Icon(Icons.person, color: color),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    role,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontFamily: "Poppins",
+                      fontWeight: FontWeight.w600,
+                      color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
+                    ),
+                  ),
+                  Text(
+                    name,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      fontFamily: "PoppinsBold",
+                      color: isDarkMode ? Colors.white : Colors.black,
+                    ),
+                  ),
+                  Text(
+                    phone,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: isDarkMode ? Colors.grey[300] : Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              icon: Icon(Icons.phone, color: color),
+              onPressed: onCall,
+            ),
+          ],
         ),
       ),
     );
-  }
-  void _loaduserdata() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    setState(() {
-      _id = prefs.getInt('id_Building') ?? 0;
-    });
-
-
-  }
-  void _launchDialer(String phoneNumber) async {
-    final Uri launchUri = Uri(
-      scheme: 'tel',
-      path: phoneNumber,
-    );
-    if (await canLaunch(launchUri.toString())) {
-      await launch(launchUri.toString());
-    } else {
-      throw 'Could not launch $phoneNumber';
-    }
   }
 }
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final bool isDarkMode;
+
+  const _SectionHeader({
+    required this.title,
+    this.isDarkMode = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Text(
+        title,
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.bold,
+          fontFamily: "PoppinsBold",
+          color: isDarkMode ? Colors.blue : theme.primaryColorDark,
+        ),
+      ),
+    );
+  }
+}
+String formatDate(String? dateString) {
+  if (dateString == null || dateString.isEmpty) return "N/A";
+  try {
+    final date = DateTime.parse(dateString);
+    return DateFormat('dd MMM yyyy').format(date); // e.g., 02 Aug 2025
+  } catch (e) {
+    return "Invalid Date";
+  }
+}
+
+void _showCallConfirmation(BuildContext parentContext, String name, String number) {
+  // Remove any non-digit characters from number
+  String cleanNumber = number.replaceAll(RegExp(r'[^0-9+]'), '');
+
+  showDialog(
+    context: parentContext,
+    builder: (dialogContext) => Dialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16.0),
+      ),
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Theme.of(parentContext).dialogBackgroundColor,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 20,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Header with icon
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.contact_phone_rounded,
+                size: 32,
+                color: Colors.blue[600],
+              ),
+            ),
+
+            const SizedBox(height: 16),
+
+            // Title
+            Text(
+              'Contact $name',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(parentContext).textTheme.titleLarge?.color,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            // Subtitle
+            Text(
+              'Choose how you want to connect',
+              style: TextStyle(
+                fontSize: 14,
+                color: Theme.of(parentContext).textTheme.bodyMedium?.color,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Action Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Call Button
+                Expanded(
+                  child: _buildActionButton(
+                    context: parentContext,
+                    icon: Icons.call_rounded,
+                    label: 'Call',
+                    color: Colors.green,
+                    onPressed: () async {
+                      Navigator.pop(dialogContext);
+                      bool granted = await _checkCallPermission();
+                      if (!granted) {
+                        _showPermissionSnackbar(parentContext);
+                        return;
+                      }
+                      await _makePhoneCall(cleanNumber, parentContext);
+                    },
+                  ),
+                ),
+
+                const SizedBox(width: 16),
+
+                // WhatsApp Button
+                Expanded(
+                  child: _buildActionButton(
+                    context: parentContext,
+                    icon: Icons.message_rounded,
+                    label: 'WhatsApp',
+                    color: const Color(0xFF25D366),
+                    onPressed: () async {
+                      Navigator.pop(dialogContext);
+                      await _openWhatsApp(cleanNumber, parentContext);
+                    },
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 16),
+
+            // Cancel Button
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                'Cancel',
+                style: TextStyle(
+                  color: Theme.of(parentContext).textTheme.bodyMedium?.color,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+Widget _buildActionButton({
+  required BuildContext context,
+  required IconData icon,
+  required String label,
+  required Color color,
+  required VoidCallback onPressed,
+}) {
+  return ElevatedButton(
+    onPressed: onPressed,
+    style: ElevatedButton.styleFrom(
+      backgroundColor: color.withOpacity(0.1),
+      foregroundColor: color,
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: color.withOpacity(0.3), width: 1),
+      ),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 24),
+        const SizedBox(height: 6),
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+Future<void> _makePhoneCall(String number, BuildContext context) async {
+  try {
+    bool? res = await FlutterPhoneDirectCaller.callNumber(number);
+    if (res != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not initiate call')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error: ${e.toString()}')),
+    );
+  }
+}
+
+Future<void> _openWhatsApp(String number, BuildContext context) async {
+  try {
+    String cleanNumber = number.replaceAll(RegExp(r'[^0-9]'), '');
+    if (!cleanNumber.startsWith('91')) {
+      cleanNumber = '91$cleanNumber';
+    }
+
+    final Uri whatsappUri = Uri.parse("whatsapp://send?phone=$cleanNumber");
+    final Uri whatsappWebUri = Uri.parse("https://wa.me/$cleanNumber");
+
+    if (await canLaunchUrl(whatsappUri)) {
+      await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+    } else if (await canLaunchUrl(whatsappWebUri)) {
+      await launchUrl(whatsappWebUri, mode: LaunchMode.externalApplication);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('WhatsApp is not installed')),
+      );
+    }
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Error opening WhatsApp: ${e.toString()}')),
+    );
+  }
+}
+
+void _showPermissionSnackbar(BuildContext context) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Call permission denied'),
+      duration: Duration(seconds: 2),
+    ),
+  );
+}
+
+Future<bool> _checkCallPermission() async {
+
+  var status = await Permission.phone.status;
+
+  if (status.isDenied) {
+    status = await Permission.phone.request();
+  }
+
+  if (status.isPermanentlyDenied) {
+    // Open app settings
+    openAppSettings();
+    return false;
+  }
+
+  return status.isGranted;
+}
+
+void openWhatsApp(String phoneNumber) {
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    final intent = AndroidIntent(
+      action: 'action_view',
+      data: Uri.encodeFull('whatsapp://send?phone=$cleanNumber'),
+      package: 'com.whatsapp',
+    );
+    intent.launch();
+  } else {
+    // For iOS or others fallback to url_launcher or show message
+    print('WhatsApp open only supported on Android with this method');
+  }
+}
+

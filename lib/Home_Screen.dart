@@ -568,7 +568,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
                   const SizedBox(height: 4),
 
-                  /// ---------------- TODAY EVENTS ----------------
                   Row(
                     children: [
                       Container(

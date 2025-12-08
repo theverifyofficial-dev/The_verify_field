@@ -105,24 +105,24 @@ class Catid1122 {
 
   factory Catid1122.fromJson(Map<String, dynamic> json) {
     return Catid1122(
-      id: json['id'],
-      Building_Address: json['propertyname_address'],
-      Building_Location: json['place'],
-      Building_image: json['images'],
-      Longitude: json['longitude'],
-      Latitude: json['latitude'],
-      BHK: json['select_bhk'],
-      tyope: json['typeofproperty'],
-      floor_: json['floor_number'],
-      buy_Rent: json['buy_rent'],
-      Building_information: json['building_information_facilitys'],
-      Ownername: json['ownername'],
-      Owner_number: json['ownernumber'],
-      Caretaker_name: json['caretakername'],
-      Caretaker_number: json['caretakernumber'],
-      vehicleNo: json['owner_vehical_number'],
-      property_address_for_fieldworkar: json['property_address_for_fieldworkar'],
-      date: json['current_date_'],
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      Building_Address: json['propertyname_address'] ?? '',
+      Building_Location: json['place'] ?? '',
+      Building_image: json['images'] ?? '',
+      Longitude: json['longitude'] ?? '',
+      Latitude: json['latitude'] ?? '',
+      BHK: json['select_bhk'] ?? '',
+      tyope: json['typeofproperty'] ?? '',
+      floor_: json['floor_number'] ?? '',
+      buy_Rent: json['buy_rent'] ?? '',
+      Building_information: json['building_information_facilitys'] ?? '',
+      Ownername: json['ownername'] ?? '',
+      Owner_number: json['ownernumber'] ?? '',
+      Caretaker_name: json['caretakername'] ?? '',
+      Caretaker_number: json['caretakernumber'] ?? '',
+      vehicleNo: json['owner_vehical_number'] ?? '',
+      property_address_for_fieldworkar: json['property_address_for_fieldworkar'] ?? '',
+      date: json['current_date_'] ?? '',
     );
   }
 }
@@ -133,7 +133,7 @@ class Catid {
   Catid({required this.id});
 
   factory Catid.fromJson(Map<String, dynamic> json) {
-    return Catid(id: json['logg']);
+    return Catid(id: (json['logg'] as num?)?.toInt() ?? 0);
   }
 }
 
@@ -243,7 +243,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   double? _latitude;
   double? _longitude;
 
-  bool _isLoadingData = true; // Add loading indicator
+  bool _isLoadingData = false; // Start with false for immediate UI render
 
   List<AgreementTask> todayAgreements = [];
   List<FutureProperty> todayFutureProperties = [];
@@ -251,7 +251,9 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   List<TomorrowEvent> tomorrowEvents = [];
 
   TodayCounts? todayCounts;
-  bool todayLoading = true;
+  bool todayLoading = false; // Start with false
+
+  Timer? _loadingTimer; // Timer to force stop loading if stuck
 
   @override
   void initState() {
@@ -271,24 +273,41 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     // Start animations
     _controller.forward();
 
-    // Load user data and then fetch stats
+    // Set a timer to ensure loading doesn't exceed 5 seconds
+    _loadingTimer = Timer(const Duration(seconds: 5), () {
+      if (mounted) {
+        setState(() {
+          _isLoadingData = false;
+          todayLoading = false;
+        });
+        Fluttertoast.showToast(msg: 'App loaded with default data', toastLength: Toast.LENGTH_SHORT);
+      }
+    });
+
+    // Load data asynchronously without blocking UI
     _initializeData();
   }
 
   Future<void> _initializeData() async {
+    // Load critical data first
     await _loaduserdata();
     await loadUserName();
-    await _requestLocationPermissionAndGetLocation();
 
-    // Now that number is loaded, fetch the data
+    // Fire off non-critical loads in parallel without awaiting the whole chain
+    _requestLocationPermissionAndGetLocation();
+
     if (number.isNotEmpty) {
+      // Use Future.wait with timeout for fetches
       try {
         await Future.wait([
-          _fetchMonthly(),
-          _fetchYearly(),
-          _loadStats(),
-          fetchTodayCounts(),
-        ]);
+          _fetchMonthly().timeout(const Duration(seconds: 10), onTimeout: () => Future.value()),
+          _fetchYearly().timeout(const Duration(seconds: 10), onTimeout: () => Future.value()),
+          _loadStats().timeout(const Duration(seconds: 10), onTimeout: () => Future.value()),
+          fetchTodayCounts().timeout(const Duration(seconds: 10), onTimeout: () => TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0)),
+        ]).timeout(const Duration(seconds: 15), onTimeout: () {
+          throw TimeoutException('Data fetch timed out', const Duration(seconds: 15));
+        });
+
         if (mounted) {
           setState(() {
             todayLoading = false;
@@ -304,7 +323,9 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           });
         }
         // Optional: Show toast
-        Fluttertoast.showToast(msg: 'Data load error: $e', toastLength: Toast.LENGTH_SHORT);
+        if (e is! TimeoutException) {
+          Fluttertoast.showToast(msg: 'Data load error: $e', toastLength: Toast.LENGTH_SHORT);
+        }
       }
     } else {
       debugPrint('Number is empty, cannot fetch targets');
@@ -316,6 +337,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       }
     }
 
+    // Cancel timer and ensure no loading state
+    _loadingTimer?.cancel();
     if (mounted) {
       setState(() {
         _isLoadingData = false;
@@ -352,11 +375,24 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           ],
         ),
         child: Center(
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              isDark ? Colors.blueAccent : Colors.blue.shade800,
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  isDark ? Colors.blueAccent : Colors.blue.shade800,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Loading today\'s data...',
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.grey,
+                  fontSize: 12,
+                ),
+              ),
+            ],
           ),
         ),
       );
@@ -853,13 +889,14 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     try {
       final res = await Future.wait([
         http.get(Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo")),
-
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo"))
+            .timeout(const Duration(seconds: 10)),
         http.get(Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$today&fieldworkarnumber=$fieldNo")),
-
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$today&fieldworkarnumber=$fieldNo"))
+            .timeout(const Duration(seconds: 10)),
         http.get(Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo")),
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo"))
+            .timeout(const Duration(seconds: 10)),
       ]);
 
       try {
@@ -894,14 +931,15 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   @override
   void dispose() {
     _controller.dispose();
+    _loadingTimer?.cancel();
     super.dispose();
   }
 
   Future<void> _loadStats() async {
     try {
-      final rentData = await fetchData();
-      final futureData = await fetchData_Logg();
-      final agreementData = await fetchData_aggrement();
+      final rentData = await fetchData().timeout(const Duration(seconds: 10));
+      final futureData = await fetchData_Logg().timeout(const Duration(seconds: 10));
+      final agreementData = await fetchData_aggrement().timeout(const Duration(seconds: 10));
       if (mounted) {
         setState(() {
           rentPropertiesCount = rentData.isNotEmpty ? rentData.first.id : 0;
@@ -926,51 +964,56 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 
   Future<void> _requestLocationPermissionAndGetLocation() async {
-    final status = await Permission.location.request();
+    try {
+      final status = await Permission.location.request().timeout(const Duration(seconds: 5));
 
-    if (status.isGranted) {
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
-      if (mounted) {
-        setState(() {
-          _latitude = position.latitude;
-          _longitude = position.longitude;
-          debugPrint("Latitude: ${position.latitude}");
-          debugPrint("Longitude: ${position.longitude}");
-        });
+      if (status.isGranted) {
+        Position position = await Geolocator.getCurrentPosition(
+          desiredAccuracy: LocationAccuracy.high,
+        ).timeout(const Duration(seconds: 10));
+        if (mounted) {
+          setState(() {
+            _latitude = position.latitude;
+            _longitude = position.longitude;
+            debugPrint("Latitude: ${position.latitude}");
+            debugPrint("Longitude: ${position.longitude}");
+          });
+        }
+        await _saveLocationToPrefs(_latitude!, _longitude!);
+      } else if (status.isDenied) {
+        showDialog(
+          context: context,
+          builder: (_) => AlertDialog(
+            title: const Text("Permission Required"),
+            content: const Text("Location permission is required to proceed."),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Cancel"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  Navigator.pop(context);
+                  await Permission.location.request();
+                },
+                child: const Text("Allow"),
+              ),
+            ],
+          ),
+        );
+      } else if (status.isPermanentlyDenied) {
+        openAppSettings();
       }
-      await _saveLocationToPrefs(_latitude!, _longitude!);
-    } else if (status.isDenied) {
-      showDialog(
-        context: context,
-        builder: (_) => AlertDialog(
-          title: const Text("Permission Required"),
-          content: const Text("Location permission is required to proceed."),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.pop(context);
-                await Permission.location.request();
-              },
-              child: const Text("Allow"),
-            ),
-          ],
-        ),
-      );
-    } else if (status.isPermanentlyDenied) {
-      openAppSettings();
+    } catch (e) {
+      debugPrint('Location error: $e');
+      // Non-blocking, continue without location
     }
   }
 
   Future<List<Catid>> fetchData() async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
-    final response = await http.get(url);
+    final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       debugPrint(number.toString());
       debugPrint(formattedDate.toString());
@@ -984,10 +1027,14 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   Future<List<Catid1122>> fetchData_Logg() async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$number");
-    final response = await http.get(url);
+    final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       List listresponse = json.decode(response.body);
-      listresponse.sort((a, b) => b['id'].compareTo(a['id']));
+      listresponse.sort((a, b) {
+        final aid = (a['id'] as num?)?.toInt() ?? 0;
+        final bid = (b['id'] as num?)?.toInt() ?? 0;
+        return bid.compareTo(aid);
+      });
       return listresponse.map((data) => Catid1122.fromJson(data)).toList();
     } else {
       throw Exception('Unexpected error occured!');
@@ -997,7 +1044,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   Future<List<Catid>> fetchData_aggrement() async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}");
-    final response = await http.get(url);
+    final response = await http.get(url).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       debugPrint(number.toString());
       debugPrint(formattedDate.toString());
@@ -1041,7 +1088,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       final uri = Uri.parse(
         'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
       );
-      final res = await http.get(uri).timeout(const Duration(seconds: 8));
+      final res = await http.get(uri).timeout(const Duration(seconds: 10));
       debugPrint('Monthly API Response Status: ${res.statusCode}');
       debugPrint('Monthly API Response Body: ${res.body}'); // Debug the response
       if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
@@ -1069,7 +1116,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       final uri = Uri.parse(
         'https://verifyserve.social/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$number',
       );
-      final resp = await http.get(uri);
+      final resp = await http.get(uri).timeout(const Duration(seconds: 10));
       debugPrint('Yearly API Response Status: ${resp.statusCode}');
       debugPrint('Yearly API Response Body: ${resp.body}'); // Debug the response
       if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
@@ -1235,9 +1282,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     return Scaffold(
       backgroundColor: scaffoldBackground,
-      body: _isLoadingData
-          ? const Center(child: CircularProgressIndicator()) // Show loading while data fetches
-          : CustomScrollView(
+      body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
           // Curved Silver App Bar with Dual Target Indicators

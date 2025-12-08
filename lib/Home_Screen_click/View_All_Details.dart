@@ -752,6 +752,43 @@ class _View_DetailsState extends State<View_Details> {
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
       appBar: AppBar(
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu, color: Colors.white),
+            onSelected: (value) {
+              if (value == "rented") {
+                // >>> correct the condition and guard null
+                if (firstProperty != null) {
+                  final pid = firstProperty!.id.toString();
+                  final sid = firstProperty!.subid.toString();
+                  debugPrint('P_id : $pid');
+                  debugPrint('Subid : $sid');
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => RentedPropertyPage(
+                        id: pid,
+                        subid: sid,
+                      ),
+                    ),
+                  );
+                } else {
+                  debugPrint('P_id : ${firstProperty!.id.toString()}');
+                  debugPrint('Subid : ${firstProperty!.subid.toString()}');
+                  // either still loading or API returned nothing
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Property not loaded yet.")),
+                  );
+                }
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: "rented", child: Text("Book property")),
+            ],
+          ),
+        ],
+
         centerTitle: true,
         backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,
@@ -773,19 +810,6 @@ class _View_DetailsState extends State<View_Details> {
             ],
           ),
         ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onSelected: (value) {
-              if (value == "book") {
-                Book_property();
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: "book", child: Text("Book Property")),
-            ],
-          ),
-        ],
       ),
       body: RefreshIndicator(
         onRefresh: () async {

@@ -984,7 +984,7 @@ class UnderFlatFuturePropertyController extends GetxController {
       rows.add(buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", prop.availableDate, context));
 
     if ((prop.highwayDistance ?? '').isNotEmpty)
-      rows.add(buildInfoRow(Icons.vaccines, Colors.red, "Metro Distance", prop.highwayDistance, context));
+      rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Highway Distance", prop.highwayDistance, context));
 
     if ((prop.roadSize ?? '').isNotEmpty)
       rows.add(buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize} Feet", context));
@@ -1164,11 +1164,67 @@ class UnderFlatFuturePropertyController extends GetxController {
     }
   }
 
+  Future<String?> _pickDate(BuildContext context) async {
+    final picked = await showDatePicker(
+      context: context,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2100),
+      initialDate: DateTime.now(),
+    );
+
+    if (picked == null) return null;
+    return "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+  }
+
   Future<void> handleUpcomingButtonAction(BuildContext context) async {
     isUpcomingLoading.value = true;
     try {
       final upcomingUrl = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php");
       if (upcomingStatus.value == "Book") {
+        final selectedDate = await _pickDate(context);
+
+        if (selectedDate == null) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("No date selected!"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+
+        // 1️⃣ UPDATE DATE BEFORE MOVE
+        final dateUpdateBody = {
+          "action": "update_available_date",
+          "P_id": id,
+          "date": selectedDate,
+        };
+        final dateUpdateResponse = await http.post(upcomingUrl, body: dateUpdateBody).timeout(const Duration(seconds: 30));
+
+        if (dateUpdateResponse.statusCode != 200) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Failed to update date!"),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        } else {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Successfully updated with date"),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        }
+
+        // 2️⃣ CONTINUE WITH MOVE PROCESS
         final updateBody = {"action": "update", "P_id": id};
         final updateResponse = await http.post(upcomingUrl, body: updateBody).timeout(const Duration(seconds: 30));
 
@@ -1834,7 +1890,9 @@ class underflat_futureproperty extends GetView<UnderFlatFuturePropertyController
                   backgroundColor: controller.isUpcomingLoading.value
                       ? Colors.grey
                       : (controller.upcomingStatus.value == "Live" ? Colors.grey : Colors.orange),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                   padding: EdgeInsets.symmetric(vertical: verticalPadding * 2),
                   elevation: 2,
                 ),

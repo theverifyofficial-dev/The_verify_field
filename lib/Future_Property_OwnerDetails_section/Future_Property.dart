@@ -1,4 +1,5 @@
 // frontpage_futureproperty_with_tabs.dart (Responsive: Added MediaQuery-based dynamic sizing for card padding, margins, image heights, and font sizes based on screen width/height; used clamp for bounds; adjusted flex and spacings for tablets (>600px) vs phones; ensured no overflow on small screens)
+// FIXED: Added automatic refresh of property statuses after returning from details page (Future_Property_details) to ensure live/unlive updates reflect immediately in the list (e.g., when marking flats as live, the badge and filters now update correctly without manual pull-to-refresh).
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -1514,8 +1515,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                 );
 
                 return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
+                  onTap: () async {
+                    await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
@@ -1524,6 +1525,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                             ),
                       ),
                     );
+                    // FIXED: Refresh properties and statuses after returning from details page to update live/unlive badges and filters immediately
+                    await _refreshProperties();
                   },
                   child: Card(
                     margin: EdgeInsets.symmetric(

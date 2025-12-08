@@ -1192,7 +1192,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "onTap": () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => const ShowTenantDemandPage())),
+                builder: (_) => const ShowProperty())),
         "gradient": cardGradients[1],
       },
       {

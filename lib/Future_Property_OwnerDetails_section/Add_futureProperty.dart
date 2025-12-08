@@ -204,7 +204,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         );
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload successful!')),
+          const SnackBar(content: Text('Upload successful!')),
         );
         print('Upload successful: ${response.data}');
       }
@@ -232,7 +232,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
     if (_singleImage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Please select an image')),
+        const SnackBar(content: Text('Please select an image')),
       );
       return;
     }
@@ -331,6 +331,31 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   final Color secondaryColor = const Color(0xFF6C63FF);
   final Color accentColor = const Color(0xFF00D4AA);
 
+  /// Helper: Responsive row for two fields.
+  Widget _buildTwoFieldRow(Widget first, Widget second) {
+    final width = MediaQuery.of(context).size.width;
+
+    if (width < 420) {
+      // Narrow -> vertical
+      return Column(
+        children: [
+          first,
+          const SizedBox(height: 12),
+          second,
+        ],
+      );
+    }
+
+    // Wider screens -> horizontal
+    return Row(
+      children: [
+        Expanded(child: first),
+        const SizedBox(width: 16),
+        Expanded(child: second),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -378,7 +403,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       ),
     );
   }
-
 
   Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
@@ -650,140 +674,129 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedItem1,
-                          decoration: InputDecoration(
-                            labelText: 'Buy / Rent',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.sell_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: _items1
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedItem1 = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select Buy/Rent' : null,
-                        ),
-                      ),
+
+                _buildTwoFieldRow(
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: _totalFloor,
-                          decoration: InputDecoration(
-                            labelText: 'Total Floor',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.layers_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: _items_floor2
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _totalFloor = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select total floor' : null,
-                        ),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedItem1,
+                      decoration: InputDecoration(
+                        labelText: 'Buy / Rent',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.sell_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                       ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: _items1
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedItem1 = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select Buy/Rent' : null,
                     ),
-                  ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: _totalFloor,
+                      decoration: InputDecoration(
+                        labelText: 'Total Floor',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.layers_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: _items_floor2
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _totalFloor = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select total floor' : null,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedPropertyType,
-                          decoration: InputDecoration(
-                            labelText: 'Property Type',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.category_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: propertyTypes
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedPropertyType = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Select Property Type' : null,
-                        ),
-                      ),
+
+                _buildTwoFieldRow(
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: _typeofproperty,
-                          decoration: InputDecoration(
-                            labelText: 'Type of Property',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.home_work_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: name
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _typeofproperty = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select type of property' : null,
-                        ),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedPropertyType,
+                      decoration: InputDecoration(
+                        labelText: 'Property Type',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.category_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                       ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: propertyTypes
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedPropertyType = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Select Property Type' : null,
                     ),
-                  ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: _typeofproperty,
+                      decoration: InputDecoration(
+                        labelText: 'Type of Property',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.home_work_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: name
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _typeofproperty = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select type of property' : null,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -876,6 +889,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
+                // PROPERTY NAME & ADDRESS
                 TextFormField(
                   controller: _address,
                   style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
@@ -890,6 +904,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter property address' : null,
                 ),
                 const SizedBox(height: 12),
+
+                // BUILDING INFORMATION
                 TextFormField(
                   controller: _Building_information,
                   style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
@@ -904,209 +920,210 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter building information' : null,
                 ),
                 const SizedBox(height: 12),
+
+                // FACILITIES
                 _buildFacilityField(isDarkMode, textColor, secondaryTextColor),
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: selectedRoadSize,
-                          decoration: InputDecoration(
-                            labelText: 'Road width (in ft)',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.aod_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: roadSizeOptions
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedRoadSize = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select road size' : null,
-                        ),
-                      ),
+
+                // ROAD SIZE + AGE (RESPONSIVE)
+                _buildTwoFieldRow(
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: _ageOfProperty,
-                          decoration: InputDecoration(
-                            labelText: 'Age of property',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.date_range_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: Age_Options
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _ageOfProperty = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select age' : null,
-                        ),
+                    child: DropdownButtonFormField<String>(
+                      value: selectedRoadSize,
+                      decoration: InputDecoration(
+                        labelText: 'Road width (in ft)',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.aod_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                       ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: roadSizeOptions
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedRoadSize = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select road size' : null,
                     ),
-                  ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: _ageOfProperty,
+                      decoration: InputDecoration(
+                        labelText: 'Age of property',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.date_range_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: Age_Options
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _ageOfProperty = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select age' : null,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: _buildSectionCard(
-                          title: "Metro Station",
-                          child: TextFormField(
-                            controller: metroController,
-                            readOnly: true,
-                            decoration: InputDecoration(
-                              hintText: "Select Metro Station",
-                              hintStyle: TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                              border: OutlineInputBorder(),
-                            ),
-                            onTap: () {
-                              showMetroLocalityPicker(context, (metro, localities) {
-                                setState(() {
-                                  metroController.text = metro;
-                                  localityController.text = localities.join(", ");
-                                });
-                              });
-                            },
-                          ),
-                        ),
+
+                // METRO STATION (PICKER) + METRO DISTANCE (RESPONSIVE)
+                _buildTwoFieldRow(
+                  TextFormField(
+                    controller: metroController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: "Metro Station",
+                      labelStyle: TextStyle(color: secondaryTextColor),
+                      prefixIcon: Icon(Icons.train_rounded, color: primaryColor),
+                      hintText: "Select Metro Station",
+                      hintStyle: TextStyle(color: secondaryTextColor),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: selectedMetroDistance,
-                          decoration: InputDecoration(
-                            labelText: 'Metro Distance',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.straighten_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: metroDistanceOptions
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedMetroDistance = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select metro distance' : null,
-                        ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
                       ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: primaryColor),
+                      ),
+                      filled: true,
+                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                     ),
-                  ],
+                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    onTap: () {
+                      showMetroLocalityPicker(context, (metro, localities) {
+                        setState(() {
+                          metroController.text = metro;
+                          localityController.text = localities.join(", ");
+                        });
+                      });
+                    },
+                    validator: (value) => (value == null || value.isEmpty) ? 'Please select metro station' : null,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: selectedMetroDistance,
+                      decoration: InputDecoration(
+                        labelText: 'Metro Distance',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.straighten_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: metroDistanceOptions
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedMetroDistance = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select metro distance' : null,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: selectedMarketDistance,
-                          decoration: InputDecoration(
-                            labelText: 'Market Distance',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.shopping_cart_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: marketDistanceOptions
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              selectedMarketDistance = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select market distance' : null,
-                        ),
-                      ),
+
+                // MARKET DISTANCE + LIFT (RESPONSIVE)
+                _buildTwoFieldRow(
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.withOpacity(0.2)),
-                        ),
-                        child: DropdownButtonFormField<String>(
-                          value: _selectedLift,
-                          decoration: InputDecoration(
-                            labelText: 'Lift Availability',
-                            labelStyle: TextStyle(color: secondaryTextColor),
-                            border: InputBorder.none,
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                            prefixIcon: Icon(Icons.elevator_rounded, color: primaryColor),
-                            filled: true,
-                            fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          ),
-                          dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
-                          items: lift_options
-                              .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
-                              .toList(),
-                          onChanged: (String? newValue) {
-                            setState(() {
-                              _selectedLift = newValue;
-                            });
-                          },
-                          validator: (value) => (value == null || value.isEmpty) ? 'Please select lift availability' : null,
-                        ),
+                    child: DropdownButtonFormField<String>(
+                      value: selectedMarketDistance,
+                      decoration: InputDecoration(
+                        labelText: 'Market Distance',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.shopping_cart_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                       ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: marketDistanceOptions
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          selectedMarketDistance = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select market distance' : null,
                     ),
-                  ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child: DropdownButtonFormField<String>(
+                      value: _selectedLift,
+                      decoration: InputDecoration(
+                        labelText: 'Lift Availability',
+                        labelStyle: TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.elevator_rounded, color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      ),
+                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      items: lift_options
+                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _selectedLift = newValue;
+                        });
+                      },
+                      validator: (value) => (value == null || value.isEmpty) ? 'Please select lift availability' : null,
+                    ),
+                  ),
                 ),
+
                 const SizedBox(height: 16),
+
+                // PARKING
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
@@ -1136,48 +1153,59 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     validator: (value) => (value == null || value.isEmpty) ? 'Please select parking type' : null,
                   ),
                 ),
+
                 const SizedBox(height: 16),
-                _buildSectionCard(
-                  title: "Localities",
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      TextFormField(
-                        controller: localityController,
-                        readOnly: true,
-                        maxLines: 2,
-                        decoration: InputDecoration(
-                          hintText: "Selected Localities",
-                          hintStyle: TextStyle(color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                          border: OutlineInputBorder(),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // SHOW CHIPS VISUALLY
-                      if (localityController.text.trim().isNotEmpty)
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: Wrap(
-                            spacing: 6,
-                            children: localityController.text
-                                .split(",")
-                                .map((loc) => Chip(
-                              label: Text(
-                                loc.trim(),
-                                style: TextStyle(
-                                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
-                                  fontSize: 12,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              backgroundColor: Colors.grey.shade600,
-                            ))
-                                .toList(),
-                          ),
-                        ),
-                    ],
+
+                // LOCALITIES SECTION (clean & wrapping chips)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Localities",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textColor,
+                    ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: localityController,
+                  readOnly: true,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: "Selected Localities",
+                    hintStyle: TextStyle(color: secondaryTextColor),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    filled: true,
+                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                  ),
+                  style: TextStyle(color: textColor),
+                ),
+                const SizedBox(height: 8),
+                if (localityController.text.trim().isNotEmpty)
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: localityController.text
+                        .split(",")
+                        .map(
+                          (loc) => Chip(
+                        label: Text(
+                          loc.trim(),
+                          style: TextStyle(
+                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                            fontSize: 12,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        backgroundColor: Colors.grey.shade600,
+                      ),
+                    )
+                        .toList(),
+                  ),
               ],
             ),
           ),
@@ -1915,10 +1943,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
-          children: const [
-            Icon(Icons.check_circle_rounded, color: Colors.white),
-            SizedBox(width: 8),
-            Expanded(child: Text('')),
+          children: [
+            const Icon(Icons.check_circle_rounded, color: Colors.white),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message)),
           ],
         ),
         backgroundColor: accentColor,
@@ -2496,8 +2524,7 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
             child: const Text("Done",
                 style: TextStyle(color: Colors.white, fontSize: 16)),
           ),
-        ],
-      ),
+        ],),
     );
   }
 }

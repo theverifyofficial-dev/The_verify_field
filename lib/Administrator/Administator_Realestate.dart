@@ -44,7 +44,6 @@ class Catid {
   final String highwayDistance;
   final String mainMarketDistance;
   final String meter;
-  final String? videoStatus;        // NEW
   final String ownerName;
   final String ownerNumber;
   final String currentDate;
@@ -117,7 +116,6 @@ class Catid {
     required this.videoLink,
     required this.subid,
     this.sourceId, // NEW
-    this.videoStatus, // NEW
   });
 
   static String _s(dynamic v) => v?.toString() ?? '';
@@ -174,7 +172,6 @@ class Catid {
       videoLink: _s(json['video_link']),
       subid: _i(json['subid']),
       sourceId: json['source_id']?.toString(), // NEW
-      videoStatus: _s(json['video_status']),
     );
   }
 }
@@ -197,12 +194,12 @@ class ADministaterShow_realestete extends StatefulWidget {
 }
 
 class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
+  final _formKey = GlobalKey<FormState>();
 
 
   String _name = '';
   String _number = '';
   String _location = '';
-  String _post = '';
 
 // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
@@ -231,23 +228,21 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     // Otherwise assume the decoded JSON is already the payload
     return decoded;
   }
-
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _name = prefs.getString('name') ?? '';
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
-      _post = prefs.getString('post') ?? '';
     });
 
     print("===== SHARED PREF DATA LOADED =====");
     print("Name: $_name");
     print("Number: $_number");
     print("Location: $_location");
-    print("Post: $_post");
     print("===================================");
   }
+
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
     final resp = await http.get(url);
@@ -307,12 +302,16 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   }
   Future<List<Catid>> fetchData_abheyProperty() async {
     final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=9675383184&live_unlive=Live",
+      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
+          "?field_workar_number=9675383184&live_unlive=Live",
     );
     return _fetchCommon(url);
   }
 
   String? _highlightedFlatId;
+  bool _hasHighlighted = false;
+  List<Catid> _properties = [];
+  bool _didAutoScroll = false;
   final ScrollController _scrollController = ScrollController();
   bool _hasScrolled = false;
   final Map<String, GlobalKey> _cardKeys = {};
@@ -381,6 +380,17 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
   }
 
+  Future<void> _scrollAfterAllLoaded() async {
+    await Future.wait([
+      fetchData(),
+      fetchData1(),
+      fetchData2(),
+      av(),
+      fetchData_manishProperty(),
+    ]);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
+  }
 
 
   @override
@@ -395,12 +405,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   Widget build(BuildContext context) {
     final loc = _location.trim().toLowerCase();
 
-    final post = _post.trim().toLowerCase();
-
-    bool isSubAdmin = post == "sub administrator";
-    bool isAdmin = post == "administrator";
-
     return Scaffold(
+      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
@@ -445,479 +451,479 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         child: CustomScrollView(
           controller: _scrollController,
           slivers: [
-            if (isAdmin || loc == "sultanpur")
+            if (loc == "sultanpur")
               SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiFetchDataLoaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child:
-                              Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Failed to load properties'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(child: Text('No properties available'));
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 🔹 Your header UI
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Sumit kasaniya' ,   style: Theme.of(context)
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return FutureBuilder<List<Catid>>(
+                      future: fetchData(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          _apiFetchDataLoaded = true;
+                          _tryScrollToHighlighted();
+                        }
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child:
+                            Lottie.asset(AppImages.loadingHand, height: 400),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(child: Text('Failed to load properties'));
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(child: Text('No properties available'));
+                        } else {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 🔹 Your header UI
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text('Sumit kasaniya' ,   style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge
+                                        ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      fontFamily: "PoppinsBold",
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface,
+                                    ),),
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                See_All_Realestate(
+                                                    id: '9711775300'),
+                                          ),
+                                        );
+                                      },
+                                      child: Row(
+                                        children: [
+                                          Text('View All',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                color: Colors.blue[700],
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ) ),
+                                          SizedBox(width: 4),
+                                          Icon(Icons.arrow_forward_ios_rounded, color: Colors.blue[700],
+                                              size: 14),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              // 🔹 Horizontal list
+                              SizedBox(
+                                height: 450,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: snapshot.data!.length,
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                                  itemBuilder: (context, index) {
+                                    final property = snapshot.data![index];
+                                    final flatId = property.id.toString();
+
+                                    // 🔑 assign key here
+                                    _cardKeys.putIfAbsent(
+                                        flatId, () => GlobalKey());
+
+                                    return PropertyCard(
+                                      cardKey: _cardKeys[flatId],
+                                      // ✅ attach key
+                                      property: property,
+                                      displayIndex: snapshot.data!.length - index,
+                                      isHighlighted: flatId == _highlightedFlatId,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                Administater_View_Details(
+                                                  idd: property.id.toString(),
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    );
+                  },
+                  childCount: 1,
+                ),
+              ),
+            if (loc == "sultanpur")
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return FutureBuilder<List<Catid>>(
+                      future: fetchData1(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          _apiFetchData1Loaded = true;
+                          _tryScrollToHighlighted();
+                        }
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child:
+                            Lottie.asset(AppImages.loadingHand, height: 400),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Failed to load properties',
+                              style: Theme.of(context)
                                   .textTheme
-                                  .titleLarge
+                                  .bodyMedium
                                   ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "PoppinsBold",
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface,
-                              ),),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(
-                                                  id: '9711775300'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text('View All',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                            color: Colors.blue[700],
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: "Poppins",
-                                          ) ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded, color: Colors.blue[700],
-                                            size: 14),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                color: Colors.grey[600],
+                                fontFamily: "Poppins",
                               ),
                             ),
-
-                            // 🔹 Horizontal list
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: snapshot.data!.length,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, index) {
-                                  final property = snapshot.data![index];
-                                  final flatId = property.id.toString();
-
-                                  // 🔑 assign key here
-                                  _cardKeys.putIfAbsent(
-                                      flatId, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[flatId],
-                                    // ✅ attach key
-                                    property: property,
-                                    displayIndex: snapshot.data!.length - index,
-                                    isHighlighted: flatId == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                            idd: property.id.toString(),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
-              ),
-            ),
-            if (isAdmin || loc == "sultanpur")
-              SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData1(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiFetchData1Loaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child:
-                              Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Failed to load properties',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontFamily: "Poppins",
+                          );
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.home_work_outlined,
+                                  size: 48,
+                                  color: Colors.grey[400],
                                 ),
-                          ),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.home_work_outlined,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No properties available',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.grey[600],
-                                      fontFamily: "Poppins",
-                                    ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        // ✅ auto-scroll if highlightedFlatId exists
-                        if (_highlightedFlatId != null) {
-                          final foundIndex = data.indexWhere(
-                              (p) => p.id.toString() == _highlightedFlatId);
-                          if (foundIndex != -1) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (scrollController.hasClients) {
-                                scrollController.animateTo(
-                                  foundIndex * 250, // 250 = card width approx
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            });
-                          }
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Ravi Kumar',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: "PoppinsBold",
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No properties available',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                    color: Colors.grey[600],
+                                    fontFamily: "Poppins",
                                   ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(
-                                                  id: '9711275300'),
-                                        ),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5, vertical: 4),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'View All',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  color: Colors.blue[700],
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Poppins",
-                                                ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            size: 14,
-                                            color: Colors.blue[700],
-                                          ),
-                                        ],
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          final data = snapshot.data!;
+                          final scrollController = ScrollController();
+
+                          // ✅ auto-scroll if highlightedFlatId exists
+                          if (_highlightedFlatId != null) {
+                            final foundIndex = data.indexWhere(
+                                    (p) => p.id.toString() == _highlightedFlatId);
+                            if (foundIndex != -1) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (scrollController.hasClients) {
+                                  scrollController.animateTo(
+                                    foundIndex * 250, // 250 = card width approx
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              });
+                            }
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Ravi Kumar',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: "PoppinsBold",
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
                                       ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  return PropertyCard(
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: property.id.toString() ==
-                                        _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                            idd: property.id.toString(),
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                See_All_Realestate(
+                                                    id: '9711275300'),
                                           ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 4),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              'View All',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                color: Colors.blue[700],
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.arrow_forward_ios_rounded,
+                                              size: 14,
+                                              color: Colors.blue[700],
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
-              ),
-            ),
-            if (isAdmin || loc == "sultanpur")
-              SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData2(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiFetchData2Loaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child:
-                              Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Failed to load properties',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontFamily: "Poppins",
-                                ),
-                          ),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.home_work_outlined,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No properties available',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.grey[600],
-                                      fontFamily: "Poppins",
-                                    ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        // ✅ Auto-scroll if highlightedFlatId matches
-                        if (_highlightedFlatId != null) {
-                          final foundIndex = data.indexWhere(
-                              (p) => p.id.toString() == _highlightedFlatId);
-                          if (foundIndex != -1) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (scrollController.hasClients) {
-                                scrollController.animateTo(
-                                  foundIndex * 250, // approx card width
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            });
-                          }
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Faizan Khan',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: "PoppinsBold",
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(
-                                                  id: '9971172204'),
-                                        ),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5, vertical: 4),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'View All',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  color: Colors.blue[700],
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Poppins",
-                                                ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            size: 14,
-                                            color: Colors.blue[700],
-                                          ),
-                                        ],
                                       ),
                                     ),
-                                  ),
-                                ],
+                                  ],
+                                ),
                               ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  return PropertyCard(
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: property.id.toString() ==
-                                        _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                            idd: property.id.toString(),
+                              SizedBox(
+                                height: 450,
+                                child: ListView.builder(
+                                  controller: scrollController,
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: data.length,
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                                  itemBuilder: (context, idx) {
+                                    final property = data[idx];
+                                    return PropertyCard(
+                                      property: property,
+                                      displayIndex: data.length - idx,
+                                      isHighlighted: property.id.toString() ==
+                                          _highlightedFlatId,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                Administater_View_Details(
+                                                  idd: property.id.toString(),
+                                                ),
                                           ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    );
+                  },
+                  childCount: 1,
+                ),
+              ),
+            if (loc == "sultanpur")
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                    return FutureBuilder<List<Catid>>(
+                      future: fetchData2(),
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          _apiFetchData2Loaded = true;
+                          _tryScrollToHighlighted();
+                        }
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return Center(
+                            child:
+                            Lottie.asset(AppImages.loadingHand, height: 400),
+                          );
+                        } else if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Failed to load properties',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                color: Colors.grey[600],
+                                fontFamily: "Poppins",
                               ),
                             ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
-              ),
-            ),
+                          );
+                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.home_work_outlined,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No properties available',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyMedium
+                                      ?.copyWith(
+                                    color: Colors.grey[600],
+                                    fontFamily: "Poppins",
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        } else {
+                          final data = snapshot.data!;
+                          final scrollController = ScrollController();
 
-            if (isAdmin || loc.contains("rajpur") || loc.contains("chhattar"))
+                          // ✅ Auto-scroll if highlightedFlatId matches
+                          if (_highlightedFlatId != null) {
+                            final foundIndex = data.indexWhere(
+                                    (p) => p.id.toString() == _highlightedFlatId);
+                            if (foundIndex != -1) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                if (scrollController.hasClients) {
+                                  scrollController.animateTo(
+                                    foundIndex * 250, // approx card width
+                                    duration: const Duration(milliseconds: 500),
+                                    curve: Curves.easeInOut,
+                                  );
+                                }
+                              });
+                            }
+                          }
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
+                                child: Row(
+                                  mainAxisAlignment:
+                                  MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Faizan Khan',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleLarge
+                                          ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        fontFamily: "PoppinsBold",
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .onSurface,
+                                      ),
+                                    ),
+                                    InkWell(
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                See_All_Realestate(
+                                                    id: '9971172204'),
+                                          ),
+                                        );
+                                      },
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 5, vertical: 4),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              'View All',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .bodyMedium
+                                                  ?.copyWith(
+                                                color: Colors.blue[700],
+                                                fontWeight: FontWeight.w600,
+                                                fontFamily: "Poppins",
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Icon(
+                                              Icons.arrow_forward_ios_rounded,
+                                              size: 14,
+                                              color: Colors.blue[700],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 450,
+                                child: ListView.builder(
+                                  controller: scrollController,
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: data.length,
+                                  padding:
+                                  const EdgeInsets.symmetric(horizontal: 16),
+                                  itemBuilder: (context, idx) {
+                                    final property = data[idx];
+                                    return PropertyCard(
+                                      property: property,
+                                      displayIndex: data.length - idx,
+                                      isHighlighted: property.id.toString() ==
+                                          _highlightedFlatId,
+                                      onTap: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                Administater_View_Details(
+                                                  idd: property.id.toString(),
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                      },
+                    );
+                  },
+                  childCount: 1,
+                ),
+              ),
+
+            if (loc.contains("rajpur") || loc.contains("chhattar"))
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -1029,7 +1035,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                   childCount: 1,
                 ),
               ),
-            if (isAdmin || loc.contains("rajpur") || loc.contains("chhattar"))
+            if (loc.contains("rajpur") || loc.contains("chhattar"))
               SliverList(
                 delegate: SliverChildBuilderDelegate(
                       (context, index) {
@@ -1148,10 +1154,50 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
 
     );
   }
+// Helper Widget for Feature Pills
+  Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color iconColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: iconColor,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              color: iconColor,
+              fontWeight: FontWeight.w600,
+              fontFamily: "Poppins",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _launchDialer(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
+    );
+    if (await canLaunch(launchUri.toString())) {
+      await launch(launchUri.toString());
+    } else {
+      throw 'Could not launch $phoneNumber';
+    }
+  }
 
 }
-
-
 class PropertyCard extends StatelessWidget {
   final Catid property;
   final int displayIndex;
@@ -1170,280 +1216,319 @@ class PropertyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final screenWidth = size.width;
+    final screenHeight = size.height;
+
+    final adaptivePadding = screenWidth * 0.04;
+    final imageHeight = screenWidth * 0.45; // keep same ratio
+    final textScale = MediaQuery.of(context).textScaler;
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-        decoration: BoxDecoration(
-          color: isHighlighted ? Colors.red : null,
-          borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        key: cardKey,
+        duration: const Duration(milliseconds: 400),
+        width: screenWidth * (screenWidth < 600 ? 0.75 : 0.50), // tablets = 50%
+        margin: EdgeInsets.only(
+          right: screenWidth * 0.04,
+          bottom: screenWidth * 0.04,
         ),
-        child: Card(
-          elevation: 4,
-          shadowColor: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          color: isHighlighted
-              ? Colors.red.withOpacity(0.01)
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white10
               : Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildImageSection(context),
-              _buildContentSection(context),
-            ],
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isHighlighted ? Colors.red : Colors.transparent,
+            width: isHighlighted ? 3 : 1,
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: screenWidth * 0.03,
+              offset: Offset(0, screenWidth * 0.015),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildImage(context, property, imageHeight),
+
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.all(adaptivePadding),
+                child: MediaQuery(
+                  // Apply global responsive text scaling
+                  data: MediaQuery.of(context).copyWith(
+                    textScaleFactor: textScale.scale(1.0),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLocation(context, property),
+                      SizedBox(height: screenHeight * 0.008),
+                      _buildFeatures(property),
+                      SizedBox(height: screenHeight * 0.012),
+                      _buildDescription(context, property, displayIndex),
+                      SizedBox(height: screenHeight * 0.012),
+                      Divider(height: 1, color: Colors.grey[200]),
+                      SizedBox(height: screenHeight * 0.01),
+                      _buildFooter(context, property),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ---------------------------------------------------------
-  // IMAGE + TOP TAGS SECTION
-  // ---------------------------------------------------------
-  Widget _buildImageSection(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          height: 450,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            color: Theme.of(context).highlightColor,
-          ),
-          child: Image.network(
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Center(
-              child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-            ),
-          ),
-        ),
 
-        // TOP TAGS
-        Positioned(
-          top: 12,
-          right: 12,
-          child: Wrap(
-            spacing: 8,
-            children: [
-              _pillTag(
-                text: "Live Property ID : ${property.id}",
-                textColor: Colors.blue,
-                bg: Colors.white,
-                border: Colors.grey.shade700,
+
+// ---------------------- IMAGE ----------------------
+  Widget _buildImage(BuildContext context, Catid property, double imageHeight) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+      child: SizedBox(
+        height: imageHeight,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            /// Background Image
+            CachedNetworkImage(
+              imageUrl:
+              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: imageHeight,
+              placeholder: (context, url) => Container(
+                color: Colors.grey[100],
+                child: Center(
+                  child: Image.asset(AppImages.loader, height: 50, width: 50),
+                ),
               ),
-              _pillTag(
-                text: "For: ${property.buyRent}",
-                textColor: Colors.green.shade700,
-                bg: Colors.green.shade100,
-                border: Colors.green.shade400,
+              errorWidget: (context, url, error) => Container(
+                color: Colors.grey[100],
+                child: const Icon(
+                  Icons.home_work_outlined,
+                  size: 50,
+                  color: Colors.grey,
+                ),
               ),
-            ],
+            ),
+
+            /// Price overlay
+            Positioned(
+              left: 8,
+              bottom: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "₹ ${property.showPrice}", // <-- replace `price` with actual field
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.green,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "PoppinsBold",
+                  ),
+                ),
+              ),
+            ),
+            // Positioned(
+            //   top: 16,
+            //   right: 16,
+            //   child: FutureBuilder(
+            //     future: http.get(Uri.parse(
+            //         'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${property.id}')),
+            //     builder: (context, snapshot) {
+            //       String label = "Unlive: 0"; // default text
+            //       Color color = Colors.red.withOpacity(0.8); // default color
+            //
+            //       if (snapshot.connectionState == ConnectionState.done &&
+            //           snapshot.hasData &&
+            //           !snapshot.hasError) {
+            //         final data = jsonDecode(snapshot.data!.body);
+            //
+            //         bool anyLive = false;
+            //         if (data is List && data.isNotEmpty) {
+            //           for (var item in data) {
+            //             if (item['live_unlive'] == 'Live' && (item['logs'] as num) > 0) {
+            //               anyLive = true;
+            //               break; // any single live is enough
+            //             }
+            //           }
+            //         }
+            //         if (anyLive) {
+            //           // If any flat is live, show live logs
+            //           final liveItem = data.firstWhere(
+            //                 (item) => item['live_unlive'] == 'Live',
+            //             orElse: () => null,
+            //           );
+            //           label = "Live: ${liveItem?['logs'] ?? 0}";
+            //           color = Colors.green.withOpacity(0.8);
+            //         } else {
+            //           // If no flat is live, always show Unlive: 0
+            //           label = "Unlive: 0";
+            //           color = Colors.red.withOpacity(0.8);
+            //         }
+            //       }
+            //
+            //       return Container(
+            //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            //         decoration: BoxDecoration(
+            //           color: color,
+            //           borderRadius: BorderRadius.circular(12),
+            //         ),
+            //         child: Text(
+            //           label,
+            //           style: const TextStyle(
+            //             color: Colors.white,
+            //             fontWeight: FontWeight.bold,
+            //           ),
+            //         ),
+            //       );
+            //     },
+            //   ),
+            // )
+          ],
+        ),
+      ),
+    );
+  }
+
+// ---------------------- LOCATION ----------------------
+  Widget _buildLocation(BuildContext context, Catid property) {
+    return Row(
+      children: [
+        Icon(Icons.location_on_outlined, size: 18, color: Colors.grey[600]),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            property.locations,
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[600],
+              fontFamily: "Poppins",
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  // ---------------------------------------------------------
-  // CONTENT SECTION
-  // ---------------------------------------------------------
-  Widget _buildContentSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+// ---------------------- FEATURES ----------------------
+  Widget _buildFeatures(Catid property) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _buildFeaturePill(Icons.category_outlined, property.typeofProperty.toUpperCase(), Colors.blue[100]!, Colors.blue[800]!),
+        _buildFeaturePill(Icons.currency_rupee_outlined, property.buyRent.toUpperCase(), Colors.green[100]!, Colors.green[800]!),
+        _buildFeaturePill(Icons.bed_outlined, property.bhk.toUpperCase(), Colors.orange[100]!, Colors.orange[800]!),
+        _buildFeaturePill(Icons.stairs_outlined, "${property.floor}", Colors.purple[100]!, Colors.purple[800]!),
+      ],
+    );
+  }
+
+// ---------------------- DESCRIPTION ----------------------
+  Widget _buildDescription(BuildContext context, Catid property, int displayIndex) {
+    return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // PRICE + LOCATION
+          Text(
+            property.apartmentAddress,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontSize: 14,
+              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[600],
+              fontWeight: FontWeight.w600,
+              fontFamily: "Poppins",
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.visible,
+            softWrap: true,
+          ),
+          SizedBox(height: 10,),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "₹${property.showPrice}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  fontFamily: "PoppinsBold",
-                  color: Colors.black,
+                "Property No: $displayIndex",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "Poppins",
                 ),
               ),
               Text(
-                property.locations,
-                style: const TextStyle(
-                  fontFamily: "PoppinsBold",
-                  color: Colors.black,
+                "Building ID: ${property.subid}",
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: "Poppins",
                 ),
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
-
-          // FEATURE TAGS
-          Wrap(
-            spacing: 4,
-            runSpacing: 8,
-            children: [
-              _iconPill(
-                icon: Icons.king_bed,
-                text: property.bhk,
-                bg: Colors.purple.shade50,
-                border: Colors.purple.shade200,
-                textColor: Colors.purple.shade700,
-              ),
-
-              _iconPill(
-                icon: Icons.apartment,
-                text: property.floor,
-                bg: Colors.teal.shade50,
-                border: Colors.teal.shade200,
-                textColor: Colors.teal.shade700,
-              ),
-
-              _iconPill(
-                icon: Icons.receipt_long,
-                text: "Flat No. ${property.flatNumber}",
-                bg: Colors.red.shade50,
-                border: Colors.red.shade200,
-                textColor: Colors.red.shade700,
-              ),
-
-              _iconPill(
-                icon: Icons.house_outlined,
-                text: property.typeofProperty,
-                bg: Colors.orange.shade50,
-                border: Colors.orange.shade200,
-                textColor: Colors.orange.shade700,
-              ),
-
-              if (property.subid != null && property.subid != "0")
-                _pillTag(
-                  text: "Building ID : ${property.subid}",
-                  textColor: Colors.deepOrange.shade700,
-                  bg: Colors.deepOrange.shade100,
-                  border: Colors.deepOrange.shade400,
-                ),
-
-              _pillTag(
-                text: "Building Flat ID : ${property.id}",
-                textColor: Colors.blue.shade700,
-                bg: Colors.blue.shade100,
-                border: Colors.blue.shade400,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // VIDEO STATUS BUTTON (IF ANY)
-          if (property.videoStatus != null && property.videoStatus!.isNotEmpty)
-            _videoStatusButton(context),
         ],
       ),
     );
   }
 
-  // ---------------------------------------------------------
-  // SMALL FEATURE PILL WITHOUT ICON
-  // ---------------------------------------------------------
-  Widget _pillTag({
-    required String text,
-    required Color textColor,
-    required Color bg,
-    required Color border,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: border),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: textColor,
-          fontSize: 12,
+  Widget _buildFooter(BuildContext context, Catid property) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          "ID: ${property.id??""}",
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontFamily: "Poppins",
+          ),
         ),
-      ),
+        Text(
+          property.availableDate,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            fontFamily: "Poppins",
+          ),
+        ),
+      ],
     );
   }
 
-  // ---------------------------------------------------------
-  // FEATURE PILL WITH ICON
-  // ---------------------------------------------------------
-  Widget _iconPill({
-    required IconData icon,
-    required String text,
-    required Color bg,
-    required Color border,
-    required Color textColor,
-  }) {
+  Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color textColor) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: border),
-        borderRadius: BorderRadius.circular(10),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 16, color: textColor),
           const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
+          Text(text, style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontFamily: "Poppins")),
         ],
       ),
     );
   }
 
-  // ---------------------------------------------------------
-  // VIDEO STATUS WIDGET
-  // ---------------------------------------------------------
-  Widget _videoStatusButton(BuildContext context) {
-    String status = property.videoStatus!.toLowerCase().trim();
-
-    Color bg;
-    if (status == "") bg = Colors.red;
-    else if (status == "video submitted") bg = Colors.green;
-    else if (status == "video requested by editor") bg = Colors.blue;
-    else if (status == "video recived and editing started") bg = Colors.orange;
-    else if (status == "video uploaded") bg = Colors.purple;
-    else bg = Colors.red;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            status == "video submitted" ? Icons.check_circle : Icons.error_outline,
-            color: Colors.white,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            property.videoStatus!,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

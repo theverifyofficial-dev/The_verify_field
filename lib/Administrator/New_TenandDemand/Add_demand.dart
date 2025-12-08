@@ -13,26 +13,22 @@ class CustomerDemandFormPage extends StatefulWidget {
   State<CustomerDemandFormPage> createState() => _CustomerDemandFormPageState();
 }
 
-class _CustomerDemandFormPageState extends State<CustomerDemandFormPage>
+class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with SingleTickerProviderStateMixin  {
 
-    with SingleTickerProviderStateMixin  {
   final _formKey = GlobalKey<FormState>();
   final Dio _dio = Dio();
-
   final _nameCtrl = TextEditingController();
   final _numberCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
 
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
-
   final String _status = "New";
   bool _isUrgent = false;
 
   RangeValues _bhkRange = const RangeValues(1, 3);
   RangeValues _buyBudget = const RangeValues(1000000, 5000000);
 
-  // Rent dropdown values (5k, 10k, 15k…)
   final List<int> _rentSteps = [5000, 10000, 15000, 20000, 25000, 30000, 40000, 50000, 75000, 100000];
   int? _rentMin = 5000;
   int? _rentMax = 20000;
@@ -43,7 +39,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage>
     "SultanPur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni",""
   ];
 
-  // Office assignment controls
   String _assignType = "All Offices";
   String? _selectedOffice;
   final List<String> _officeOptions = [
@@ -110,6 +105,8 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage>
         data: jsonEncode(formData),
         options: Options(headers: {"Content-Type": "application/json"}),
       );
+
+      print('printing response ${res.data['body']}');
 
       if (res.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(

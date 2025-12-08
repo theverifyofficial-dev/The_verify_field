@@ -64,6 +64,7 @@ class EditFlatState extends State<EditFlat> {
   String? _lift, _registry, _loan;
   String? resident_commercial,bhk,parking,balcony,kitchen,bathroom;
   DateTime? _availableDate;
+
   File? _imageFile;
   String long = '';
   String lat = '';
@@ -255,6 +256,7 @@ class EditFlatState extends State<EditFlat> {
     } catch (e) {
       print("❌ Upload error: $e");
       showSnack("Upload failed: $e");
+
     } finally {
       if (mounted) {
         setState(() {

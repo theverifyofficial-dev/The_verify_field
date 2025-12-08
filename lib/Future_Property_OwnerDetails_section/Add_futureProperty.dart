@@ -611,7 +611,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               /// ------------------ METRO FIELD ------------------
               _buildSectionCard(
                 title: "Metro Station",
-                child: TextFormField(
+                child:
+                TextFormField(
                   controller: metroController,
                   readOnly: true,
                   decoration: const InputDecoration(
@@ -1229,8 +1230,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       ),
     );
   }
-
-
 
 
   TextStyle _sectionTitleStyle() {

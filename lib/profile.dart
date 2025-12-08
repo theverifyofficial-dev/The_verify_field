@@ -313,10 +313,13 @@ class _ProfilePageState extends State<ProfilePage> {
             // Tabs
             Row(
               children: [
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     if (isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
                   },
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: Colors.white.withOpacity(0.2),
+                  highlightColor: Colors.white.withOpacity(0.1),
                   child: Container(
                     width: tabWidth,
                     height: 40,
@@ -339,10 +342,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     if (!isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
                   },
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: Colors.white.withOpacity(0.2),
+                  highlightColor: Colors.white.withOpacity(0.1),
                   child: Container(
                     width: tabWidth,
                     height: 40,

@@ -62,6 +62,8 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
       required this.facility,
       required this.google_loc,
       required this.locality_list,
+      required String apartment,
+      required String apartment_name,
 
 
 

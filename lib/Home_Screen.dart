@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'dart:ui';
 import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
@@ -13,8 +13,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/Administrator/SubAdmin/ShowTenantDemant.dart';
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
+import 'package:verify_feild_worker/Monthly_Target.dart';
 import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
@@ -26,15 +28,16 @@ import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Costumer_demand.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
-import 'Home_Screen_click/live_tabbar.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
+import 'Yearly_Target.dart';
 import 'add_properties_firstpage.dart';
 import 'main.dart';
+
 class TodayCounts {
   final int agreements;
   final int futureProperties;
@@ -46,6 +49,7 @@ class TodayCounts {
     required this.websiteVisits,
   });
 }
+
 class TomorrowEvent {
   final String time;
   final String title;
@@ -133,6 +137,78 @@ class Catid {
   }
 }
 
+// Dummy classes for JSON parsing - replace with actual if available
+class AgreementTask {
+  final String? agreementType;
+  final String? ownerName;
+
+  AgreementTask({this.agreementType, this.ownerName});
+}
+
+class FutureProperty {
+  final String propertyName;
+  final String place;
+  final String buyRent;
+
+  FutureProperty({required this.propertyName, required this.place, required this.buyRent});
+}
+
+class WebsiteVisit {
+  final String? name;
+  final String? contactNo;
+
+  WebsiteVisit({this.name, this.contactNo});
+}
+
+class AgreementTaskResponse {
+  final List<AgreementTask> data;
+
+  AgreementTaskResponse({required this.data});
+
+  factory AgreementTaskResponse.fromRawJson(String str) {
+    final jsonData = json.decode(str);
+    List<AgreementTask> dataList = [];
+    if (jsonData is List) {
+      dataList = jsonData.map((i) => AgreementTask()).toList();
+    }
+    return AgreementTaskResponse(data: dataList);
+  }
+}
+
+class FuturePropertyResponse {
+  final List<FutureProperty> data;
+
+  FuturePropertyResponse({required this.data});
+
+  factory FuturePropertyResponse.fromRawJson(String str) {
+    final jsonData = json.decode(str);
+    List<FutureProperty> dataList = [];
+    if (jsonData is List) {
+      dataList = jsonData.map((i) => FutureProperty(
+        propertyName: i['propertyName'] ?? '',
+        place: i['place'] ?? '',
+        buyRent: i['buyRent'] ?? '',
+      )).toList();
+    }
+    return FuturePropertyResponse(data: dataList);
+  }
+}
+
+class WebsiteVisitResponse {
+  final List<WebsiteVisit> data;
+
+  WebsiteVisitResponse({required this.data});
+
+  factory WebsiteVisitResponse.fromRawJson(String str) {
+    final jsonData = json.decode(str);
+    List<WebsiteVisit> dataList = [];
+    if (jsonData is List) {
+      dataList = jsonData.map((i) => WebsiteVisit()).toList();
+    }
+    return WebsiteVisitResponse(data: dataList);
+  }
+}
+
 class Home_Screen extends StatefulWidget {
   static const route = "/Home_Screen";
   const Home_Screen({super.key});
@@ -145,8 +221,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   late String formattedDate;
   DateTime now = DateTime.now();
 
-  String _fieldworkarnumber = '';
-  String _fieldworkarname = '';
+  String number = '';
 
   String? userName;
   String? userNumber;
@@ -154,28 +229,34 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   int rentPropertiesCount = 0;
   int futurePropertiesCount = 0;
   int agreementCount = 0;
+  int targetCount = 85; // Example target percentage
 
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  String currentTime = "";
+
+  int monthlyAchieved = 0;
+  int yearlyAchieved = 0;
+  static const int monthlyTarget = 15;
+  static const int yearlyTarget = 100;
+
+  double? _latitude;
+  double? _longitude;
+
+  bool _isLoadingData = true; // Add loading indicator
+
+  List<AgreementTask> todayAgreements = [];
+  List<FutureProperty> todayFutureProperties = [];
+  List<WebsiteVisit> todayWebsiteVisits = [];
+  List<TomorrowEvent> tomorrowEvents = [];
+
+  TodayCounts? todayCounts;
+  bool todayLoading = true;
 
   @override
   void initState() {
     super.initState();
-    Timer.periodic(const Duration(seconds: 1), (_) {
-      final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30)); // IST Time
-
-      final hour = now.hour > 12 ? now.hour - 12 : (now.hour == 0 ? 12 : now.hour);
-      final ampm = now.hour >= 12 ? "PM" : "AM";
-
-      setState(() {
-        currentTime =
-        "${hour.toString().padLeft(2, '0')}:"
-            "${now.minute.toString().padLeft(2, '0')}:"
-            "${now.second.toString().padLeft(2, '0')} $ampm";
-      });
-    });
+    formattedDate = "${now.month}/${now.year}";
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1200),
       vsync: this,
@@ -186,25 +267,61 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     _slideAnimation = Tween<Offset>(begin: const Offset(-0.3, 0), end: Offset.zero).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
-    fetchTodayCounts().then((value) {
+
+    // Start animations
+    _controller.forward();
+
+    // Load user data and then fetch stats
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await _loaduserdata();
+    await loadUserName();
+    await _requestLocationPermissionAndGetLocation();
+
+    // Now that number is loaded, fetch the data
+    if (number.isNotEmpty) {
+      try {
+        await Future.wait([
+          _fetchMonthly(),
+          _fetchYearly(),
+          _loadStats(),
+          fetchTodayCounts(),
+        ]);
+        if (mounted) {
+          setState(() {
+            todayLoading = false;
+            todayCounts = TodayCounts(agreements: todayAgreements.length, futureProperties: todayFutureProperties.length, websiteVisits: todayWebsiteVisits.length);
+          });
+        }
+      } catch (e) {
+        debugPrint('Error in _initializeData: $e');
+        if (mounted) {
+          setState(() {
+            todayLoading = false;
+            todayCounts = TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0);
+          });
+        }
+        // Optional: Show toast
+        Fluttertoast.showToast(msg: 'Data load error: $e', toastLength: Toast.LENGTH_SHORT);
+      }
+    } else {
+      debugPrint('Number is empty, cannot fetch targets');
       if (mounted) {
         setState(() {
-          todayCounts = value;
           todayLoading = false;
+          todayCounts = TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0);
         });
       }
-    });
+    }
 
-    _loaduserdata();
-    loadUserName();
-    _requestLocationPermissionAndGetLocation();
-    _loadStats();
-    _controller.forward();
+    if (mounted) {
+      setState(() {
+        _isLoadingData = false;
+      });
+    }
   }
-  List<AgreementTask> todayAgreements = [];
-  List<FutureProperty> todayFutureProperties = [];
-  List<WebsiteVisit> todayWebsiteVisits = [];
-  List<TomorrowEvent> tomorrowEvents = [];
 
   Widget _todayCard(bool isDark) {
     final today = DateTime.now();
@@ -249,13 +366,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         todayCounts!.futureProperties +
         todayCounts!.websiteVisits;
 
-      return GestureDetector(
-        onTap: (){
-          Navigator.push(
-              context, MaterialPageRoute(
-              builder: (_) => const CalendarTaskPage()));
+    return GestureDetector(
+      onTap: (){
+        Navigator.push(
+            context, MaterialPageRoute(
+            builder: (_) => const CalendarTaskPage()));
 
-        },
+      },
       child: Container(
         margin:  EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
@@ -371,69 +488,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       ),
 
                       const Spacer(),
-
-                      /// ---------------- DIGITAL TIMER ----------------
-                      // Container(
-                      //   padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                      //   decoration: BoxDecoration(
-                      //     gradient: LinearGradient(
-                      //       colors: isDark
-                      //           ? [
-                      //         Colors.grey.shade800.withOpacity(0.8),
-                      //         Colors.grey.shade900.withOpacity(0.9),
-                      //       ]
-                      //           : [
-                      //         Colors.white,
-                      //         Colors.blueGrey.shade100,
-                      //       ],
-                      //       begin: Alignment.topLeft,
-                      //       end: Alignment.bottomRight,
-                      //     ),
-                      //     borderRadius: BorderRadius.circular(16),
-                      //     border: Border.all(
-                      //       color: Colors.white.withOpacity(0.1),
-                      //       width: 1,
-                      //     ),
-                      //     boxShadow: [
-                      //       BoxShadow(
-                      //         color:
-                      //         isDark?
-                      //         Colors.black.withOpacity(0.4): Colors.grey.withOpacity(0.4),
-                      //         blurRadius: 15,
-                      //         offset: const Offset(0, 6),
-                      //       ),
-                      //       BoxShadow(
-                      //         color: Colors.blueAccent.withOpacity(0.1),
-                      //         blurRadius: 10,
-                      //         spreadRadius: 1,
-                      //       ),
-                      //     ],
-                      //   ),
-                      //   child: Column(
-                      //     children: [
-                      //       Text(
-                      //         "NOW",
-                      //         style: TextStyle(
-                      //           fontSize: 10,
-                      //           color: Colors.blueAccent.shade200,
-                      //           fontWeight: FontWeight.bold,
-                      //           letterSpacing: 1,
-                      //         ),
-                      //       ),
-                      //       const SizedBox(height: 4),
-                      //       Text(
-                      //         currentTime,
-                      //         style:  TextStyle(
-                      //           fontSize: 16,
-                      //           color: isDark?Colors.white:Colors.grey.shade900,
-                      //           fontWeight: FontWeight.w700,
-                      //           letterSpacing: 2,
-                      //           fontFamily: 'Courier',
-                      //         ),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // ),
 
                       Container(
                         width: 90,
@@ -720,6 +774,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       ),
     );
   }
+
   Color _getEventColor(String eventType) {
     switch (eventType.toLowerCase()) {
       case 'agreement':
@@ -732,6 +787,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         return Colors.blueGrey;
     }
   }
+
   Widget _enhancedCountBox(String title, int count, Gradient gradient, IconData icon, bool isDark) {
     return Expanded(
       child: Container(
@@ -787,164 +843,58 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     );
   }
 
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   Future<TodayCounts> fetchTodayCounts() async {
     final now = DateTime.now();
     final today =
         "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
-    final fieldNo = _fieldworkarnumber;
-
-    final res = await Future.wait([
-      http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo")),
-
-      http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$today&fieldworkarnumber=$fieldNo")),
-
-      http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo")),
-    ]);
+    final fieldNo = number;
 
     try {
-      todayAgreements = AgreementTaskResponse.fromRawJson(res[0].body).data;
-    } catch (_) {
-      todayAgreements = [];
-    }
+      final res = await Future.wait([
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo")),
 
-    try {
-      todayFutureProperties = FuturePropertyResponse.fromRawJson(res[1].body).data;
-    } catch (_) {
-      todayFutureProperties = [];
-    }
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$today&fieldworkarnumber=$fieldNo")),
 
-    try {
-      todayWebsiteVisits = WebsiteVisitResponse.fromRawJson(res[2].body).data;
-    } catch (_) {
-      todayWebsiteVisits = [];
-    }
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo")),
+      ]);
 
-    return TodayCounts(
-      agreements: todayAgreements.length,
-      futureProperties: todayFutureProperties.length,
-      websiteVisits: todayWebsiteVisits.length,
-    );
-  }
-
-  TodayCounts? todayCounts;
-  bool todayLoading = true;
-
-  Widget _buildTodayTile(bool isDark) {
-    final today = DateTime.now();
-
-    final monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-    final formatted = "${today.day} ${monthNames[today.month - 1]}, ${today.year}";
-
-    // Use your TodayCounts model here instead of agreements list
-    int totalCount = todayCounts == null
-        ? 0
-        : todayCounts!.agreements +
-        todayCounts!.futureProperties +
-        todayCounts!.websiteVisits;
-
-    return GestureDetector(
-      onTap: () {
-        // Open Calendar Page (CalendarTaskPage will handle _fetchData and _selectedDay)
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const CalendarTaskPage()),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: [
-            BoxShadow(
-              color: isDark ? Colors.black45 : Colors.black12,
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            )
-          ],
-        ),
-        child: Row(
-          children: [
-            // ⭕ Circle date icon
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: const BoxDecoration(
-                color: Colors.indigo,
-                shape: BoxShape.circle,
-              ),
-              child: Text(
-                today.day.toString(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            const SizedBox(width: 16),
-
-            // 📅 Text info
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    formatted,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    "Today’s Tasks: $totalCount",
-                    style: const TextStyle(
-                      color: Colors.indigo,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            const Icon(Icons.arrow_forward_ios, size: 18, color: Colors.indigo),
-          ],
-        ),
-      ),
-    );
-  }
-  Future<void> _refreshDashboard() async {
-    // Reload today counts
-    await fetchTodayCounts().then((value) {
-      if (mounted) {
-        setState(() {
-          todayCounts = value;
-          todayLoading = false;
-        });
+      try {
+        todayAgreements = AgreementTaskResponse.fromRawJson(res[0].body).data;
+      } catch (_) {
+        todayAgreements = [];
       }
-    });
 
-    // Reload stats
-    await _loadStats();
+      try {
+        todayFutureProperties = FuturePropertyResponse.fromRawJson(res[1].body).data;
+      } catch (_) {
+        todayFutureProperties = [];
+      }
 
-    // Reload user data if required
-    await loadUserName();
-    await _loaduserdata();
+      try {
+        todayWebsiteVisits = WebsiteVisitResponse.fromRawJson(res[2].body).data;
+      } catch (_) {
+        todayWebsiteVisits = [];
+      }
+
+      return TodayCounts(
+        agreements: todayAgreements.length,
+        futureProperties: todayFutureProperties.length,
+        websiteVisits: todayWebsiteVisits.length,
+      );
+    } catch (e) {
+      debugPrint('Error in fetchTodayCounts: $e');
+      return TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Future<void> _loadStats() async {
@@ -960,11 +910,14 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         });
       }
     } catch (e) {
+      debugPrint('Error loading stats: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Stats load error: $e')),
+        );
+      }
     }
   }
-
-  double? _latitude;
-  double? _longitude;
 
   Future<void> _saveLocationToPrefs(double latitude, double longitude) async {
     final prefs = await SharedPreferences.getInstance();
@@ -983,8 +936,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         setState(() {
           _latitude = position.latitude;
           _longitude = position.longitude;
-          print("Latitude: ${position.latitude}");
-          print("Longitude: ${position.longitude}");
+          debugPrint("Latitude: ${position.latitude}");
+          debugPrint("Longitude: ${position.longitude}");
         });
       }
       await _saveLocationToPrefs(_latitude!, _longitude!);
@@ -1015,13 +968,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 
   Future<List<Catid>> fetchData() async {
-    formattedDate = "${now.month}/${now.year}";
     var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$_fieldworkarnumber&random_text=${formattedDate.toString()}");
+        "https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      print(_fieldworkarnumber.toString());
-      print(formattedDate.toString());
+      debugPrint(number.toString());
+      debugPrint(formattedDate.toString());
       List listresponse = json.decode(response.body);
       return listresponse.map((data) => Catid.fromJson(data)).toList();
     } else {
@@ -1031,7 +983,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
   Future<List<Catid1122>> fetchData_Logg() async {
     var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$_fieldworkarnumber");
+        "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$number");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listresponse = json.decode(response.body);
@@ -1043,13 +995,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 
   Future<List<Catid>> fetchData_aggrement() async {
-    formattedDate = "${now.month}/${now.year}";
     var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$_fieldworkarnumber&random_text=${formattedDate.toString()}");
+        "https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
-      print(_fieldworkarnumber.toString());
-      print(formattedDate.toString());
+      debugPrint(number.toString());
+      debugPrint(formattedDate.toString());
       List listresponse = json.decode(response.body);
       return listresponse.map((data) => Catid.fromJson(data)).toList();
     } else {
@@ -1073,224 +1024,109 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   Future<void> _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
-    setState(() {
-      _fieldworkarnumber = prefs.getString('number') ?? '';
-      _fieldworkarname = prefs.getString('name') ?? '';
-    });
+    if (mounted) {
+      setState(() {
+        number = prefs.getString('number') ?? '';
+        debugPrint('Loaded number: $number'); // Debug print
+      });
+    }
+  }
 
-    // 🔥 Now call API — number is READY
-    fetchTodayCounts().then((value) {
-      if (mounted) {
-        setState(() {
-          todayCounts = value;
-          todayLoading = false;
-        });
+  Future<void> _fetchMonthly() async {
+    try {
+      if (number.isEmpty) {
+        debugPrint('Number is empty, skipping monthly fetch');
+        return;
       }
-    });
+      final uri = Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
+      );
+      final res = await http.get(uri).timeout(const Duration(seconds: 8));
+      debugPrint('Monthly API Response Status: ${res.statusCode}');
+      debugPrint('Monthly API Response Body: ${res.body}'); // Debug the response
+      if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
+      final root = jsonDecode(res.body);
+      final data = root['data'] as Map?;
+      final count = (data?['total_live_rent_flat'] as num?)?.toInt() ?? 0;
+      debugPrint('Monthly achieved: $count'); // Debug print
+      if (mounted) setState(() { monthlyAchieved = count; });
+    } catch (e) {
+      debugPrint('Monthly fetch error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Monthly data error: $e')),
+        );
+      }
+    }
   }
 
-  Widget buildSmallAgreementCard(AgreementTask a, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade900 : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 16),
-          ),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  a.agreementType ?? "Agreement",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  a.ownerName ?? "",
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.white70 : Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _fetchYearly() async {
+    try {
+      if (number.isEmpty) {
+        debugPrint('Number is empty, skipping yearly fetch');
+        return;
+      }
+      final uri = Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_live_flat_rent_yearly.php?field_workar_number=$number',
+      );
+      final resp = await http.get(uri);
+      debugPrint('Yearly API Response Status: ${resp.statusCode}');
+      debugPrint('Yearly API Response Body: ${resp.body}'); // Debug the response
+      if (resp.statusCode != 200) throw Exception('HTTP ${resp.statusCode}');
+      final root = json.decode(resp.body) as Map<String, dynamic>;
+      if (root['success'] != true) throw Exception('API returned success=false');
+      final d = (root['data'] as Map?) ?? const {};
+      final achieved = (d['total_live_rent_flat'] as num?)?.toInt() ?? 0;
+      debugPrint('Yearly achieved: $achieved'); // Debug print
+      if (mounted) setState(() { yearlyAchieved = achieved; });
+    } catch (e) {
+      debugPrint('Yearly fetch error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Yearly data error: $e')),
+        );
+      }
+    }
   }
-
-  Widget buildSmallFuturePropertyCard(FutureProperty f, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade900 : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: Colors.blue.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.home_work, color: Colors.blue, size: 16),
-          ),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  f.propertyName,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  "${f.place} • ${f.buyRent}",
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.white70 : Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget buildSmallWebsiteVisitCard(WebsiteVisit w, bool isDark) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade900 : Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 4,
-            offset: const Offset(0, 1),
-          )
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 30,
-            height: 30,
-            decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.12),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.language, color: Colors.green, size: 16),
-          ),
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  w.name ?? "Website Visit",
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  w.contactNo ?? "",
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: isDark ? Colors.white70 : Colors.grey.shade700,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   @override
   Widget build(BuildContext context) {
-    final statusBarHeight = MediaQuery.of(context).padding.top;
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final monthlyProgress = (monthlyAchieved / monthlyTarget).clamp(0.0, 1.0);
+    final yearlyProgress = (yearlyAchieved / yearlyTarget).clamp(0.0, 1.0);
     final isTablet = screenWidth > 600;
 
-    // Responsive values
-    final horizontalPadding = isTablet ? 32.0 : 20.0;
-    final verticalSpacing = isTablet ? 16.0 : 12.0;
-    final cardAspectRatio = screenWidth < 400 ? 1.2 : 1.0; // Slightly taller for premium feel
-    final gridCrossAxisCount = isTablet ? 3 : 2; // Responsive grid columns
+    // Dynamic expanded height to prevent overflow on small screens
+    final expandedHeight = (screenHeight * 0.28).clamp(220.0, 350.0);
 
-    // Premium theme: Enhanced gradients, shadows, and colors
+    // Get current theme
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+
+    // Dynamic colors based on theme for text
+    final Color welcomeTextColor = isDark ? Colors.white : Colors.black87;
+    final Color scaffoldBackground = isDark ? Color(0xFF0F172A) : Color(0xFFF3F4F6);
+
+    // Enhanced gradients
     final primaryGradient = LinearGradient(
       colors: [Colors.purple.shade700, Colors.indigo.shade800, Colors.blue.shade900],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     );
 
-    // Different gradients for each card
+    // Card gradients with premium colors
     final List<LinearGradient> cardGradients = [
-      LinearGradient(colors: [Colors.blue.shade600, Colors.blue.shade900]),
-      LinearGradient(colors: [Colors.green.shade600, Colors.green.shade900]),
-      LinearGradient(colors: [Colors.orange.shade900, Colors.orange.shade900]),
-      LinearGradient(colors: [Colors.purple.shade900, Colors.purple.shade600]),
-      LinearGradient(colors: [Colors.red.shade900, Colors.red.shade900]),
-      LinearGradient(colors: [Colors.teal.shade600, Colors.indigo.shade300]),
-      LinearGradient(colors: [Colors.indigo.shade600, Colors.indigo.shade900]),
-      LinearGradient(colors: [Colors.blueAccent, Colors.blueAccent]),
-      LinearGradient(colors: [Colors.grey.shade600, Colors.grey.shade600]),
+      LinearGradient(colors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)]),
+      LinearGradient(colors: [const Color(0xFF10B981), const Color(0xFF047857)]),
+      LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFFDC2626)]),
+      LinearGradient(colors: [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)]),
+      LinearGradient(colors: [const Color(0xFFEF4444), const Color(0xFFDC2626)]),
+      LinearGradient(colors: [const Color(0xFF06B6D4), const Color(0xFF0891B2)]),
+      LinearGradient(colors: [const Color(0xFF6366F1), const Color(0xFF4F46E5)]),
+      LinearGradient(colors: [const Color(0xFF1D4ED8), const Color(0xFFDC2626)]),
+      LinearGradient(colors: [const Color(0xFFDC2626), const Color(0xFF06B6D4)]),
+      LinearGradient(colors: [const Color(0xFF06B6D4), const Color(0xFFF59E0B)]),
     ];
 
     final List<Map<String, dynamic>> cardData = [
@@ -1304,13 +1140,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "gradient": cardGradients[0],
       },
       {
-        "image": AppImages.documents,
+        "image": AppImages.tenant,
         "title": "Verification",
         "onTap": () => Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => const ShowProperty())),
-
+                builder: (_) => const ShowTenantDemandPage())),
         "gradient": cardGradients[1],
       },
       {
@@ -1325,7 +1160,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "gradient": cardGradients[2],
       },
       {
-        "image": AppImages.tenant,
+        "image": AppImages.demand_2,
         "title": "Tenant Demands",
         "onTap": () {
           Navigator.push(
@@ -1375,137 +1210,130 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                   builder: (_) => const ParentUpcoming()));
         },
         "gradient": cardGradients[7],
-      },
-      {
+      }, {
         "image": AppImages.calendar,
         "title": "Task Calendar",
         "onTap": () {
           Navigator.push(
-              context, MaterialPageRoute(
-              builder: (_) => const CalendarTaskPage()));
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const CalendarTaskPage()));
         },
         "gradient": cardGradients[8],
-
-      },
-
-      {
+      }, {
         "image": AppImages.demand_2,
         "title": "Costumer Demands 2.O",
-        "onTap": () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => CostumerDemand()),
-        ),
-        "gradient": LinearGradient(
-          colors: [Colors.purple, Colors.blue,],
-        ),
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const CostumerDemand()));
+        },
+        "gradient": cardGradients[9],
       },
-
-
     ];
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: Column(
-        children: [
-          // Top Header without curve - straight container with gradient
-          SizedBox(
-            height: 150,
-            child: Container(
-              width: double.infinity,
-              decoration: BoxDecoration(gradient: primaryGradient),
-              child: SafeArea(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(horizontalPadding, 0, horizontalPadding, 8),
+      backgroundColor: scaffoldBackground,
+      body: _isLoadingData
+          ? const Center(child: CircularProgressIndicator()) // Show loading while data fetches
+          : CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          // Curved Silver App Bar with Dual Target Indicators
+          SliverAppBar(
+            expandedHeight: expandedHeight,
+            collapsedHeight: (screenHeight * 0.1).clamp(60.0, 80.0),
+            floating: true,
+            pinned: true,
+            snap: false,
+            elevation: 10,
+            backgroundColor: Colors.transparent,
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.parallax,
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: primaryGradient,
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
+                ),
+                child: SafeArea(
+                  bottom: true,
                   child: Column(
                     children: [
-
-                      // Top Row: Profile, Logo with premium styling
+                      // App Bar Section
                       Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenHeight * 0.010),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Enhanced Profile with glow effect
-                            Hero(
-                              tag: 'profile',
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      colors: [Colors.white.withOpacity(0.1), Colors.transparent],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.white.withOpacity(0.2),
-                                        blurRadius: 20,
-                                        spreadRadius: 0,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Image.asset(
-                                    AppImages.man,
-                                    height: 30,
-                                    // color: Colors.white,
-                                    // Tint if needed; remove if image is already white
-                                  ),
-                                ),
+                            IconButton(
+                              onPressed: () {
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
+                              },
+                              icon: Image.asset(
+                                AppImages.man,
+                                height: (screenWidth * 0.1).clamp(28.0, 40.0),
                               ),
                             ),
-                            // Premium Logo with subtle animation
-                            Expanded(
-                              child: Center(
-                                child: TweenAnimationBuilder<double>(
-                                  tween: Tween(begin: 0.0, end: 1.0),
-                                  duration: const Duration(milliseconds: 1000),
-                                  builder: (context, value, child) {
-                                    return Transform.scale(
-                                      scale: value,
-                                      child: Opacity(
-                                        opacity: value,
-                                        child: Image.asset(AppImages.transparent, height: 40),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            // Notification icon on right for balance and premium touch
+                            // App Logo
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: EdgeInsets.all(screenWidth * 0.03),
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  colors: [Colors.white.withOpacity(0.1), Colors.transparent],
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                ),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.white.withOpacity(0.2),
-                                    blurRadius: 20,
-                                    spreadRadius: 0,
-                                  ),
-                                ],
                               ),
-                              child: IconButton(
-                                onPressed: (){
-                                  Navigator.push(
-                                      context, MaterialPageRoute(
-                                      builder: (context) => LinksPage()));
-                                },
-                                icon: Image.asset(
-                                  AppImages.browser,
-                                  height: 30,
-                                  //color: Colors.white, // Tint if needed; remove if image is already white
-                                ),
+                              child: Image.asset(AppImages.transparent,
+                                  height: (screenWidth * 0.1).clamp(32.0, 45.0)),
+                            ),
+
+                            // Social Links
+                            IconButton(
+                              onPressed: (){
+                                Navigator.push(
+                                    context, MaterialPageRoute(
+                                    builder: (context) => LinksPage()));
+                              },
+                              icon: Image.asset(
+                                AppImages.browser,
+                                height: (screenWidth * 0.09).clamp(25.0, 35.0),
                               ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      SizedBox(height: screenHeight * 0.02),
+                      // Dual Target Progress Indicators - Use Wrap for responsiveness
+                      Expanded(
+                        child: Wrap(
+                          spacing: screenWidth * 0.15,
+                          runSpacing: screenHeight * 0.1,
+                          alignment: WrapAlignment.spaceEvenly,
+                          children: [
+                            _TargetProgressCircle(
+                              progress: monthlyProgress,
+                              percentage: '${(monthlyProgress * 100).toInt()}%',
+                              title: 'Monthly Target',
+                              icon: Icons.track_changes_rounded,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const Target_Monthly()),
+                                );
+                              },
+                            ),
+                            _TargetProgressCircle(
+                              progress: yearlyProgress,
+                              percentage: '${(yearlyProgress * 100).toInt()}%',
+                              title: 'Yearly Target',
+                              icon: Icons.calendar_today_rounded,
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const Target_Yearly()),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -1516,283 +1344,542 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               ),
             ),
           ),
-          // Dashboard Section with 16 padding - Now in Expanded for scrolling grid
-          Expanded(
-            child: RefreshIndicator(
-              color: Colors.blueAccent,
-              strokeWidth: 2.5,
-              backgroundColor: Theme.of(context).cardColor,
-              onRefresh: _refreshDashboard,
-              child: Scrollbar(
-                thumbVisibility: true,
-                radius: const Radius.circular(20),
-                child: CustomScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  slivers: [
 
-                    // TODAY CARD (scrollable)
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: _todayCard(isDark),
-                      ),
+          // Dashboard Grid Section
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(screenWidth * 0.05),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Today's Card (replacing welcome back)
+                  _todayCard(isDark),
+                  const SizedBox(height: 16),
+                  // Feature Grid
+                  GridView.builder(
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: isTablet ? 3 : 2,
+                      crossAxisSpacing: screenWidth * 0.04,
+                      mainAxisSpacing: screenWidth * 0.04,
+                      childAspectRatio: isTablet ? 1.0 : 0.95, // Slightly adjust for smaller screens
                     ),
+                    itemCount: cardData.length,
+                    itemBuilder: (context, index) {
+                      final item = cardData[index];
 
-                    // GRID CARDS (scrollable)
-                    SliverPadding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      sliver: SliverGrid(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: gridCrossAxisCount,
-                          crossAxisSpacing: verticalSpacing,
-                          mainAxisSpacing: verticalSpacing,
-                          childAspectRatio: cardAspectRatio,
+                      return AnimationConfiguration.staggeredGrid(
+                        position: index,
+                        duration: const Duration(milliseconds: 600),
+                        columnCount: isTablet ? 3 : 2,
+                        child: ScaleAnimation(
+                          scale: 0.9,
+                          child: FadeInAnimation(
+                            child: _PremiumFeatureCard(
+                              title: item["title"],
+                              gradient: item["gradient"],
+                              imagePath: item["image"],
+                              onTap: item["onTap"],
+                              screenWidth: screenWidth, // Pass for dynamic sizing
+                            ),
+                          ),
                         ),
-                        delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                            final item = cardData[index];
-
-                            return AnimationConfiguration.staggeredGrid(
-                              position: index,
-                              duration: const Duration(milliseconds: 600),
-                              columnCount: gridCrossAxisCount,
-                              child: ScaleAnimation(
-                                scale: 0.8,
-                                child: FadeInAnimation(
-                                  child: SlideAnimation(
-                                    horizontalOffset: 30.0,
-                                    child: _PremiumDashboardCard(
-                                      image: item["image"],
-                                      title: item["title"],
-                                      onTap: item["onTap"],
-                                      gradient: item["gradient"],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                          childCount: cardData.length,
-                        ),
-                      ),
-                    ),
-
-                  ],
-                ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 }
 
-class _PremiumStatCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-  final Gradient gradient;
+class _GlassCircle extends StatelessWidget {
+  final Widget child;
 
-  const _PremiumStatCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.gradient,
-  });
+  const _GlassCircle({required this.child});
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: 70,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withOpacity(0)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withOpacity(0.15),
+            Colors.white.withOpacity(0.05),
           ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Wrap Icon in Container for shadow effect
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class _TargetProgressCircle extends StatefulWidget {
+  final double progress;
+  final String percentage;
+  final String title;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  const _TargetProgressCircle({
+    required this.progress,
+    required this.percentage,
+    required this.title,
+    required this.icon,
+    required this.onTap,
+  });
+
+  @override
+  State<_TargetProgressCircle> createState() => _TargetProgressCircleState();
+}
+
+class _TargetProgressCircleState extends State<_TargetProgressCircle>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    _pulseAnimation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(
+      parent: _pulseController,
+      curve: Curves.easeInOut,
+    ));
+    _pulseController.repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    // Enhanced dynamic sizing for premium feel
+    final double baseSize = screenWidth < 360 ? 70.0 : screenWidth < 500 ? 85.0 : 100.0;
+    final double iconSize = baseSize * 0.22;
+    final double textSize = baseSize * 0.18;
+    final double titleSize = (screenWidth * 0.032).clamp(11.0, 13.0);
+
+    // Premium gradient for progress ring
+    final progressGradient = LinearGradient(
+      colors: [
+        Colors.cyan.shade300.withOpacity(0.8),
+        Colors.purple.shade400.withOpacity(0.8),
+        Colors.indigo.shade300.withOpacity(0.8),
+      ],
+      stops: const [0.0, 0.5, 1.0],
+    );
+
+    return Flexible(
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _pulseAnimation.value,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(baseSize * 0.08), // Added padding for premium spacing
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.1),
+                          Colors.transparent,
+                        ],
+                        center: Alignment.center,
+                        radius: 1.2,
+                      ),
+                      boxShadow: [
+                        // Multi-layer shadows for depth
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 12,
+                          spreadRadius: -2,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.05),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset: const Offset(0, -4),
+                        ),
+                      ],
+                    ),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer glow ring
+                        Container(
+                          width: baseSize + 10,
+                          height: baseSize + 10,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.cyan.shade100.withOpacity(0.3),
+                                Colors.purple.shade200.withOpacity(0.3),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: progressGradient.colors.first.withOpacity(0.4),
+                                blurRadius: baseSize * 0.2,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Main progress container
+                        Container(
+                          width: baseSize,
+                          height: baseSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.2),
+                                Colors.white.withOpacity(0.05),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.25),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Background progress ring (thin)
+                                SizedBox(
+                                  width: baseSize - 8,
+                                  height: baseSize - 8,
+                                  child: CircularProgressIndicator(
+                                    value: 1.0,
+                                    strokeWidth: baseSize * 0.05,
+                                    backgroundColor: Colors.white.withOpacity(0.15),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white.withOpacity(0.2),
+                                    ),
+                                  ),
+                                ),
+                                // Foreground progress ring with gradient sweep
+                                SizedBox(
+                                  width: baseSize - 8,
+                                  height: baseSize - 8,
+                                  child: CustomPaint(
+                                    painter: _ProgressPainter(
+                                      progress: widget.progress,
+                                      strokeWidth: baseSize * 0.08,
+                                      gradient: progressGradient,
+                                    ),
+                                  ),
+                                ),
+                                // Inner content with glassmorphism
+                                Container(
+                                  width: baseSize * 0.75,
+                                  height: baseSize * 0.75,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.white.withOpacity(0.1),
+                                        Colors.white.withOpacity(0.05),
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        widget.icon,
+                                        color: Colors.white.withOpacity(0.9),
+                                        size: iconSize,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black.withOpacity(0.2),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: baseSize * 0.04),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          widget.percentage,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: textSize,
+                                            fontWeight: FontWeight.bold,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withOpacity(0.3),
+                                                blurRadius: 2,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: screenHeight * 0.015),
+                  // Enhanced title with gradient text effect
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [Colors.white.withOpacity(0.95), Colors.white.withOpacity(0.8)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ).createShader(bounds),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: titleSize,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                   ),
                 ],
               ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.8),
-                fontSize: 9, // Slightly reduced font size for longer labels
-                fontWeight: FontWeight.w500,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _PremiumDashboardCard extends StatefulWidget {
-  final String image;
-  final String title;
-  final VoidCallback onTap;
+// Custom painter for gradient progress arc
+class _ProgressPainter extends CustomPainter {
+  final double progress;
+  final double strokeWidth;
   final Gradient gradient;
 
-  const _PremiumDashboardCard({
-    required this.image,
-    required this.title,
-    required this.onTap,
+  _ProgressPainter({
+    required this.progress,
+    required this.strokeWidth,
     required this.gradient,
   });
 
   @override
-  _PremiumDashboardCardState createState() => _PremiumDashboardCardState();
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..shader = gradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height))
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - strokeWidth) / 2;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      2 * pi * progress,
+      false,
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
-class _PremiumDashboardCardState extends State<_PremiumDashboardCard> {
-  bool _isPressed = false;
+class _PremiumFeatureCard extends StatefulWidget {
+  final String title;
+  final Gradient gradient;
+  final String imagePath;
+  final VoidCallback onTap;
+  final double screenWidth; // Added for dynamic sizing
 
+  const _PremiumFeatureCard({
+    required this.title,
+    required this.gradient,
+    required this.imagePath,
+    required this.onTap,
+    required this.screenWidth,
+  });
+
+  @override
+  _PremiumFeatureCardState createState() => _PremiumFeatureCardState();
+}
+
+class _PremiumFeatureCardState extends State<_PremiumFeatureCard> {
+  bool _isHovered = false;
 
   @override
   Widget build(BuildContext context) {
+    final imageSize = (widget.screenWidth * 0.12).clamp(40.0, 55.0);
+    final patternSize = (widget.screenWidth * 0.18).clamp(60.0, 80.0);
+    final paddingSize = (widget.screenWidth * 0.04).clamp(12.0, 18.0);
+    final titleFontSize = (widget.screenWidth * 0.035).clamp(11.0, 15.0);
 
-    final theme = Theme.of(context);
-    final accentColor = widget.gradient.colors.first;
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _isPressed = true),
-      onTapUp: (_) => setState(() => _isPressed = false),
-      onTapCancel: () => setState(() => _isPressed = false),
-      onTap: widget.onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeInOut,
-        transform: Matrix4.identity()..scale(_isPressed ? 0.96 : 1.0),
-        child: Container(
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          transform: Matrix4.identity()
+            ..scale(_isHovered ? 1.05 : 1.0),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: widget.gradient.colors.map((c) => c.withOpacity(0.40)).toList(),
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
             borderRadius: BorderRadius.circular(20),
+            gradient: widget.gradient,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 15,
-                offset: const Offset(0, 6),
-                spreadRadius: 0,
+                color: widget.gradient.colors.first.withOpacity(0.3),
+                blurRadius: _isHovered ? 25 : 15,
+                offset: const Offset(0, 8),
               ),
-              if (_isPressed)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 3),
-                ),
             ],
-            border: Border.all(
-              color: accentColor.withOpacity(0.3),
-              width: 1,
-            ),
           ),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(20),
-              splashColor: accentColor.withOpacity(0.2),
-              highlightColor: Colors.white.withOpacity(0.1),
-              onTap: widget.onTap,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+          child: Stack(
+            children: [
+              // Background pattern - dynamic size
+              Positioned(
+                right: -patternSize * 0.2,
+                bottom: -patternSize * 0.2,
+                child: Container(
+                  width: patternSize,
+                  height: patternSize,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white.withOpacity(0.2),
+                  ),
+                ),
+              ),
+
+              // Content
+              Padding(
+                padding: EdgeInsets.all(paddingSize),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Enhanced Image Container with glow
+                    // Image with background
                     Container(
-                      height: 50,
-                      width: 50,
+                      padding: EdgeInsets.all(paddingSize * 0.6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: widget.gradient.colors.map((c) => c.withOpacity(0.2)).toList(),
-                        ),
+                        color: Colors.white.withOpacity(0.2),
                         shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 2,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: accentColor.withOpacity(0.3),
-                            blurRadius: 15,
-                            spreadRadius: 2,
-                          ),
-                        ],
                       ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(25),
-                        child: Image.asset(
-                          widget.image,
-                          fit: BoxFit.contain,
-                          width: 42,
-                          height: 42,
-                        ),
+                      child: Image.asset(
+                        widget.imagePath,
+                        height: imageSize,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    // Premium Title with better typography
-                    Text(
-                      widget.title,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: theme.textTheme.bodyLarge?.color,
-                        fontSize: 12,
-                        letterSpacing: 0.3,
-                        height: 1.2,
+
+                    SizedBox(height: paddingSize),
+
+                    // Title - wrapped for overflow
+                    Expanded(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.title,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: titleFontSize,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.3,
+                            height: 1.5,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
         ),
       ),
     );
   }
-
 }

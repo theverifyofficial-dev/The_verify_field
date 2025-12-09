@@ -8,6 +8,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Home_Screen_click/Add_RealEstate.dart';
@@ -176,6 +177,78 @@ class Catid {
   }
 }
 
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
+  final Color Function(IconData, ThemeData) getIconColor;
+  final int maxLines;
+  final double? fontSize; // Added for responsive font sizing
+  final FontWeight? fontWeight; // Optional for value highlighting
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.theme,
+    required this.getIconColor,
+    this.maxLines = 1,
+    this.fontSize,
+    this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0), // Reduced bottom padding to minimize space
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 14, // Slightly smaller icon for compact layout
+            color: getIconColor(icon, theme),
+          ),
+          const SizedBox(width: 4), // Reduced width
+          Expanded(
+            child: RichText(
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.1, // Tighter line height
+                  color: cs.onSurface.withOpacity(0.70),
+                  fontSize: fontSize ?? 12, // Slightly smaller font
+                ),
+                children: [
+                  if (label.isNotEmpty)
+                    TextSpan(
+                      text: '$label: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withOpacity(0.8),
+                        fontSize: fontSize ?? 12,
+                      ),
+                    ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
+                      color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ADministaterShow_realestete extends StatefulWidget {
   static const administaterShowRealEstate = "/administater_show_realestate";
 
@@ -200,6 +273,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   String _name = '';
   String _number = '';
   String _location = '';
+  String _post = '';
 
 // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
@@ -228,21 +302,22 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     // Otherwise assume the decoded JSON is already the payload
     return decoded;
   }
-  void _loaduserdata() async {
+  void _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _name = prefs.getString('name') ?? '';
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
+      _post = prefs.getString('post') ?? '';
     });
 
     print("===== SHARED PREF DATA LOADED =====");
     print("Name: $_name");
     print("Number: $_number");
     print("Location: $_location");
+    print("Post: $_post");
     print("===================================");
   }
-
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
     final resp = await http.get(url);
@@ -261,927 +336,773 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     return list.map((e) => Catid.fromJson(e)).toList();
   }
 
-  Future<List<Catid>> av() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=11&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
+  List<Map<String, String>> fieldWorkers = [
+    {"name": "Sumit", "id": "9711775300"},
+    {"name": "Ravi", "id": "9711275300"},
+    {"name": "Faizan", "id": "9971172204"},
+    {"name": "Manish", "id": "8130209217"},
+    {"name": "Abhey", "id": "9675383184"},
+  ];
 
-  Future<List<Catid>> fetchData() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=9711775300&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
-  Future<List<Catid>> fetchData1() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=9711275300&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
-  Future<List<Catid>> fetchData2() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=9971172204&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
-  Future<List<Catid>> fetchData_manishProperty() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-          "?field_workar_number=8130209217&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-  Future<List<Catid>> fetchData_abheyProperty() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-          "?field_workar_number=9675383184&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
+  Map<String, List<Catid>> _groupedData = {};
+  final Map<int, int> _liveCountMap = {}; // subid -> live count
+  final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
 
   String? _highlightedFlatId;
-  bool _hasHighlighted = false;
-  List<Catid> _properties = [];
-  bool _didAutoScroll = false;
-  final ScrollController _scrollController = ScrollController();
-  bool _hasScrolled = false;
   final Map<String, GlobalKey> _cardKeys = {};
-
-// ✅ API load flags
-  bool _apiAvLoaded = false;
-  bool _apiFetchDataLoaded = false;
-  bool _apiFetchData1Loaded = false;
-  bool _apiFetchData2Loaded = false;
-  bool _apiRajpurLoaded = false;
-
-// ✅ Vertical scrolling of main CustomScrollView
-  final ScrollController _verticalController = ScrollController();
+  final Map<String, ScrollController> _horizontalControllers = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
 
-    // Load user data immediately when screen opens
-    _loaduserdata();
+    // Empty list for each field worker
+    for (var fw in fieldWorkers) {
+      _groupedData[fw['name']!] = [];
+      _horizontalControllers[fw['id']!] = ScrollController();
+    }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map?;
-      final flatId = args?['flatId'];
+    _loadUserData();
+    _fetchAndUpdateData();
 
-      if (flatId != null) {
-        setState(() {
-          _highlightedFlatId = flatId.toString();
-        });
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToHighlighted();
-        });
-      }
-    });
+    // Scroll to flat if from notification
+    if (widget.flatId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleNotification(widget.flatId!);
+      });
+    }
   }
 
+  Future<void> _fetchAndUpdateData() async {
+    setState(() => _isLoading = true);
 
-  /// ✅ Trigger scroll only after all APIs loaded
-  void _tryScrollToHighlighted() {
-    if (_apiAvLoaded &&
-        _apiFetchDataLoaded &&
-        _apiFetchData1Loaded &&
-        _apiFetchData2Loaded &&
-        _apiRajpurLoaded &&
-        _highlightedFlatId != null) {
+    Map<String, List<Catid>> grouped = {};
+    for (var fw in fieldWorkers) {
+      final number = fw['id']!;
+      Uri url;
+      if (number == '8130209217' || number == '9675383184') {
+        url = Uri.parse(
+          "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=$number&live_unlive=Live",
+        );
+      } else {
+        url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number&live_unlive=Live",
+        );
+      }
+      final data = await _fetchCommon(url);
+      grouped[fw['name']!] = data;
+    }
+
+    setState(() {
+      _groupedData = grouped;
+      _isLoading = false;
+    });
+
+    await _prefetchAllPropertyData();
+
+    // Scroll to highlighted if exists
+    if (_highlightedFlatId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToHighlighted();
       });
     }
   }
 
-  /// ✅ Ensure visible vertically
-  void _scrollToHighlighted() {
-    if (_highlightedFlatId != null && !_hasScrolled) {
-      final key = _cardKeys[_highlightedFlatId!];
-      if (key != null && key.currentContext != null) {
-        Scrollable.ensureVisible(
-          key.currentContext!,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.3,
-        );
-        _hasScrolled = true;
+  Future<void> _prefetchAllPropertyData() async {
+    final allProperties = _groupedData.values.expand((list) => list).toList();
+    if (allProperties.isEmpty) return;
+    final uniqueSubids = <int>{};
+    for (var p in allProperties) {
+      uniqueSubids.add(p.subid);
+    }
+    final futures = uniqueSubids.map((sid) async {
+      try {
+        // Fetch total flats
+        final response2 = await http.get(Uri.parse(
+          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
+        ));
+        String totalStr = "0";
+        if (response2.statusCode == 200) {
+          final body = jsonDecode(response2.body);
+          if (body is List && body.isNotEmpty) {
+            totalStr = body[0]['logg'].toString();
+          }
+        }
+        _totalFlatsMap[sid] = totalStr;
+        // Fetch live count
+        final response3 = await http.get(Uri.parse(
+          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$sid',
+        ));
+        int liveC = 0;
+        if (response3.statusCode == 200) {
+          final body3 = jsonDecode(response3.body);
+          if (body3 is List && body3.isNotEmpty) {
+            for (var item in body3) {
+              if (item['live_unlive'] == 'Live') {
+                liveC = (item['logs'] as num?)?.toInt() ?? 0;
+                break;
+              }
+            }
+          }
+        }
+        _liveCountMap[sid] = liveC;
+      } catch (_) {
+        _totalFlatsMap[sid] = "0";
+        _liveCountMap[sid] = 0;
+      }
+    }).toList();
+    await Future.wait(futures);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _handleNotification(String flatId) async {
+    setState(() {
+      _highlightedFlatId = flatId;
+    });
+
+    // Fetch latest data
+    await _fetchAndUpdateData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToHighlighted();
+    });
+  }
+
+  Future<void> _scrollToHighlighted() async {
+    if (_highlightedFlatId == null) return;
+    final key = _cardKeys[_highlightedFlatId!];
+    if (key != null && key.currentContext != null) {
+      await Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(seconds: 1),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  bool _blank(String? s) => s == null || s.trim().isEmpty;
+
+  // List<String> _missingFieldsFor(Catid i) {
+  //   final m = <String>[];
+  //   final checks = <String, String?>{
+  //     "Photo": i.propertyPhoto,
+  //     "Location": i.locations,
+  //     "Flat Number": i.flatNumber,
+  //     "Buy/Rent": i.buyRent,
+  //     "Residence/Commercial": i.residenceCommercial,
+  //     "Apartment Address": i.apartmentAddress,
+  //     "BHK": i.bhk,
+  //     "Floor": i.floor,
+  //     "Sqft": i.squarefit,
+  //     "Owner Name": i.ownerName,
+  //     "Owner Number": i.ownerNumber,
+  //     "Available Date": i.availableDate,
+  //     "Caretaker Name": i.caretakerName,
+  //     "Caretaker Number": i.caretakerNumber,
+  //   };
+  //   checks.forEach((k, v) { if (_blank(v)) m.add(k); });
+  //   return m;
+  // }
+
+  // bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
+
+  String formatDate(String s) {
+    if (s.isEmpty) return '-';
+    try {
+      final dt = DateFormat('yyyy-MM-dd ').parse(s);
+      return DateFormat('dd MMM yyyy,').format(dt);
+    } catch (_) {
+      try {
+        final dt2 = DateTime.parse(s);
+        return DateFormat('dd MMM yyyy,').format(dt2);
+      } catch (_) {
+        return s;
       }
     }
   }
 
-  Future<void> _scrollAfterAllLoaded() async {
-    await Future.wait([
-      fetchData(),
-      fetchData1(),
-      fetchData2(),
-      av(),
-      fetchData_manishProperty(),
-    ]);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
+  Color _getIconColor(IconData icon, ThemeData theme) {
+    final cs = theme.colorScheme;
+    switch (icon) {
+      case Icons.location_on:
+        return Colors.red;
+      case Icons.square_foot:
+        return Colors.orange;
+      case Icons.handshake_outlined:
+        return Colors.orangeAccent;
+      case Icons.apartment:
+        return Colors.blue;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.format_list_numbered:
+        return Colors.indigo;
+      case Icons.date_range:
+        return Colors.purple;
+      case Icons.home:
+        return Colors.brown;
+      case Icons.numbers:
+        return Colors.cyan;
+      case Icons.currency_rupee:
+        return Colors.green;
+      case Icons.bed:
+        return Colors.pink;
+      case Icons.stairs:
+        return Colors.deepPurple;
+      default:
+        return cs.primary;
+    }
   }
 
+  Widget _buildImageSection({
+    required List<String> images,
+    required ColorScheme cs,
+    required ThemeData theme,
+    required Map<String, dynamic> status,
+    required double imageHeight,
+    required double multiImgHeight,
+    required bool isTablet,
+  }) {
+    final int liveCount = status['liveCount'] ?? 0;
+    final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
+    final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";
 
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _verticalController.dispose();
-    super.dispose();
+    Widget imageWidget;
+    if (images.isEmpty) {
+      imageWidget = Container(
+        height: imageHeight,
+        decoration: BoxDecoration(
+          color: cs.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.apartment,
+          size: 90,
+          color: Colors.grey,
+        ),
+      );
+    } else if (images.length == 1) {
+      imageWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: imageHeight,
+          width: double.infinity,
+          child: CachedNetworkImage(
+            imageUrl: images.first,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => const Center(
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (_, __, ___) =>
+                Icon(Icons.broken_image, color: cs.error, size: 90),
+          ),
+        ),
+      );
+    } else {
+      imageWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: multiImgHeight,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: images[0],
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const Center(
+                        child: SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) =>
+                          Icon(Icons.broken_image, color: cs.error, size: 50),
+                    ),
+                  ),
+                ),
+                if (images.length > 1) ...[
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: images[1],
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => const Center(
+                              child: SizedBox(
+                                height: 30,
+                                width: 30,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) =>
+                                Icon(Icons.broken_image, color: cs.error, size: 50),
+                          ),
+                          if (images.length > 2)
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '+${images.length - 2}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 4), // Reduced height for less space
+          Text(
+            '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Stack(
+      children: [
+        imageWidget,
+        Positioned(
+          top: 4,
+          right: 4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: liveColor.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              liveLabel,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
+  List<String> _buildMultipleImages(Catid p) {
+    final List<String> imgs = [];
+    if (p.propertyPhoto != null && p.propertyPhoto.isNotEmpty) {
+      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
+    }
+    return imgs;
+  }
+
+  Widget _buildCard(Catid property, int displayIndex, bool isDarkMode) {
+    final bool isHighlighted = _highlightedFlatId == property.id.toString();
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isSmallScreen = screenWidth < 400;
+
+    final status = {
+      "loggValue2": _totalFlatsMap[property.subid] ?? '0',
+      "liveCount": _liveCountMap[property.subid] ?? 0,
+    };
+
+    final images = _buildMultipleImages(property);
+
+    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0); // Reduced padding for compact
+    final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
+    final double titleFontSize = isTablet ? 18 : 14; // Adjusted for compact
+    final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
+    final double imageH = (screenHeight * 0.22).clamp(120.0, 200.0); // Reduced height
+    final double multiH = imageH * 0.8;
+
+    // Calculate missing fields
+    // final missingFields = _missingFieldsFor(property);
+    // final hasMissingFields = missingFields.isNotEmpty;
+
+    final Object loggValue2 = status['loggValue2'] ?? 'N/A';
+
+    final Widget totalDetail = _DetailRow(
+      icon: Icons.format_list_numbered,
+      label: 'Total Flats',
+      value: '$loggValue2',
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+    final Widget buildingDetail = _DetailRow(
+      icon: Icons.numbers,
+      label: 'Building ID',
+      value: property.subid.toString(),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+    final Widget flatIdDetail = _DetailRow(
+      icon: Icons.numbers,
+      label: 'Flat ID',
+      value: property.id.toString(),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+    final Widget imageSection = _buildImageSection(
+      images: images,
+      cs: cs,
+      theme: theme,
+      status: status,
+      imageHeight: imageH,
+      multiImgHeight: multiH,
+      isTablet: isTablet,
+    );
+
+    // Priority detail rows based on user request
+    final List<Widget> detailRows = [];
+    if ((property.locations ?? '').isNotEmpty) {
+      detailRows.add(_DetailRow(
+        icon: Icons.location_on,
+        label: 'Location',
+        value: property.locations!,
+        theme: theme,
+        getIconColor: _getIconColor,
+        fontSize: detailFontSize,
+        fontWeight: FontWeight.bold,
+      ));
+    }
+    detailRows.add(_DetailRow(
+      icon: Icons.currency_rupee,
+      label: '',
+      value: '₹${property.showPrice ?? 'N/A'}',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.handshake_outlined,
+      label: '',
+      value: property.buyRent ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.stairs,
+      label: 'Floor',
+      value: property.floor ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.numbers,
+      label: 'Flat No.',
+      value: property.flatNumber ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.date_range,
+      label: 'Added',
+      value: formatDate(property.currentDate ?? ''),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 2,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+
+
+    final Widget leftColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        imageSection,
+        SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
+        totalDetail,
+      ],
+    );
+
+    final Widget rightColumn = Padding(
+      padding: EdgeInsets.only(top: isTablet ? 16.0 : 12.0), // Reduced top padding
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            property.apartmentAddress ?? property.apartmentName ?? property.locations ?? 'No Title',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: titleFontSize,
+            ),
+            maxLines: 2, // Reduced lines for compact
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: isTablet ? 12 : 8), // Reduced height
+          // Render detail rows
+          ...detailRows,
+          const Spacer(),
+          // Shift Building ID and Flat ID to the right
+          Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  buildingDetail,
+                  flatIdDetail,
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    // Ensure GlobalKey exists
+    _cardKeys[property.id.toString()] ??= GlobalKey();
+
+    return Container(
+      key: _cardKeys[property.id.toString()],
+      width: 350,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reduced vertical margin
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    Administater_View_Details(idd: property.id.toString()))),
+        child: Card(
+          margin: EdgeInsets.zero, // No extra margin inside
+          elevation: isDarkMode ? 0 : 4, // Reduced elevation for flatter look
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Slightly smaller radius
+            side: BorderSide(color: theme.dividerColor),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(cardPadding),
+                child: Column(
+                  children: [
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 2 : 2), // Adjust flex for small screens
+                            child: leftColumn,
+                          ),
+                          SizedBox(width: isTablet ? 16 : 12), // Responsive width
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 3 : 3), // Adjust flex
+                            child: rightColumn,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // if (hasMissingFields)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
+                    //     child: Container(
+                    //       width: double.infinity,
+                    //       padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
+                    //       decoration: BoxDecoration(
+                    //         color: cs.errorContainer,
+                    //         borderRadius: BorderRadius.circular(6), // Smaller radius
+                    //         border: Border.all(color: cs.error),
+                    //       ),
+                    //       child: Text(
+                    //         "⚠ Missing: ${missingFields.join(', ')}",
+                    //         textAlign: TextAlign.center,
+                    //         style: theme.textTheme.bodySmall?.copyWith(
+                    //           color: cs.error,
+                    //           fontWeight: FontWeight.w600,
+                    //           fontSize: detailFontSize - 1, // Smaller font
+                    //         ),
+                    //         maxLines: 2, // Reduced lines
+                    //         overflow: TextOverflow.ellipsis,
+                    //       ),
+                    //     ),
+                    //   ),
+                  ],
+                ),
+              ),
+              // Top right count number badge
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
+                  decoration: BoxDecoration(
+                    color: cs.primary.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8), // Smaller radius
+                  ),
+                  child: Text(
+                    '$displayIndex',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10, // Smaller font
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final ScrollController controller = _horizontalControllers[workerId]!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(workerName,
+                  style: const TextStyle(
+                      fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => See_All_Realestate(id: workerId)),
+                  ),
+                  child: const Text("View All",
+                      style: TextStyle(fontSize: 16, color: Colors.red))),
+            ],
+          ),
+        ),
+        if (data.isEmpty)
+          Container(
+            height: 150, // Reduced height
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced margin
+            decoration: BoxDecoration(
+                color: isDarkMode ? Colors.grey[900] : Colors.white,
+                borderRadius: BorderRadius.circular(12), // Smaller radius
+                border: Border.all(color: Colors.redAccent)),
+            child: const Center(
+              child: Text("No Properties Found",
+                  style: TextStyle(fontSize: 14, color: Colors.redAccent)), // Smaller font
+            ),
+          )
+        else
+          SizedBox(
+            height: 300, // Reduced overall height for compact cards
+            child: ListView.builder(
+              controller: controller,
+              scrollDirection: Axis.horizontal,
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final displayIndex = data.length - index; // calculate display index
+                return _buildCard(data[index], displayIndex, isDarkMode); // pass displayIndex
+              },
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final loc = _location.trim().toLowerCase();
+    final post = _post.trim().toLowerCase();
+    bool isSubAdmin = post == "sub administrator";
+    bool isAdmin = post == "administrator";
 
     return Scaffold(
-      // backgroundColor: Colors.black,
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Colors.black,
         surfaceTintColor: Colors.black,
+        backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
           onTap: () {
             Navigator.pop(context);
           },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
+          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
         ),
-        // actions:  [
-        //   GestureDetector(
-        //     onTap: () {
-        //       //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Filter_Options()));
-        //       _showBottomSheet(context);
-        //     },
-        //     child: const Icon(
-        //       PhosphorIcons.faders,
-        //       color: Colors.white,
-        //       size: 30,
-        //     ),
-        //   ),
-        //   const SizedBox(
-        //     width: 20,
-        //   ),
-        // ],
+
       ),
-      body: Form(
-        key: GlobalKey<FormState>(),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            if (loc == "sultanpur")
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiFetchDataLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child:
-                            Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text('Failed to load properties'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text('No properties available'));
-                        } else {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 🔹 Your header UI
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Sumit kasaniya' ,   style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                    ),),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                See_All_Realestate(
-                                                    id: '9711775300'),
-                                          ),
-                                        );
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Text('View All',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ) ),
-                                          SizedBox(width: 4),
-                                          Icon(Icons.arrow_forward_ios_rounded, color: Colors.blue[700],
-                                              size: 14),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: fieldWorkers
+              .where((fw) {
+            final name = fw['name']!.toLowerCase();
 
-                              // 🔹 Horizontal list
-                              SizedBox(
-                                height: 450,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: snapshot.data!.length,
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                                  itemBuilder: (context, index) {
-                                    final property = snapshot.data![index];
-                                    final flatId = property.id.toString();
+            // ADMIN → SHOW EVERYONE
+            if (isAdmin) return true;
 
-                                    // 🔑 assign key here
-                                    _cardKeys.putIfAbsent(
-                                        flatId, () => GlobalKey());
+            // SUB-ADMIN → FILTER BY LOCATION
+            if (loc.contains("sultanpur")) {
+              return name == "sumit" || name == "ravi" || name == "faizan";
+            }
 
-                                    return PropertyCard(
-                                      cardKey: _cardKeys[flatId],
-                                      // ✅ attach key
-                                      property: property,
-                                      displayIndex: snapshot.data!.length - index,
-                                      isHighlighted: flatId == _highlightedFlatId,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                Administater_View_Details(
-                                                  idd: property.id.toString(),
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (loc == "sultanpur")
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData1(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiFetchData1Loaded = true;
-                          _tryScrollToHighlighted();
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child:
-                            Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Failed to load properties',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                color: Colors.grey[600],
-                                fontFamily: "Poppins",
-                              ),
-                            ),
-                          );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.home_work_outlined,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No properties available',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                    color: Colors.grey[600],
-                                    fontFamily: "Poppins",
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          final data = snapshot.data!;
-                          final scrollController = ScrollController();
+            if (loc.contains("rajpur") || loc.contains("chhattar")) {
+              return name == "manish" || name == "abhey";
+            }
 
-                          // ✅ auto-scroll if highlightedFlatId exists
-                          if (_highlightedFlatId != null) {
-                            final foundIndex = data.indexWhere(
-                                    (p) => p.id.toString() == _highlightedFlatId);
-                            if (foundIndex != -1) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (scrollController.hasClients) {
-                                  scrollController.animateTo(
-                                    foundIndex * 250, // 250 = card width approx
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }
-                              });
-                            }
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Ravi Kumar',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        fontFamily: "PoppinsBold",
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                See_All_Realestate(
-                                                    id: '9711275300'),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 5, vertical: 4),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              'View All',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              size: 14,
-                                              color: Colors.blue[700],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                height: 450,
-                                child: ListView.builder(
-                                  controller: scrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: data.length,
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                                  itemBuilder: (context, idx) {
-                                    final property = data[idx];
-                                    return PropertyCard(
-                                      property: property,
-                                      displayIndex: data.length - idx,
-                                      isHighlighted: property.id.toString() ==
-                                          _highlightedFlatId,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                Administater_View_Details(
-                                                  idd: property.id.toString(),
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (loc == "sultanpur")
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData2(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiFetchData2Loaded = true;
-                          _tryScrollToHighlighted();
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child:
-                            Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Failed to load properties',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                color: Colors.grey[600],
-                                fontFamily: "Poppins",
-                              ),
-                            ),
-                          );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.home_work_outlined,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No properties available',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                    color: Colors.grey[600],
-                                    fontFamily: "Poppins",
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          final data = snapshot.data!;
-                          final scrollController = ScrollController();
-
-                          // ✅ Auto-scroll if highlightedFlatId matches
-                          if (_highlightedFlatId != null) {
-                            final foundIndex = data.indexWhere(
-                                    (p) => p.id.toString() == _highlightedFlatId);
-                            if (foundIndex != -1) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (scrollController.hasClients) {
-                                  scrollController.animateTo(
-                                    foundIndex * 250, // approx card width
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }
-                              });
-                            }
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Faizan Khan',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        fontFamily: "PoppinsBold",
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                See_All_Realestate(
-                                                    id: '9971172204'),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 5, vertical: 4),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              'View All',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              size: 14,
-                                              color: Colors.blue[700],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                height: 450,
-                                child: ListView.builder(
-                                  controller: scrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: data.length,
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                                  itemBuilder: (context, idx) {
-                                    final property = data[idx];
-                                    return PropertyCard(
-                                      property: property,
-                                      displayIndex: data.length - idx,
-                                      isHighlighted: property.id.toString() ==
-                                          _highlightedFlatId,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                Administater_View_Details(
-                                                  idd: property.id.toString(),
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-
-            if (loc.contains("rajpur") || loc.contains("chhattar"))
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData_manishProperty(), // Manish API
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiRajpurLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text("Failed to load properties"));
-                        }
-
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text("No properties available"));
-                        }
-
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Manish",
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(id: '8130209217'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "View All",
-                                          style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded,
-                                            size: 14, color: Colors.blue),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  final idKey = property.id.toString();
-
-                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[idKey],
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: idKey == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                                  idd: property.id.toString()),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (loc.contains("rajpur") || loc.contains("chhattar"))
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData_abheyProperty(), // Manish API
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiRajpurLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text("Failed to load properties"));
-                        }
-
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text("No properties available"));
-                        }
-
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Abhey",
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(id: '9675383184'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "View All",
-                                          style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded,
-                                            size: 14, color: Colors.blue),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  final idKey = property.id.toString();
-
-                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[idKey],
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: idKey == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                                  idd: property.id.toString()),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-
-          ],
+            return false;
+          })
+              .map((fw) {
+            final props = _groupedData[fw['name']] ?? [];
+            return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
+          })
+              .toList(),
         ),
       ),
 
-    );
-  }
-// Helper Widget for Feature Pills
-  Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color iconColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 14,
-            color: iconColor,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 12,
-              color: iconColor,
-              fontWeight: FontWeight.w600,
-              fontFamily: "Poppins",
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1195,340 +1116,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     } else {
       throw 'Could not launch $phoneNumber';
     }
-  }
-
-}
-class PropertyCard extends StatelessWidget {
-  final Catid property;
-  final int displayIndex;
-  final VoidCallback onTap;
-  final bool isHighlighted;
-  final Key? cardKey;
-
-  const PropertyCard({
-    super.key,
-    required this.property,
-    required this.displayIndex,
-    required this.onTap,
-    this.isHighlighted = false,
-    this.cardKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final screenWidth = size.width;
-    final screenHeight = size.height;
-
-    final adaptivePadding = screenWidth * 0.04;
-    final imageHeight = screenWidth * 0.45; // keep same ratio
-    final textScale = MediaQuery.of(context).textScaler;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        key: cardKey,
-        duration: const Duration(milliseconds: 400),
-        width: screenWidth * (screenWidth < 600 ? 0.75 : 0.50), // tablets = 50%
-        margin: EdgeInsets.only(
-          right: screenWidth * 0.04,
-          bottom: screenWidth * 0.04,
-        ),
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white10
-              : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isHighlighted ? Colors.red : Colors.transparent,
-            width: isHighlighted ? 3 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: screenWidth * 0.03,
-              offset: Offset(0, screenWidth * 0.015),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildImage(context, property, imageHeight),
-
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.all(adaptivePadding),
-                child: MediaQuery(
-                  // Apply global responsive text scaling
-                  data: MediaQuery.of(context).copyWith(
-                    textScaleFactor: textScale.scale(1.0),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildLocation(context, property),
-                      SizedBox(height: screenHeight * 0.008),
-                      _buildFeatures(property),
-                      SizedBox(height: screenHeight * 0.012),
-                      _buildDescription(context, property, displayIndex),
-                      SizedBox(height: screenHeight * 0.012),
-                      Divider(height: 1, color: Colors.grey[200]),
-                      SizedBox(height: screenHeight * 0.01),
-                      _buildFooter(context, property),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-
-// ---------------------- IMAGE ----------------------
-  Widget _buildImage(BuildContext context, Catid property, double imageHeight) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-      child: SizedBox(
-        height: imageHeight,
-        width: double.infinity,
-        child: Stack(
-          children: [
-            /// Background Image
-            CachedNetworkImage(
-              imageUrl:
-              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: imageHeight,
-              placeholder: (context, url) => Container(
-                color: Colors.grey[100],
-                child: Center(
-                  child: Image.asset(AppImages.loader, height: 50, width: 50),
-                ),
-              ),
-              errorWidget: (context, url, error) => Container(
-                color: Colors.grey[100],
-                child: const Icon(
-                  Icons.home_work_outlined,
-                  size: 50,
-                  color: Colors.grey,
-                ),
-              ),
-            ),
-
-            /// Price overlay
-            Positioned(
-              left: 8,
-              bottom: 8,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  "₹ ${property.showPrice}", // <-- replace `price` with actual field
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Colors.green,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    fontFamily: "PoppinsBold",
-                  ),
-                ),
-              ),
-            ),
-            // Positioned(
-            //   top: 16,
-            //   right: 16,
-            //   child: FutureBuilder(
-            //     future: http.get(Uri.parse(
-            //         'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${property.id}')),
-            //     builder: (context, snapshot) {
-            //       String label = "Unlive: 0"; // default text
-            //       Color color = Colors.red.withOpacity(0.8); // default color
-            //
-            //       if (snapshot.connectionState == ConnectionState.done &&
-            //           snapshot.hasData &&
-            //           !snapshot.hasError) {
-            //         final data = jsonDecode(snapshot.data!.body);
-            //
-            //         bool anyLive = false;
-            //         if (data is List && data.isNotEmpty) {
-            //           for (var item in data) {
-            //             if (item['live_unlive'] == 'Live' && (item['logs'] as num) > 0) {
-            //               anyLive = true;
-            //               break; // any single live is enough
-            //             }
-            //           }
-            //         }
-            //         if (anyLive) {
-            //           // If any flat is live, show live logs
-            //           final liveItem = data.firstWhere(
-            //                 (item) => item['live_unlive'] == 'Live',
-            //             orElse: () => null,
-            //           );
-            //           label = "Live: ${liveItem?['logs'] ?? 0}";
-            //           color = Colors.green.withOpacity(0.8);
-            //         } else {
-            //           // If no flat is live, always show Unlive: 0
-            //           label = "Unlive: 0";
-            //           color = Colors.red.withOpacity(0.8);
-            //         }
-            //       }
-            //
-            //       return Container(
-            //         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            //         decoration: BoxDecoration(
-            //           color: color,
-            //           borderRadius: BorderRadius.circular(12),
-            //         ),
-            //         child: Text(
-            //           label,
-            //           style: const TextStyle(
-            //             color: Colors.white,
-            //             fontWeight: FontWeight.bold,
-            //           ),
-            //         ),
-            //       );
-            //     },
-            //   ),
-            // )
-          ],
-        ),
-      ),
-    );
-  }
-
-// ---------------------- LOCATION ----------------------
-  Widget _buildLocation(BuildContext context, Catid property) {
-    return Row(
-      children: [
-        Icon(Icons.location_on_outlined, size: 18, color: Colors.grey[600]),
-        const SizedBox(width: 6),
-        Expanded(
-          child: Text(
-            property.locations,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[600],
-              fontFamily: "Poppins",
-              fontWeight: FontWeight.w600,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
-    );
-  }
-
-// ---------------------- FEATURES ----------------------
-  Widget _buildFeatures(Catid property) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _buildFeaturePill(Icons.category_outlined, property.typeofProperty.toUpperCase(), Colors.blue[100]!, Colors.blue[800]!),
-        _buildFeaturePill(Icons.currency_rupee_outlined, property.buyRent.toUpperCase(), Colors.green[100]!, Colors.green[800]!),
-        _buildFeaturePill(Icons.bed_outlined, property.bhk.toUpperCase(), Colors.orange[100]!, Colors.orange[800]!),
-        _buildFeaturePill(Icons.stairs_outlined, "${property.floor}", Colors.purple[100]!, Colors.purple[800]!),
-      ],
-    );
-  }
-
-// ---------------------- DESCRIPTION ----------------------
-  Widget _buildDescription(BuildContext context, Catid property, int displayIndex) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            property.apartmentAddress,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              fontSize: 14,
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey[600],
-              fontWeight: FontWeight.w600,
-              fontFamily: "Poppins",
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.visible,
-            softWrap: true,
-          ),
-          SizedBox(height: 10,),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Property No: $displayIndex",
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "Poppins",
-                ),
-              ),
-              Text(
-                "Building ID: ${property.subid}",
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: "Poppins",
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFooter(BuildContext context, Catid property) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          "ID: ${property.id??""}",
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            fontFamily: "Poppins",
-          ),
-        ),
-        Text(
-          property.availableDate,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.grey[600],
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            fontFamily: "Poppins",
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFeaturePill(IconData icon, String text, Color bgColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: textColor),
-          const SizedBox(width: 4),
-          Text(text, style: TextStyle(color: textColor, fontWeight: FontWeight.w600, fontFamily: "Poppins")),
-        ],
-      ),
-    );
   }
 
 }

@@ -234,7 +234,8 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
               childAnimationBuilder: (widget) =>
                   SlideAnimation(
                     verticalOffset: 50.0,
-                    child: AnimationLimiter(child: widget),
+                    child:
+                    AnimationLimiter(child: widget),
                   ),
               children: [
                 const SizedBox(height: 20),

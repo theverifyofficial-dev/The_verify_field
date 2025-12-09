@@ -122,6 +122,78 @@ class Catid {
   }
 }
 
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
+  final Color Function(IconData, ThemeData) getIconColor;
+  final int maxLines;
+  final double? fontSize; // Added for responsive font sizing
+  final FontWeight? fontWeight; // Optional for value highlighting
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.theme,
+    required this.getIconColor,
+    this.maxLines = 1,
+    this.fontSize,
+    this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0), // Reduced bottom padding to minimize space
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 14, // Slightly smaller icon for compact layout
+            color: getIconColor(icon, theme),
+          ),
+          const SizedBox(width: 4), // Reduced width
+          Expanded(
+            child: RichText(
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.1, // Tighter line height
+                  color: cs.onSurface.withOpacity(0.70),
+                  fontSize: fontSize ?? 12, // Slightly smaller font
+                ),
+                children: [
+                  if (label.isNotEmpty)
+                    TextSpan(
+                      text: '$label: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withOpacity(0.8),
+                        fontSize: fontSize ?? 12,
+                      ),
+                    ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
+                      color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class ADministaterShow_FutureProperty extends StatefulWidget {
   final bool fromNotification;
   final String? buildingId;
@@ -133,8 +205,8 @@ class ADministaterShow_FutureProperty extends StatefulWidget {
   });
 
   @override
-  State<ADministaterShow_FutureProperty> createState() =>
-      _ADministaterShow_FuturePropertyState();
+  State<ADministaterShow_FutureProperty> createState() => _ADministaterShow_FuturePropertyState();
+
 }
 
 class _ADministaterShow_FuturePropertyState
@@ -157,6 +229,8 @@ class _ADministaterShow_FuturePropertyState
   ];
 
   Map<String, List<Catid>> _groupedData = {};
+  final Map<int, int> _liveCountMap = {}; // subid -> live count
+  final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
 
   @override
   void initState() {
@@ -243,12 +317,57 @@ class _ADministaterShow_FuturePropertyState
       _isLoading = false;
     });
 
+    await _prefetchAllPropertyData();
+
     // Scroll to highlighted if exists
     if (_highlightedBuildingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToHighlighted();
       });
     }
+  }
+
+  Future<void> _prefetchAllPropertyData() async {
+    final allProperties = _groupedData.values.expand((list) => list).toList();
+    if (allProperties.isEmpty) return;
+    final futures = allProperties.map((p) async {
+      try {
+        // Fetch total flats
+        final response2 = await http.get(Uri.parse(
+          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}',
+        ));
+        String totalStr = "0";
+        if (response2.statusCode == 200) {
+          final body = jsonDecode(response2.body);
+          if (body is List && body.isNotEmpty) {
+            totalStr = body[0]['logg'].toString();
+          }
+        }
+        _totalFlatsMap[p.id] = totalStr;
+        // Fetch live count
+        final response3 = await http.get(Uri.parse(
+          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}',
+        ));
+        int liveC = 0;
+        if (response3.statusCode == 200) {
+          final body3 = jsonDecode(response3.body);
+          if (body3 is List && body3.isNotEmpty) {
+            for (var item in body3) {
+              if (item['live_unlive'] == 'Live') {
+                liveC = (item['logs'] as num?)?.toInt() ?? 0;
+                break;
+              }
+            }
+          }
+        }
+        _liveCountMap[p.id] = liveC;
+      } catch (_) {
+        _totalFlatsMap[p.id] = "0";
+        _liveCountMap[p.id] = 0;
+      }
+    }).toList();
+    await Future.wait(futures);
+    if (mounted) setState(() {});
   }
 
   Future<void> _handleNotification(String buildingId) async {
@@ -274,58 +393,410 @@ class _ADministaterShow_FuturePropertyState
       );
     }
   }
-  Future<String> _fetchTotalFlatsForBuilding(int subid) async {
+
+  bool _blank(String? s) => s == null || s.trim().isEmpty;
+
+  List<String> _missingFieldsFor(Catid i) {
+    final m = <String>[];
+    final checks = <String, String?>{
+      "Image": i.images,
+      "Owner Name": i.ownerName,
+      "Owner Number": i.ownerNumber,
+      "Caretaker Name": i.caretakerName,
+      "Caretaker Number": i.caretakerNumber,
+      "Place": i.place,
+      "Buy/Rent": i.buyRent,
+      "Type of Property": i.typeOfProperty,
+      "BHK": i.selectBhk,
+      "Floor Number": i.floorNumber,
+      "Square Feet": i.squareFeet,
+      "Property Name/Address": i.propertyNameAddress,
+      "Building Facilities": i.buildingInformationFacilities,
+      "Address (Fieldworker)": i.propertyAddressForFieldworker,
+      "Owner Vehicle Number": i.ownerVehicleNumber,
+      "Your Address": i.yourAddress,
+      "Field Worker Name": i.fieldWorkerName,
+      "Field Worker Number": i.fieldWorkerNumber,
+      "Current Date": i.currentDate,
+      "Longitude": i.longitude,
+      "Latitude": i.latitude,
+      "Road Size": i.roadSize,
+      "Metro Distance": i.metroDistance,
+      "Metro Name": i.metroName,
+      "Main Market Distance": i.mainMarketDistance,
+      "Age of Property": i.ageOfProperty,
+      "Lift": i.lift,
+      "Parking": i.parking,
+      "Total Floor": i.totalFloor,
+      "Residence/Commercial": i.residenceCommercial,
+      "Facility": i.facility,
+    };
+    checks.forEach((k, v) { if (_blank(v)) m.add(k); });
+    return m;
+  }
+
+  bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
+
+  String formatDate(String s) {
+    if (s.isEmpty) return '-';
     try {
-      final res = await http.get(Uri.parse(
-        'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid',
-      ));
-      if (res.statusCode == 200) {
-        final body = jsonDecode(res.body);
-        if (body is List && body.isNotEmpty) {
-          // API usually returns [{ "logg": <int> }]
-          final v = body[0]['logg'];
-          return (v == null) ? "-" : v.toString();
-        }
-      }
-      return "-";
+      final dt = DateFormat('yyyy-MM-dd ').parse(s);
+      return DateFormat('dd MMM yyyy,').format(dt);
     } catch (_) {
-      return "-";
+      try {
+        final dt2 = DateTime.parse(s);
+        return DateFormat('dd MMM yyyy,').format(dt2);
+      } catch (_) {
+        return s;
+      }
     }
   }
 
-  Widget _buildChip(String text, Color color, bool isDarkMode) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(isDarkMode ? 0.3 : 0.1),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color, width: 1),
-      ),
-      child: Text(text,
-          style: TextStyle(
-              color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+  Color _getIconColor(IconData icon, ThemeData theme) {
+    final cs = theme.colorScheme;
+    switch (icon) {
+      case Icons.location_on:
+        return Colors.red;
+      case Icons.square_foot:
+        return Colors.orange;
+      case Icons.handshake_outlined:
+        return Colors.orangeAccent;
+      case Icons.apartment:
+        return Colors.blue;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.format_list_numbered:
+        return Colors.indigo;
+      case Icons.date_range:
+        return Colors.purple;
+      case Icons.home:
+        return Colors.brown;
+      case Icons.numbers:
+        return Colors.cyan;
+      default:
+        return cs.primary;
+    }
+  }
+
+  Widget _buildImageSection({
+    required List<String> images,
+    required ColorScheme cs,
+    required ThemeData theme,
+    required Map<String, dynamic> status,
+    required double imageHeight,
+    required double multiImgHeight,
+    required bool isTablet,
+  }) {
+    final int liveCount = status['liveCount'] ?? 0;
+    final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
+    final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";
+
+    Widget imageWidget;
+    if (images.isEmpty) {
+      imageWidget = Container(
+        height: imageHeight,
+        decoration: BoxDecoration(
+          color: cs.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.apartment,
+          size: 90,
+          color: Colors.grey,
+        ),
+      );
+    } else if (images.length == 1) {
+      imageWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: imageHeight,
+          width: double.infinity,
+          child: CachedNetworkImage(
+            imageUrl: images.first,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => const Center(
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (_, __, ___) =>
+                Icon(Icons.broken_image, color: cs.error, size: 90),
+          ),
+        ),
+      );
+    } else {
+      imageWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: multiImgHeight,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: images[0],
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const Center(
+                        child: SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) =>
+                          Icon(Icons.broken_image, color: cs.error, size: 50),
+                    ),
+                  ),
+                ),
+                if (images.length > 1) ...[
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: images[1],
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => const Center(
+                              child: SizedBox(
+                                height: 30,
+                                width: 30,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) =>
+                                Icon(Icons.broken_image, color: cs.error, size: 50),
+                          ),
+                          if (images.length > 2)
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '+${images.length - 2}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 4), // Reduced height for less space
+          Text(
+            '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Stack(
+      children: [
+        imageWidget,
+        Positioned(
+          top: 4,
+          right: 4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: liveColor.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              liveLabel,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildMiniChip(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      margin: const EdgeInsets.only(right: 4),
-      decoration: BoxDecoration(
-          color: color.withOpacity(0.2), borderRadius: BorderRadius.circular(6)),
-      child: Text(text,
-          style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
-    );
+  List<String> _buildMultipleImages(Catid p) {
+    final List<String> imgs = [];
+    if (p.images != null && p.images!.isNotEmpty) {
+      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${p.images}');
+    }
+    return imgs;
   }
 
   Widget _buildCard(Catid property, int displayIndex, bool isDarkMode) {
     final bool isHighlighted = _highlightedBuildingId == property.id.toString();
-    final textColor = isDarkMode ? Colors.white : Colors.black87;
-    final secondaryTextColor = isDarkMode ? Colors.grey[400] : Colors.grey[700];
-    final greenColor = isDarkMode ? Colors.green[300]! : Colors.green;
-    final orangeColor = isDarkMode ? Colors.orange[300]! : Colors.orange;
-    final blueColor = isDarkMode ? Colors.blue[300]! : Colors.blue;
-    final purpleColor = isDarkMode ? Colors.purple[300]! : Colors.purple;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isSmallScreen = screenWidth < 400;
+
+    final status = {
+      "loggValue2": _totalFlatsMap[property.id] ?? '0',
+      "liveCount": _liveCountMap[property.id] ?? 0,
+    };
+
+    final images = _buildMultipleImages(property);
+
+    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0); // Reduced padding for compact
+    final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
+    final double titleFontSize = isTablet ? 18 : 14; // Adjusted for compact
+    final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
+    final double imageH = (screenHeight * 0.22).clamp(120.0, 200.0); // Reduced height
+    final double multiH = imageH * 0.8;
+
+    // Calculate missing fields
+    final missingFields = _missingFieldsFor(property);
+    final hasMissingFields = missingFields.isNotEmpty;
+
+    final Object loggValue2 = status['loggValue2'] ?? 'N/A';
+
+    final Widget totalDetail = _DetailRow(
+      icon: Icons.format_list_numbered,
+      label: 'Total Flats',
+      value: '$loggValue2',
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+    final Widget buildingDetail = _DetailRow(
+      icon: Icons.numbers,
+      label: 'Building ID',
+      value: property.id.toString(),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+    final Widget imageSection = _buildImageSection(
+      images: images,
+      cs: cs,
+      theme: theme,
+      status: status,
+      imageHeight: imageH,
+      multiImgHeight: multiH,
+      isTablet: isTablet,
+    );
+
+    // Priority detail rows: location, buy/rent, residence/commercial, added (removed Building ID)
+    final List<Widget> detailRows = [];
+    if ((property.place ?? '').isNotEmpty) {
+      detailRows.add(_DetailRow(
+        icon: Icons.location_on,
+        label: 'Location',
+        value: property.place!,
+        theme: theme,
+        getIconColor: _getIconColor,
+        fontSize: detailFontSize,
+        fontWeight: FontWeight.bold,
+      ));
+    }
+    detailRows.add(_DetailRow(
+      icon: Icons.handshake_outlined,
+      label: '',
+      value: property.buyRent ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.apartment,
+      label: '',
+      value: property.residenceCommercial ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.real_estate_agent_outlined,
+      label: 'Age',
+      value: property.ageOfProperty ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 2,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.date_range,
+      label: 'Date',
+      value: formatDate(property.currentDate ?? ''),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 2,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+
+
+    final Widget leftColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        imageSection,
+        SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
+        totalDetail,
+      ],
+    );
+
+    final Widget rightColumn = Padding(
+      padding: EdgeInsets.only(top: isTablet ? 16.0 : 12.0), // Reduced top padding
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            property.propertyAddressForFieldworker ?? property.propertyNameAddress ?? property.place ?? 'No Title',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: titleFontSize,
+            ),
+            maxLines: 2, // Reduced lines for compact
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: isTablet ? 12 : 8), // Reduced height
+          // Render detail rows
+          ...detailRows,
+          const Spacer(),
+          // Shift Building ID to the right
+          Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: double.infinity,
+              child: buildingDetail,
+            ),
+          ),
+        ],
+      ),
+    );
 
     // Ensure GlobalKey exists
     _cardKeys[property.id.toString()] ??= GlobalKey();
@@ -333,223 +804,96 @@ class _ADministaterShow_FuturePropertyState
     return Container(
       key: _cardKeys[property.id.toString()],
       width: 350,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        color: isDarkMode ? Colors.grey[900] : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isHighlighted ? Colors.red : Colors.grey[300]!,
-          width: isHighlighted ? 2 : 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reduced vertical margin
       child: GestureDetector(
         onTap: () => Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (_) =>
                     Administater_Future_Property_details(buildingId: property.id.toString()))),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (property.images != null)     // if (property.typeOfProperty != null)
-            //   _buildChip(property.typeOfProperty!, greenColor, isDarkMode),
-
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: CachedNetworkImage(
-                      imageUrl:
-                      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${property.images}",
-                      height: 220,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          Container(height: 220, color: Colors.grey[200]),
-                      errorWidget: (context, url, error) =>
-                          Container(height: 220, color: Colors.grey[300]),
+        child: Card(
+          margin: EdgeInsets.zero, // No extra margin inside
+          elevation: isDarkMode ? 0 : 4, // Reduced elevation for flatter look
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Slightly smaller radius
+            side: BorderSide(color: theme.dividerColor),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(cardPadding),
+                child: Column(
+                  children: [
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 2 : 2), // Adjust flex for small screens
+                            child: leftColumn,
+                          ),
+                          SizedBox(width: isTablet ? 16 : 12), // Responsive width
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 3 : 3), // Adjust flex
+                            child: rightColumn,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    top: 16,
-                    right: 16,
-                    child: FutureBuilder(
-                      future: http.get(Uri.parse(
-                          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${property.id}')),
-                      builder: (context, snapshot) {
-                        String label = "Unlive: 0"; // default text
-                        Color color = Colors.red.withOpacity(0.8); // default color
-
-                        if (snapshot.connectionState == ConnectionState.done &&
-                            snapshot.hasData &&
-                            !snapshot.hasError) {
-                          final data = jsonDecode(snapshot.data!.body);
-
-                          bool anyLive = false;
-                          if (data is List && data.isNotEmpty) {
-                            for (var item in data) {
-                              if (item['live_unlive'] == 'Live' && (item['logs'] as num) > 0) {
-                                anyLive = true;
-                                break; // any single live is enough
-                              }
-                            }
-                          }
-                          if (anyLive) {
-                            // If any flat is live, show live logs
-                            final liveItem = data.firstWhere(
-                                  (item) => item['live_unlive'] == 'Live',
-                              orElse: () => null,
-                            );
-                            label = "Live: ${liveItem?['logs'] ?? 0}";
-                            color = Colors.green.withOpacity(0.8);
-                          } else {
-                            // If no flat is live, always show Unlive: 0
-                            label = "Unlive: 0";
-                            color = Colors.red.withOpacity(0.8);
-                          }
-                        }
-
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    if (hasMissingFields)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
                           decoration: BoxDecoration(
-                            color: color,
-                            borderRadius: BorderRadius.circular(12),
+                            color: cs.errorContainer,
+                            borderRadius: BorderRadius.circular(6), // Smaller radius
+                            border: Border.all(color: cs.error),
                           ),
                           child: Text(
-                            label,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
+                            "⚠ Missing: ${missingFields.join(', ')}",
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.error,
+                              fontWeight: FontWeight.w600,
+                              fontSize: detailFontSize - 1, // Smaller font
                             ),
+                            maxLines: 2, // Reduced lines
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        );
-                      },
-                    ),
-                  )
-                ],
-              ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-
-                      if (property.totalFloor != null)
-                        _buildChip("Total: ${property.totalFloor!}", orangeColor, isDarkMode),
-                      if (property.buyRent != null)
-                        _buildChip(property.buyRent!, blueColor, isDarkMode),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text("Owner Information",
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: secondaryTextColor)),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: Text(property.ownerName ?? "",
-                              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: textColor))),
-                      if (property.ownerNumber != null)
-                        InkWell(
-                          onTap: () =>
-                              FlutterPhoneDirectCaller.callNumber(property.ownerNumber!),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                                color: blueColor.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12)),
-                            child: Row(
-                              children: [
-                                Icon(Icons.phone, size: 16, color: blueColor),
-                                const SizedBox(width: 4),
-                                Text(property.ownerNumber!,
-                                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: blueColor)),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.location_on_outlined, size: 18, color: secondaryTextColor),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          property.propertyAddressForFieldworker ?? "Address not available",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: textColor),
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      if (property.place != null) _buildMiniChip(property.place!, blueColor),
-                      if (property.currentDate != null) ...[
-                        const SizedBox(width: 8),
-                        _buildMiniChip(property.currentDate!, purpleColor),
-                      ],
-                    ],
-                  ),
-                  // FutureBuilder<String>(
-                  //   future: _fetchTotalFlatsForBuilding(property.id),
-                  //   builder: (context, snap) {
-                  //     final totalFlats = snap.connectionState == ConnectionState.done && snap.hasData
-                  //         ? (snap.data ?? "-")
-                  //         : "..."; // loading state
-                  //
-                  //     return Padding(
-                  //       padding: const EdgeInsets.only(top: 8.0, bottom: 6.0),
-                  //       child: Row(
-                  //         children: [
-                  //           Expanded(
-                  //             child: _buildCompactDetailItem("Building ID", "${property.id}", context),
-                  //           ),
-                  //           const SizedBox(width: 8),
-                  //           Expanded(
-                  //             child: _buildCompactDetailItem("Total Flat", totalFlats, context),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     );
-                  //   },
-                  // ),
-
-                  const SizedBox(height: 14),
-                  Row(
-                    children: [
-                      Expanded(
-                          child: Text("Property No: $displayIndex",
-                              style: TextStyle(fontSize: 13, color: secondaryTextColor))),
-                      Text("ID: ${property.id}",
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: textColor)),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            )
-          ],
+              // Top right count number badge
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
+                  decoration: BoxDecoration(
+                    color: cs.primary.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8), // Smaller radius
+                  ),
+                  child: Text(
+                    '$displayIndex',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10, // Smaller font
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
-
 
   Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -580,20 +924,20 @@ class _ADministaterShow_FuturePropertyState
         ),
         if (data.isEmpty)
           Container(
-            height: 150,
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            height: 150, // Reduced height
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced margin
             decoration: BoxDecoration(
                 color: isDarkMode ? Colors.grey[900] : Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(12), // Smaller radius
                 border: Border.all(color: Colors.redAccent)),
             child: const Center(
               child: Text("No Properties Found",
-                  style: TextStyle(fontSize: 16, color: Colors.redAccent)),
+                  style: TextStyle(fontSize: 14, color: Colors.redAccent)), // Smaller font
             ),
           )
         else
           SizedBox(
-            height: 540,
+            height: 300, // Reduced overall height for compact cards
             child: ListView.builder(
               controller: controller,
               scrollDirection: Axis.horizontal,
@@ -623,14 +967,14 @@ class _ADministaterShow_FuturePropertyState
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
-      leading: InkWell(
-        onTap: () {
-          Navigator.pop(context);
-        },
-        child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
-      ),
+        leading: InkWell(
+          onTap: () {
+            Navigator.pop(context);
+          },
+          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
+        ),
 
-    ),
+      ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(

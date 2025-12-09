@@ -864,8 +864,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                 unselectedLabelColor: Colors.white70,
                 tabs: const [
                   Tab(text: 'Buildings'),
-                  Tab(text: 'Plots'),
-                  Tab(text: 'Commercial'),
+                  // Tab(text: 'Plots'),
+                  // Tab(text: 'Commercial'),
                 ],
               ),
             ),
@@ -879,10 +879,10 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
             // TAB 1: Buildings
             _buildBuildingsTab(isTablet: isTablet, screenWidth: screenWidth),
 
-            // TAB 2: Plots
-            PlotListPage(fieldworkerNumber: _number),
-            // TAB 3: Commercial
-            CommercialListPage(fieldWorkerNumber: _number),
+            // // TAB 2: Plots
+            // PlotListPage(fieldworkerNumber: _number),
+            // // TAB 3: Commercial
+            // CommercialListPage(fieldWorkerNumber: _number),
           ],
         ),
 

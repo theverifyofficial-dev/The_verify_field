@@ -13,6 +13,7 @@ import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../administrator/Administator_Realestate.dart';
 import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'AdminRealEstateTabbar.dart';
 import 'Admin_future _property/Administater_Future_Property.dart';
 import 'Admin_profile.dart';
 import 'Administater_Parent_TenantDemand.dart';
@@ -280,7 +281,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   context,
                                   MaterialPageRoute(
                                     builder: (
-                                        context) => const ADministaterShow_realestete(),
+                                        context) => const AdminRealEstateTabbar(),
                                   ),
                                 ),
                             borderRadius: BorderRadius.circular(16),
@@ -314,11 +315,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Expanded(
                                     child: Text(
                                       "Real Estate",
-                                      style: Theme
-                                          .of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                         color: isDarkMode
                                             ? Colors.white
                                             : Colors.grey.shade700,

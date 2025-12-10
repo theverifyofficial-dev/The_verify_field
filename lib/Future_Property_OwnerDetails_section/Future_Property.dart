@@ -870,15 +870,42 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
               ),
             ),
           ),
+          // bottom: PreferredSize(
+          //   preferredSize: const Size.fromHeight(56),
+          //   child: Container(
+          //     color: Colors.black,
+          //     child: TabBar(
+          //       controller: _tabController,
+          //       indicatorColor: Colors.white,
+          //       labelColor: Colors.white,
+          //       unselectedLabelColor: Colors.white70,
+          //       tabs: const [
+          //         Tab(text: 'Buildings'),
+          //         Tab(text: 'Plots'),
+          //         Tab(text: 'Commercial'),
+          //       ],
+          //     ),
+          //   ),
+          // ),
         ),
         body: _isLoading
             ? Center(child: Lottie.asset(AppImages.loadingHand, height: screenHeight * 0.5))
-            : TabBarView(
-          controller: _tabController,
-          children: [
-            // TAB 1: Buildings
-            _buildBuildingsTab(isTablet: isTablet, screenWidth: screenWidth),
+            :             _buildBuildingsTab(isTablet: isTablet, screenWidth: screenWidth),
 
+
+
+        // TabBarView(
+        //   controller: _tabController,
+        //   children: [
+        //     // TAB 1: Buildings
+        //     _buildBuildingsTab(isTablet: isTablet, screenWidth: screenWidth),
+        //
+        //     // TAB 2: Plots
+        //     PlotListPage(fieldworkerNumber: _number),
+        //     // TAB 3: Commercial
+        //     CommercialListPage(fieldWorkerNumber: _number),
+        //   ],
+        // ),
             // // TAB 2: Plots
             // PlotListPage(fieldworkerNumber: _number),
             // // TAB 3: Commercial

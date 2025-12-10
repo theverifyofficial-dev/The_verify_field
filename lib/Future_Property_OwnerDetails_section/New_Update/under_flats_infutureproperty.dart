@@ -231,8 +231,7 @@ class underflat_futureproperty extends StatefulWidget {
   });
 
   @override
-  State<underflat_futureproperty> createState() =>
-      _underflat_futurepropertyState();
+  State<underflat_futureproperty> createState() => _underflat_futurepropertyState();
 }
 
 class _underflat_futurepropertyState extends State<underflat_futureproperty> {
@@ -253,6 +252,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     fetchData1();
     fetchData1Status();
   }
+  int countdown = 0;
 
   Future<List<RealEstateSlider1>> fetchCarouselData() async {
     final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
@@ -1152,7 +1152,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         GestureDetector(
           onTap: () => launchVideo(prop.videoLink),
           child: buildSimpleInfoCard("Video Link", prop.videoLink,
-              Icons.video_library, Colors.lime),
+              Icons.video_library, Colors.red),
         ),
       );
     }
@@ -1230,8 +1230,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         if (updateResponse.statusCode == 200 &&
             moveResponse.statusCode == 200) {
           final now = DateTime.now();
-          final formattedNow =
-              "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+          final formattedNow = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
           final editDateBody = {
             "action": "edit_date",
@@ -1996,6 +1995,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             );
                           },
                         ),
+
                         // Property Details
                         Container(
                           margin: EdgeInsets.all(
@@ -2109,9 +2109,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                               SizedBox(
                                   height:
                                   verticalPadding),
-                              if (getBuildingFacilityRows(
-                                  prop)
-                                  .isNotEmpty)
+                              if (getBuildingFacilityRows(prop).isNotEmpty)
                                 Column(
                                   crossAxisAlignment:
                                   CrossAxisAlignment
@@ -2120,8 +2118,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                       prop),
                                 )
                               else
-                                const SizedBox
-                                    .shrink(),
+                                const SizedBox.shrink(),
                             ],
                           ),
                         ),
@@ -2364,6 +2361,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                             }
                           },
                         ),
+
+
                         SizedBox(
                             height: screenHeight *
                                 (isSmallScreen
@@ -2427,28 +2426,50 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
             Expanded(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:
-                  isMainLoading
+                  backgroundColor: isMainLoading
                       ? Colors.grey
-                      : (estateStatus ==
-                      "Live"
+                      : (estateStatus == "Live"
                       ? Colors.grey
-                      : estateStatus ==
-                      "Book"
+                      : estateStatus == "Book"
                       ? Colors.red
                       : Colors.green),
                   shape: RoundedRectangleBorder(
-                    borderRadius:
-                    BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  padding: EdgeInsets.symmetric(
-                      vertical: verticalPadding * 2),
+                  padding: EdgeInsets.symmetric(vertical: verticalPadding * 2),
                   elevation: 2,
                 ),
-                onPressed: isMainLoading ||
-                    estateStatus.isEmpty
+
+                // -----------------------------
+                // ON PRESS WITH 3 SECOND TIMER
+                // -----------------------------
+                onPressed: isMainLoading || estateStatus.isEmpty || countdown > 0
                     ? null
-                    : () => handleMainButtonAction(),
+                    : () async {
+                  setState(() {
+                    countdown = 3;
+                  });
+
+                  for (int i = 3; i > 0; i--) {
+                    setState(() => countdown = i);
+                    await Future.delayed(const Duration(seconds: 1));
+                  }
+
+                  setState(() {
+                    countdown = 0;
+                    isMainLoading = true;
+                  });
+
+                  await handleMainButtonAction();
+
+                  setState(() {
+                    isMainLoading = false;
+                  });
+                },
+
+                // -----------------------------
+                // CHILD WITH LOADER + COUNTDOWN
+                // -----------------------------
                 child: isMainLoading
                     ? const SizedBox(
                   height: 18,
@@ -2458,25 +2479,28 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                     strokeWidth: 2,
                   ),
                 )
+                    : countdown > 0
+                    ? Text(
+                  "$countdown",
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )
                     : Text(
-                  estateStatus ==
-                      "Live"
+                  estateStatus == "Live"
                       ? "Rent out / Book"
-                      : estateStatus
-                      == "Book"
+                      : estateStatus == "Book"
                       ? "Move to Live"
                       : "Loading...",
                   style: TextStyle(
-                    fontSize: (isSmallScreen
-                        ? 11.0
-                        : 13.0) *
-                        fontScale,
-                    fontWeight:
-                    FontWeight.bold,
+                    fontSize:
+                    (isSmallScreen ? 11.0 : 13.0) * fontScale,
+                    fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
-                  overflow:
-                  TextOverflow.ellipsis,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),

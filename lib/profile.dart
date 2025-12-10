@@ -220,6 +220,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   _buildInfoItem(Icons.phone, "Phone number", _user!.number),
                   _buildInfoItem(Icons.account_box_rounded, "Account Holder", _user!.aadhar),
                   _buildInfoItem(Icons.business, "Office address", _user!.location),
+                  _buildInfoItem(Icons.vertical_align_bottom, "App Version", "2.0"),
                 ],
               ),
             ),

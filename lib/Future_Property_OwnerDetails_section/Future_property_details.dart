@@ -982,6 +982,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1003,6 +1004,17 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
+
+                          Text(
+                           " ${flat.id}",
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
+                          ),
+
+
                           Text(
                             "₹${flat.showPrice.isNotEmpty ? flat.showPrice : "0"}",
                             style: const TextStyle(

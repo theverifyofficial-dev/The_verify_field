@@ -370,21 +370,21 @@ class _Target_YearlyState extends State<Target_Yearly> {
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context){
-                return RealEstateAnalyticsPage();
-              }));
-            },
-            child: Text(
-              "Type",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 16,
-              ),
-            ),
-          ),
+          // TextButton(
+          //   onPressed: (){
+          //     Navigator.of(context).push(MaterialPageRoute(builder: (context){
+          //       return RealEstateAnalyticsPage();
+          //     }));
+          //   },
+          //   child: Text(
+          //     "Type",
+          //     style: TextStyle(
+          //       color: Colors.white,
+          //       fontWeight: FontWeight.w600,
+          //       fontSize: 16,
+          //     ),
+          //   ),
+          // ),
           IconButton(
             icon: const Icon(PhosphorIcons.arrow_clockwise, color: Colors.white),
             onPressed: _fetchAll,
@@ -679,22 +679,22 @@ class _Target_YearlyState extends State<Target_Yearly> {
               const SizedBox(height: 24),
 
               // ===================== Buildings =====================
-              _ModernSectionHeader(
-                color: Colors.pink.shade600,
-                label: "Buildings Yearly",
-                isDark: isDark,
-              ),
-              const SizedBox(height: 12),
-              _ModernPieKpiCard(
-                title: 'Yearly Target 204',
-                liveCount: _buildingCount,
-                target: _buildingYearlyTarget,
-                colorLive: Colors.pink.shade600,
-                colorRemain: Colors.grey.shade400,
-                elevation: cardElevation,
-                cardColor: cardColor,
-                isDark: isDark,
-              ),
+              // _ModernSectionHeader(
+              //   color: Colors.pink.shade600,
+              //   label: "Buildings Yearly",
+              //   isDark: isDark,
+              // ),
+              // const SizedBox(height: 12),
+              // _ModernPieKpiCard(
+              //   title: 'Yearly Target 204',
+              //   liveCount: _buildingCount,
+              //   target: _buildingYearlyTarget,
+              //   colorLive: Colors.pink.shade600,
+              //   colorRemain: Colors.grey.shade400,
+              //   elevation: cardElevation,
+              //   cardColor: cardColor,
+              //   isDark: isDark,
+              // ),
               const SizedBox(height: 32),
             ],
           ),

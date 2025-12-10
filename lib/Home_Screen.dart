@@ -1234,17 +1234,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[5],
       },
-      {
-        "image": AppImages.target,
-        "title": "Target",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const Target_MainPage()));
-        },
-        "gradient": cardGradients[6],
-      },
+      // {
+      //   "image": AppImages.target,
+      //   "title": "Target",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const Target_MainPage()));
+      //   },
+      //   "gradient": cardGradients[6],
+      // },
       {
         "image": AppImages.realestatefeild,
         "title": "Upcoming Flats",
@@ -1255,17 +1255,19 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                   builder: (_) => const ParentUpcoming()));
         },
         "gradient": cardGradients[7],
-      }, {
-        "image": AppImages.calendar,
-        "title": "Task Calendar",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const CalendarTaskPage()));
-        },
-        "gradient": cardGradients[8],
-      }, {
+      },
+      // {
+      //   "image": AppImages.calendar,
+      //   "title": "Task Calendar",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const CalendarTaskPage()));
+      //   },
+      //   "gradient": cardGradients[8],
+      // },
+      {
         "image": AppImages.demand_2,
         "title": "Costumer Demands 2.O",
         "onTap": () {
@@ -1345,7 +1347,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           ],
                         ),
                       ),
-
                       SizedBox(height: screenHeight * 0.02),
                       // Dual Target Progress Indicators - Use Wrap for responsiveness
                       Expanded(

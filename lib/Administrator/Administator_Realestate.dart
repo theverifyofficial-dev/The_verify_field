@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
@@ -250,7 +249,6 @@ class _DetailRow extends StatelessWidget {
 
 class ADministaterShow_realestete extends StatefulWidget {
   static const administaterShowRealEstate = "/administater_show_realestate";
-
   final bool fromNotification;
   final String? flatId;
 
@@ -258,21 +256,18 @@ class ADministaterShow_realestete extends StatefulWidget {
     super.key,
     this.fromNotification = false,
     this.flatId,
-
   });
 
   @override
   State<ADministaterShow_realestete> createState() => _ADministaterShow_realesteteState();
 }
 
-class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
+class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-
-
   String _name = '';
   String _number = '';
   String _location = '';
-  String _FAadharCard = '';
   String _post = '';
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -304,8 +299,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     // Otherwise assume the decoded JSON is already the payload
     return decoded;
   }
-  void _loaduserdata() async {
-
 
   void _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -313,8 +306,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       _name = prefs.getString('name') ?? '';
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
-      _FAadharCard = prefs.getString('FAadharCard') ?? prefs.getString('post') ?? '';
-
       _post = prefs.getString('post') ?? '';
     });
     print("===== SHARED PREF DATA LOADED =====");
@@ -324,22 +315,18 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     print("Post: $_post");
     print("===================================");
   }
-  bool get isAdmin => _FAadharCard.trim() == "Administrator";
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
     final resp = await http.get(url).timeout(const Duration(seconds: 10)); // Added timeout
     if (resp.statusCode != 200) {
       throw Exception("HTTP ${resp.statusCode}: ${resp.body}");
     }
-
     final decoded = json.decode(resp.body);
     final payload = _unwrapBody(decoded);
     final list = _normalizeList(payload);
-
     // Newest first by P_id if present
     int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
     list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
-
     return list.map((e) => Catid.fromJson(e)).toList();
   }
 
@@ -565,88 +552,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
   }
 
-
-  @override
-  Widget build(BuildContext context) {
-    final loc = _location.trim().toLowerCase();
-
-    return Scaffold(
-      body: Form(
-        key: GlobalKey<FormState>(),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            if (isAdmin ||loc == "sultanpur")
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiFetchDataLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child:
-                            Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(child: Text('Failed to load properties'));
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text('No properties available'));
-                        } else {
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 🔹 Your header UI
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Sumit kasaniya' ,   style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .onSurface,
-                                    ),),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                See_All_Realestate(
-                                                    id: '9711775300'),
-                                          ),
-                                        );
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Text('View All',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ) ),
-                                          SizedBox(width: 4),
-                                          Icon(Icons.arrow_forward_ios_rounded, color: Colors.blue[700],
-                                              size: 14),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
   Widget _buildImageSection({
     required List<String> images,
     required ColorScheme cs,
@@ -755,42 +660,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (isAdmin ||loc == "sultanpur")
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData1(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiFetchData1Loaded = true;
-                          _tryScrollToHighlighted();
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child:
-                            Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Failed to load properties',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                color: Colors.grey[600],
-                                fontFamily: "Poppins",
                               ),
                             ),
                         ],
@@ -1088,444 +957,11 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       ),
     );
   }
-                          // ✅ auto-scroll if highlightedFlatId exists
-                          if (_highlightedFlatId != null) {
-                            final foundIndex = data.indexWhere(
-                                    (p) => p.id.toString() == _highlightedFlatId);
-                            if (foundIndex != -1) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (scrollController.hasClients) {
-                                  scrollController.animateTo(
-                                    foundIndex * 250, // 250 = card width approx
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }
-                              });
-                            }
-                          }
 
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Ravi Kumar',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        fontFamily: "PoppinsBold",
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                See_All_Realestate(
-                                                    id: '9711275300'),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 5, vertical: 4),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              'View All',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              size: 14,
-                                              color: Colors.blue[700],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                height: 450,
-                                child: ListView.builder(
-                                  controller: scrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: data.length,
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                                  itemBuilder: (context, idx) {
-                                    final property = data[idx];
-                                    return PropertyCard(
-                                      property: property,
-                                      displayIndex: data.length - idx,
-                                      isHighlighted: property.id.toString() ==
-                                          _highlightedFlatId,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                Administater_View_Details(
-                                                  idd: property.id.toString(),
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (isAdmin ||loc == "sultanpur")
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData2(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiFetchData2Loaded = true;
-                          _tryScrollToHighlighted();
-                        }
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child:
-                            Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        } else if (snapshot.hasError) {
-                          return Center(
-                            child: Text(
-                              'Failed to load properties',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
-                                  ?.copyWith(
-                                color: Colors.grey[600],
-                                fontFamily: "Poppins",
-                              ),
-                            ),
-                          );
-                        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.home_work_outlined,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  'No properties available',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium
-                                      ?.copyWith(
-                                    color: Colors.grey[600],
-                                    fontFamily: "Poppins",
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        } else {
-                          final data = snapshot.data!;
-                          final scrollController = ScrollController();
-
-                          // ✅ Auto-scroll if highlightedFlatId matches
-                          if (_highlightedFlatId != null) {
-                            final foundIndex = data.indexWhere(
-                                    (p) => p.id.toString() == _highlightedFlatId);
-                            if (foundIndex != -1) {
-                              WidgetsBinding.instance.addPostFrameCallback((_) {
-                                if (scrollController.hasClients) {
-                                  scrollController.animateTo(
-                                    foundIndex * 250, // approx card width
-                                    duration: const Duration(milliseconds: 500),
-                                    curve: Curves.easeInOut,
-                                  );
-                                }
-                              });
-                            }
-                          }
-
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                                child: Row(
-                                  mainAxisAlignment:
-                                  MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Faizan Khan',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleLarge
-                                          ?.copyWith(
-                                        fontWeight: FontWeight.w700,
-                                        fontFamily: "PoppinsBold",
-                                        color: Theme.of(context)
-                                            .colorScheme
-                                            .onSurface,
-                                      ),
-                                    ),
-                                    InkWell(
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                See_All_Realestate(
-                                                    id: '9971172204'),
-                                          ),
-                                        );
-                                      },
-                                      borderRadius: BorderRadius.circular(20),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 5, vertical: 4),
-                                        child: Row(
-                                          children: [
-                                            Text(
-                                              'View All',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium
-                                                  ?.copyWith(
-                                                color: Colors.blue[700],
-                                                fontWeight: FontWeight.w600,
-                                                fontFamily: "Poppins",
-                                              ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Icon(
-                                              Icons.arrow_forward_ios_rounded,
-                                              size: 14,
-                                              color: Colors.blue[700],
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                height: 450,
-                                child: ListView.builder(
-                                  controller: scrollController,
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: data.length,
-                                  padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                                  itemBuilder: (context, idx) {
-                                    final property = data[idx];
-                                    return PropertyCard(
-                                      property: property,
-                                      displayIndex: data.length - idx,
-                                      isHighlighted: property.id.toString() ==
-                                          _highlightedFlatId,
-                                      onTap: () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                Administater_View_Details(
-                                                  idd: property.id.toString(),
-                                                ),
-                                          ),
-                                        );
-                                      },
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          );
-                        }
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-
-            if (isAdmin ||loc.contains("rajpur") || loc.contains("chhattar"))
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData_manishProperty(), // Manish API
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiRajpurLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text("Failed to load properties"));
-                        }
-
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text("No properties available"));
-                        }
-
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Manish",
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(id: '8130209217'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "View All",
-                                          style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded,
-                                            size: 14, color: Colors.blue),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  final idKey = property.id.toString();
-
-                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[idKey],
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: idKey == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                                  idd: property.id.toString()),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (isAdmin ||loc.contains("rajpur") || loc.contains("chhattar"))
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData_abheyProperty(), // Manish API
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiRajpurLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text("Failed to load properties"));
-                        }
-
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text("No properties available"));
-                        }
-
-   Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
-      final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-      final theme = Theme.of(context);  // NEW: Grab theme for consistent access
-      final ScrollController controller = _horizontalControllers[workerId]!;
+  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);  // NEW: Grab theme for consistent access
+    final ScrollController controller = _horizontalControllers[workerId]!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1536,17 +972,17 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                            workerName,
-                            style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
-                              fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
-                            ) ?? const TextStyle(  // Fallback if textTheme is null
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,  // Safe fallback, but theme will override
-                            ),
-                          ),
+                workerName,
+                style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
+                  fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
+                ) ?? const TextStyle(  // Fallback if textTheme is null
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,  // Safe fallback, but theme will override
+                ),
+              ),
               GestureDetector(
                   onTap: () => Navigator.push(
                     context,
@@ -1627,18 +1063,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       ),
     );
     return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        surfaceTintColor: Colors.black,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
-        ),
-      ),
       body: AnimatedSwitcher(
         duration: const Duration(milliseconds: 300),
         child: _isLoading

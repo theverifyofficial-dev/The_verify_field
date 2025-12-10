@@ -910,21 +910,22 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
             // PlotListPage(fieldworkerNumber: _number),
             // // TAB 3: Commercial
             // CommercialListPage(fieldWorkerNumber: _number),
-          ],
-        ),
 
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _showAddOptionsDialog,
-          icon: const Icon(Icons.add, color: Colors.white),
-          label: Text("Add Forms", style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: isTablet ? 16 : 14,
-          )),
-          backgroundColor: Colors.blue,
-          elevation: 4,
-        ),
-      ),
+      floatingActionButton: FloatingActionButton.extended(
+      onPressed: _showAddOptionsDialog,
+      icon: const Icon(Icons.add, color: Colors.white),
+      label: Text("Add Forms", style: TextStyle(
+        color: Colors.white,
+        fontWeight: FontWeight.w600,
+        fontSize: isTablet ? 16 : 14,
+      )),
+      backgroundColor: Colors.blue,
+      elevation: 4,
+    ),
+
+    ),
+
+
     );
   }
 

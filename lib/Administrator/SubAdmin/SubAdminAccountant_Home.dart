@@ -22,6 +22,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import '../Admin_future _property/Administater_Future_Property.dart';
 import '../Admin_upcoming.dart';
 import 'ShowTenantDemant.dart';
+import 'SubAdmin_MainRealEstate_Tabbar.dart';
 
 class SubAdminHomeScreen extends StatefulWidget {
   static const route = "/SubAdminHomeScreen";
@@ -263,7 +264,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                       context,
                                       MaterialPageRoute(
                                         builder: (
-                                            context) => const ADministaterShow_realestete(),
+                                            context) => const SubAdminRealEstateTabbar (),
                                       ),
                                     ),
                                 borderRadius: BorderRadius.circular(16),

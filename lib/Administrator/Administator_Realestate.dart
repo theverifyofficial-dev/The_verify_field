@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
@@ -8,7 +7,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:intl/intl.dart';
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Home_Screen_click/Commercial_property_Filter.dart';
@@ -44,7 +43,6 @@ class Catid {
   final String highwayDistance;
   final String mainMarketDistance;
   final String meter;
-  final String? videoStatus;        // NEW
   final String ownerName;
   final String ownerNumber;
   final String currentDate;
@@ -117,7 +115,6 @@ class Catid {
     required this.videoLink,
     required this.subid,
     this.sourceId, // NEW
-    this.videoStatus, // NEW
   });
 
   static String _s(dynamic v) => v?.toString() ?? '';
@@ -174,14 +171,84 @@ class Catid {
       videoLink: _s(json['video_link']),
       subid: _i(json['subid']),
       sourceId: json['source_id']?.toString(), // NEW
-      videoStatus: _s(json['video_status']),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
+  final Color Function(IconData, ThemeData) getIconColor;
+  final int maxLines;
+  final double? fontSize; // Added for responsive font sizing
+  final FontWeight? fontWeight; // Optional for value highlighting
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.theme,
+    required this.getIconColor,
+    this.maxLines = 1,
+    this.fontSize,
+    this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0), // Reduced bottom padding to minimize space
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 14, // Slightly smaller icon for compact layout
+            color: getIconColor(icon, theme),
+          ),
+          const SizedBox(width: 4), // Reduced width
+          Expanded(
+            child: RichText(
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.1, // Tighter line height
+                  color: cs.onSurface.withOpacity(0.70),
+                  fontSize: fontSize ?? 12, // Slightly smaller font
+                ),
+                children: [
+                  if (label.isNotEmpty)
+                    TextSpan(
+                      text: '$label: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withOpacity(0.8),
+                        fontSize: fontSize ?? 12,
+                      ),
+                    ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
+                      color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class ADministaterShow_realestete extends StatefulWidget {
   static const administaterShowRealEstate = "/administater_show_realestate";
-
   final bool fromNotification;
   final String? flatId;
 
@@ -189,22 +256,23 @@ class ADministaterShow_realestete extends StatefulWidget {
     super.key,
     this.fromNotification = false,
     this.flatId,
-
   });
 
   @override
   State<ADministaterShow_realestete> createState() => _ADministaterShow_realesteteState();
 }
 
-class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
-
-
+class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete>
+    with TickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
   String _name = '';
   String _number = '';
   String _location = '';
   String _post = '';
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
-// ---- Shared helpers ----
+  // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
     if (raw is List) {
       return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -232,7 +300,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     return decoded;
   }
 
-  void _loaduserdata() async {
+  void _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _name = prefs.getString('name') ?? '';
@@ -240,7 +308,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       _location = prefs.getString('location') ?? '';
       _post = prefs.getString('post') ?? '';
     });
-
     print("===== SHARED PREF DATA LOADED =====");
     print("Name: $_name");
     print("Number: $_number");
@@ -250,950 +317,640 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   }
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
-    final resp = await http.get(url);
+    final resp = await http.get(url).timeout(const Duration(seconds: 10)); // Added timeout
     if (resp.statusCode != 200) {
       throw Exception("HTTP ${resp.statusCode}: ${resp.body}");
     }
-
     final decoded = json.decode(resp.body);
     final payload = _unwrapBody(decoded);
     final list = _normalizeList(payload);
-
     // Newest first by P_id if present
     int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
     list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
-
     return list.map((e) => Catid.fromJson(e)).toList();
   }
 
-  Future<List<Catid>> av() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=11&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
+  List<Map<String, String>> fieldWorkers = [
+    {"name": "Sumit Singh", "id": "9711775300"},
+    {"name": "Ravi Kumar", "id": "9711275300"},
+    {"name": "Faizan Ahmed", "id": "9971172204"},
+    {"name": "Manish", "id": "8130209217"},
+    {"name": "Abhey", "id": "9675383184"},
+  ];
 
-  Future<List<Catid>> fetchData() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=9711775300&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
-  Future<List<Catid>> fetchData1() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=9711275300&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
-  Future<List<Catid>> fetchData2() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
-          "?field_workar_number=9971172204&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
-  Future<List<Catid>> fetchData_manishProperty() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat"
-          "?field_workar_number=8130209217&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-  Future<List<Catid>> fetchData_abheyProperty() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=9675383184&live_unlive=Live",
-    );
-    return _fetchCommon(url);
-  }
-
+  Map<String, List<Catid>> _groupedData = {};
+  final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
   String? _highlightedFlatId;
-  final ScrollController _scrollController = ScrollController();
-  bool _hasScrolled = false;
   final Map<String, GlobalKey> _cardKeys = {};
-
-// ✅ API load flags
-  bool _apiAvLoaded = false;
-  bool _apiFetchDataLoaded = false;
-  bool _apiFetchData1Loaded = false;
-  bool _apiFetchData2Loaded = false;
-  bool _apiRajpurLoaded = false;
-
-// ✅ Vertical scrolling of main CustomScrollView
-  final ScrollController _verticalController = ScrollController();
+  final Map<String, ScrollController> _horizontalControllers = {};
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-
-    // Load user data immediately when screen opens
-    _loaduserdata();
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map?;
-      final flatId = args?['flatId'];
-
-      if (flatId != null) {
-        setState(() {
-          _highlightedFlatId = flatId.toString();
-        });
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          _scrollToHighlighted();
-        });
-      }
-    });
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+    // Empty list for each field worker
+    for (var fw in fieldWorkers) {
+      _groupedData[fw['name']!] = [];
+      _horizontalControllers[fw['id']!] = ScrollController();
+    }
+    _loadUserData();
+    _fetchAndUpdateData();
+    // Scroll to flat if from notification
+    if (widget.flatId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleNotification(widget.flatId!);
+      });
+    }
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    for (var controller in _horizontalControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
 
-  /// ✅ Trigger scroll only after all APIs loaded
-  void _tryScrollToHighlighted() {
-    if (_apiAvLoaded &&
-        _apiFetchDataLoaded &&
-        _apiFetchData1Loaded &&
-        _apiFetchData2Loaded &&
-        _apiRajpurLoaded &&
-        _highlightedFlatId != null) {
+  Future<void> _fetchAndUpdateData() async {
+    setState(() => _isLoading = true);
+    Map<String, List<Catid>> grouped = {};
+    List<Future<void>> futures = [];
+    for (var fw in fieldWorkers) {
+      final number = fw['id']!;
+      Uri url;
+      if (number == '8130209217' || number == '9675383184') {
+        // Fallback to PHP endpoint for Manish and Abhey to fetch all properties
+        url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
+        );
+      } else {
+        url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
+        );
+      }
+      futures.add(
+        _fetchCommon(url).then((data) {
+          // Added logging for debugging
+          print("Fetched ${data.length} properties for ${fw['name']} (${fw['id']}): ${data.isNotEmpty ? data.first.id : 'EMPTY'}");
+          grouped[fw['name']!] = data;
+        }).catchError((error) {
+          print("Error fetching for ${fw['name']}: $error");
+          grouped[fw['name']!] = [];
+        }),
+      );
+    }
+    await Future.wait(futures);
+    if (mounted) {
+      setState(() {
+        _groupedData = grouped;
+        _isLoading = false;
+      });
+      _animationController.forward(); // Start fade in animation
+    }
+    await _prefetchAllPropertyData();
+    // Scroll to highlighted if exists
+    if (_highlightedFlatId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToHighlighted();
       });
     }
   }
 
-  /// ✅ Ensure visible vertically
-  void _scrollToHighlighted() {
-    if (_highlightedFlatId != null && !_hasScrolled) {
-      final key = _cardKeys[_highlightedFlatId!];
-      if (key != null && key.currentContext != null) {
-        Scrollable.ensureVisible(
-          key.currentContext!,
-          duration: const Duration(milliseconds: 500),
-          curve: Curves.easeInOut,
-          alignment: 0.3,
-        );
-        _hasScrolled = true;
+  Future<void> _prefetchAllPropertyData() async {
+    final allProperties = _groupedData.values.expand((list) => list).toList();
+    if (allProperties.isEmpty) return;
+    final uniqueSubids = <int>{};
+    for (var p in allProperties) {
+      uniqueSubids.add(p.subid);
+    }
+    final futures = uniqueSubids.map((sid) async {
+      try {
+        // Fetch total flats
+        final response2 = await http.get(Uri.parse(
+          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
+        )).timeout(const Duration(seconds: 5)); // Added timeout
+        String totalStr = "0";
+        if (response2.statusCode == 200) {
+          final body = jsonDecode(response2.body);
+          if (body is List && body.isNotEmpty) {
+            totalStr = body[0]['logg'].toString();
+          }
+        }
+        if (mounted) _totalFlatsMap[sid] = totalStr;
+      } catch (_) {
+        if (mounted) _totalFlatsMap[sid] = "0";
+      }
+    }).toList();
+    await Future.wait(futures);
+    if (mounted) setState(() {});
+  }
+
+  Future<void> _handleNotification(String flatId) async {
+    setState(() {
+      _highlightedFlatId = flatId;
+    });
+    // Fetch latest data
+    await _fetchAndUpdateData();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _scrollToHighlighted();
+    });
+  }
+
+  Future<void> _scrollToHighlighted() async {
+    if (_highlightedFlatId == null) return;
+    final key = _cardKeys[_highlightedFlatId!];
+    if (key != null && key.currentContext != null) {
+      await Scrollable.ensureVisible(
+        key.currentContext!,
+        duration: const Duration(seconds: 1),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  bool _blank(String? s) => s == null || s.trim().isEmpty;
+
+  // List<String> _missingFieldsFor(Catid i) {
+  // final m = <String>[];
+  // final checks = <String, String?>{
+  // "Photo": i.propertyPhoto,
+  // "Location": i.locations,
+  // "Flat Number": i.flatNumber,
+  // "Buy/Rent": i.buyRent,
+  // "Residence/Commercial": i.residenceCommercial,
+  // "Apartment Address": i.apartmentAddress,
+  // "BHK": i.bhk,
+  // "Floor": i.floor,
+  // "Sqft": i.squarefit,
+  // "Owner Name": i.ownerName,
+  // "Owner Number": i.ownerNumber,
+  // "Available Date": i.availableDate,
+  // "Caretaker Name": i.caretakerName,
+  // "Caretaker Number": i.caretakerNumber,
+  // };
+  // checks.forEach((k, v) { if (_blank(v)) m.add(k); });
+  // return m;
+  // }
+  // bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
+
+  String formatDate(String s) {
+    if (s.isEmpty) return '-';
+    try {
+      final dt = DateFormat('yyyy-MM-dd ').parse(s);
+      return DateFormat('dd MMM yyyy,').format(dt);
+    } catch (_) {
+      try {
+        final dt2 = DateTime.parse(s);
+        return DateFormat('dd MMM yyyy,').format(dt2);
+      } catch (_) {
+        return s;
       }
     }
   }
 
-
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _verticalController.dispose();
-    super.dispose();
+  Color _getIconColor(IconData icon, ThemeData theme) {
+    final cs = theme.colorScheme;
+    switch (icon) {
+      case Icons.location_on:
+        return Colors.red;
+      case Icons.square_foot:
+        return Colors.orange;
+      case Icons.handshake_outlined:
+        return Colors.orangeAccent;
+      case Icons.apartment:
+        return Colors.blue;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.format_list_numbered:
+        return Colors.indigo;
+      case Icons.date_range:
+        return Colors.purple;
+      case Icons.home:
+        return Colors.brown;
+      case Icons.numbers:
+        return Colors.cyan;
+      case Icons.currency_rupee:
+        return Colors.green;
+      case Icons.bed:
+        return Colors.pink;
+      case Icons.stairs:
+        return Colors.deepPurple;
+      default:
+        return cs.primary;
+    }
   }
 
-
-  @override
-  Widget build(BuildContext context) {
-    final loc = _location.trim().toLowerCase();
-
-    final post = _post.trim().toLowerCase();
-
-    bool isSubAdmin = post == "sub administrator";
-    bool isAdmin = post == "administrator";
-
-    return Scaffold(
-      appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        surfaceTintColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
-        ),
-        // actions:  [
-        //   GestureDetector(
-        //     onTap: () {
-        //       //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Filter_Options()));
-        //       _showBottomSheet(context);
-        //     },
-        //     child: const Icon(
-        //       PhosphorIcons.faders,
-        //       color: Colors.white,
-        //       size: 30,
-        //     ),
-        //   ),
-        //   const SizedBox(
-        //     width: 20,
-        //   ),
-        // ],
-      ),
-      body: Form(
-        key: GlobalKey<FormState>(),
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            if (isAdmin || loc == "sultanpur")
-              SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiFetchDataLoaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child:
-                              Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(child: Text('Failed to load properties'));
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(child: Text('No properties available'));
-                      } else {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 🔹 Your header UI
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text('Sumit kasaniya' ,   style: Theme.of(context)
-                                  .textTheme
-                                  .titleLarge
-                                  ?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                fontFamily: "PoppinsBold",
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface,
-                              ),),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(
-                                                  id: '9711775300'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text('View All',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .bodyMedium
-                                              ?.copyWith(
-                                            color: Colors.blue[700],
-                                            fontWeight: FontWeight.w600,
-                                            fontFamily: "Poppins",
-                                          ) ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded, color: Colors.blue[700],
-                                            size: 14),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // 🔹 Horizontal list
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                scrollDirection: Axis.horizontal,
-                                itemCount: snapshot.data!.length,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, index) {
-                                  final property = snapshot.data![index];
-                                  final flatId = property.id.toString();
-
-                                  // 🔑 assign key here
-                                  _cardKeys.putIfAbsent(
-                                      flatId, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[flatId],
-                                    // ✅ attach key
-                                    property: property,
-                                    displayIndex: snapshot.data!.length - index,
-                                    isHighlighted: flatId == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                            idd: property.id.toString(),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
-              ),
-            ),
-            if (isAdmin || loc == "sultanpur")
-              SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData1(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiFetchData1Loaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child:
-                              Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Failed to load properties',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontFamily: "Poppins",
-                                ),
-                          ),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.home_work_outlined,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No properties available',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.grey[600],
-                                      fontFamily: "Poppins",
-                                    ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        // ✅ auto-scroll if highlightedFlatId exists
-                        if (_highlightedFlatId != null) {
-                          final foundIndex = data.indexWhere(
-                              (p) => p.id.toString() == _highlightedFlatId);
-                          if (foundIndex != -1) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (scrollController.hasClients) {
-                                scrollController.animateTo(
-                                  foundIndex * 250, // 250 = card width approx
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            });
-                          }
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Ravi Kumar',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: "PoppinsBold",
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(
-                                                  id: '9711275300'),
-                                        ),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5, vertical: 4),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'View All',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  color: Colors.blue[700],
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Poppins",
-                                                ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            size: 14,
-                                            color: Colors.blue[700],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  return PropertyCard(
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: property.id.toString() ==
-                                        _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                            idd: property.id.toString(),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
-              ),
-            ),
-            if (isAdmin || loc == "sultanpur")
-              SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return FutureBuilder<List<Catid>>(
-                    future: fetchData2(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done) {
-                        _apiFetchData2Loaded = true;
-                        _tryScrollToHighlighted();
-                      }
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(
-                          child:
-                              Lottie.asset(AppImages.loadingHand, height: 400),
-                        );
-                      } else if (snapshot.hasError) {
-                        return Center(
-                          child: Text(
-                            'Failed to load properties',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.grey[600],
-                                  fontFamily: "Poppins",
-                                ),
-                          ),
-                        );
-                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.home_work_outlined,
-                                size: 48,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No properties available',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
-                                    ?.copyWith(
-                                      color: Colors.grey[600],
-                                      fontFamily: "Poppins",
-                                    ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        // ✅ Auto-scroll if highlightedFlatId matches
-                        if (_highlightedFlatId != null) {
-                          final foundIndex = data.indexWhere(
-                              (p) => p.id.toString() == _highlightedFlatId);
-                          if (foundIndex != -1) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              if (scrollController.hasClients) {
-                                scrollController.animateTo(
-                                  foundIndex * 250, // approx card width
-                                  duration: const Duration(milliseconds: 500),
-                                  curve: Curves.easeInOut,
-                                );
-                              }
-                            });
-                          }
-                        }
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Faizan Khan',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleLarge
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w700,
-                                          fontFamily: "PoppinsBold",
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onSurface,
-                                        ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(
-                                                  id: '9971172204'),
-                                        ),
-                                      );
-                                    },
-                                    borderRadius: BorderRadius.circular(20),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 5, vertical: 4),
-                                      child: Row(
-                                        children: [
-                                          Text(
-                                            'View All',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  color: Colors.blue[700],
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Poppins",
-                                                ),
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Icon(
-                                            Icons.arrow_forward_ios_rounded,
-                                            size: 14,
-                                            color: Colors.blue[700],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  return PropertyCard(
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: property.id.toString() ==
-                                        _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                            idd: property.id.toString(),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  );
-                },
-                childCount: 1,
-              ),
-            ),
-
-            if (isAdmin || loc.contains("rajpur") || loc.contains("chhattar"))
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData_manishProperty(), // Manish API
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiRajpurLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text("Failed to load properties"));
-                        }
-
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text("No properties available"));
-                        }
-
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Manish",
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(id: '8130209217'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "View All",
-                                          style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded,
-                                            size: 14, color: Colors.blue),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  final idKey = property.id.toString();
-
-                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[idKey],
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: idKey == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                                  idd: property.id.toString()),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-            if (isAdmin || loc.contains("rajpur") || loc.contains("chhattar"))
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                    return FutureBuilder<List<Catid>>(
-                      future: fetchData_abheyProperty(), // Manish API
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          _apiRajpurLoaded = true;
-                          _tryScrollToHighlighted();
-                        }
-
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return Center(
-                            child: Lottie.asset(AppImages.loadingHand, height: 400),
-                          );
-                        }
-
-                        if (snapshot.hasError) {
-                          return Center(child: Text("Failed to load properties"));
-                        }
-
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(child: Text("No properties available"));
-                        }
-
-                        final data = snapshot.data!;
-                        final scrollController = ScrollController();
-
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.fromLTRB(16, 16, 0, 8),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Abhey",
-                                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                      fontWeight: FontWeight.w700,
-                                      fontFamily: "PoppinsBold",
-                                      color: Theme.of(context).colorScheme.onSurface,
-                                    ),
-                                  ),
-                                  InkWell(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              See_All_Realestate(id: '9675383184'),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Text(
-                                          "View All",
-                                          style: TextStyle(
-                                              color: Colors.blue,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        SizedBox(width: 4),
-                                        Icon(Icons.arrow_forward_ios_rounded,
-                                            size: 14, color: Colors.blue),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              height: 450,
-                              child: ListView.builder(
-                                controller: scrollController,
-                                scrollDirection: Axis.horizontal,
-                                itemCount: data.length,
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                itemBuilder: (context, idx) {
-                                  final property = data[idx];
-                                  final idKey = property.id.toString();
-
-                                  _cardKeys.putIfAbsent(idKey, () => GlobalKey());
-
-                                  return PropertyCard(
-                                    cardKey: _cardKeys[idKey],
-                                    property: property,
-                                    displayIndex: data.length - idx,
-                                    isHighlighted: idKey == _highlightedFlatId,
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              Administater_View_Details(
-                                                  idd: property.id.toString()),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  childCount: 1,
-                ),
-              ),
-
-          ],
-        ),
-      ),
-
-    );
-  }
-
-}
-
-
-class PropertyCard extends StatelessWidget {
-  final Catid property;
-  final int displayIndex;
-  final VoidCallback onTap;
-  final bool isHighlighted;
-  final Key? cardKey;
-
-  const PropertyCard({
-    super.key,
-    required this.property,
-    required this.displayIndex,
-    required this.onTap,
-    this.isHighlighted = false,
-    this.cardKey,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+  Widget _buildImageSection({
+    required List<String> images,
+    required ColorScheme cs,
+    required ThemeData theme,
+    required Map<String, dynamic> status,
+    required double imageHeight,
+    required double multiImgHeight,
+    required bool isTablet,
+  }) {
+    Widget imageWidget;
+    if (images.isEmpty) {
+      imageWidget = Container(
+        height: imageHeight,
         decoration: BoxDecoration(
-          color: isHighlighted ? Colors.red : null,
+          color: cs.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: Card(
-          elevation: 4,
-          shadowColor: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white
-              : Colors.black,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        child: const Icon(
+          Icons.apartment,
+          size: 90,
+          color: Colors.grey,
+        ),
+      );
+    } else if (images.length == 1) {
+      imageWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: imageHeight,
+          width: double.infinity,
+          child: CachedNetworkImage(
+            imageUrl: images.first,
+            fit: BoxFit.cover,
+            placeholder: (_, __) => const Center(
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (_, __, ___) =>
+                Icon(Icons.broken_image, color: cs.error, size: 90),
           ),
-          color: isHighlighted
-              ? Colors.red.withOpacity(0.01)
-              : Colors.white,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ),
+      );
+    } else {
+      imageWidget = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            height: multiImgHeight,
+            child: Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: images[0],
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => const Center(
+                        child: SizedBox(
+                          height: 30,
+                          width: 30,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (_, __, ___) =>
+                          Icon(Icons.broken_image, color: cs.error, size: 50),
+                    ),
+                  ),
+                ),
+                if (images.length > 1) ...[
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          CachedNetworkImage(
+                            imageUrl: images[1],
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => const Center(
+                              child: SizedBox(
+                                height: 30,
+                                width: 30,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                            errorWidget: (_, __, ___) =>
+                                Icon(Icons.broken_image, color: cs.error, size: 50),
+                          ),
+                          if (images.length > 2)
+                            Positioned(
+                              bottom: 4,
+                              right: 4,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  '+${images.length - 2}',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          const SizedBox(height: 4), // Reduced height for less space
+          Text(
+            '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: cs.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      );
+    }
+    return imageWidget;
+  }
+
+  List<String> _buildMultipleImages(Catid p) {
+    final List<String> imgs = [];
+    if (p.propertyPhoto != null && p.propertyPhoto.isNotEmpty) {
+      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
+    }
+    return imgs;
+  }
+
+  Widget _buildCard(Catid property, int displayIndex, bool isDarkMode) {
+    final bool isHighlighted = _highlightedFlatId == property.id.toString();
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isSmallScreen = screenWidth < 400;
+    final status = {
+      "loggValue2": _totalFlatsMap[property.subid] ?? '0',
+    };
+    final images = _buildMultipleImages(property);
+    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0); // Reduced padding for compact
+    final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
+    final double titleFontSize = isTablet ? 18 : 14; // Adjusted for compact
+    final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
+    final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0); // Increased height to make image taller
+    final double multiH = imageH * 0.8;
+    // Calculate missing fields
+    // final missingFields = _missingFieldsFor(property);
+    // final hasMissingFields = missingFields.isNotEmpty;
+    final Object loggValue2 = status['loggValue2'] ?? 'N/A';
+    final Widget flatIdDetail = _DetailRow(
+      icon: Icons.format_list_numbered,
+      label: 'Property ID',
+      value: property.id.toString(),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+    final Widget buildingDetail = _DetailRow(
+      icon: Icons.numbers,
+      label: 'Building ID',
+      value: property.subid.toString(),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 1,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+    // final Widget flatIdDetail = _DetailRow(
+    // icon: Icons.numbers,
+    // label: 'Flat ID',
+    // value: property.id.toString(),
+    // theme: theme,
+    // getIconColor: _getIconColor,
+    // maxLines: 1,
+    // fontSize: detailFontSize,
+    // fontWeight: FontWeight.bold,
+    // );
+    final Widget imageSection = _buildImageSection(
+      images: images,
+      cs: cs,
+      theme: theme,
+      status: status,
+      imageHeight: imageH,
+      multiImgHeight: multiH,
+      isTablet: isTablet,
+    );
+    // Priority detail rows based on user request
+    final List<Widget> detailRows = [];
+    if ((property.locations ?? '').isNotEmpty) {
+      detailRows.add(_DetailRow(
+        icon: Icons.location_on,
+        label: '',
+        value: property.locations!,
+        theme: theme,
+        getIconColor: _getIconColor,
+        fontSize: detailFontSize,
+        fontWeight: FontWeight.bold,
+      ));
+    }
+    detailRows.add(_DetailRow(
+      icon: Icons.currency_rupee,
+      label: '',
+      value: '₹${property.showPrice ?? 'N/A'}',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.bedroom_parent,
+      label: '',
+      value: '${property.bhk ?? 'N/A'}',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.handshake_outlined,
+      label: '',
+      value: property.buyRent ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.stairs,
+      label: '',
+      value: property.floor ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.numbers,
+      label: 'Flat No.',
+      value: property.flatNumber ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
+      icon: Icons.date_range,
+      label: 'Added',
+      value: formatDate(property.currentDate ?? ''),
+      theme: theme,
+      getIconColor: _getIconColor,
+      maxLines: 2,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    final Widget leftColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        imageSection,
+        SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
+        flatIdDetail,
+      ],
+    );
+    final Widget rightColumn = Padding(
+      padding: EdgeInsets.only(top: isTablet ? 28.0 : 24.0), // Increased top padding to avoid overlap with badge
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            property.apartmentAddress ?? property.apartmentName ?? property.locations ?? 'No Title',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: titleFontSize,
+            ),
+            maxLines: 2, // Reduced lines for compact
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: isTablet ? 12 : 8), // Reduced height
+          // Render detail rows
+          ...detailRows,
+          const Spacer(),
+          // Shift Building ID and Flat ID to the right
+          Align(
+            alignment: Alignment.centerRight,
+            child: SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  buildingDetail,
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+    // Ensure GlobalKey exists
+    _cardKeys[property.id.toString()] ??= GlobalKey();
+    return Container(
+      key: _cardKeys[property.id.toString()],
+      width: 350,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reduced vertical margin
+      child: GestureDetector(
+        onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    Administater_View_Details(idd: property.id.toString()))),
+        child: Card(
+          margin: EdgeInsets.zero, // No extra margin inside
+          elevation: isDarkMode ? 0 : 4, // Reduced elevation for flatter look
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12), // Slightly smaller radius
+            side: BorderSide(color: theme.dividerColor),
+          ),
+          child: Stack(
             children: [
-              _buildImageSection(context),
-              _buildContentSection(context),
+              Padding(
+                padding: EdgeInsets.all(cardPadding),
+                child: Column(
+                  children: [
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 2 : 2), // Adjust flex for small screens
+                            child: leftColumn,
+                          ),
+                          SizedBox(width: isTablet ? 16 : 12), // Responsive width
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 3 : 3), // Adjust flex
+                            child: rightColumn,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // if (hasMissingFields)
+                    // Padding(
+                    // padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
+                    // child: Container(
+                    // width: double.infinity,
+                    // padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
+                    // decoration: BoxDecoration(
+                    // color: cs.errorContainer,
+                    // borderRadius: BorderRadius.circular(6), // Smaller radius
+                    // border: Border.all(color: cs.error),
+                    // ),
+                    // child: Text(
+                    // "⚠ Missing: ${missingFields.join(', ')}",
+                    // textAlign: TextAlign.center,
+                    // style: theme.textTheme.bodySmall?.copyWith(
+                    // color: cs.error,
+                    // fontWeight: FontWeight.w600,
+                    // fontSize: detailFontSize - 1, // Smaller font
+                    // ),
+                    // maxLines: 2, // Reduced lines
+                    // overflow: TextOverflow.ellipsis,
+                    // ),
+                    // ),
+                    // ),
+                  ],
+                ),
+              ),
+              // Top right count number badge
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Increased padding for bigger size
+                  decoration: BoxDecoration(
+                    color: cs.primary.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(8), // Smaller radius
+                  ),
+                  child: Text(
+                    '$displayIndex',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14, // Increased font size
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -1201,249 +958,132 @@ class PropertyCard extends StatelessWidget {
     );
   }
 
-  // ---------------------------------------------------------
-  // IMAGE + TOP TAGS SECTION
-  // ---------------------------------------------------------
-  Widget _buildImageSection(BuildContext context) {
-    return Stack(
+  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);  // NEW: Grab theme for consistent access
+    final ScrollController controller = _horizontalControllers[workerId]!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 450,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-            color: Theme.of(context).highlightColor,
-          ),
-          child: Image.network(
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${property.propertyPhoto}",
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Center(
-              child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-            ),
-          ),
-        ),
-
-        // TOP TAGS
-        Positioned(
-          top: 12,
-          right: 12,
-          child: Wrap(
-            spacing: 8,
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _pillTag(
-                text: "Live Property ID : ${property.id}",
-                textColor: Colors.blue,
-                bg: Colors.white,
-                border: Colors.grey.shade700,
+              Text(
+                workerName,
+                style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
+                  fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
+                ) ?? const TextStyle(  // Fallback if textTheme is null
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,  // Safe fallback, but theme will override
+                ),
               ),
-              _pillTag(
-                text: "For: ${property.buyRent}",
-                textColor: Colors.green.shade700,
-                bg: Colors.green.shade100,
-                border: Colors.green.shade400,
-              ),
+              GestureDetector(
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => See_All_Realestate(id: workerId)),
+                  ),
+                  child: const Text("View All",
+                      style: TextStyle(fontSize: 16, color: Colors.red))),
             ],
           ),
         ),
+        if (data.isEmpty)
+          Container(
+            height: 150, // Reduced height
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced margin
+            decoration: BoxDecoration(
+                color: isDarkMode ? Colors.grey[900] : Colors.white,
+                borderRadius: BorderRadius.circular(12), // Smaller radius
+                border: Border.all(color: Colors.orange)),
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 40),
+                  SizedBox(height: 8),
+                  Text("No Live Properties\n(Contact backend to update)",
+                      style: TextStyle(fontSize: 14, color: Colors.orange),
+                      textAlign: TextAlign.center),
+                ],
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 320, // Slightly increased height to accommodate taller image
+            child: ListView.builder(
+              controller: controller,
+              scrollDirection: Axis.horizontal,
+              itemCount: data.length,
+              itemBuilder: (context, index) {
+                final displayIndex = data.length - index; // calculate display index
+                return _buildCard(data[index], displayIndex, isDarkMode); // pass displayIndex
+              },
+            ),
+          ),
       ],
     );
   }
 
-  // ---------------------------------------------------------
-  // CONTENT SECTION
-  // ---------------------------------------------------------
-  Widget _buildContentSection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
+  @override
+  Widget build(BuildContext context) {
+    final loc = _location.trim().toLowerCase();
+    final post = _post.trim().toLowerCase();
+    bool isSubAdmin = post == "sub administrator";
+    bool isAdmin = post == "administrator";
+    final Widget content = SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // PRICE + LOCATION
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "₹${property.showPrice}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  fontFamily: "PoppinsBold",
-                  color: Colors.black,
-                ),
-              ),
-              Text(
-                property.locations,
-                style: const TextStyle(
-                  fontFamily: "PoppinsBold",
-                  color: Colors.black,
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // FEATURE TAGS
-          Wrap(
-            spacing: 4,
-            runSpacing: 8,
-            children: [
-              _iconPill(
-                icon: Icons.king_bed,
-                text: property.bhk,
-                bg: Colors.purple.shade50,
-                border: Colors.purple.shade200,
-                textColor: Colors.purple.shade700,
-              ),
-
-              _iconPill(
-                icon: Icons.apartment,
-                text: property.floor,
-                bg: Colors.teal.shade50,
-                border: Colors.teal.shade200,
-                textColor: Colors.teal.shade700,
-              ),
-
-              _iconPill(
-                icon: Icons.receipt_long,
-                text: "Flat No. ${property.flatNumber}",
-                bg: Colors.red.shade50,
-                border: Colors.red.shade200,
-                textColor: Colors.red.shade700,
-              ),
-
-              _iconPill(
-                icon: Icons.house_outlined,
-                text: property.typeofProperty,
-                bg: Colors.orange.shade50,
-                border: Colors.orange.shade200,
-                textColor: Colors.orange.shade700,
-              ),
-
-              if (property.subid != null && property.subid != "0")
-                _pillTag(
-                  text: "Building ID : ${property.subid}",
-                  textColor: Colors.deepOrange.shade700,
-                  bg: Colors.deepOrange.shade100,
-                  border: Colors.deepOrange.shade400,
-                ),
-
-              _pillTag(
-                text: "Building Flat ID : ${property.id}",
-                textColor: Colors.blue.shade700,
-                bg: Colors.blue.shade100,
-                border: Colors.blue.shade400,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          // VIDEO STATUS BUTTON (IF ANY)
-          if (property.videoStatus != null && property.videoStatus!.isNotEmpty)
-            _videoStatusButton(context),
-        ],
+        children: fieldWorkers
+            .where((fw) {
+          final name = fw['name']!.toLowerCase();
+          // ADMIN → SHOW EVERYONE
+          if (isAdmin) return true;
+          // SUB-ADMIN → FILTER BY LOCATION
+          if (loc.contains("sultanpur")) {
+            return name == "sumit singh" || name == "ravi kumar" || name == "faizan ahmed";
+          }
+          if (loc.contains("rajpur") || loc.contains("chhattar")) {
+            return name == "manish" || name == "abhey";
+          }
+          return false;
+        })
+            .map((fw) {
+          final props = _groupedData[fw['name']] ?? [];
+          return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
+        })
+            .toList(),
       ),
     );
-  }
-
-  // ---------------------------------------------------------
-  // SMALL FEATURE PILL WITHOUT ICON
-  // ---------------------------------------------------------
-  Widget _pillTag({
-    required String text,
-    required Color textColor,
-    required Color bg,
-    required Color border,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: border),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontWeight: FontWeight.w600,
-          color: textColor,
-          fontSize: 12,
+    return Scaffold(
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : FadeTransition(
+          opacity: _fadeAnimation,
+          child: content,
         ),
       ),
     );
   }
 
-  // ---------------------------------------------------------
-  // FEATURE PILL WITH ICON
-  // ---------------------------------------------------------
-  Widget _iconPill({
-    required IconData icon,
-    required String text,
-    required Color bg,
-    required Color border,
-    required Color textColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: bg,
-        border: Border.all(color: border),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: textColor),
-          const SizedBox(width: 4),
-          Text(
-            text,
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: textColor,
-            ),
-          ),
-        ],
-      ),
+  void _launchDialer(String phoneNumber) async {
+    final Uri launchUri = Uri(
+      scheme: 'tel',
+      path: phoneNumber,
     );
-  }
-
-  // ---------------------------------------------------------
-  // VIDEO STATUS WIDGET
-  // ---------------------------------------------------------
-  Widget _videoStatusButton(BuildContext context) {
-    String status = property.videoStatus!.toLowerCase().trim();
-
-    Color bg;
-    if (status == "") bg = Colors.red;
-    else if (status == "video submitted") bg = Colors.green;
-    else if (status == "video requested by editor") bg = Colors.blue;
-    else if (status == "video recived and editing started") bg = Colors.orange;
-    else if (status == "video uploaded") bg = Colors.purple;
-    else bg = Colors.red;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            status == "video submitted" ? Icons.check_circle : Icons.error_outline,
-            color: Colors.white,
-          ),
-          const SizedBox(width: 8),
-          Text(
-            property.videoStatus!,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
+    if (await canLaunch(launchUri.toString())) {
+      await launch(launchUri.toString());
+    } else {
+      throw 'Could not launch $phoneNumber';
+    }
   }
 }

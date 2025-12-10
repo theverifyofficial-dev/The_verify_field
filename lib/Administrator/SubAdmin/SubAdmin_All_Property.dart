@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
@@ -9,26 +8,19 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../Propert_verigication_Document/Show_tenant.dart';
-import '../add_properties_firstpage.dart';
-import '../ui_decoration_tools/app_images.dart';
-import 'Add_New_Property.dart';
-import 'Add_RealEstate.dart';
-import 'Add_image_under_property.dart';
-import 'All_view_details.dart';
-import 'Commercial_property_Filter.dart';
-import 'Filter_Options.dart';
-import 'New_Real_Estate.dart';
-import 'View_All_Details.dart';
+import '../../Home_Screen_click/All_view_details.dart';
+import '../../Home_Screen_click/New_Real_Estate.dart';
+import '../../ui_decoration_tools/app_images.dart';
 
-class AllLiveProperty extends StatefulWidget {
-  const AllLiveProperty({super.key});
+
+class SubAdminAllLiveProperty extends StatefulWidget {
+  const SubAdminAllLiveProperty({super.key});
 
   @override
-  State<AllLiveProperty> createState() => _AllLiveProperty();
+  State<SubAdminAllLiveProperty> createState() => _AllLiveProperty();
 }
 
-class _AllLiveProperty extends State<AllLiveProperty> {
+class _AllLiveProperty extends State<SubAdminAllLiveProperty> {
 
   List<NewRealEstateShowDateModel> _allProperties = [];
   List<NewRealEstateShowDateModel> _filteredProperties = [];
@@ -84,10 +76,24 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
-    );
+    String baseUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_for_location_base_website_live_property_data.php";
 
+    String finalUrl = baseUrl;
+
+    // 🔥 RULE 1 → Shivani Joshi
+    if (_number == "8743080855") {
+      finalUrl = "$baseUrl?locations=Rajpur Khurd,ChhattarPur";
+    }
+
+    // 🔥 RULE 2 → Saurabh Yadav
+    else if (_number == "9711779003") {
+      finalUrl = "$baseUrl?locations=Sultanpur";
+    }
+
+    // print("🌍 API URL Used: $finalUrl");
+
+    final url = Uri.parse(finalUrl);
     final response = await http.get(url);
 
     if (response.statusCode != 200) {
@@ -95,12 +101,10 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     }
 
     final decoded = json.decode(response.body);
-
-    // Most backends wrap results like { success: true, data: [...] }
     final raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
 
-    // Normalize to a List<Map<String,dynamic>>
     final List<Map<String, dynamic>> listResponse;
+
     if (raw is List) {
       listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
     } else if (raw is Map) {
@@ -109,7 +113,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       listResponse = const [];
     }
 
-    // Sort by P_id desc, even if P_id comes as String sometimes
     int _asInt(dynamic v) =>
         v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
 
@@ -132,20 +135,63 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       _fetchInitialData(); // Call your API after loading user data
     });
   }
+  String _name = '';
+  String _FAadharCard = '';
 
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Load saved data
     _number = prefs.getString('number') ?? '';
+    _name = prefs.getString('name') ?? '';
+    _FAadharCard = prefs.getString('FAadharCard') ?? '';
+
+    // Fallback: if FAadharCard was stored earlier as "post"
+    if (_FAadharCard.isEmpty) {
+      _FAadharCard = prefs.getString('post') ?? '';
+    }
+    // Debug logs
+    // print("🟦 Loaded Name: $_name");
+    // print("🟦 Loaded Number: $_number");
+    // print("🟦 Loaded FAadharCard (Role): $_FAadharCard");
+
     await _fetchProperties();
+  }
+
+  List<NewRealEstateShowDateModel> _applyCustomLocationFilter(List<NewRealEstateShowDateModel> list) {
+
+    // RULE 1 → Shivani Joshi phone number
+    if (_number == "8743080855") {
+      return list.where((item) {
+        final loc = (item.locations ?? "").trim().toLowerCase();
+        return loc == "rajpur khurd" || loc == "chhattarpur";
+      }).toList();
+    }
+
+    // RULE 2 → Saurabh Yadav phone number
+    if (_number == "9711779003") {
+      return list.where((item) {
+        final loc = (item.locations ?? "").trim().toLowerCase();
+        return loc == "sultanpur";
+      }).toList();
+    }
+
+    // Default → Show everything
+    return list;
   }
 
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
+
     try {
       final data = await fetchData(_number);
+
+      // 🔥 APPLY PHONE-BASED LOCATION FILTER
+      final filteredList = _applyCustomLocationFilter(data);
+
       setState(() {
-        _allProperties = data;
-        _filteredProperties = data;
+        _allProperties = filteredList;
+        _filteredProperties = filteredList;
         _isLoading = false;
       });
     } catch (e) {
@@ -153,6 +199,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       setState(() => _isLoading = false);
     }
   }
+
 
 
   Future<void> _fetchInitialData() async {
@@ -258,20 +305,20 @@ class _AllLiveProperty extends State<AllLiveProperty> {
               child: Row(
                 children: [
 
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Total : $propertyCount",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-
-                      ],
+                  Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Total : $propertyCount",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
+
+                ],
+              ),
+            ),
           _filteredProperties.isEmpty
               ? Expanded(
             child: Center(
@@ -443,14 +490,14 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                                             bottom: 0,
                                             right: 0,
                                             child:
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
-                                                  borderColor: Colors.red.shade400,
-                                                  backgroundColor: Colors.red.shade200,
-                                                  textColor: Colors.white,
-                                                  shadowColor: Colors.white60,
-                                                ),
+                                            _buildFeatureItem(
+                                              context: context,
+                                              text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
+                                              borderColor: Colors.red.shade400,
+                                              backgroundColor: Colors.red.shade200,
+                                              textColor: Colors.white,
+                                              shadowColor: Colors.white60,
+                                            ),
                                           ),
                                         ],
                                       ),

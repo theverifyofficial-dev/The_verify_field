@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../Future_Property_OwnerDetails_section/add_flat_form.dart';
 import '../../constant.dart';
 import '../../model/futureProperty_Slideer.dart';
 import '../../property_preview.dart';
@@ -52,6 +53,7 @@ class FutureProperty2 {
   final String facility;
   final String currentLocation; // optional
   final String residenceCommercial;
+  final String localityList; // Added to match first code if needed
 
   FutureProperty2({
     required this.id,
@@ -88,6 +90,7 @@ class FutureProperty2 {
     required this.facility,
     required this.currentLocation,
     required this.residenceCommercial,
+    required this.localityList,
   });
 
   factory FutureProperty2.fromJson(Map<String, dynamic> json) {
@@ -126,6 +129,7 @@ class FutureProperty2 {
       facility: json['facility']?.toString() ?? '',
       currentLocation: json['current_location']?.toString() ?? '',
       residenceCommercial: json['Residence_commercial']?.toString() ?? '',
+      localityList: json['locality_list']?.toString() ?? '',
     );
   }
 
@@ -165,10 +169,10 @@ class FutureProperty2 {
       'facility': facility,
       'current_location': currentLocation,
       'Residence_commercial': residenceCommercial,
+      'locality_list': localityList,
     };
   }
 }
-
 
 class Ground {
   final int id;
@@ -319,6 +323,17 @@ class Ground {
   }
 }
 
+class DocumentMainModel_F {
+  final String dimage;
+  DocumentMainModel_F({
+    required this.dimage,
+  });
+  factory DocumentMainModel_F.fromJson(Map<String, dynamic> json) {
+    return DocumentMainModel_F(
+      dimage: json['img'] ?? '',
+    );
+  }
+}
 
 class Administater_Future_Property_details extends StatefulWidget {
   final bool fromNotification;
@@ -337,165 +352,134 @@ class Administater_Future_Property_details extends StatefulWidget {
 }
 
 class _Administater_Future_Property_detailsState extends State<Administater_Future_Property_details> {
+  bool _isLoading = true;
+  bool _hasError = false;
+  String _errorMessage = '';
 
-  final ScrollController _verticalController = ScrollController();
-  final List<String> floors = [
-    "Ground Floor",
-    "1 Floor",
-    "2 Floor",
-    "3 Floor",
-    "4 Floor",
-    "5 Floor",
-    "6 Floor",
-    "7 Floor",
-  ];
-  final Map<String, Future<List<Ground>> Function()> _floorApi = {};
+  // Stored data
+  List<Ground> _groundList = [];
+  List<Ground> _firstList = [];
+  List<Ground> _secondList = [];
+  List<Ground> _thirdList = [];
+  List<Ground> _fourthList = [];
+  List<Ground> _fifthList = [];
+  List<Ground> _sixthList = [];
+  List<Ground> _seventhList = [];
+  List<FutureProperty2> _propertyList = [];
+  List<DocumentMainModel_F> _imageList = [];
 
-  Map<String, ScrollController> _horizontalControllers = {};
-  @override
-  void initState() {
-    super.initState();
-
-    // Listen for foreground notifications
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Notification: ${message.data}");
-      _handleNotification(message.data);
-    });
-  }
-
-  void _handleNotification(Map<String, dynamic> payload) {
-    if (payload.containsKey('flat_id')) {
-      setState(() {
-        widget.flatId = payload['flat_id'].toString(); // update the flatId
-      });
-    }
-  }
-
-
-  Future<List<Ground>> fetchData_Ground() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.buildingId}");
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
-
-      // Reverse the list
-      return data.reversed.toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
-  }
-
-  Future<List<Ground>> fetchData_first() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.buildingId}");
+  // API Methods - Centralized
+  Future<List<Ground>> _fetchGroundData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load Ground Floor');
     }
   }
 
-  Future<List<Ground>> fetchData_second() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.buildingId}");
+  Future<List<Ground>> _fetchFirstData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load First Floor');
     }
   }
 
-  Future<List<Ground>> fetchData_third() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.buildingId}");
+  Future<List<Ground>> _fetchSecondData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load Second Floor');
     }
   }
 
-  Future<List<Ground>> fetchData_four() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.buildingId}");
+  Future<List<Ground>> _fetchThirdData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load Third Floor');
     }
   }
 
-  Future<List<Ground>> fetchData_five() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.buildingId}");
+  Future<List<Ground>> _fetchFourthData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load Fourth Floor');
     }
   }
 
-  Future<List<Ground>> fetchData_six() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.buildingId}");
+  Future<List<Ground>> _fetchFifthData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load Fifth Floor');
     }
   }
 
-  Future<List<Ground>> fetchData_seven() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.buildingId}");
+  Future<List<Ground>> _fetchSixthData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.buildingId}");
     final response = await http.get(url);
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('Failed to load Sixth Floor');
     }
   }
 
+  Future<List<Ground>> _fetchSeventhData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.buildingId}");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      List listResponse = json.decode(response.body);
+      List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
+      return data.reversed.toList();
+    } else {
+      throw Exception('Failed to load Seventh Floor');
+    }
+  }
 
-  Future<List<FutureProperty2>> fetchData(id_num) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=$id_num");
-    print(id_num);
+  Future<List<FutureProperty2>> _fetchPropertyData() async {
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=${widget.buildingId}");
+    print(widget.buildingId);
     final responce = await http.get(url);
-    // print("Response body of fetch flat data: ${responce.body}");
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['id'].compareTo(a['id']));
       return listresponce.map((data) => FutureProperty2.fromJson(data)).toList();
     }
     else {
-      throw Exception('Unexpected error occured!');
+      throw Exception('Failed to load property data');
     }
   }
 
-  Future<List<DocumentMainModel_F>> fetchCarouselData() async {
+  Future<List<DocumentMainModel_F>> _fetchCarouselData() async {
     final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_future_property_addimages_by_subid_?subid=${widget.buildingId}'));
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);
@@ -505,950 +489,142 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
         );
       }).toList();
     } else {
-      throw Exception('Failed to load data');
+      throw Exception('Failed to load carousel data');
     }
   }
 
-  bool _isDeleting = false;
-
-  // final result = await fetchData();
-
-  List<String> name = [];
-
-  // late final int iid;
-
-  int _id = 0;
-
-
-  String data = 'Initial Data';
-
-  void _refreshData() {
-    if (!mounted) return;
+  Future<void> _loadAllData() async {
     setState(() {
-      data = 'Refreshed Data at ${DateTime.now()}';
-    }
-    );
+      _isLoading = true;
+      _hasError = false;
+    });
 
+    try {
+      final results = await Future.wait([
+        _fetchGroundData(),
+        _fetchFirstData(),
+        _fetchSecondData(),
+        _fetchThirdData(),
+        _fetchFourthData(),
+        _fetchFifthData(),
+        _fetchSixthData(),
+        _fetchSeventhData(),
+        _fetchPropertyData(),
+        _fetchCarouselData(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _groundList = results[0] as List<Ground>;
+          _firstList = results[1] as List<Ground>;
+          _secondList = results[2] as List<Ground>;
+          _thirdList = results[3] as List<Ground>;
+          _fourthList = results[4] as List<Ground>;
+          _fifthList = results[5] as List<Ground>;
+          _sixthList = results[6] as List<Ground>;
+          _seventhList = results[7] as List<Ground>;
+          _propertyList = results[8] as List<FutureProperty2>;
+          _imageList = results[9] as List<DocumentMainModel_F>;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      print("Error loading all data: $e");
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
   }
 
-  Future<void> _handleMenuItemClick(String value) async {
-    // Handle the menu item click
+  Future<void> _refreshAllData() async {
+    await _loadAllData();
+  }
+
+  void _handleNotification(Map<String, dynamic> payload) {
+    if (payload.containsKey('flat_id')) {
+      setState(() {
+        widget.flatId = payload['flat_id'].toString();
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Notification: ${message.data}");
+      _handleNotification(message.data);
+    });
+    _loadAllData(); // Centralized fetch
+  }
+
+  void _handleMenuItemClick(String value) async {
     print("You clicked: $value");
-    if(value.toString() == 'Edit Property'){
-
-      fetchData(widget.buildingId);
-      final Result = await fetchData(widget.buildingId);
-
-      Navigator.push(
+    if (value == 'Edit Property') {
+      if (_propertyList.isNotEmpty) {
+        final property = _propertyList.first;
+        Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => Update_FutureProperty(id: '${Result.first.id}',ownername: '${Result.first.ownerName}',ownernumber: '${Result.first.ownerNumber}', caretakername: '${Result.first.caretakerName}',
-                caretakernumber: '${Result.first.caretakerNumber}', place: '${Result.first.place}', buy_rent: '${Result.first.buyRent}', typeofproperty: '${Result.first.typeOfProperty}', select_bhk: '${Result.first.selectBhk}',
-                floor_number: '${Result.first.floorNumber}', sqyare_feet: '${Result.first.squareFeet}', propertyname_address: '${Result.first.propertyNameAddress}', building_information_facilitys: '${Result.first.buildingInformationFacilities}',
-                property_address_for_fieldworkar: '${Result.first.propertyAddressForFieldworker}', owner_vehical_number: '${Result.first.ownerVehicleNumber}', your_address: '${Result.first.yourAddress}',)));
-
-    }
-    if(value.toString() == 'Add Property Images'){
-
-    }
-    if(value.toString() == 'Delete Added Images'){
-      Fluttertoast.showToast(
-          msg: 'Delete Added Images',
-          toastLength: Toast.LENGTH_LONG,
+            builder: (context) => Update_FutureProperty(
+              id: '${property.id}',
+              ownername: '${property.ownerName}',
+              ownernumber: '${property.ownerNumber}',
+              caretakername: '${property.caretakerName}',
+              caretakernumber: '${property.caretakerNumber}',
+              place: '${property.place}',
+              buy_rent: '${property.buyRent}',
+              typeofproperty: '${property.typeOfProperty}',
+              select_bhk: '${property.selectBhk}',
+              floor_number: '${property.floorNumber}',
+              sqyare_feet: '${property.squareFeet}',
+              propertyname_address: '${property.propertyNameAddress}',
+              building_information_facilitys: '${property.buildingInformationFacilities}',
+              property_address_for_fieldworkar: '${property.propertyAddressForFieldworker}',
+              owner_vehical_number: '${property.ownerVehicleNumber}',
+              your_address: '${property.yourAddress}',
+            ),
+          ),
+        );
+      } else {
+        Fluttertoast.showToast(
+          msg: 'Property data not loaded',
+          toastLength: Toast.LENGTH_SHORT,
           gravity: ToastGravity.BOTTOM,
           timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
+          backgroundColor: Colors.red,
           textColor: Colors.white,
-          fontSize: 16.0
-      );
-    }
-
-  }
-
-  final ScrollController _scrollControllerGround = ScrollController();
-  final ScrollController _scrollController1 = ScrollController();
-  final ScrollController _scrollController2 = ScrollController();
-  final ScrollController _scrollController3 = ScrollController();
-  final ScrollController _scrollController4 = ScrollController();
-  final ScrollController _scrollController5 = ScrollController();
-  final ScrollController _scrollController6 = ScrollController();
-  final ScrollController _scrollController7 = ScrollController();
-  @override
-  void dispose() {
-    _verticalController.dispose();
-    _scrollControllerGround.dispose();
-    _scrollController1.dispose();
-    _scrollController2.dispose();
-    _scrollController3.dispose();
-    _scrollController4.dispose();
-    _scrollController5.dispose();
-    _scrollController6.dispose();
-    _scrollController7.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-
-      appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
-        ),
-      ),
-
-        body: SingleChildScrollView(
-    controller: _verticalController,
-    child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      // ✅ Ground Floor
-      FutureBuilder<List<Ground>>(
-        future: fetchData_Ground(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return SizedBox(); // hide on error
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return SizedBox(); // hide if no property
-          }
-          return _buildFloorSection("Ground Floor", fetchData_Ground, _scrollControllerGround);
-        },
-      ),
-
-      // ✅ 1st Floor
-      FutureBuilder<List<Ground>>(
-        future: fetchData_first(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return SizedBox();
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return SizedBox();
-          }
-          return _buildFloorSection("First Floor", fetchData_first, _scrollController1);
-        },
-      ),
-
-      // ✅ 2nd Floor
-      FutureBuilder<List<Ground>>(
-        future: fetchData_second(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return SizedBox();
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return SizedBox();
-          }
-          return _buildFloorSection("Second Floor", fetchData_second, _scrollController2);
-        },
-      ),
-
-      // ✅ 3rd Floor
-      FutureBuilder<List<Ground>>(
-        future: fetchData_third(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return SizedBox();
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return SizedBox();
-          }
-          return _buildFloorSection("Third Floor", fetchData_third, _scrollController3);
-        },
-      ),
-
-      // ✅ 4th Floor
-      FutureBuilder<List<Ground>>(
-        future: fetchData_four(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return SizedBox();
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return SizedBox();
-          }
-          return _buildFloorSection("Fourth Floor", fetchData_four, _scrollController4);
-        },
-      ),
-
-      // ✅ 5th Floor
-      FutureBuilder<List<Ground>>(
-        future: fetchData_five(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return SizedBox();
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return SizedBox();
-          }
-          return _buildFloorSection("Fifth Floor", fetchData_five, _scrollController5);
-        },
-      ),
-
-      // ✅ 6th Floor
-      FutureBuilder<List<Ground>>(
-              future: fetchData_six(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return SizedBox();
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return SizedBox();
-                }
-                return _buildFloorSection("Sixth Floor", fetchData_six, _scrollController6);
-              },
-            ),
-
-      // ✅ 7th Floor
-      FutureBuilder<List<Ground>>(
-              future: fetchData_seven(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return SizedBox();
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return SizedBox();
-                }
-                return _buildFloorSection("Seventh Floor", fetchData_seven, _scrollController7);
-              },
-            ),
-
-      FutureBuilder<List<FutureProperty2>>(
-                future: fetchData(widget.buildingId),
-                builder: (context,abc){
-                  if(abc.connectionState == ConnectionState.waiting){
-                    return Center(child: CircularProgressIndicator());
-                  }
-                  else if(abc.hasError){
-                    return Text('${abc.error}');
-                  }
-                  else if (abc.data == null || abc.data!.isEmpty) {
-                    // If the list is empty, show an empty image
-                    return Center(
-                      child: Column(
-                        children: [
-                          // Lottie.asset("assets/images/no data.json",width: 450),
-                          Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                        ],
-                      ),
-                    );
-                  }
-                  else{
-
-                    return ListView.builder(
-                        itemCount: 1,
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemBuilder: (BuildContext context,int len){
-                          return GestureDetector(
-                              onTap: () async {
-
-                              },
-                              child: Column(
-                                // mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 12),
-
-                                  Card(
-                                    elevation: 1,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                    color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.white12
-                                        : Colors.grey.shade200,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(16), // slightly more padding
-                                      child: Column(
-                                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                        // crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-
-                                          /// Property Type Tags
-                                          Wrap(
-                                            spacing: 6,
-                                            runSpacing: 4,
-                                            children: [
-                                              _buildInfoChip(
-                                                text: abc.data![len].place,
-                                                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.green.withOpacity(0.2)
-                                                    : Colors.green.shade50,
-                                                textColor: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.white
-                                                    : Colors.green.shade800,
-                                                borderColor: Colors.green,
-                                              ),
-                                              _buildInfoChip(
-                                                text: abc.data![len].residenceCommercial,
-                                                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.blue.withOpacity(0.2)
-                                                    : Colors.blue.shade50,
-                                                textColor: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.blue.shade200
-                                                    : Colors.blue.shade800,
-                                                borderColor: Colors.blue,
-                                              ),
-                                              _buildInfoChip(
-                                                text: abc.data![len].buyRent,
-                                                backgroundColor: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.orange.withOpacity(0.2)
-                                                    : Colors.orange.shade50,
-                                                textColor: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.orange.shade200
-                                                    : Colors.orange.shade800,
-                                                borderColor: Colors.orange,
-                                              ),
-                                            ],
-                                          ),
-
-                                          const SizedBox(height: 10), // more gap before divider
-                                          Divider(height: 1, color: Theme.of(context).dividerColor),
-                                          const SizedBox(height: 10),
-
-                                          /// Owner Info
-                                          _buildCompactSection(
-                                            icon: Icons.person_outline,
-                                            title: "Owner Info",
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.white
-                                                : Colors.black,
-                                            children: [
-                                              _buildCompactChip(
-                                                  icon: Icons.person,
-                                                  text: abc.data![len].ownerName,
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.grey.shade200,
-                                                  borderColor: Colors.deepPurpleAccent,
-                                                  shadowColor: Colors.deepPurpleAccent
-                                              ),
-                                              GestureDetector(
-                                                onTap: () => _showContactDialog(context, abc.data![len].ownerNumber),
-                                                child: _buildCompactChip(
-                                                    icon: Icons.phone,
-                                                    text: abc.data![len].ownerNumber,
-                                                    color: Theme.of(context).brightness == Brightness.dark
-                                                        ? Colors.white
-                                                        : Colors.grey.shade200,
-                                                    borderColor: Colors.deepPurpleAccent,
-                                                    shadowColor: Colors.deepPurpleAccent
-                                                ),
-                                              ),
-
-                                            ],
-                                          ),
-                                          SizedBox(height: 5,),
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
-                                            children: [
-                                              _buildCompactChip(
-                                                  icon: Icons.directions_car,
-                                                  text: abc.data![len].ownerVehicleNumber,
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.grey.shade200,
-                                                  borderColor: Colors.cyan,
-                                                  shadowColor: Colors.cyan
-                                              ),
-                                            ],
-                                          ),
-
-                                          const SizedBox(height: 10), // extra space before Caretaker
-
-                                          /// Caretaker
-                                          _buildCompactSection(
-                                            icon: Icons.support_agent,
-                                            title: "Caretaker",
-                                            color: Theme.of(context).brightness == Brightness.dark
-                                                ? Colors.white
-                                                : Colors.black,
-                                            children: [
-                                              _buildCompactChip(
-                                                borderColor: Colors.blue,
-                                                shadowColor: Colors.blue,
-                                                icon: Icons.person,
-                                                text: abc.data![len].caretakerName,
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.white
-                                                    : Colors.grey.shade200,
-                                              ),
-                                              const SizedBox(width: 25),
-                                              GestureDetector(
-                                                onTap: () => _showCallDialog(
-                                                  context,
-                                                  abc.data![len].caretakerNumber,
-                                                  "Caretaker",
-                                                ),
-                                                child: _buildCompactChip(
-                                                  icon: Icons.phone,
-                                                  text: abc.data![len].caretakerNumber,
-                                                  color: Theme.of(context).brightness == Brightness.dark
-                                                      ? Colors.white
-                                                      : Colors.grey.shade200,
-                                                  borderColor: Colors.blue,
-                                                  shadowColor: Colors.blue,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-
-                                          const SizedBox(height: 20), // extra space before Address
-
-                                          /// Address Section
-                                          _buildExpandableSection(
-                                            icon: Icons.location_on_outlined,
-                                            title: "Address",
-                                            color: Colors.blueAccent,
-                                            content: Column(
-                                              crossAxisAlignment: CrossAxisAlignment.start,
-                                              children: [
-                                                _buildCompactTextRow("Property:", abc.data![len].propertyNameAddress),
-                                                const SizedBox(height: 6),
-                                                _buildCompactTextRow("Field:", abc.data![len].propertyAddressForFieldworker),
-                                                const SizedBox(height: 6),
-                                                if(abc.data![len].yourAddress!=""&& abc.data![len].yourAddress!=null)
-                                                InkWell(
-                                                  onTap: () async {
-                                                    final address = abc.data![len].yourAddress;
-                                                    final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=$address");
-
-                                                    if (await canLaunchUrl(url)) {
-                                                      await launchUrl(url, mode: LaunchMode.externalApplication);
-                                                    } else {
-                                                      throw 'Could not launch $url';
-                                                    }
-                                                  },
-                                                  child: Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                    children: [
-                                                      const Icon(Icons.location_on, color: Colors.red, size: 20),
-                                                      const SizedBox(width: 6),
-                                                      Expanded(
-                                                        child: RichText(
-                                                          text: TextSpan(
-                                                            children: [
-                                                              const TextSpan(
-                                                                text: "Current Location: ",
-                                                                style: TextStyle(
-                                                                  fontFamily: "Poppins",
-                                                                  fontWeight: FontWeight.bold,
-                                                                ),
-                                                              ),
-                                                              TextSpan(
-                                                                text: abc.data![len].yourAddress,
-                                                                style: const TextStyle(
-                                                                  color: Colors.blue,
-                                                                  fontFamily: "Poppins",
-                                                                  decoration: TextDecoration.underline,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                )
-
-                                              ],
-                                            ),
-                                          ),
-
-                                          const SizedBox(height: 20), // gap before Details
-
-                                          /// Property Details Grid
-                                          _buildCompactSection(
-                                            icon: Icons.info_outline,
-                                            title: "Details",
-                                            color: Colors.green,
-                                            children: [
-                                              GridView.count(
-                                                crossAxisCount: 2,
-                                                shrinkWrap: true,
-                                                physics: const NeverScrollableScrollPhysics(),
-                                                childAspectRatio: 3.2,
-                                                crossAxisSpacing: 8,
-                                                mainAxisSpacing: 8,
-                                                children: [
-                                                  _buildCompactDetailItem("Floors", abc.data![len].totalFloor),
-                                                  _buildCompactDetailItem("Road Size", abc.data![len].roadSize),
-                                                  _buildCompactDetailItem("Metro", abc.data![len].metroName),
-                                                  _buildCompactDetailItem("Metro Dist", abc.data![len].metroDistance),
-                                                  _buildCompactDetailItem("Market Dist", abc.data![len].mainMarketDistance),
-                                                  _buildCompactDetailItem("Age", abc.data![len].ageOfProperty),
-                                                  _buildCompactDetailItem("Lift", abc.data![len].lift),
-                                                  _buildCompactDetailItem("Parking", abc.data![len].parking),
-                                                ],
-                                              ),
-                                            ],
-                                          ),
-
-                                          const SizedBox(height: 20), // bigger gap before footer
-
-                                          /// Footer
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                "Added: ${(() {
-                                                  final s = abc.data![len].currentDate?.toString() ?? '';
-                                                  if (s.isEmpty) return '-';
-                                                  try {
-
-                                                    final dt = DateFormat('yyyy-MM-dd hh:mm a').parse(s);
-                                                    return DateFormat('dd MMM yyyy, hh:mm a').format(dt);
-                                                  } catch (_) {
-                                                    try {
-                                                      final dt2 = DateTime.parse(s);
-                                                      return DateFormat('dd MMM yyyy, hh:mm a').format(dt2);
-                                                    } catch (_) {
-                                                      return s;
-                                                    }
-                                                  }
-                                                })()}",
-                                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Poppins",
-                                                ),
-                                              ),
-                                              Text(
-                                                "ID: ${abc.data![len].id}",
-                                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                                  fontSize: 14,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFamily: "Poppins",
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              )
-
-                          );
-                        });
-                  }
-
-
-                }
-
-            ),
-
-      FutureBuilder<List<DocumentMainModel_F>>(
-              future: fetchCarouselData(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      'Error: ${snapshot.error}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  );
-                } else if (snapshot.data == null || snapshot.data!.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        SizedBox(height: 30),
-                        Text(
-                          "No Multiple Images Found",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.white,
-                            fontFamily: 'Poppins',
-                            letterSpacing: 0,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                } else {
-                  final images = snapshot.data!;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 20),
-                      CarouselSlider(
-                        options: CarouselOptions(
-                          height: 500,
-                          enlargeCenterPage: true,
-                          autoPlay: images.length > 1,
-                          // ✅ only autoplay if more than 1 image
-                          enableInfiniteScroll: images.length > 1,
-                          // ✅ avoid scroll crash
-                          viewportFraction: 0.9,
-                          aspectRatio: 16 / 9,
-                          initialPage: 0,
-                        ),
-                        items: images.map((item) {
-                          return Builder(
-                            builder: (BuildContext context) {
-                              return GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => PropertyPreview(
-                                        ImageUrl:
-                                            "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: Container(
-                                  width: MediaQuery.of(context).size.width,
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 5.0),
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: CachedNetworkImage(
-                                      imageUrl:
-                                          "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) =>
-                                          Image.asset(AppImages.loading,
-                                              fit: BoxFit.cover),
-                                      errorWidget: (context, error,
-                                              stackTrace) =>
-                                          Image.asset(AppImages.imageNotFound,
-                                              fit: BoxFit.cover),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  );
-                }
-              },
-            ),
-
-      SizedBox(height: 50,)
-
-    ],
-
-    )));
-  }
-
-  Widget _buildFloorSection(
-          String title,
-          Future<List<Ground>> Function() fetchFunction,
-          ScrollController controller,
-          ) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Text(title,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            ),
-            SizedBox(
-              height: 200, // same as your card height
-              child: FutureBuilder<List<Ground>>(
-                future: fetchFunction(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(child: Text('Error: ${snapshot.error}'));
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('No flats available'));
-                  }
-
-                  final flats = snapshot.data!;
-
-                  // ✅ Scroll to highlighted flat if exists
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (widget.flatId != null && controller.hasClients) {
-                      final index =
-                      flats.indexWhere((flat) => flat.id.toString() == widget.flatId);
-                      if (index != -1) {
-                        controller.animateTo(
-                          index * 220.0,
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOut,
-                        );
-                      }
-                    }
-                  });
-
-                  return ListView.builder(
-                    controller: controller,
-                    scrollDirection: Axis.horizontal,
-                    itemCount: flats.length,
-                    itemBuilder: (context, index) {
-                      final flat = flats[index];
-                      final isHighlighted =
-                          widget.flatId != null && widget.flatId == flat.id.toString();
-
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Admin_underflat_futureproperty(
-                                id: '${flat.id}',
-                                Subid: '${flat.subid}',
-                              ),
-                            ),
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 10),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              border: isHighlighted
-                                  ? Border.all(color: Colors.red, width: 3)
-                                  : Border.all(color: Colors.grey.shade300, width: 1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Image + Details Row
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: Container(
-                                        height: 100,
-                                        width: 120,
-                                        child: CachedNetworkImage(
-                                          imageUrl:
-                                          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}",
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) => Image.asset(
-                                            AppImages.loading,
-                                            fit: BoxFit.cover,
-                                          ),
-                                          errorWidget: (context, error, stack) =>
-                                              Image.asset(AppImages.imageNotFound,
-                                                  fit: BoxFit.cover),
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 10),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text("Property no: ${flat.flatNumber}",
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black)), // ✅ set text color
-                                        const SizedBox(height: 5),
-                                        Text("Floor no: ${flat.floor}",
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black)), // ✅ set text color
-                                        const SizedBox(height: 5),
-                                        Text("Date: ${flat.availableDate}",
-                                            style: const TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.w500,
-                                                color: Colors.black)), // ✅ set text color
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 10),
-                                // Type, Location, Buy/Rent Chips
-                                Row(
-                                  children: [
-                                    _buildChip(flat.typeOfProperty, Colors.blue),
-                                    const SizedBox(width: 6),
-                                    _buildChip(flat.locations, Colors.blue),
-                                    const SizedBox(width: 6),
-                                    _buildChip(flat.buyRent, Colors.blue),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+          fontSize: 16.0,
         );
       }
-
-// ✅ Chip builder
-  Widget _buildChip(String text, Color borderColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(5),
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-            color: borderColor.withOpacity(0.5),
-            blurRadius: 10,
-            offset: const Offset(0, 0),
-            blurStyle: BlurStyle.outer,
-          ),
-        ],
-      ),
-      child: Text(text,
-          style: const TextStyle(fontSize: 13, color: Colors.black,fontWeight: FontWeight.w500)),
-    );
+    }
+    if (value == 'Add Property Images') {
+      Fluttertoast.showToast(
+        msg: 'Add Property Images',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+    if (value == 'Delete Added Images') {
+      Fluttertoast.showToast(
+        msg: 'Delete Added Images',
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        timeInSecForIosWeb: 1,
+        backgroundColor: Colors.grey,
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
   }
-
-
-
-  Widget _buildCompactSection({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required List<Widget> children
-  }) {
-    return Column(
-      // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 4,
-          children: children,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildExpandableSection({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required Widget content
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 14, color: color),
-            const SizedBox(width: 6),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 6),
-        content,
-      ],
-    );
-  }
-  Widget _buildCompactChip({
-    required IconData icon,
-    required String text,
-    required Color color,       // background color
-    required Color borderColor, // border color
-    required Color shadowColor, // new: shadow color
-  }) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor.withOpacity(0.5), // dynamic shadow color
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-        color: color, // chip background
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: Colors.black,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              text,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
 
   void _showCallDialog(BuildContext context, String number, String type) {
     showDialog(
@@ -1460,99 +636,31 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text("No"),
+            child: const Text("No"),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               FlutterPhoneDirectCaller.callNumber(number);
             },
-            child: Text("Yes"),
+            child: const Text("Yes"),
           ),
         ],
       ),
-    );
-  }
-  Widget _buildCompactTextRow(String label, String value) {
-    return RichText(
-      text: TextSpan(
-        style: TextStyle(fontSize: 11, color: Theme.of(context).textTheme.bodyLarge?.color),
-        children: [
-          TextSpan(
-            text: "$label ",
-            style: TextStyle(fontWeight: FontWeight.w600,fontFamily: "Poppins"),
-          ),
-          TextSpan(
-            text: value,
-            style: TextStyle(fontSize: 13),
-          ),
-        ],
-      ),
-      maxLines: 2,
-      overflow: TextOverflow.ellipsis,
     );
   }
 
-  Widget _buildCompactDetailItem(String title, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6), // more space
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? Colors.white12
-            : Colors.white,
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Text(
-            "$title: ",
-            style: TextStyle(
-              fontSize: 15, // bigger text
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.black,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: TextStyle(
-                color:
-                Theme.of(context).brightness==Brightness.dark?
-                Colors.white:
-                Colors.black,
-                // shadows: [
-                //   Shadow(
-                //     blurRadius: 1,
-                //     // offset: Offset(2, 2),
-                //     color: Theme.of(context).brightness == Brightness.dark
-                //         ? Colors.amber
-                //         : Colors.black87,
-                //   )
-                // ],
-                fontSize: 15, // bigger text
-                fontWeight: FontWeight.w700,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
   void _showContactDialog(BuildContext context, String number) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text("Contact Owner"),
+        title: const Text("Contact Owner"),
         content: Text('Would you like to contact $number?'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text("Cancel"),
+            child: const Text("Cancel"),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -1583,40 +691,926 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       ),
     );
   }
-  Widget _buildInfoChip({
-    required String text,
-    required Color borderColor,
-    Color? backgroundColor,
-    Color? textColor,
-    Color? shadowColor, // new: optional shadow color
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      margin: const EdgeInsets.only(right: 10, bottom: 10),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.transparent,
-        border: Border.all(color: borderColor, width: 2),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: (shadowColor ?? borderColor).withOpacity(0.4), // default to borderColor
-            blurRadius: 6,
-            offset: const Offset(0, 3),
+
+  @override
+  Widget build(BuildContext context) {
+    bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    if (_isLoading) {
+      return Scaffold(
+        backgroundColor: isDarkMode ? Colors.black : Colors.grey[100],
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_hasError) {
+      return Scaffold(
+        backgroundColor: isDarkMode ? Colors.black : Colors.grey[100],
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 64, color: Colors.red),
+              const SizedBox(height: 16),
+              Text(_errorMessage, style: const TextStyle(fontSize: 16), textAlign: TextAlign.center),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _refreshAllData,
+                child: const Text('Retry'),
+              ),
+            ],
           ),
-        ],
+        ),
+      );
+    }
+
+    return Scaffold(
+      backgroundColor: isDarkMode ? Colors.black : Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: isDarkMode ? Colors.black : Colors.blue,
+        elevation: 4,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(
+            PhosphorIcons.caret_left_bold,
+            color: isDarkMode ? Colors.white : Colors.black87,
+            size: 30,
+          ),
+          padding: const EdgeInsets.all(8),
+          constraints: const BoxConstraints(),
+        ),
+        title: Image.asset(AppImages.transparent, height: 45),
+        centerTitle: true,
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 13, // slightly bigger
-          fontWeight: FontWeight.bold,
-          color:
-          Theme.of(context).brightness==Brightness.dark?
-          Colors.white:Colors.black?? Colors.black,
+      body: RefreshIndicator(
+        onRefresh: _refreshAllData,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(), // Smoother physics
+          slivers: [
+            // Floor-wise Flats Sections - Now using stored data
+            _buildFloorContentSliver("Ground Floor", _groundList, isDarkMode),
+            _buildFloorContentSliver("First Floor", _firstList, isDarkMode),
+            _buildFloorContentSliver("Second Floor", _secondList, isDarkMode),
+            _buildFloorContentSliver("Third Floor", _thirdList, isDarkMode),
+            _buildFloorContentSliver("Fourth Floor", _fourthList, isDarkMode),
+            _buildFloorContentSliver("Fifth Floor", _fifthList, isDarkMode),
+            _buildFloorContentSliver("Sixth Floor", _sixthList, isDarkMode),
+            _buildFloorContentSliver("Seventh Floor", _seventhList, isDarkMode),
+            // Property Images Carousel
+            _buildImageCarouselSection(isDarkMode),
+            // Property Overview Section
+            _buildPropertyOverviewSection(isDarkMode),
+            // Building Details Section
+            _buildBuildingDetailsSection(isDarkMode),
+            // Add spacing at the bottom
+            const SliverToBoxAdapter(child: SizedBox(height: 20)),
+          ],
         ),
       ),
     );
   }
 
+  // Floor Section - Now direct content sliver using stored data
+  SliverToBoxAdapter _buildFloorContentSliver(String floorName, List<Ground> flats, bool isDarkMode) {
+    if (flats.isEmpty) {
+      return const SliverToBoxAdapter(child: SizedBox.shrink());
+    }
 
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth - 48) * 0.65;
+
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                    decoration:  BoxDecoration(
+                      color: Color(0xFF2196F3),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      floorName,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "${flats.length} flats",
+                      style: TextStyle(
+                        color: Colors.grey[700],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(
+              height: cardWidth * 1.2,
+              child: ListView.builder(
+                physics: const BouncingScrollPhysics(),
+                scrollDirection: Axis.horizontal,
+                itemCount: flats.length,
+                itemBuilder: (context, index) {
+                  final flat = flats[index];
+                  final isHighlighted = widget.flatId != null && widget.flatId == flat.id.toString();
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => Admin_underflat_futureproperty(
+                              id: '${flat.id}',
+                              Subid: '${flat.subid}',
+                            ),
+                          ),
+                        );
+                      },
+                      child: SizedBox(
+                        width: cardWidth,
+                        child: Card(
+                          color: Colors.white,
+                          elevation: isHighlighted ? 4 : 2,
+                          shape: RoundedRectangleBorder(
+                            side: isHighlighted ? const BorderSide(color: Colors.red, width: 2) : BorderSide.none,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(
+                                flex: 3,
+                                child: ClipRRect(
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(12),
+                                    topRight: Radius.circular(12),
+                                  ),
+                                  child: CachedNetworkImage(
+                                    imageUrl: flat.propertyPhoto.isNotEmpty
+                                        ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
+                                        : "",
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => Container(
+                                      color: Colors.grey[200],
+                                      child: const Center(child: CircularProgressIndicator()),
+                                    ),
+                                    errorWidget: (context, error, stackTrace) => Container(
+                                      color: Colors.grey[200],
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.home_outlined, size: 40, color: Colors.grey),
+                                          const SizedBox(height: 4),
+                                          Text("No Image", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              "${flat.bhk} • ${flat.typeOfProperty}",
+                                              style: const TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.black87,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          if (flat.flatNumber.isNotEmpty)
+                                            Text(
+                                              "Flat ${flat.flatNumber}",
+                                              style: const TextStyle(
+                                                fontSize: 11,
+                                                color: Colors.black,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                      Expanded(
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                flat.locations.isNotEmpty ? flat.locations : "No location",
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  color: Colors.black,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                            Text(
+                                              flat.id != 0 ? "ID: ${flat.id}" : "N/A",
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.purple,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue[50],
+                                              borderRadius: BorderRadius.circular(6),
+                                              border: Border.all(color: Colors.blue[100]!),
+                                            ),
+                                            child: Text(
+                                              flat.buyRent.isNotEmpty ? flat.buyRent : "N/A",
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.blue[700],
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                          Text(
+                                            "₹${flat.showPrice.isNotEmpty ? flat.showPrice : "0"}",
+                                            style: const TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: Colors.green,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Image Carousel Section - Using stored data
+  SliverToBoxAdapter _buildImageCarouselSection(bool isDarkMode) {
+    if (_imageList.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Container(
+          height: 180,
+          margin: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.photo_library, size: 50, color: isDarkMode ? Colors.black87 : Colors.grey[400]),
+              const SizedBox(height: 8),
+              Text(
+                "No Images Available",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: isDarkMode ? Colors.black87 : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: CarouselSlider(
+            options: CarouselOptions(
+              height: 250,
+              enlargeCenterPage: true,
+              autoPlay: true,
+              autoPlayInterval: const Duration(seconds: 4),
+              enableInfiniteScroll: true,
+              viewportFraction: 0.9,
+              aspectRatio: 16 / 9,
+              scrollPhysics: const BouncingScrollPhysics(),
+            ),
+            items: _imageList.map((item) {
+              return Builder(
+                builder: (BuildContext context) {
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PropertyPreview(
+                            ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                          ),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      width: MediaQuery.of(context).size.width,
+                      margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: CachedNetworkImage(
+                          key: ValueKey(item.dimage),
+                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${item.dimage}",
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[200],
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, error, stackTrace) => Container(
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.error, color: Colors.grey, size: 40),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              );
+            }).toList(),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Property Overview Section - Using stored data
+  SliverToBoxAdapter _buildPropertyOverviewSection(bool isDarkMode) {
+    if (_propertyList.isEmpty) {
+      return SliverToBoxAdapter(child: _buildErrorCard(isDarkMode));
+    }
+
+    final property = _propertyList[0];
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                if (property.place.isNotEmpty) _buildChip(property.place, Colors.blue, isDarkMode),
+                if (property.residenceCommercial.isNotEmpty) _buildChip(property.residenceCommercial, Colors.green, isDarkMode),
+                if (property.buyRent.isNotEmpty) _buildChip(property.buyRent, Colors.orange, isDarkMode),
+                if (property.typeOfProperty.isNotEmpty) _buildChip(property.typeOfProperty, Colors.purple, isDarkMode),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.location_on, color: Colors.red[400], size: 20),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    property.propertyNameAddress.isNotEmpty
+                        ? property.propertyNameAddress
+                        : "No address available",
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Wrap(
+                  spacing: 16,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.spaceAround,
+                  children: [
+                    _buildStatItem("Total Floors", property.totalFloor, Icons.stairs, isDarkMode),
+                    _buildStatItem("Road Size", property.roadSize, Icons.aod, isDarkMode),
+                    _buildStatItem("Age", property.ageOfProperty, Icons.calendar_today, isDarkMode),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Building Details Section - Using stored data
+  SliverToBoxAdapter _buildBuildingDetailsSection(bool isDarkMode) {
+    if (_propertyList.isEmpty) {
+      return SliverToBoxAdapter(child: _buildErrorCard(isDarkMode));
+    }
+
+    final property = _propertyList[0];
+    return SliverToBoxAdapter(
+      child: Container(
+        margin: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.business, color: Colors.blue, size: 20),
+                const SizedBox(width: 8),
+                const Text(
+                  "Building Details",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildContactSection(property, isDarkMode),
+            const SizedBox(height: 20),
+            _buildSpecificationsSection(property, isDarkMode),
+            const SizedBox(height: 20),
+            _buildLocationSection(property, isDarkMode),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Contact Section
+  Widget _buildContactSection(FutureProperty2 property, bool isDarkMode) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Contact Information",
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (property.ownerName.isNotEmpty || property.ownerNumber.isNotEmpty)
+          _buildContactCard(
+            "Owner",
+            property.ownerName,
+            property.ownerNumber,
+            Icons.person,
+            Colors.blue,
+            isDarkMode,
+          ),
+        if (property.ownerName.isNotEmpty || property.ownerNumber.isNotEmpty) const SizedBox(height: 8),
+        if (property.caretakerName.isNotEmpty || property.caretakerNumber.isNotEmpty)
+          _buildContactCard(
+            "Caretaker",
+            property.caretakerName,
+            property.caretakerNumber,
+            Icons.support_agent,
+            Colors.green,
+            isDarkMode,
+          ),
+      ],
+    );
+  }
+
+  // Contact Card
+  Widget _buildContactCard(String title, String name, String number, IconData icon, Color color, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  name.isNotEmpty ? name : "Not available",
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (number.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  GestureDetector(
+                    onTap: () => _showContactDialog(context, number),
+                    child: Text(
+                      number,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.blue[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (number.isNotEmpty)
+            IconButton(
+              onPressed: () => _showCallDialog(context, number, title),
+              icon: Icon(Icons.phone, color: color, size: 20),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // Specifications Section
+  Widget _buildSpecificationsSection(FutureProperty2 property, bool isDarkMode) {
+    final specifications = [
+      {"icon": Icons.train, "label": "Metro Station", "value": property.metroName},
+      {"icon": Icons.place, "label": "Metro Distance", "value": property.metroDistance},
+      {"icon": Icons.shopping_cart, "label": "Market Distance", "value": property.mainMarketDistance},
+      {"icon": Icons.elevator, "label": "Lift", "value": property.lift},
+      {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
+    ].where((spec) => (spec["value"] as String).isNotEmpty).toList();
+    if (specifications.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Center(
+          child: Text(
+            "No specifications available",
+            style: TextStyle(color: Colors.grey),
+          ),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Specifications",
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 2.5,
+              ),
+              itemCount: specifications.length,
+              itemBuilder: (context, index) {
+                final spec = specifications[index];
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(spec["icon"] as IconData, size: 18, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              spec["label"] as String,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey[600],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              spec["value"] as String,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // Location Section
+  Widget _buildLocationSection(FutureProperty2 property, bool isDarkMode) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Location",
+          style: TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[50],
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (property.propertyNameAddress.isNotEmpty)
+                _buildLocationItem("Property Address", property.propertyNameAddress, isDarkMode),
+              if (property.propertyNameAddress.isNotEmpty) const SizedBox(height: 8),
+              if (property.propertyAddressForFieldworker.isNotEmpty)
+                _buildLocationItem("Field Worker Address", property.propertyAddressForFieldworker, isDarkMode),
+              if (property.propertyAddressForFieldworker.isNotEmpty) const SizedBox(height: 8),
+              if (property.yourAddress.isNotEmpty)
+                _buildLocationItem("Current Location", property.yourAddress, isDarkMode, isClickable: true),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Location Item
+  Widget _buildLocationItem(String label, String value, bool isDarkMode, {bool isClickable = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (label == "Current Location")
+              Icon(
+                Icons.location_on,
+                color: Colors.red,
+                size: 26,
+              ),
+            if (label == "Current Location") const SizedBox(width: 4),
+            Expanded(
+              child: isClickable
+                  ? GestureDetector(
+                onTap: () async {
+                  final url = Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(value)}");
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url, mode: LaunchMode.externalApplication);
+                  }
+                },
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.blue,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )
+                  : Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: Colors.black87,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChip(String text, Color color, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Column(
+        children: [
+          Icon(icon, size: 20, color: Colors.blue),
+          const SizedBox(height: 4),
+          Text(
+            value.isEmpty ? "-" : value,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorCard(bool isDarkMode) {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Icon(Icons.error_outline, size: 40, color: Colors.grey[400]),
+          const SizedBox(height: 8),
+          Text(
+            "Unable to load property details",
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

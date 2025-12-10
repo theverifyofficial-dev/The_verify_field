@@ -24,6 +24,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
 
   bool _isLoading = true;
   String _number = '';
+  String _FAadharCard = '';
   String _location = '';
   String _name = '';
   int propertyCount = 0;
@@ -85,12 +86,18 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
     try {
       final data = await fetchData(_number);
 
-      // 🔥 APPLY LOCATION RULE HERE
-      final locationFiltered = _applyCustomLocationFilter(data);
+      // 🔥 Only Sub Admin should apply location filtering
+      List<Upcoming_model> finalList;
+
+      if (_FAadharCard.trim() == "Administrator") {
+        finalList = data; // No location restriction
+      } else {
+        finalList = _applyCustomLocationFilter(data);
+      }
 
       setState(() {
-        _allProperties = locationFiltered;
-        _filteredProperties = locationFiltered;
+        _allProperties = finalList;
+        _filteredProperties = finalList;
         _isLoading = false;
       });
     } catch (e) {
@@ -98,18 +105,15 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       setState(() => _isLoading = false);
     }
   }
-
   List<Upcoming_model> _applyCustomLocationFilter(List<Upcoming_model> list) {
     String loc = _location.trim().toLowerCase();
 
-    // If Sultanpur → show ONLY Sultanpur properties
     if (loc == "sultanpur") {
       return list.where((item) =>
       (item.locations ?? "").trim().toLowerCase() == "sultanpur"
       ).toList();
     }
 
-    // If Rajpur Khurd OR ChhattarPur → show BOTH (Rajpur Khurd + ChhattarPur)
     if (loc == "rajpur khurd" || loc == "chhattarpur") {
       return list.where((item) {
         final itemLoc = (item.locations ?? "").trim().toLowerCase();
@@ -117,45 +121,55 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       }).toList();
     }
 
-    // Default → show all
     return list;
   }
-
   Future<List<Upcoming_model>> fetchData(String number) async {
     String finalLocation = "";
 
+    // 🔥 ADMIN MODE → No location restriction
+    if (_FAadharCard.trim() == "Administrator") {
+      final url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php"
+      );
+
+      print("🚀 Admin Mode URL: $url");
+
+      final response = await http.get(url);
+      return _parsePropertyData(response);
+    }
+
+    // 🔥 SUB ADMIN MODE → Use location
     final loc = _location.trim().toLowerCase();
 
     if (loc == "sultanpur") {
       finalLocation = "SultanPur";
-    }
-    else if (loc == "rajpur khurd" || loc == "chhattarpur") {
-      finalLocation = "Rajpur Khurd,ChhattarPur";   // ✅ always fetch both
-    }
-    else {
-      finalLocation = _location;  // default
+    } else if (loc == "rajpur khurd" || loc == "chhattarpur") {
+      finalLocation = "Rajpur Khurd,ChhattarPur";
+    } else {
+      finalLocation = _location;
     }
 
     final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation",
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation"
     );
 
-    print("🚀 Final Location: $finalLocation");
+    print("🚀 Sub Admin Location URL: $url");
 
     final response = await http.get(url);
-
+    return _parsePropertyData(response);
+  }
+  List<Upcoming_model> _parsePropertyData(http.Response response) {
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
 
       if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
         final List<dynamic> dataList = decoded['data'];
 
-        dataList.sort((a, b) {
-          if (a['P_id'] != null && b['P_id'] != null) {
-            return b['P_id'].compareTo(a['P_id']);
-          }
-          return 0;
-        });
+        dataList.sort((a, b) =>
+        b['P_id'] != null && a['P_id'] != null
+            ? b['P_id'].compareTo(a['P_id'])
+            : 0
+        );
 
         return dataList.map((e) => Upcoming_model.fromJson(e)).toList();
       } else {
@@ -165,7 +179,6 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       throw Exception("Server Error: ${response.statusCode}");
     }
   }
-
 
 
   @override
@@ -183,9 +196,20 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
 
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
+
     _name = prefs.getString('name') ?? '';
     _number = prefs.getString('number') ?? '';
+    _FAadharCard = prefs.getString('FAadharCard') ?? '';
     _location = prefs.getString('location') ?? '';
+
+    if (_FAadharCard.isEmpty) {
+      _FAadharCard = prefs.getString('post') ?? '';
+    }
+
+    print("🔥 ALL STORED KEYS: ${prefs.getKeys()}");
+    print("🔥 post: ${prefs.getString('post')}");
+    print("🔥 FAadharCard: $_FAadharCard");
+
     await _fetchProperties();
   }
 

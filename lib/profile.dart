@@ -220,6 +220,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   _buildInfoItem(Icons.phone, "Phone number", _user!.number),
                   _buildInfoItem(Icons.account_box_rounded, "Account Holder", _user!.aadhar),
                   _buildInfoItem(Icons.business, "Office address", _user!.location),
+                  _buildInfoItem(Icons.vertical_align_bottom, "App Version", "2.0"),
                 ],
               ),
             ),
@@ -313,10 +314,13 @@ class _ProfilePageState extends State<ProfilePage> {
             // Tabs
             Row(
               children: [
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     if (isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
                   },
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: Colors.white.withOpacity(0.2),
+                  highlightColor: Colors.white.withOpacity(0.1),
                   child: Container(
                     width: tabWidth,
                     height: 40,
@@ -339,10 +343,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                   ),
                 ),
-                GestureDetector(
+                InkWell(
                   onTap: () {
                     if (!isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
                   },
+                  borderRadius: BorderRadius.circular(20),
+                  splashColor: Colors.white.withOpacity(0.2),
+                  highlightColor: Colors.white.withOpacity(0.1),
                   child: Container(
                     width: tabWidth,
                     height: 40,

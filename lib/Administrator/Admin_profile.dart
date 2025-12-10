@@ -337,6 +337,9 @@ class _ProfilePageState extends State<AdminProfile> {
           _infoTile(Icons.credit_card, "Account Holder", _user!.aadhar),
           _divider(),
           _infoTile(Icons.location_on, "Location", _user!.location),
+          _divider(),
+          _infoTile(Icons.vertical_align_bottom, "App Version", "2.0"),
+
         ],
       ),
     );

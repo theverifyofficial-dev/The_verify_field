@@ -13,9 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
-import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'dart:io';
 
 
 
@@ -43,8 +40,7 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
 
 
 
-  Add_Flatunder_futureproperty(
-      {
+  Add_Flatunder_futureproperty({
       super.key,
       required this.id,
       required this.Owner_name,
@@ -66,6 +62,8 @@ class Add_Flatunder_futureproperty extends StatefulWidget {
       required this.facility,
       required this.google_loc,
       required this.locality_list,
+      required String apartment,
+      required String apartment_name,
 
 
 
@@ -285,8 +283,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   final List<String> yesNoOptions = ['Yes', 'No'];
   final List<String> registryOptions = ['Registry', 'GPA'];
 
-
-
   Future<void> uploadImageWithTitle(File imageFile) async {
 
     // this is for API current date & available date
@@ -354,7 +350,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         "available_date",
         _availableDate != null
             ? DateFormat('yyyy-MM-dd').format(_availableDate!)
-            : '',
+            : '', // empty if not selected
       ),
       MapEntry("Longitude", _Longitude.text),
       MapEntry("Latitude", _Latitude.text),
@@ -411,7 +407,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
       }
     }
   }
-
 
 
   @override

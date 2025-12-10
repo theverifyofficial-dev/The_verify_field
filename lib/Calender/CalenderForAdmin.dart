@@ -385,6 +385,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   List<AgreementTask> _agreements = [];
   List<FutureProperty> _futureProperties = [];
   List<AddFlat> _addFlats = [];
+  Map<DateTime, bool> _eventDays = {};
 
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
@@ -417,6 +418,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchData(_focusedDay);
       loadUserName();
+      _fetchMonthlyEvents(_selectedYear, _selectedMonth).then((_) {
+        if (mounted) setState(() {});
+      });
+
     });
   }
   Future<void> _initUserAndFetch() async {
@@ -518,6 +523,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       if (!mounted) return;
 
       setState(() {
+        final cleanDate = DateTime(date.year, date.month, date.day);
+        final hasEvent =
+            agreements.isNotEmpty ||
+                futureProps.isNotEmpty ||
+                websiteVisits.isNotEmpty;
+
+        _eventDays[cleanDate] = hasEvent;
+
         _agreements = agreements.map((e) => e["data"] as AgreementTask).toList();
         _futureProperties = futureProps.map((e) => e["data"] as FutureProperty).toList();
         _websiteVisits = websiteVisits.map((e) => e["data"] as WebsiteVisit).toList();
@@ -577,11 +590,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       color: isDark ? Colors.grey.shade700 : Colors.grey.shade300,
                       borderRadius: BorderRadius.circular(10)),
                 ),
-                Text("Select Month & Year",
+                Text(
+                    "Select Month & Year",
                     style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: textColor)),
+                        color: textColor
+                    )
+                ),
                 const SizedBox(height: 12),
                 Expanded(
                   child: Row(
@@ -735,6 +751,54 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         ),
       ),
     );
+  }
+  Future<void> _fetchMonthlyEvents(int year, int month) async {
+    _eventDays.clear();
+
+    for (int day = 1; day <= 31; day++) {
+      try {
+        final date = DateTime(year, month, day);
+        if (date.month != month) break; // stop when next month starts
+
+        final formattedDate =
+            "${year}-${month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}";
+
+        final responses = await Future.wait([
+          http.get(Uri.parse(
+              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate")),
+          http.get(Uri.parse(
+              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$formattedDate")),
+          http.get(Uri.parse(
+              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate")),
+        ]);
+
+        bool hasEvent = false;
+
+        if (responses[0].statusCode == 200 &&
+            responses[0].body.contains("success")) {
+          final a = AgreementTaskResponse.fromRawJson(responses[0].body);
+          if (a.data.isNotEmpty) hasEvent = true;
+        }
+
+        if (responses[1].statusCode == 200 &&
+            responses[1].body.contains("success")) {
+          final f = FuturePropertyResponse.fromRawJson(responses[1].body);
+          if (f.data.isNotEmpty) hasEvent = true;
+        }
+
+        if (responses[2].statusCode == 200 &&
+            responses[2].body.contains("success")) {
+          final w = WebsiteVisitResponse.fromRawJson(responses[2].body);
+          if (w.data.isNotEmpty) hasEvent = true;
+        }
+
+        if (hasEvent) {
+          _eventDays[DateTime(year, month, day)] = true;
+        }
+      } catch (_) {}
+    }
+
+    if (mounted) setState(() {});
   }
 
 // Helper method for live/unlive status color
@@ -1433,12 +1497,22 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 children: [
                   // Full Month Calendar
                   TableCalendar(
-                    focusedDay: _focusedDay,
+                    focusedDay: DateTime(
+                      _focusedDay.year,
+                      _focusedDay.month,
+                      _focusedDay.day,
+                      _eventDays.length,
+                    ),
                     firstDay: DateTime(2023),
                     lastDay: DateTime(2030),
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                     calendarFormat: CalendarFormat.month,
                     headerVisible: false,
+                    eventLoader: (day) {
+                      final clean = DateTime(day.year, day.month, day.day);
+                      return _eventDays[clean] == true ? ["event"] : [];
+                    },
+
                     daysOfWeekStyle: DaysOfWeekStyle(
                       weekdayStyle: TextStyle(
                         fontWeight: FontWeight.w600,
@@ -1458,14 +1532,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                         color: Colors.indigo.shade400,
                         shape: BoxShape.circle,
                       ),
-                      defaultTextStyle: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.grey.shade900,
+
+                      // ⭐ DOT INDICATOR ⭐
+                      markersMaxCount: 1,
+                      markerDecoration: const BoxDecoration(
+                        color: Colors.indigo,
+                        shape: BoxShape.circle,
                       ),
-                      weekendTextStyle: TextStyle(
-                        fontSize: 14,
-                        color: Colors.red.shade400,
-                      ),
+                      markersAlignment: Alignment.bottomCenter,
                     ),
                     onDaySelected: (selected, focused) {
                       setState(() {
@@ -1482,6 +1556,22 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                         _selectedMonth = focused.month;
                         _selectedYear = focused.year;
                       });
+
+                      // 🔥 Fetch dots for entire month instantly
+                      if (mounted) {
+                        setState(() {}); // update event days
+
+                        // 🔥 Force refresh table calendar so markers appear immediately
+                        Future.microtask(() {
+                          setState(() {
+                            _focusedDay = DateTime(
+                              _focusedDay.year,
+                              _focusedDay.month,
+                              _focusedDay.day,
+                            );
+                          });
+                        });
+                      }
                     },
                   ),
                 ],

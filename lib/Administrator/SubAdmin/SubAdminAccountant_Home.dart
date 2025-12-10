@@ -358,7 +358,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: 3,
+                            itemCount: 4,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -402,14 +402,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   },
                                 },
 
-                                // {
-                                //   'image': AppImages.demand_2,
-                                //   'title': "Costumer Demands 2.O",
-                                //   'onTap': () =>
-                                //       Navigator.push(context, MaterialPageRoute(
-                                //           builder: (
-                                //               context) =>  ShowTenantDemandPage())),
-                                // },
+                                {
+                                  'image': AppImages.demand_2,
+                                  'title': "Costumer Demands 2.O",
+                                  'onTap': () =>
+                                      Navigator.push(context, MaterialPageRoute(
+                                          builder: (
+                                              context) =>  ShowTenantDemandPage())),
+                                },
                                 {
                                   "image": AppImages.realestatefeild,
                                   "title": "Upcoming\n Property",

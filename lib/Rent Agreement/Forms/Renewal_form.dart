@@ -313,10 +313,6 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     _number = prefs.getString('number') ?? '';
   }
 
-  String? _buildUrl(String? path) {
-    if (path?.isNotEmpty ?? false) return "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$path";
-    return null;
-  }
 
   Future<void> _fetchUserData({
     required bool isOwner,                // true for owner, false for tenant
@@ -381,8 +377,8 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             ownerAadhaar.text = data['owner_addhar_no'] ?? '';
           }
 
-          ownerAadharFrontUrl = _buildUrl(data['owner_aadhar_front']);
-          ownerAadharBackUrl = _buildUrl(data['owner_aadhar_back']);
+          ownerAadharFrontUrl = data['owner_aadhar_front'] ?? '';
+          ownerAadharBackUrl = data['owner_aadhar_back'] ?? '';
         } else {
           tenantName.text = data['tenant_name'] ?? '';
           tenantRelation = data['tenant_relation'] ?? 'S/O';
@@ -395,9 +391,9 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             tenantAadhaar.text = data['tenant_addhar_no'] ?? '';
           }
 
-          tenantAadharFrontUrl = _buildUrl(data['tenant_aadhar_front']);
-          tenantAadharBackUrl = _buildUrl(data['tenant_aadhar_back']);
-          tenantPhotoUrl = _buildUrl(data['tenant_image']);
+          tenantAadharFrontUrl = data['tenant_aadhar_front' ?? ''];
+          tenantAadharBackUrl = data['tenant_aadhar_back'] ?? '';
+          tenantPhotoUrl = data['tenant_image'] ?? '';
         }
       });
 
@@ -832,7 +828,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             ? Image.file(file, fit: BoxFit.cover)
             : (url != null && url.isNotEmpty)
             ? Image.network(
-            url,
+          'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/$url',
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => const Center(
             child: Text('Error', style: TextStyle(fontSize: 12)),

@@ -46,7 +46,6 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
         return;
       }
 
-      // Encode name & location for URL safety
       final encodedName = Uri.encodeQueryComponent(subadminName);
       final encodedLoc = Uri.encodeQueryComponent(subadminLocation);
 

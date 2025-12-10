@@ -1376,17 +1376,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
       },
 
-      // {
-      //   "image": AppImages.demand_2,
-      //   "title": "Costumer Demands 2.O",
-      //   "onTap": () => Navigator.push(
-      //     context,
-      //     MaterialPageRoute(builder: (context) => CostumerDemand()),
-      //   ),
-      //   "gradient": LinearGradient(
-      //     colors: [Colors.purple, Colors.blue,],
-      //   ),
-      // },
+      {
+        "image": AppImages.demand_2,
+        "title": "Costumer Demands 2.O",
+        "onTap": () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => CostumerDemand()),
+        ),
+        "gradient": LinearGradient(
+          colors: [Colors.purple, Colors.blue,],
+        ),
+      },
 
 
     ];
@@ -1525,12 +1525,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                       ),
                     ),
 
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: WeeklyActivityCard(),
-                      ),
-                    ),
+                    // SliverToBoxAdapter(
+                    //   child: Padding(
+                    //     padding: const EdgeInsets.symmetric(vertical: 12),
+                    //     child: WeeklyActivityCard(),
+                    //   ),
+                    // ),
 
                     // GRID CARDS (scrollable)
                     SliverPadding(

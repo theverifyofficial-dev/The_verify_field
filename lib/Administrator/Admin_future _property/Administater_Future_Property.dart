@@ -625,10 +625,7 @@ class _ADministaterShow_FuturePropertyState
         title: Image.asset(AppImages.verify, height: 75),
       leading: InkWell(
         onTap: () {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => AdministratorHome_Screen()),
-          );
+          Navigator.pop(context);
         },
         child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
       ),

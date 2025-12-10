@@ -697,10 +697,10 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
 
     final Object loggValue2 = status['loggValue2'] ?? 'N/A';
 
-    final Widget totalDetail = _DetailRow(
+    final Widget flatIdDetail = _DetailRow(
       icon: Icons.format_list_numbered,
-      label: 'Total Flats',
-      value: '$loggValue2',
+      label: 'Property iD',
+      value: property.id.toString(),
       theme: theme,
       getIconColor: _getIconColor,
       maxLines: 1,
@@ -719,16 +719,6 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       fontWeight: FontWeight.bold,
     );
 
-    final Widget flatIdDetail = _DetailRow(
-      icon: Icons.numbers,
-      label: 'Flat ID',
-      value: property.id.toString(),
-      theme: theme,
-      getIconColor: _getIconColor,
-      maxLines: 1,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    );
 
     final Widget imageSection = _buildImageSection(
       images: images,
@@ -745,7 +735,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     if ((property.locations ?? '').isNotEmpty) {
       detailRows.add(_DetailRow(
         icon: Icons.location_on,
-        label: 'Location',
+        label: '',
         value: property.locations!,
         theme: theme,
         getIconColor: _getIconColor,
@@ -755,7 +745,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     }
     detailRows.add(_DetailRow(
       icon: Icons.currency_rupee,
-      label: 'Show Price',
+      label: '',
       value: '₹${property.showPrice ?? 'N/A'}',
       theme: theme,
       getIconColor: _getIconColor,
@@ -764,7 +754,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     ));
     detailRows.add(_DetailRow(
       icon: Icons.handshake_outlined,
-      label: 'Rent/Buy',
+      label: '',
       value: property.buyRent ?? 'N/A',
       theme: theme,
       getIconColor: _getIconColor,
@@ -773,7 +763,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     ));
     detailRows.add(_DetailRow(
       icon: Icons.stairs,
-      label: 'Floor',
+      label: '',
       value: property.floor ?? 'N/A',
       theme: theme,
       getIconColor: _getIconColor,
@@ -806,7 +796,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       children: [
         imageSection,
         SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
-        totalDetail,
+       flatIdDetail,
       ],
     );
 
@@ -836,7 +826,6 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
               child: Column(
                 children: [
                   buildingDetail,
-                  flatIdDetail,
                 ],
               ),
             ),

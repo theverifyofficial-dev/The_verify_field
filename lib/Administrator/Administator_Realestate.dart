@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
@@ -9,7 +8,6 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
-
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Home_Screen_click/Commercial_property_Filter.dart';
@@ -251,7 +249,6 @@ class _DetailRow extends StatelessWidget {
 
 class ADministaterShow_realestete extends StatefulWidget {
   static const administaterShowRealEstate = "/administater_show_realestate";
-
   final bool fromNotification;
   final String? flatId;
 
@@ -259,23 +256,23 @@ class ADministaterShow_realestete extends StatefulWidget {
     super.key,
     this.fromNotification = false,
     this.flatId,
-
   });
 
   @override
   State<ADministaterShow_realestete> createState() => _ADministaterShow_realesteteState();
 }
 
-class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete> {
+class _ADministaterShow_realesteteState extends State<ADministaterShow_realestete>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
-
-
   String _name = '';
   String _number = '';
   String _location = '';
   String _post = '';
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
 
-// ---- Shared helpers ----
+  // ---- Shared helpers ----
   List<Map<String, dynamic>> _normalizeList(dynamic raw) {
     if (raw is List) {
       return raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
@@ -302,6 +299,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     // Otherwise assume the decoded JSON is already the payload
     return decoded;
   }
+
   void _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
@@ -310,7 +308,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       _location = prefs.getString('location') ?? '';
       _post = prefs.getString('post') ?? '';
     });
-
     print("===== SHARED PREF DATA LOADED =====");
     print("Name: $_name");
     print("Number: $_number");
@@ -320,34 +317,29 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   }
 
   Future<List<Catid>> _fetchCommon(Uri url) async {
-    final resp = await http.get(url);
+    final resp = await http.get(url).timeout(const Duration(seconds: 10)); // Added timeout
     if (resp.statusCode != 200) {
       throw Exception("HTTP ${resp.statusCode}: ${resp.body}");
     }
-
     final decoded = json.decode(resp.body);
     final payload = _unwrapBody(decoded);
     final list = _normalizeList(payload);
-
     // Newest first by P_id if present
     int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
     list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
-
     return list.map((e) => Catid.fromJson(e)).toList();
   }
 
   List<Map<String, String>> fieldWorkers = [
-    {"name": "Sumit", "id": "9711775300"},
-    {"name": "Ravi", "id": "9711275300"},
-    {"name": "Faizan", "id": "9971172204"},
+    {"name": "Sumit Singh", "id": "9711775300"},
+    {"name": "Ravi Kumar", "id": "9711275300"},
+    {"name": "Faizan Ahmed", "id": "9971172204"},
     {"name": "Manish", "id": "8130209217"},
     {"name": "Abhey", "id": "9675383184"},
   ];
 
   Map<String, List<Catid>> _groupedData = {};
-  final Map<int, int> _liveCountMap = {}; // subid -> live count
   final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
-
   String? _highlightedFlatId;
   final Map<String, GlobalKey> _cardKeys = {};
   final Map<String, ScrollController> _horizontalControllers = {};
@@ -356,16 +348,24 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   @override
   void initState() {
     super.initState();
-
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 500),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
     // Empty list for each field worker
     for (var fw in fieldWorkers) {
       _groupedData[fw['name']!] = [];
       _horizontalControllers[fw['id']!] = ScrollController();
     }
-
     _loadUserData();
     _fetchAndUpdateData();
-
     // Scroll to flat if from notification
     if (widget.flatId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -374,33 +374,52 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    for (var controller in _horizontalControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
   Future<void> _fetchAndUpdateData() async {
     setState(() => _isLoading = true);
-
     Map<String, List<Catid>> grouped = {};
+    List<Future<void>> futures = [];
     for (var fw in fieldWorkers) {
       final number = fw['id']!;
       Uri url;
       if (number == '8130209217' || number == '9675383184') {
+        // Fallback to PHP endpoint for Manish and Abhey to fetch all properties
         url = Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/show_main_realestate_data_by_field_workar_number_live_flat?field_workar_number=$number&live_unlive=Live",
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
         );
       } else {
         url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number&live_unlive=Live",
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
         );
       }
-      final data = await _fetchCommon(url);
-      grouped[fw['name']!] = data;
+      futures.add(
+        _fetchCommon(url).then((data) {
+          // Added logging for debugging
+          print("Fetched ${data.length} properties for ${fw['name']} (${fw['id']}): ${data.isNotEmpty ? data.first.id : 'EMPTY'}");
+          grouped[fw['name']!] = data;
+        }).catchError((error) {
+          print("Error fetching for ${fw['name']}: $error");
+          grouped[fw['name']!] = [];
+        }),
+      );
     }
-
-    setState(() {
-      _groupedData = grouped;
-      _isLoading = false;
-    });
-
+    await Future.wait(futures);
+    if (mounted) {
+      setState(() {
+        _groupedData = grouped;
+        _isLoading = false;
+      });
+      _animationController.forward(); // Start fade in animation
+    }
     await _prefetchAllPropertyData();
-
     // Scroll to highlighted if exists
     if (_highlightedFlatId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -421,7 +440,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         // Fetch total flats
         final response2 = await http.get(Uri.parse(
           'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
-        ));
+        )).timeout(const Duration(seconds: 5)); // Added timeout
         String totalStr = "0";
         if (response2.statusCode == 200) {
           final body = jsonDecode(response2.body);
@@ -429,27 +448,9 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
             totalStr = body[0]['logg'].toString();
           }
         }
-        _totalFlatsMap[sid] = totalStr;
-        // Fetch live count
-        final response3 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$sid',
-        ));
-        int liveC = 0;
-        if (response3.statusCode == 200) {
-          final body3 = jsonDecode(response3.body);
-          if (body3 is List && body3.isNotEmpty) {
-            for (var item in body3) {
-              if (item['live_unlive'] == 'Live') {
-                liveC = (item['logs'] as num?)?.toInt() ?? 0;
-                break;
-              }
-            }
-          }
-        }
-        _liveCountMap[sid] = liveC;
+        if (mounted) _totalFlatsMap[sid] = totalStr;
       } catch (_) {
-        _totalFlatsMap[sid] = "0";
-        _liveCountMap[sid] = 0;
+        if (mounted) _totalFlatsMap[sid] = "0";
       }
     }).toList();
     await Future.wait(futures);
@@ -460,7 +461,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     setState(() {
       _highlightedFlatId = flatId;
     });
-
     // Fetch latest data
     await _fetchAndUpdateData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -483,27 +483,26 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   bool _blank(String? s) => s == null || s.trim().isEmpty;
 
   // List<String> _missingFieldsFor(Catid i) {
-  //   final m = <String>[];
-  //   final checks = <String, String?>{
-  //     "Photo": i.propertyPhoto,
-  //     "Location": i.locations,
-  //     "Flat Number": i.flatNumber,
-  //     "Buy/Rent": i.buyRent,
-  //     "Residence/Commercial": i.residenceCommercial,
-  //     "Apartment Address": i.apartmentAddress,
-  //     "BHK": i.bhk,
-  //     "Floor": i.floor,
-  //     "Sqft": i.squarefit,
-  //     "Owner Name": i.ownerName,
-  //     "Owner Number": i.ownerNumber,
-  //     "Available Date": i.availableDate,
-  //     "Caretaker Name": i.caretakerName,
-  //     "Caretaker Number": i.caretakerNumber,
-  //   };
-  //   checks.forEach((k, v) { if (_blank(v)) m.add(k); });
-  //   return m;
+  // final m = <String>[];
+  // final checks = <String, String?>{
+  // "Photo": i.propertyPhoto,
+  // "Location": i.locations,
+  // "Flat Number": i.flatNumber,
+  // "Buy/Rent": i.buyRent,
+  // "Residence/Commercial": i.residenceCommercial,
+  // "Apartment Address": i.apartmentAddress,
+  // "BHK": i.bhk,
+  // "Floor": i.floor,
+  // "Sqft": i.squarefit,
+  // "Owner Name": i.ownerName,
+  // "Owner Number": i.ownerNumber,
+  // "Available Date": i.availableDate,
+  // "Caretaker Name": i.caretakerName,
+  // "Caretaker Number": i.caretakerNumber,
+  // };
+  // checks.forEach((k, v) { if (_blank(v)) m.add(k); });
+  // return m;
   // }
-
   // bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
 
   String formatDate(String s) {
@@ -562,10 +561,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     required double multiImgHeight,
     required bool isTablet,
   }) {
-    final int liveCount = status['liveCount'] ?? 0;
-    final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
-    final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";
-
     Widget imageWidget;
     if (images.isEmpty) {
       imageWidget = Container(
@@ -686,30 +681,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         ],
       );
     }
-
-    return Stack(
-      children: [
-        imageWidget,
-        Positioned(
-          top: 4,
-          right: 4,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: liveColor.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              liveLabel,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
+    return imageWidget;
   }
 
   List<String> _buildMultipleImages(Catid p) {
@@ -728,38 +700,30 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
     final isSmallScreen = screenWidth < 400;
-
     final status = {
       "loggValue2": _totalFlatsMap[property.subid] ?? '0',
-      "liveCount": _liveCountMap[property.subid] ?? 0,
     };
-
     final images = _buildMultipleImages(property);
-
     final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0); // Reduced padding for compact
     final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
     final double titleFontSize = isTablet ? 18 : 14; // Adjusted for compact
     final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
-    final double imageH = (screenHeight * 0.22).clamp(120.0, 200.0); // Reduced height
+    final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0); // Increased height to make image taller
     final double multiH = imageH * 0.8;
-
     // Calculate missing fields
     // final missingFields = _missingFieldsFor(property);
     // final hasMissingFields = missingFields.isNotEmpty;
-
     final Object loggValue2 = status['loggValue2'] ?? 'N/A';
-
-    final Widget totalDetail = _DetailRow(
+    final Widget flatIdDetail = _DetailRow(
       icon: Icons.format_list_numbered,
-      label: 'Total Flats',
-      value: '$loggValue2',
+      label: 'Property ID',
+      value: property.id.toString(),
       theme: theme,
       getIconColor: _getIconColor,
       maxLines: 1,
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     );
-
     final Widget buildingDetail = _DetailRow(
       icon: Icons.numbers,
       label: 'Building ID',
@@ -770,18 +734,16 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     );
-
-    final Widget flatIdDetail = _DetailRow(
-      icon: Icons.numbers,
-      label: 'Flat ID',
-      value: property.id.toString(),
-      theme: theme,
-      getIconColor: _getIconColor,
-      maxLines: 1,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    );
-
+    // final Widget flatIdDetail = _DetailRow(
+    // icon: Icons.numbers,
+    // label: 'Flat ID',
+    // value: property.id.toString(),
+    // theme: theme,
+    // getIconColor: _getIconColor,
+    // maxLines: 1,
+    // fontSize: detailFontSize,
+    // fontWeight: FontWeight.bold,
+    // );
     final Widget imageSection = _buildImageSection(
       images: images,
       cs: cs,
@@ -791,13 +753,12 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       multiImgHeight: multiH,
       isTablet: isTablet,
     );
-
     // Priority detail rows based on user request
     final List<Widget> detailRows = [];
     if ((property.locations ?? '').isNotEmpty) {
       detailRows.add(_DetailRow(
         icon: Icons.location_on,
-        label: 'Location',
+        label: '',
         value: property.locations!,
         theme: theme,
         getIconColor: _getIconColor,
@@ -815,6 +776,15 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       fontWeight: FontWeight.bold,
     ));
     detailRows.add(_DetailRow(
+      icon: Icons.bedroom_parent,
+      label: '',
+      value: '${property.bhk ?? 'N/A'}',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    detailRows.add(_DetailRow(
       icon: Icons.handshake_outlined,
       label: '',
       value: property.buyRent ?? 'N/A',
@@ -825,7 +795,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     ));
     detailRows.add(_DetailRow(
       icon: Icons.stairs,
-      label: 'Floor',
+      label: '',
       value: property.floor ?? 'N/A',
       theme: theme,
       getIconColor: _getIconColor,
@@ -851,19 +821,16 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-
-
     final Widget leftColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         imageSection,
         SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
-        totalDetail,
+        flatIdDetail,
       ],
     );
-
     final Widget rightColumn = Padding(
-      padding: EdgeInsets.only(top: isTablet ? 16.0 : 12.0), // Reduced top padding
+      padding: EdgeInsets.only(top: isTablet ? 28.0 : 24.0), // Increased top padding to avoid overlap with badge
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -888,7 +855,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
               child: Column(
                 children: [
                   buildingDetail,
-                  flatIdDetail,
                 ],
               ),
             ),
@@ -896,10 +862,8 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
         ],
       ),
     );
-
     // Ensure GlobalKey exists
     _cardKeys[property.id.toString()] ??= GlobalKey();
-
     return Container(
       key: _cardKeys[property.id.toString()],
       width: 350,
@@ -941,29 +905,29 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                       ),
                     ),
                     // if (hasMissingFields)
-                    //   Padding(
-                    //     padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
-                    //     child: Container(
-                    //       width: double.infinity,
-                    //       padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
-                    //       decoration: BoxDecoration(
-                    //         color: cs.errorContainer,
-                    //         borderRadius: BorderRadius.circular(6), // Smaller radius
-                    //         border: Border.all(color: cs.error),
-                    //       ),
-                    //       child: Text(
-                    //         "⚠ Missing: ${missingFields.join(', ')}",
-                    //         textAlign: TextAlign.center,
-                    //         style: theme.textTheme.bodySmall?.copyWith(
-                    //           color: cs.error,
-                    //           fontWeight: FontWeight.w600,
-                    //           fontSize: detailFontSize - 1, // Smaller font
-                    //         ),
-                    //         maxLines: 2, // Reduced lines
-                    //         overflow: TextOverflow.ellipsis,
-                    //       ),
-                    //     ),
-                    //   ),
+                    // Padding(
+                    // padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
+                    // child: Container(
+                    // width: double.infinity,
+                    // padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
+                    // decoration: BoxDecoration(
+                    // color: cs.errorContainer,
+                    // borderRadius: BorderRadius.circular(6), // Smaller radius
+                    // border: Border.all(color: cs.error),
+                    // ),
+                    // child: Text(
+                    // "⚠ Missing: ${missingFields.join(', ')}",
+                    // textAlign: TextAlign.center,
+                    // style: theme.textTheme.bodySmall?.copyWith(
+                    // color: cs.error,
+                    // fontWeight: FontWeight.w600,
+                    // fontSize: detailFontSize - 1, // Smaller font
+                    // ),
+                    // maxLines: 2, // Reduced lines
+                    // overflow: TextOverflow.ellipsis,
+                    // ),
+                    // ),
+                    // ),
                   ],
                 ),
               ),
@@ -972,7 +936,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                 top: 4,
                 right: 4,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4), // Increased padding for bigger size
                   decoration: BoxDecoration(
                     color: cs.primary.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(8), // Smaller radius
@@ -982,7 +946,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 10, // Smaller font
+                      fontSize: 14, // Increased font size
                     ),
                   ),
                 ),
@@ -994,10 +958,10 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     );
   }
 
-  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final ScrollController controller = _horizontalControllers[workerId]!;
-
+   Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
+      final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+      final theme = Theme.of(context);  // NEW: Grab theme for consistent access
+      final ScrollController controller = _horizontalControllers[workerId]!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1007,9 +971,18 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(workerName,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(
+                            workerName,
+                            style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
+                              fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
+                            ) ?? const TextStyle(  // Fallback if textTheme is null
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,  // Safe fallback, but theme will override
+                            ),
+                          ),
               GestureDetector(
                   onTap: () => Navigator.push(
                     context,
@@ -1028,15 +1001,23 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
             decoration: BoxDecoration(
                 color: isDarkMode ? Colors.grey[900] : Colors.white,
                 borderRadius: BorderRadius.circular(12), // Smaller radius
-                border: Border.all(color: Colors.redAccent)),
+                border: Border.all(color: Colors.orange)),
             child: const Center(
-              child: Text("No Properties Found",
-                  style: TextStyle(fontSize: 14, color: Colors.redAccent)), // Smaller font
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 40),
+                  SizedBox(height: 8),
+                  Text("No Live Properties\n(Contact backend to update)",
+                      style: TextStyle(fontSize: 14, color: Colors.orange),
+                      textAlign: TextAlign.center),
+                ],
+              ),
             ),
           )
         else
           SizedBox(
-            height: 300, // Reduced overall height for compact cards
+            height: 320, // Slightly increased height to accommodate taller image
             child: ListView.builder(
               controller: controller,
               scrollDirection: Axis.horizontal,
@@ -1057,7 +1038,30 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     final post = _post.trim().toLowerCase();
     bool isSubAdmin = post == "sub administrator";
     bool isAdmin = post == "administrator";
-
+    final Widget content = SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: fieldWorkers
+            .where((fw) {
+          final name = fw['name']!.toLowerCase();
+          // ADMIN → SHOW EVERYONE
+          if (isAdmin) return true;
+          // SUB-ADMIN → FILTER BY LOCATION
+          if (loc.contains("sultanpur")) {
+            return name == "sumit singh" || name == "ravi kumar" || name == "faizan ahmed";
+          }
+          if (loc.contains("rajpur") || loc.contains("chhattar")) {
+            return name == "manish" || name == "abhey";
+          }
+          return false;
+        })
+            .map((fw) {
+          final props = _groupedData[fw['name']] ?? [];
+          return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
+        })
+            .toList(),
+      ),
+    );
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -1070,39 +1074,16 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           },
           child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
         ),
-
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: fieldWorkers
-              .where((fw) {
-            final name = fw['name']!.toLowerCase();
-
-            // ADMIN → SHOW EVERYONE
-            if (isAdmin) return true;
-
-            // SUB-ADMIN → FILTER BY LOCATION
-            if (loc.contains("sultanpur")) {
-              return name == "sumit" || name == "ravi" || name == "faizan";
-            }
-
-            if (loc.contains("rajpur") || loc.contains("chhattar")) {
-              return name == "manish" || name == "abhey";
-            }
-
-            return false;
-          })
-              .map((fw) {
-            final props = _groupedData[fw['name']] ?? [];
-            return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
-          })
-              .toList(),
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 300),
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : FadeTransition(
+          opacity: _fadeAnimation,
+          child: content,
         ),
       ),
-
     );
   }
 
@@ -1117,5 +1098,4 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       throw 'Could not launch $phoneNumber';
     }
   }
-
 }

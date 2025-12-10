@@ -242,8 +242,8 @@ class _ADministaterShow_FuturePropertyState
       _horizontalControllers[fw['id']!] = ScrollController();
     }
 
-    _loadUserData();
-    _fetchAndUpdateData();
+    // Load user data first, then fetch (to determine visible workers)
+    _initializeData();
 
     // Notification listeners
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -262,6 +262,18 @@ class _ADministaterShow_FuturePropertyState
     if (widget.buildingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleNotification(widget.buildingId!);
+      });
+    }
+  }
+
+  Future<void> _initializeData() async {
+    await _loadUserData();
+    await _fetchAndUpdateData();
+
+    // Scroll to highlighted if exists
+    if (_highlightedBuildingId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollToHighlighted();
       });
     }
   }
@@ -306,10 +318,37 @@ class _ADministaterShow_FuturePropertyState
   Future<void> _fetchAndUpdateData() async {
     setState(() => _isLoading = true);
 
-    Map<String, List<Catid>> grouped = {};
-    for (var fw in fieldWorkers) {
+    // Compute visible workers based on loaded _location and _post
+    final loc = _location.trim().toLowerCase();
+    final post = _post.trim().toLowerCase();
+    bool isSubAdmin = post == "sub administrator";
+    bool isAdmin = post == "administrator";
+    List<Map<String, String>> visibleWorkers = fieldWorkers.where((fw) {
+      if (isAdmin) return true;
+      final name = fw['name']!.toLowerCase();
+      if (loc.contains("sultanpur")) {
+        return name == "sumit" || name == "ravi" || name == "faizan";
+      }
+      if (loc.contains("rajpur") || loc.contains("chhattar")) {
+        return name == "manish" || name == "abhay" || name == "abhey";
+      }
+      return false;
+    }).toList();
+
+    // Parallel fetch for visible workers only (reduces unnecessary API calls)
+    final workerFutures = visibleWorkers.map((fw) async {
       final data = await _fetchDataByNumber(fw['id']!);
-      grouped[fw['name']!] = data;
+      return MapEntry(fw['name']!, data);
+    }).toList();
+
+    final groupedEntries = await Future.wait(workerFutures);
+    final Map<String, List<Catid>> grouped = Map<String, List<Catid>>.fromEntries(groupedEntries);
+
+    // Ensure all fieldWorkers have empty lists if not visible (for consistency)
+    for (var fw in fieldWorkers) {
+      if (!grouped.containsKey(fw['name'])) {
+        grouped[fw['name']!] = [];
+      }
     }
 
     setState(() {
@@ -317,19 +356,17 @@ class _ADministaterShow_FuturePropertyState
       _isLoading = false;
     });
 
-    await _prefetchAllPropertyData();
+    // Start prefetch in background (non-blocking, UI shows immediately with placeholders)
+    _prefetchAllPropertyData();
 
-    // Scroll to highlighted if exists
-    if (_highlightedBuildingId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToHighlighted();
-      });
-    }
+    // No await here - UI is responsive now
   }
 
   Future<void> _prefetchAllPropertyData() async {
     final allProperties = _groupedData.values.expand((list) => list).toList();
     if (allProperties.isEmpty) return;
+
+    // Parallel fetches for all properties (already optimized with Future.wait)
     final futures = allProperties.map((p) async {
       try {
         // Fetch total flats
@@ -367,7 +404,7 @@ class _ADministaterShow_FuturePropertyState
       }
     }).toList();
     await Future.wait(futures);
-    if (mounted) setState(() {});
+    if (mounted) setState(() {}); // Refresh UI with fetched counts
   }
 
   Future<void> _handleNotification(String buildingId) async {
@@ -719,6 +756,15 @@ class _ADministaterShow_FuturePropertyState
         fontWeight: FontWeight.bold,
       ));
     }
+    // detailRows.add(_DetailRow(
+    //   icon: Icons.bedroom_parent,
+    //   label: 'BHK',  // Added label for visibility
+    //   value: property.selectBhk ?? 'N/A',  // Fallback to prevent empty row
+    //   theme: theme,
+    //   getIconColor: _getIconColor,
+    //   fontSize: detailFontSize,
+    //   fontWeight: FontWeight.bold,
+    // ));
     detailRows.add(_DetailRow(
       icon: Icons.handshake_outlined,
       label: '',
@@ -897,6 +943,7 @@ class _ADministaterShow_FuturePropertyState
 
   Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);  // FIXED: Define theme variable for access
     final ScrollController controller = _horizontalControllers[workerId]!;
 
     return Column(
@@ -909,16 +956,28 @@ class _ADministaterShow_FuturePropertyState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(workerName,
-                  style: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+                style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
+                  fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
+                ) ?? const TextStyle(  // Fallback if textTheme is null
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,  // Safe fallback, but theme will override
+                ),
+              ),
               GestureDetector(
                   onTap: () => Navigator.push(
                     context,
                     MaterialPageRoute(
                         builder: (_) => SeeAll_FutureProperty(number: workerId)),
                   ),
-                  child: const Text("See All",
-                      style: TextStyle(fontSize: 16, color: Colors.red))),
+                  child: Text("See All",  // REMOVED const to allow dynamic style if needed
+                      style: theme.textTheme.bodyMedium?.copyWith(  // FIXED: Made dynamic (optional, but consistent)
+                        fontSize: 16,
+                        color: theme.colorScheme.error,  // Dynamic red equivalent
+                        fontWeight: FontWeight.w600,
+                      ) ?? const TextStyle(fontSize: 16, color: Colors.red))),  // Fallback to red
             ],
           ),
         ),
@@ -927,12 +986,15 @@ class _ADministaterShow_FuturePropertyState
             height: 150, // Reduced height
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced margin
             decoration: BoxDecoration(
-                color: isDarkMode ? Colors.grey[900] : Colors.white,
+                color: theme.cardColor,  // FIXED: Made dynamic (white in light, dark in dark)
                 borderRadius: BorderRadius.circular(12), // Smaller radius
-                border: Border.all(color: Colors.redAccent)),
-            child: const Center(
+                border: Border.all(color: theme.colorScheme.error)),  // FIXED: Dynamic red
+            child: Center(  // REMOVED const to allow dynamic style
               child: Text("No Properties Found",
-                  style: TextStyle(fontSize: 14, color: Colors.redAccent)), // Smaller font
+                  style: theme.textTheme.bodySmall?.copyWith(  // FIXED: Made dynamic
+                    fontSize: 14,
+                    color: theme.colorScheme.error,  // Dynamic red
+                  ) ?? const TextStyle(fontSize: 14, color: Colors.redAccent)),
             ),
           )
         else
@@ -955,7 +1017,6 @@ class _ADministaterShow_FuturePropertyState
   @override
   Widget build(BuildContext context) {
     final loc = _location.trim().toLowerCase();
-
     final post = _post.trim().toLowerCase();
 
     bool isSubAdmin = post == "sub administrator";
@@ -964,8 +1025,10 @@ class _ADministaterShow_FuturePropertyState
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        surfaceTintColor: Colors.black,
+        surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        elevation: 0,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
           onTap: () {

@@ -1003,7 +1003,6 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                                 ),
                               ),
                               SizedBox(height: verticalPadding * 2),
-                              _buildContactCard("FIELD WORKER", prop.fieldWorkerName, prop.fieldWorkerNumber, bgColor: Colors.blue, context: context, onCall: () => _showCallConfirmation(context, prop.fieldWorkerName, prop.fieldWorkerNumber)),
                               if (prop.ownerNumber.isNotEmpty)
                                 _buildContactCard("OWNER", prop.ownerName, prop.ownerNumber, bgColor: Colors.green, context: context, onCall: () => _showCallConfirmation(context, prop.ownerName, prop.ownerNumber)),
                               if (prop.careTakerNumber.isNotEmpty)
@@ -1043,7 +1042,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
                           ),
                         ),
                         // Bottom spacing for bottom nav
-                        SizedBox(height: screenHeight * 0.15),
+                        const SizedBox(height: 20),
                       ],
                     ),
                   ),

@@ -1075,7 +1075,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
           onTap: () {
             // Implement launchVideo if needed
           },
-          child: buildSimpleInfoCard("Video Link", prop.videoLink, Icons.video_library, Colors.lime),
+          child: buildSimpleInfoCard("Video Link", prop.videoLink, Icons.video_library, Colors.red),
         ),
       );
     }

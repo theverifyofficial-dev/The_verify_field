@@ -539,7 +539,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.black : Colors.blue,
+          color:  Colors.black ,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
@@ -563,7 +563,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 onPressed: () => Navigator.pop(context),
                 icon: Icon(
                   PhosphorIcons.caret_left_bold,
-                  color: isDarkMode ? Colors.white : Colors.black87,
+                  color: Colors.white ,
                   size: 30,weight: 50,
                 ),
                 padding: const EdgeInsets.all(8),
@@ -595,7 +595,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 },
                 icon: Icon(
                   Icons.more_vert,
-                  color: isDarkMode ? Colors.white : Colors.black87,size: 30,
+                  color: Colors.white ,size: 30,
                 ),
                 padding: const EdgeInsets.all(8),
                 constraints: const BoxConstraints(),

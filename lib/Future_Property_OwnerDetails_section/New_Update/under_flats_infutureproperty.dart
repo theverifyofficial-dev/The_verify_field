@@ -1216,13 +1216,51 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
     if (prop.videoLink.isNotEmpty) {
       rows.add(
-        GestureDetector(
+        InkWell(
           onTap: () => launchVideo(prop.videoLink),
-          child: buildSimpleInfoCard("Video Link", prop.videoLink,
-              Icons.video_library, Colors.red),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.video_library,
+                  color: Colors.red,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Video Link",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        prop.videoLink,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
+
 
     rows.add(buildFieldworkerInfoCard(prop));
 

@@ -1154,7 +1154,7 @@ class _View_DetailsState extends State<AllViewDetails> {
   List<Widget> _getPropertyDetailsRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
     List<Widget> rows = [];
     if ((prop.metroDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.train, Colors.orange, "Metro Station", prop.metroDistance, isSmallScreen, isDarkMode));
+      rows.add(_buildInfoRow(Icons.train, Colors.orange, "Metro Name", prop.metroDistance, isSmallScreen, isDarkMode));
     if ((prop.mainMarketDistance ?? '').isNotEmpty)
       rows.add(_buildInfoRow(Icons.store, Colors.purple, "Market Distance", prop.mainMarketDistance, isSmallScreen, isDarkMode));
     if ((prop.registryAndGpa ?? '').isNotEmpty)

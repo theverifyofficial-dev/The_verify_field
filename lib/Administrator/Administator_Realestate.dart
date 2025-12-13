@@ -1054,12 +1054,10 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
             return name == "manish" || name == "abhey";
           }
           return false;
-        })
-            .map((fw) {
+        }).map((fw) {
           final props = _groupedData[fw['name']] ?? [];
           return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
-        })
-            .toList(),
+        }).toList(),
       ),
     );
     return Scaffold(

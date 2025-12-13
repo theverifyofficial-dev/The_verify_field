@@ -909,34 +909,72 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
             children: [
               // Flat Image - Expanded flex
               Expanded(
-                flex: 3,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  child: CachedNetworkImage(
-                    key: ValueKey('${flat.id}_${flat.propertyPhoto}'), // Unique key using flat ID + photo to prevent caching issues across flats
-                    imageUrl: flat.propertyPhoto.isNotEmpty
-                        ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
-                        : "", // Empty URL if no photo to avoid invalid requests
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, error, stackTrace) => Container(
-                      color: Colors.grey[200],
-                      child:  Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.home_outlined, size: 40, color: Colors.grey), // Changed to outlined for less "same image" feel
-                          SizedBox(height: 4),
-                          Text("No Image", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                        ],
+                flex: 2,
+                child: Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
+                      ),
+                      child: CachedNetworkImage(
+                        key: ValueKey('${flat.id}_${flat.propertyPhoto}'),
+                        imageUrl: flat.propertyPhoto.isNotEmpty
+                            ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
+                            : "",
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(child: CircularProgressIndicator()),
+                        ),
+                        errorWidget: (context, error, stackTrace) => Container(
+                          color: Colors.grey[200],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.home_outlined, size: 40, color: Colors.grey),
+                              SizedBox(height: 4),
+                              Text("No Image",
+                                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+
+                    // 🔥 DUPLICATE BUTTON
+                    // Positioned(
+                    //   top: 8,
+                    //   right: 8,
+                    //   child: GestureDetector(
+                    //     onTap: () {
+                    //       Navigator.push(context, MaterialPageRoute(builder: (context){
+                    //         return DuplicateFutureProperty(id: flat.id.toString(),);
+                    //       }));
+                    //       // 👉 Duplicate logic here
+                    //       print("Duplicate flat id: ${flat.id}");
+                    //     },
+                    //     child: Container(
+                    //       padding:
+                    //       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    //       decoration: BoxDecoration(
+                    //         color: Colors.black.withOpacity(0.65),
+                    //         borderRadius: BorderRadius.circular(6),
+                    //         border: Border.all(color: Colors.white)
+                    //       ),
+                    //       child: const Text(
+                    //         "Duplicate",
+                    //         style: TextStyle(
+                    //           color: Colors.white,
+                    //           fontSize: 12,
+                    //           fontWeight: FontWeight.w600,
+                    //         ),
+                    //       ),
+                    //     ),
+                    //   ),
+                    // ),
+                  ],
                 ),
               ),
               // Flat Details - Expanded flex

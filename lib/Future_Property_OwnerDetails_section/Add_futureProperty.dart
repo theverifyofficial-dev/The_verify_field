@@ -1258,8 +1258,21 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       showMetroLocalityPicker(context, (metro, localities) {
                         setState(() {
                           metroController.text = metro;
-                          localityController.text =
-                              localities.join(", ");
+
+                          final existing = localityController.text
+                              .split(',')
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList();
+
+                          for (final loc in localities) {
+                            if (!existing.any(
+                                    (e) => e.toLowerCase() == loc.toLowerCase())) {
+                              existing.add(loc);
+                            }
+                          }
+
+                          localityController.text = existing.join(', ');
                         });
                       });
                     },
@@ -1481,21 +1494,26 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: localityController,
-                  readOnly: true,
                   maxLines: 2,
                   decoration: InputDecoration(
-                    hintText: "Selected Localities",
-                    hintStyle:
-                    TextStyle(color: secondaryTextColor),
+                    hintText: "Type or select localities",
+                    hintStyle: TextStyle(color: secondaryTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: isDarkMode
-                        ? Colors.grey[850]
-                        : Colors.white,
+                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                   ),
                   style: TextStyle(color: textColor),
+                  onChanged: (_) {
+                    setState(() {}); // 🔥 refresh chips live
+                  },
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return "Please enter at least one locality";
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 8),
                 if (localityController.text.trim().isNotEmpty)
@@ -1504,25 +1522,40 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     runSpacing: 6,
                     children: localityController.text
                         .split(",")
+                        .map((loc) => loc.trim())
+                        .where((loc) => loc.isNotEmpty)
                         .map(
                           (loc) => Chip(
                         label: Text(
-                          loc.trim(),
+                          loc,
                           style: TextStyle(
-                            color: Theme.of(context)
-                                .brightness ==
-                                Brightness.dark
+                            color: Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white
                                 : Colors.black,
                             fontSize: 12,
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                         backgroundColor: Colors.grey.shade600,
+                        deleteIcon: const Icon(Icons.close, size: 16),
+                        onDeleted: () {
+                          final list = localityController.text
+                              .split(",")
+                              .map((e) => e.trim())
+                              .where((e) => e.isNotEmpty)
+                              .toList();
+
+                          list.removeWhere(
+                                  (e) => e.toLowerCase() == loc.toLowerCase());
+
+                          setState(() {
+                            localityController.text = list.join(", ");
+                          });
+                        },
                       ),
                     )
                         .toList(),
                   ),
+
               ],
             ),
           ),
@@ -2675,8 +2708,7 @@ class MetroLocalitySheet extends StatefulWidget {
       _MetroLocalitySheetState();
 }
 
-class _MetroLocalitySheetState
-    extends State<MetroLocalitySheet> {
+class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
   final MetroAPI api = MetroAPI();
 
   final TextEditingController metroCtrl =
@@ -2764,6 +2796,26 @@ class _MetroLocalitySheetState
                 .toList();
           });
         });
+  }
+  void _addManualLocality(String value) {
+    final text = value.trim();
+    if (text.isEmpty) return;
+
+    final parts = text.split(',');
+
+    setState(() {
+      for (final part in parts) {
+        final loc = part.trim();
+        if (loc.isNotEmpty &&
+            !selectedLocalities.any(
+                    (e) => e.toLowerCase() == loc.toLowerCase())) {
+          selectedLocalities.add(loc);
+        }
+      }
+
+      localityCtrl.text = selectedLocalities.join(", ");
+      filteredNearby = nearbyList;
+    });
   }
 
   @override
@@ -2861,20 +2913,24 @@ class _MetroLocalitySheetState
           const SizedBox(height: 20),
           TextField(
             controller: localityCtrl,
-            onChanged: searchLocality,
             enabled: nearbyList.isNotEmpty,
             style: TextStyle(color: textCol),
             decoration: InputDecoration(
               labelText: nearbyList.isEmpty
                   ? "Select Metro First"
-                  : "Search Locality",
-              labelStyle:
-              TextStyle(color: textCol.withOpacity(0.8)),
+                  : "Search or type locality",
+              labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
+              hintText: "Type & press enter or comma",
               filled: true,
               fillColor: cardBg,
               border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14)),
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
+            onChanged: searchLocality,
+            onSubmitted: (value) {
+              _addManualLocality(value);
+            },
           ),
           if (loadingNearby)
             const Padding(
@@ -2898,12 +2954,16 @@ class _MetroLocalitySheetState
                         : Colors.grey.shade300,
                     deleteIcon: const Icon(Icons.close,
                         size: 18),
-                    onDeleted: () {
-                      setState(() {
-                        selectedLocalities.remove(loc);
-                      });
-                    },
-                  ),
+                        onDeleted: () {
+                          setState(() {
+                            selectedLocalities.remove(loc);
+
+                            // 🔥 UPDATE TEXTFIELD
+                            localityCtrl.text = selectedLocalities.join(", ");
+                          });
+                        },
+
+                      ),
                 )
                     .toList(),
               ),
@@ -2945,11 +3005,16 @@ class _MetroLocalitySheetState
                         color: Colors.redAccent,
                       ),
                       onTap: () {
+                        final name = loc["name"].toString();
+
                         setState(() {
                           if (!selectedLocalities
-                              .contains(loc["name"])) {
-                            selectedLocalities.add(loc["name"]);
+                              .any((e) => e.toLowerCase() == name.toLowerCase())) {
+                            selectedLocalities.add(name);
                           }
+
+                          // 🔥 SHOW SELECTED LOCALITIES
+                          localityCtrl.text = selectedLocalities.join(", ");
                         });
                       },
                     ),
@@ -2961,11 +3026,17 @@ class _MetroLocalitySheetState
           ElevatedButton(
             onPressed: () {
               if (selectedMetro != null) {
-                widget.onSelected(
-                    selectedMetro!, selectedLocalities);
+                final finalLocalities = localityCtrl.text
+                    .split(',')
+                    .map((e) => e.trim())
+                    .where((e) => e.isNotEmpty)
+                    .toList();
+
+                widget.onSelected(selectedMetro!, finalLocalities);
               }
               Navigator.pop(context);
             },
+
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade700,
               padding: const EdgeInsets.symmetric(

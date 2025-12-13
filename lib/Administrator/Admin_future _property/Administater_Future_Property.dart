@@ -129,8 +129,8 @@ class _DetailRow extends StatelessWidget {
   final ThemeData theme;
   final Color Function(IconData, ThemeData) getIconColor;
   final int maxLines;
-  final double? fontSize; // Added for responsive font sizing
-  final FontWeight? fontWeight; // Optional for value highlighting
+  final double? fontSize;
+  final FontWeight? fontWeight;
 
   const _DetailRow({
     required this.icon,
@@ -147,25 +147,25 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0), // Reduced bottom padding to minimize space
+      padding: const EdgeInsets.only(bottom: 4.0), // Further reduced for compactness
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             icon,
-            size: 14, // Slightly smaller icon for compact layout
+            size: 12, // Smaller icon
             color: getIconColor(icon, theme),
           ),
-          const SizedBox(width: 4), // Reduced width
+          const SizedBox(width: 4),
           Expanded(
             child: RichText(
               maxLines: maxLines,
               overflow: TextOverflow.ellipsis,
               text: TextSpan(
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  height: 1.1, // Tighter line height
+                style: theme.textTheme.bodySmall?.copyWith( // Use bodySmall for smaller text
+                  height: 1.1,
                   color: cs.onSurface.withOpacity(0.70),
-                  fontSize: fontSize ?? 12, // Slightly smaller font
+                  fontSize: fontSize ?? 11,
                 ),
                 children: [
                   if (label.isNotEmpty)
@@ -174,14 +174,14 @@ class _DetailRow extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface.withOpacity(0.8),
-                        fontSize: fontSize ?? 12,
+                        fontSize: fontSize ?? 11,
                       ),
                     ),
                   TextSpan(
                     text: value,
                     style: TextStyle(
-                      fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
-                      color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
+                      fontWeight: fontWeight ?? FontWeight.normal,
+                      color: cs.onSurface.withOpacity(0.9),
                     ),
                   ),
                 ],
@@ -206,11 +206,9 @@ class ADministaterShow_FutureProperty extends StatefulWidget {
 
   @override
   State<ADministaterShow_FutureProperty> createState() => _ADministaterShow_FuturePropertyState();
-
 }
 
-class _ADministaterShow_FuturePropertyState
-    extends State<ADministaterShow_FutureProperty> {
+class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_FutureProperty> {
   final Map<String, GlobalKey> _cardKeys = {};
   final Map<String, ScrollController> _horizontalControllers = {};
   String? _highlightedBuildingId;
@@ -218,7 +216,6 @@ class _ADministaterShow_FuturePropertyState
   String _number = '';
   String _location = '';
   String _post = '';
-
 
   List<Map<String, String>> fieldWorkers = [
     {"name": "Sumit", "id": "9711775300"},
@@ -229,23 +226,20 @@ class _ADministaterShow_FuturePropertyState
   ];
 
   Map<String, List<Catid>> _groupedData = {};
-  final Map<int, int> _liveCountMap = {}; // subid -> live count
-  final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
+  final Map<int, int> _liveCountMap = {};
+  final Map<int, String> _totalFlatsMap = {};
 
   @override
   void initState() {
     super.initState();
 
-    // Empty list for each field worker
     for (var fw in fieldWorkers) {
       _groupedData[fw['name']!] = [];
       _horizontalControllers[fw['id']!] = ScrollController();
     }
 
-    // Load user data first, then fetch (to determine visible workers)
     _initializeData();
 
-    // Notification listeners
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       final buildingId = message.data['building_id'];
       if (buildingId != null) _handleNotification(buildingId.toString());
@@ -258,7 +252,6 @@ class _ADministaterShow_FuturePropertyState
       }
     });
 
-    // Scroll to building if from notification
     if (widget.buildingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleNotification(widget.buildingId!);
@@ -270,7 +263,6 @@ class _ADministaterShow_FuturePropertyState
     await _loadUserData();
     await _fetchAndUpdateData();
 
-    // Scroll to highlighted if exists
     if (_highlightedBuildingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToHighlighted();
@@ -284,7 +276,6 @@ class _ADministaterShow_FuturePropertyState
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
       _post = prefs.getString('post') ?? '';
-
     });
 
     print("===== SHARED PREF DATA LOADED =====");
@@ -293,7 +284,6 @@ class _ADministaterShow_FuturePropertyState
     print("Post: $_post");
     print("===================================");
   }
-
 
   Future<List<Catid>> _fetchDataByNumber(String number) async {
     final url = Uri.parse(
@@ -318,7 +308,6 @@ class _ADministaterShow_FuturePropertyState
   Future<void> _fetchAndUpdateData() async {
     setState(() => _isLoading = true);
 
-    // Compute visible workers based on loaded _location and _post
     final loc = _location.trim().toLowerCase();
     final post = _post.trim().toLowerCase();
     bool isSubAdmin = post == "sub administrator";
@@ -335,7 +324,6 @@ class _ADministaterShow_FuturePropertyState
       return false;
     }).toList();
 
-    // Parallel fetch for visible workers only (reduces unnecessary API calls)
     final workerFutures = visibleWorkers.map((fw) async {
       final data = await _fetchDataByNumber(fw['id']!);
       return MapEntry(fw['name']!, data);
@@ -344,7 +332,6 @@ class _ADministaterShow_FuturePropertyState
     final groupedEntries = await Future.wait(workerFutures);
     final Map<String, List<Catid>> grouped = Map<String, List<Catid>>.fromEntries(groupedEntries);
 
-    // Ensure all fieldWorkers have empty lists if not visible (for consistency)
     for (var fw in fieldWorkers) {
       if (!grouped.containsKey(fw['name'])) {
         grouped[fw['name']!] = [];
@@ -356,20 +343,15 @@ class _ADministaterShow_FuturePropertyState
       _isLoading = false;
     });
 
-    // Start prefetch in background (non-blocking, UI shows immediately with placeholders)
     _prefetchAllPropertyData();
-
-    // No await here - UI is responsive now
   }
 
   Future<void> _prefetchAllPropertyData() async {
     final allProperties = _groupedData.values.expand((list) => list).toList();
     if (allProperties.isEmpty) return;
 
-    // Parallel fetches for all properties (already optimized with Future.wait)
     final futures = allProperties.map((p) async {
       try {
-        // Fetch total flats
         final response2 = await http.get(Uri.parse(
           'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}',
         ));
@@ -381,7 +363,6 @@ class _ADministaterShow_FuturePropertyState
           }
         }
         _totalFlatsMap[p.id] = totalStr;
-        // Fetch live count
         final response3 = await http.get(Uri.parse(
           'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}',
         ));
@@ -404,7 +385,7 @@ class _ADministaterShow_FuturePropertyState
       }
     }).toList();
     await Future.wait(futures);
-    if (mounted) setState(() {}); // Refresh UI with fetched counts
+    if (mounted) setState(() {});
   }
 
   Future<void> _handleNotification(String buildingId) async {
@@ -412,7 +393,6 @@ class _ADministaterShow_FuturePropertyState
       _highlightedBuildingId = buildingId;
     });
 
-    // Fetch latest data
     await _fetchAndUpdateData();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scrollToHighlighted();
@@ -523,6 +503,7 @@ class _ADministaterShow_FuturePropertyState
     required double imageHeight,
     required double multiImgHeight,
     required bool isTablet,
+    required bool isSmallScreen,
   }) {
     final int liveCount = status['liveCount'] ?? 0;
     final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
@@ -534,118 +515,124 @@ class _ADministaterShow_FuturePropertyState
         height: imageHeight,
         decoration: BoxDecoration(
           color: cs.surfaceVariant,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.apartment,
-          size: 90,
+          size: isSmallScreen ? 60 : 80,
           color: Colors.grey,
         ),
       );
     } else if (images.length == 1) {
       imageWidget = ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
         child: SizedBox(
           height: imageHeight,
           width: double.infinity,
           child: CachedNetworkImage(
             imageUrl: images.first,
             fit: BoxFit.cover,
-            placeholder: (_, __) => const Center(
+            placeholder: (_, __) => Center(
               child: SizedBox(
-                height: 50,
-                width: 50,
+                height: 30,
+                width: 30,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
             ),
-            errorWidget: (_, __, ___) =>
-                Icon(Icons.broken_image, color: cs.error, size: 90),
+            errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: isSmallScreen ? 60 : 80),
           ),
         ),
       );
     } else {
-      imageWidget = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: multiImgHeight,
-            child: Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: images[0],
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => const Center(
-                        child: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) =>
-                          Icon(Icons.broken_image, color: cs.error, size: 50),
-                    ),
-                  ),
-                ),
-                if (images.length > 1) ...[
-                  const SizedBox(width: 4),
+      imageWidget = Flexible(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SizedBox(
+              height: multiImgHeight,
+              child: Row(
+                children: [
                   Expanded(
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: images[1],
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => const Center(
-                              child: SizedBox(
-                                height: 30,
-                                width: 30,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) =>
-                                Icon(Icons.broken_image, color: cs.error, size: 50),
+                      borderRadius: BorderRadius.circular(6),
+                      child: CachedNetworkImage(
+                        imageUrl: images[0],
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Center(
+                          child: SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                          if (images.length > 2)
-                            Positioned(
-                              bottom: 4,
-                              right: 4,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(10),
+                        ),
+                        errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: isSmallScreen ? 40 : 50),
+                      ),
+                    ),
+                  ),
+                  if (images.length > 1) ...[
+                    const SizedBox(width: 2),
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(6),
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: images[1],
+                              fit: BoxFit.cover,
+                              placeholder: (_, __) => Center(
+                                child: SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
                                 ),
-                                child: Text(
-                                  '+${images.length - 2}',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
+                              ),
+                              errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: isSmallScreen ? 40 : 50),
+                            ),
+                            if (images.length > 2)
+                              Positioned(
+                                bottom: 2,
+                                right: 2,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black54,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    '+${images.length - 2}',
+                                    style: theme.textTheme.labelSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          const SizedBox(height: 4), // Reduced height for less space
-          Text(
-            '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: cs.primary,
-              fontWeight: FontWeight.w600,
+            const SizedBox(height: 2),
+            Flexible(
+              child: Text(
+                '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 10,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 
@@ -653,19 +640,20 @@ class _ADministaterShow_FuturePropertyState
       children: [
         imageWidget,
         Positioned(
-          top: 4,
-          right: 4,
+          top: 2,
+          right: 2,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
             decoration: BoxDecoration(
               color: liveColor.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               liveLabel,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: 10,
               ),
             ),
           ),
@@ -682,8 +670,7 @@ class _ADministaterShow_FuturePropertyState
     return imgs;
   }
 
-  Widget _buildCard(Catid property, int displayIndex, bool isDarkMode) {
-    final bool isHighlighted = _highlightedBuildingId == property.id.toString();
+  Widget _buildCard(Catid property, int displayIndex, bool isDarkMode, BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -698,23 +685,19 @@ class _ADministaterShow_FuturePropertyState
 
     final images = _buildMultipleImages(property);
 
-    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0); // Reduced padding for compact
-    final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
-    final double titleFontSize = isTablet ? 18 : 14; // Adjusted for compact
-    final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
-    final double imageH = (screenHeight * 0.22).clamp(120.0, 200.0); // Reduced height
-    final double multiH = imageH * 0.8;
+    final double cardPadding = (screenWidth * 0.015).clamp(4.0, 10.0);
+    final double titleFontSize = isTablet ? 16 : (isSmallScreen ? 12 : 14);
+    final double detailFontSize = isTablet ? 12 : (isSmallScreen ? 10 : 11);
+    final double imageH = (screenHeight * 0.15).clamp(80.0, 150.0);
+    final double multiH = imageH * 0.7;
 
-    // Calculate missing fields
     final missingFields = _missingFieldsFor(property);
     final hasMissingFields = missingFields.isNotEmpty;
-
-    final Object loggValue2 = status['loggValue2'] ?? 'N/A';
 
     final Widget totalDetail = _DetailRow(
       icon: Icons.format_list_numbered,
       label: 'Total Flats',
-      value: '$loggValue2',
+      value: '${status['loggValue2']}',
       theme: theme,
       getIconColor: _getIconColor,
       maxLines: 1,
@@ -741,9 +724,9 @@ class _ADministaterShow_FuturePropertyState
       imageHeight: imageH,
       multiImgHeight: multiH,
       isTablet: isTablet,
+      isSmallScreen: isSmallScreen,
     );
 
-    // Priority detail rows: location, buy/rent, residence/commercial, added (removed Building ID)
     final List<Widget> detailRows = [];
     if ((property.place ?? '').isNotEmpty) {
       detailRows.add(_DetailRow(
@@ -756,15 +739,6 @@ class _ADministaterShow_FuturePropertyState
         fontWeight: FontWeight.bold,
       ));
     }
-    // detailRows.add(_DetailRow(
-    //   icon: Icons.bedroom_parent,
-    //   label: 'BHK',  // Added label for visibility
-    //   value: property.selectBhk ?? 'N/A',  // Fallback to prevent empty row
-    //   theme: theme,
-    //   getIconColor: _getIconColor,
-    //   fontSize: detailFontSize,
-    //   fontWeight: FontWeight.bold,
-    // ));
     detailRows.add(_DetailRow(
       icon: Icons.handshake_outlined,
       label: '',
@@ -789,7 +763,7 @@ class _ADministaterShow_FuturePropertyState
       value: property.ageOfProperty ?? 'N/A',
       theme: theme,
       getIconColor: _getIconColor,
-      maxLines: 2,
+      maxLines: 1, // Reduced to 1 for compactness
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
@@ -799,70 +773,74 @@ class _ADministaterShow_FuturePropertyState
       value: formatDate(property.currentDate ?? ''),
       theme: theme,
       getIconColor: _getIconColor,
-      maxLines: 2,
+      maxLines: 1, // Reduced to 1
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
 
-
-    final Widget leftColumn = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        imageSection,
-        SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
-        totalDetail,
-      ],
-    );
-
-    final Widget rightColumn = Padding(
-      padding: EdgeInsets.only(top: isTablet ? 16.0 : 12.0), // Reduced top padding
+    final Widget leftColumn = Flexible(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            property.propertyAddressForFieldworker ?? property.propertyNameAddress ?? property.place ?? 'No Title',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: titleFontSize,
-            ),
-            maxLines: 2, // Reduced lines for compact
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: isTablet ? 12 : 8), // Reduced height
-          // Render detail rows
-          ...detailRows,
-          const Spacer(),
-          // Shift Building ID to the right
-          Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              width: double.infinity,
-              child: buildingDetail,
-            ),
-          ),
+          Flexible(child: imageSection),
+          SizedBox(height: isSmallScreen ? 4 : 6),
+          totalDetail,
         ],
       ),
     );
 
-    // Ensure GlobalKey exists
+    final Widget rightColumn = Flexible(
+      child: Padding(
+        padding: EdgeInsets.only(top: isSmallScreen ? 4 : 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              child: Text(
+                property.propertyAddressForFieldworker ?? property.propertyNameAddress ?? property.place ?? 'No Title',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                  fontSize: titleFontSize,
+                ),
+                maxLines: isSmallScreen ? 1 : 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            SizedBox(height: isSmallScreen ? 4 : 6),
+            ...detailRows,
+            const Spacer(),
+            Align(
+              alignment: Alignment.centerRight,
+              child: buildingDetail,
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final double cardWidth = isTablet
+        ? screenWidth * 0.45.clamp(300.0, 380.0)
+        : screenWidth * 0.88.clamp(250.0, 340.0);
+
     _cardKeys[property.id.toString()] ??= GlobalKey();
 
     return Container(
       key: _cardKeys[property.id.toString()],
-      width: 350,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reduced vertical margin
+      width: cardWidth,
+      margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 4 : 6, vertical: 4),
       child: GestureDetector(
         onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) =>
-                    Administater_Future_Property_details(buildingId: property.id.toString()))),
+          context,
+          MaterialPageRoute(
+            builder: (_) => Administater_Future_Property_details(buildingId: property.id.toString()),
+          ),
+        ),
         child: Card(
-          margin: EdgeInsets.zero, // No extra margin inside
-          elevation: isDarkMode ? 0 : 4, // Reduced elevation for flatter look
+          margin: EdgeInsets.zero,
+          elevation: isDarkMode ? 0 : 2,
           color: theme.cardColor,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Slightly smaller radius
+            borderRadius: BorderRadius.circular(8),
             side: BorderSide(color: theme.dividerColor),
           ),
           child: Stack(
@@ -876,12 +854,12 @@ class _ADministaterShow_FuturePropertyState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            flex: isSmallScreen ? 1 : (isTablet ? 2 : 2), // Adjust flex for small screens
+                            flex: isSmallScreen ? 1 : 1,
                             child: leftColumn,
                           ),
-                          SizedBox(width: isTablet ? 16 : 12), // Responsive width
+                          SizedBox(width: isSmallScreen ? 4 : 8),
                           Expanded(
-                            flex: isSmallScreen ? 1 : (isTablet ? 3 : 3), // Adjust flex
+                            flex: isSmallScreen ? 1 : 2,
                             child: rightColumn,
                           ),
                         ],
@@ -889,24 +867,24 @@ class _ADministaterShow_FuturePropertyState
                     ),
                     if (hasMissingFields)
                       Padding(
-                        padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
+                        padding: const EdgeInsets.only(top: 4.0),
                         child: Container(
                           width: double.infinity,
-                          padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
+                          padding: EdgeInsets.all(isSmallScreen ? 3 : 4),
                           decoration: BoxDecoration(
                             color: cs.errorContainer,
-                            borderRadius: BorderRadius.circular(6), // Smaller radius
+                            borderRadius: BorderRadius.circular(4),
                             border: Border.all(color: cs.error),
                           ),
                           child: Text(
-                            "⚠ Missing: ${missingFields.join(', ')}",
+                            "⚠ Missing: ${missingFields.take(3).join(', ')}${missingFields.length > 3 ? '...' : ''}",
                             textAlign: TextAlign.center,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: cs.error,
                               fontWeight: FontWeight.w600,
-                              fontSize: detailFontSize - 1, // Smaller font
+                              fontSize: detailFontSize - 1,
                             ),
-                            maxLines: 2, // Reduced lines
+                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -914,22 +892,21 @@ class _ADministaterShow_FuturePropertyState
                   ],
                 ),
               ),
-              // Top right count number badge
               Positioned(
-                top: 4,
-                right: 4,
+                top: 2,
+                right: 2,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
                   decoration: BoxDecoration(
                     color: cs.primary.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(8), // Smaller radius
+                    borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
                     '$displayIndex',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 10, // Smaller font
+                      fontSize: 9,
                     ),
                   ),
                 ),
@@ -941,73 +918,87 @@ class _ADministaterShow_FuturePropertyState
     );
   }
 
-  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
+  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName, BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);  // FIXED: Define theme variable for access
+    final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 400;
     final ScrollController controller = _horizontalControllers[workerId]!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+          height: 45, // Slightly reduced
+          padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 8 : 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(workerName,
-                style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
-                  fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
-                ) ?? const TextStyle(  // Fallback if textTheme is null
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,  // Safe fallback, but theme will override
+              Flexible(
+                child: Text(
+                  workerName,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                    fontSize: isSmallScreen ? 16 : 18,
+                  ) ?? TextStyle(
+                    fontSize: isSmallScreen ? 16 : 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
               GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => SeeAll_FutureProperty(number: workerId)),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SeeAll_FutureProperty(number: workerId),
                   ),
-                  child: Text("See All",  // REMOVED const to allow dynamic style if needed
-                      style: theme.textTheme.bodyMedium?.copyWith(  // FIXED: Made dynamic (optional, but consistent)
-                        fontSize: 16,
-                        color: theme.colorScheme.error,  // Dynamic red equivalent
-                        fontWeight: FontWeight.w600,
-                      ) ?? const TextStyle(fontSize: 16, color: Colors.red))),  // Fallback to red
+                ),
+                child: Text(
+                  "See All",
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontSize: isSmallScreen ? 12 : 14,
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w600,
+                  ) ?? TextStyle(fontSize: isSmallScreen ? 12 : 14, color: Colors.red),
+                ),
+              ),
             ],
           ),
         ),
         if (data.isEmpty)
           Container(
-            height: 150, // Reduced height
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced margin
+            height: isSmallScreen ? 200 : 220,
+            margin: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             decoration: BoxDecoration(
-                color: theme.cardColor,  // FIXED: Made dynamic (white in light, dark in dark)
-                borderRadius: BorderRadius.circular(12), // Smaller radius
-                border: Border.all(color: theme.colorScheme.error)),  // FIXED: Dynamic red
-            child: Center(  // REMOVED const to allow dynamic style
-              child: Text("No Properties Found",
-                  style: theme.textTheme.bodySmall?.copyWith(  // FIXED: Made dynamic
-                    fontSize: 14,
-                    color: theme.colorScheme.error,  // Dynamic red
-                  ) ?? const TextStyle(fontSize: 14, color: Colors.redAccent)),
+              color: theme.cardColor,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.colorScheme.error),
+            ),
+            child: Center(
+              child: Text(
+                "No Properties Found",
+                style: theme.textTheme.bodySmall?.copyWith(
+                  fontSize: isSmallScreen ? 12 : 13,
+                  color: theme.colorScheme.error,
+                ) ?? TextStyle(fontSize: isSmallScreen ? 12 : 13, color: Colors.redAccent),
+              ),
             ),
           )
         else
-          SizedBox(
-            height: 300, // Reduced overall height for compact cards
-            child: ListView.builder(
-              controller: controller,
-              scrollDirection: Axis.horizontal,
-              itemCount: data.length,
-              itemBuilder: (context, index) {
-                final displayIndex = data.length - index; // calculate display index
-                return _buildCard(data[index], displayIndex, isDarkMode); // pass displayIndex
-              },
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            controller: controller,
+            child: Row(
+              children: List.generate(
+                data.length,
+                    (index) {
+                  final displayIndex = data.length - index;
+                  return _buildCard(data[index], displayIndex, isDarkMode, context);
+                },
+              ),
             ),
           ),
       ],
@@ -1029,14 +1020,11 @@ class _ADministaterShow_FuturePropertyState
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Image.asset(AppImages.verify, height: 75),
+        title: Image.asset(AppImages.verify, height: 60), // Slightly reduced height
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
+          onTap: () => Navigator.pop(context),
+          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 25), // Slightly smaller
         ),
-
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -1046,29 +1034,22 @@ class _ADministaterShow_FuturePropertyState
           children: fieldWorkers
               .where((fw) {
             final name = fw['name']!.toLowerCase();
-
-            // ADMIN → SHOW EVERYONE
             if (isAdmin) return true;
-
-            // SUB-ADMIN → FILTER BY LOCATION
             if (loc.contains("sultanpur")) {
               return name == "sumit" || name == "ravi" || name == "faizan";
             }
-
             if (loc.contains("rajpur") || loc.contains("chhattar")) {
               return name == "manish" || name == "abhay" || name == "abhey";
             }
-
             return false;
           })
               .map((fw) {
             final props = _groupedData[fw['name']] ?? [];
-            return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
+            return _buildFieldWorkerSection(props, fw['id']!, fw['name']!, context);
           })
               .toList(),
         ),
       ),
-
     );
   }
 }

@@ -83,19 +83,111 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   bool _isLoading = false;
 
   // Dropdown options
-  final List<String> _items = ['SultanPur','ChhattarPur','Aya Nagar','Rajpur Khurd','Mangalpuri','Dwarka Mor','Uttam Nagar','Nawada','Vasant Kunj','Ghitorni'];
-  final List<String> _items1 = ['Buy','Rent'];
-  final List<String> name = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial SP'];
+  final List<String> _items = [
+    'SultanPur',
+    'ChhattarPur',
+    'Aya Nagar',
+    'Rajpur Khurd',
+    'Mangalpuri',
+    'Dwarka Mor',
+    'Uttam Nagar',
+    'Nawada',
+    'Vasant Kunj',
+    'Ghitorni'
+  ];
+  final List<String> _items1 = ['Buy', 'Rent'];
+  final List<String> name = [
+    '1 BHK',
+    '2 BHK',
+    '3 BHK',
+    '4 BHK',
+    '1 RK',
+    'Commercial SP'
+  ];
   final List<String> propertyTypes = ['Residential', 'Commercial'];
-  final List<String> lift_options = ['Yes','No'];
-  final List<String> parkingOptions = ['Yes','No'];
-  final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor'];
-  final List<String> roadSizeOptions = ['15 Feet', '20 Feet', '25 Feet', '30 Feet', '35 Feet', '40 Above'];
-  final List<String> metroDistanceOptions = ['200 m', '300 m', '400 m', '500 m', '600 m', '700 m', '1 km', '1.5 km', '2.5 km','2.5+ km'];
-  final List<String> metro_nameOptions = ['Hauz khas', 'Malviya Nagar', 'Saket','Qutub Minar','ChhattarPur','Sultanpur', 'Ghitorni','Arjan Garh','Guru Drona','Sikanderpur','Dwarka Mor','Vasant Kunj','Ghitorni'];
-  final List<String> marketDistanceOptions = ['200 m', '300 m', '400 m', '500 m', '600 m', '700 m', '1 km', '1.5 km', '2.5 km','2.5+ km'];
-  final List<String> Age_Options = ['1 years', '2 years', '3 years', '4 years','5 years','6 years','7 years','8 years','9 years','10 years','10+ years',''];
-  List<String> allFacilities = ['CCTV Camera', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline"];
+  final List<String> lift_options = ['Yes', 'No'];
+  final List<String> parkingOptions = ['Yes', 'No'];
+  final List<String> _items_floor2 = [
+    'G Floor',
+    '1 Floor',
+    '2 Floor',
+    '3 Floor',
+    '4 Floor',
+    '5 Floor',
+    '6 Floor',
+    '7 Floor',
+    '8 Floor',
+    '9 Floor',
+    '10 Floor'
+  ];
+  final List<String> roadSizeOptions = [
+    '15 Feet',
+    '20 Feet',
+    '25 Feet',
+    '30 Feet',
+    '35 Feet',
+    '40 Above'
+  ];
+  final List<String> metroDistanceOptions = [
+    '200 m',
+    '300 m',
+    '400 m',
+    '500 m',
+    '600 m',
+    '700 m',
+    '1 km',
+    '1.5 km',
+    '2.5 km',
+    '2.5+ km'
+  ];
+  final List<String> metro_nameOptions = [
+    'Hauz khas',
+    'Malviya Nagar',
+    'Saket',
+    'Qutub Minar',
+    'ChhattarPur',
+    'Sultanpur',
+    'Ghitorni',
+    'Arjan Garh',
+    'Guru Drona',
+    'Sikanderpur',
+    'Dwarka Mor',
+    'Vasant Kunj',
+    'Ghitorni'
+  ];
+  final List<String> marketDistanceOptions = [
+    '200 m',
+    '300 m',
+    '400 m',
+    '500 m',
+    '600 m',
+    '700 m',
+    '1 km',
+    '1.5 km',
+    '2.5 km',
+    '2.5+ km'
+  ];
+  final List<String> Age_Options = [
+    '1 years',
+    '2 years',
+    '3 years',
+    '4 years',
+    '5 years',
+    '6 years',
+    '7 years',
+    '8 years',
+    '9 years',
+    '10 years',
+    '10+ years',
+    ''
+  ];
+  List<String> allFacilities = [
+    'CCTV Camera',
+    'Parking',
+    'Security',
+    'Terrace Garden',
+    "Gas Pipeline"
+  ];
 
   String long = '';
   String lat = '';
@@ -133,7 +225,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     if (pickedFile == null) return null;
 
     final tempDir = await getTemporaryDirectory();
-    final targetPath = '${tempDir.path}/verify_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final targetPath =
+        '${tempDir.path}/verify_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
     var result = await FlutterImageCompress.compressAndGetFile(
       pickedFile.path,
@@ -145,13 +238,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   }
 
   Future<void> uploadImageWithTitle(XFile imageFile) async {
-    String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_images.php';
+    String uploadUrl =
+        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_images.php';
 
     FormData formData = FormData();
 
     formData.files.add(MapEntry(
       "images",
-      await MultipartFile.fromFile(imageFile.path, filename: imageFile.path.split('/').last),
+      await MultipartFile.fromFile(imageFile.path,
+          filename: imageFile.path.split('/').last),
     ));
 
     formData.fields.addAll([
@@ -179,7 +274,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("age_of_property", _ageOfProperty ?? ''),
       MapEntry("total_floor", _totalFloor ?? ''),
       MapEntry("lift", _selectedLift ?? ""),
-      MapEntry("current_date_", DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now())),
+      MapEntry("current_date_",
+          DateFormat('yyyy-MM-dd hh:mm a').format(DateTime.now())),
       MapEntry("Residence_commercial", _selectedPropertyType ?? ''),
       MapEntry("facility", selectedFacilities.join(', ')),
       MapEntry("metro_name", metroController.text),
@@ -189,7 +285,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     for (var xfile in _selectedImages) {
       formData.files.add(MapEntry(
         "img[]",
-        await MultipartFile.fromFile(xfile.path, filename: xfile.path.split('/').last),
+        await MultipartFile.fromFile(xfile.path,
+            filename: xfile.path.split('/').last),
       ));
     }
 
@@ -199,7 +296,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       Response response = await dio.post(uploadUrl, data: formData);
       if (response.statusCode == 200) {
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => FrontPage_FutureProperty()),
+          MaterialPageRoute(
+              builder: (context) => FrontPage_FutureProperty()),
               (route) => route.isFirst,
         );
         setState(() => _isLoading = false);
@@ -207,8 +305,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           const SnackBar(content: Text('Upload successful!')),
         );
         print('Upload successful: ${response.data}');
-      }
-      else {
+      } else {
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload failed: ${response.statusCode}')),
@@ -251,7 +348,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _showErrorDialog('Location permissions are denied. Please enable location services.');
+          _showErrorDialog(
+              'Location permissions are denied. Please enable location services.');
           setState(() {
             _isGettingLocation = false;
           });
@@ -260,7 +358,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       }
 
       if (permission == LocationPermission.deniedForever) {
-        _showErrorDialog('Location permissions are permanently denied. Please enable them in app settings.');
+        _showErrorDialog(
+            'Location permissions are permanently denied. Please enable them in app settings.');
         setState(() {
           _isGettingLocation = false;
         });
@@ -278,7 +377,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       });
 
       try {
-        final placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+        final placemarks = await placemarkFromCoordinates(
+            position.latitude, position.longitude);
 
         if (placemarks.isNotEmpty) {
           final placemark = placemarks.first;
@@ -290,7 +390,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
             placemark.postalCode,
             placemark.country
           ];
-          final address = parts.where((p) => p != null && p!.isNotEmpty).join(', ');
+          final address =
+          parts.where((p) => p != null && p!.isNotEmpty).join(', ');
 
           setState(() {
             _Google_Location.text = address;
@@ -322,7 +423,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       setState(() {
         _isGettingLocation = false;
       });
-      _showErrorDialog('Failed to get location. Please check GPS, permissions, and internet.');
+      _showErrorDialog(
+          'Failed to get location. Please check GPS, permissions, and internet.');
     }
   }
 
@@ -359,17 +461,20 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   @override
   Widget build(BuildContext context) {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Color backgroundColor = isDarkMode ? Colors.black : const Color(0xFFF8FAFF);
+    final Color backgroundColor =
+    isDarkMode ? Colors.black : const Color(0xFFF8FAFF);
     final Color cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
-    final Color textColor = isDarkMode ? Colors.white : const Color(0xFF2D3748);
+    final Color textColor =
+    isDarkMode ? Colors.white : const Color(0xFF2D3748);
     final Color secondaryTextColor = textColor.withOpacity(0.6);
 
     return Scaffold(
       backgroundColor: backgroundColor,
       appBar: AppBar(
         backgroundColor: isDarkMode ? Colors.black : primaryColor,
-        title: Image.asset(AppImages.transparent,height: 40),
-        iconTheme: IconThemeData(color: isDarkMode ? Colors.white : Colors.white),
+        title: Image.asset(AppImages.transparent, height: 40),
+        iconTheme:
+        IconThemeData(color: isDarkMode ? Colors.white : Colors.white),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -384,13 +489,17 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 32),
                 _buildImageUploadSection(isDarkMode, cardColor, textColor),
                 const SizedBox(height: 20),
-                _buildBasicInfoSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildBasicInfoSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 const SizedBox(height: 20),
-                _buildContactInfoSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildContactInfoSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 const SizedBox(height: 20),
-                _buildPropertyDetailsSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildPropertyDetailsSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 const SizedBox(height: 20),
-                _buildLocationSection(isDarkMode, cardColor, textColor, secondaryTextColor),
+                _buildLocationSection(
+                    isDarkMode, cardColor, textColor, secondaryTextColor),
                 const SizedBox(height: 20),
                 _buildNearbyFacilitiesSection(isDarkMode, cardColor, textColor),
                 const SizedBox(height: 40),
@@ -408,7 +517,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     return Container(
       width: double.infinity,
       child: Card(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.grey[900] : Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.grey[900]
+            : Colors.white,
         elevation: 6,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         margin: const EdgeInsets.only(bottom: 20),
@@ -432,31 +543,36 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         fontSize: 14,
         fontWeight: FontWeight.bold,
         fontFamily: 'Poppins',
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black
-    );
+        color: Theme.of(context).brightness == Brightness.dark
+            ? Colors.white
+            : Colors.black);
   }
 
-  Widget _buildLocationSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildLocationSection(
+      bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Location Details', Icons.location_on_rounded, textColor),
+          _buildSectionHeader(
+              'Location Details', Icons.location_on_rounded, textColor),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
                 TextFormField(
                   controller: _Address_apnehisaabka,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Address for Field Worker',
                     labelStyle: TextStyle(color: secondaryTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                      borderSide:
+                      BorderSide(color: Colors.grey.withOpacity(0.2)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -464,28 +580,35 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                      borderSide:
+                      BorderSide(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    prefixIcon: Icon(Icons.map_rounded, color: primaryColor),
+                    prefixIcon:
+                    Icon(Icons.map_rounded, color: primaryColor),
                     hintText: 'Enter address for field worker',
                     hintStyle: TextStyle(color: secondaryTextColor),
                     filled: true,
                     fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                   ),
                   maxLines: 2,
-                  validator: (value) => (value == null || value.isEmpty) ? 'Please enter address for field worker' : null,
+                  validator: (value) =>
+                  (value == null || value.isEmpty)
+                      ? 'Please enter address for field worker'
+                      : null,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _vehicleno,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   textCapitalization: TextCapitalization.characters,
                   decoration: InputDecoration(
                     labelText: 'Owner Vehicle Number (Optional)',
                     labelStyle: TextStyle(color: secondaryTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                      borderSide:
+                      BorderSide(color: Colors.grey.withOpacity(0.2)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -493,9 +616,11 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                      borderSide:
+                      BorderSide(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    prefixIcon: Icon(Icons.directions_car_rounded, color: primaryColor),
+                    prefixIcon: Icon(Icons.directions_car_rounded,
+                        color: primaryColor),
                     filled: true,
                     fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                   ),
@@ -503,13 +628,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _Google_Location,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: InputDecoration(
                     labelText: 'Google Location',
                     labelStyle: TextStyle(color: secondaryTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                      borderSide:
+                      BorderSide(color: Colors.grey.withOpacity(0.2)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -517,9 +644,11 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                      borderSide:
+                      BorderSide(color: Colors.grey.withOpacity(0.2)),
                     ),
-                    prefixIcon: Icon(Icons.search_rounded, color: primaryColor),
+                    prefixIcon:
+                    Icon(Icons.search_rounded, color: primaryColor),
                     hintText: 'Enter Google location',
                     hintStyle: TextStyle(color: secondaryTextColor),
                     suffixIcon: _isGettingLocation
@@ -529,18 +658,23 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       padding: const EdgeInsets.all(2),
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                        valueColor:
+                        AlwaysStoppedAnimation<Color>(primaryColor),
                       ),
                     )
                         : IconButton(
-                      icon: Icon(Icons.my_location_rounded, color: primaryColor),
+                      icon: Icon(Icons.my_location_rounded,
+                          color: primaryColor),
                       onPressed: _getCurrentLocation,
                     ),
                     filled: true,
                     fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
                   ),
                   maxLines: 2,
-                  validator: (value) => (value == null || value.isEmpty) ? 'Please enter Google location' : null,
+                  validator: (value) =>
+                  (value == null || value.isEmpty)
+                      ? 'Please enter Google location'
+                      : null,
                 ),
                 const SizedBox(height: 12),
                 if (_currentAddress.isNotEmpty || _latitude != null) ...[
@@ -549,15 +683,18 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     decoration: BoxDecoration(
                       color: accentColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: accentColor.withOpacity(0.3)),
+                      border: Border.all(
+                          color: accentColor.withOpacity(0.3)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.check_circle_rounded, size: 16, color: accentColor),
+                        Icon(Icons.check_circle_rounded,
+                            size: 16, color: accentColor),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
                             children: [
                               if (_currentAddress.isNotEmpty)
                                 Text(
@@ -570,11 +707,13 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                              if (_latitude != null && _longitude != null)
+                              if (_latitude != null &&
+                                  _longitude != null)
                                 Text(
                                   'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
                                   style: TextStyle(
-                                    color: accentColor.withOpacity(0.9),
+                                    color: accentColor
+                                        .withOpacity(0.9),
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                   ),
@@ -592,7 +731,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                               _longitude = null;
                             });
                           },
-                          child: Icon(Icons.close_rounded, size: 16, color: accentColor),
+                          child: Icon(Icons.close_rounded,
+                              size: 16, color: accentColor),
                         ),
                       ],
                     ),
@@ -607,7 +747,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline_rounded, size: 14, color: Colors.blue),
+                      const Icon(Icons.info_outline_rounded,
+                          size: 14, color: Colors.blue),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -632,14 +773,16 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildBasicInfoSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildBasicInfoSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Basic Information', Icons.info_rounded, textColor),
+          _buildSectionHeader(
+              'Basic Information', Icons.info_rounded, textColor),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -647,7 +790,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    border: Border.all(
+                        color: Colors.grey.withOpacity(0.2)),
                   ),
                   child: DropdownButtonFormField<String>(
                     value: _selectedItem,
@@ -655,146 +799,236 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       labelText: 'Place',
                       labelStyle: TextStyle(color: secondaryTextColor),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.location_city_rounded, color: primaryColor),
+                      contentPadding:
+                      const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      prefixIcon: Icon(Icons.location_city_rounded,
+                          color: primaryColor),
                       filled: true,
-                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      fillColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
                     ),
-                    dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    dropdownColor:
+                    isDarkMode ? Colors.grey[850] : Colors.white,
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w500),
                     items: _items
-                        .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                        .map((String value) =>
+                        DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: TextStyle(
+                                    color: textColor))))
                         .toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _selectedItem = newValue;
                       });
                     },
-                    validator: (value) => (value == null || value.isEmpty) ? 'Please select a Place' : null,
+                    validator: (value) =>
+                    (value == null || value.isEmpty)
+                        ? 'Please select a Place'
+                        : null,
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 _buildTwoFieldRow(
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _selectedItem1,
                       decoration: InputDecoration(
                         labelText: 'Buy / Rent',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.sell_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.sell_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: _items1
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedItem1 = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select Buy/Rent' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select Buy/Rent'
+                          : null,
                     ),
                   ),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _totalFloor,
                       decoration: InputDecoration(
                         labelText: 'Total Floor',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.layers_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.layers_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: _items_floor2
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _totalFloor = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select total floor' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select total floor'
+                          : null,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 _buildTwoFieldRow(
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _selectedPropertyType,
                       decoration: InputDecoration(
                         labelText: 'Property Type',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.category_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.category_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: propertyTypes
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedPropertyType = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Select Property Type' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Select Property Type'
+                          : null,
                     ),
                   ),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
-                    child: DropdownButtonFormField<String>(
+                    child:
+                    DropdownButtonFormField<String>(
                       value: _typeofproperty,
                       decoration: InputDecoration(
                         labelText: 'Type of Property',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.home_work_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.home_work_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: name
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _typeofproperty = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select type of property' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select type of property'
+                          : null,
                     ),
                   ),
                 ),
@@ -807,21 +1041,24 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildContactInfoSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildContactInfoSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Contact Information', Icons.contact_phone_rounded, textColor),
+          _buildSectionHeader(
+              'Contact Information', Icons.contact_phone_rounded, textColor),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
                 TextFormField(
                   controller: _Ownername,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: _buildInputDecoration(
                     label: 'Owner Name (Optional)',
                     icon: Icons.person_rounded,
@@ -833,7 +1070,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _Owner_number,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: _buildInputDecoration(
                     label: 'Owner No. (Optional)',
                     icon: Icons.phone_rounded,
@@ -846,7 +1084,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _CareTaker_name,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: _buildInputDecoration(
                     label: 'CareTaker Name (Optional)',
                     icon: Icons.person_outline_rounded,
@@ -858,7 +1097,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _CareTaker_number,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: _buildInputDecoration(
                     label: 'CareTaker No. (Optional)',
                     icon: Icons.phone_outlined,
@@ -877,22 +1117,24 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildPropertyDetailsSection(bool isDarkMode, Color cardColor, Color textColor, Color secondaryTextColor) {
+  Widget _buildPropertyDetailsSection(bool isDarkMode, Color cardColor,
+      Color textColor, Color secondaryTextColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Property Details', Icons.home_work_rounded, textColor),
+          _buildSectionHeader(
+              'Property Details', Icons.home_work_rounded, textColor),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
-                // PROPERTY NAME & ADDRESS
                 TextFormField(
                   controller: _address,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: _buildInputDecoration(
                     label: 'Property Name & Address',
                     icon: Icons.home_rounded,
@@ -901,14 +1143,16 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     isDarkMode: isDarkMode,
                   ),
                   maxLines: 2,
-                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter property address' : null,
+                  validator: (value) =>
+                  (value == null || value.trim().isEmpty)
+                      ? 'Please enter property address'
+                      : null,
                 ),
                 const SizedBox(height: 12),
-
-                // BUILDING INFORMATION
                 TextFormField(
                   controller: _Building_information,
-                  style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
                   decoration: _buildInputDecoration(
                     label: 'Building Information',
                     icon: Icons.info_outline_rounded,
@@ -917,246 +1161,362 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     isDarkMode: isDarkMode,
                   ),
                   maxLines: 3,
-                  validator: (value) => (value == null || value.trim().isEmpty) ? 'Please enter building information' : null,
+                  validator: (value) =>
+                  (value == null || value.trim().isEmpty)
+                      ? 'Please enter building information'
+                      : null,
                 ),
                 const SizedBox(height: 12),
-
-                // FACILITIES
-                _buildFacilityField(isDarkMode, textColor, secondaryTextColor),
+                _buildFacilityField(
+                    isDarkMode, textColor, secondaryTextColor),
                 const SizedBox(height: 12),
-
-                // ROAD SIZE + AGE (RESPONSIVE)
                 _buildTwoFieldRow(
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: selectedRoadSize,
                       decoration: InputDecoration(
                         labelText: 'Road width (in ft)',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.aod_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.aod_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: roadSizeOptions
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           selectedRoadSize = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select road size' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select road size'
+                          : null,
                     ),
                   ),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _ageOfProperty,
                       decoration: InputDecoration(
                         labelText: 'Age of property',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.date_range_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.date_range_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: Age_Options
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _ageOfProperty = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select age' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select age'
+                          : null,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // METRO STATION (PICKER) + METRO DISTANCE (RESPONSIVE)
                 _buildTwoFieldRow(
                   TextFormField(
                     controller: metroController,
                     readOnly: true,
                     decoration: InputDecoration(
                       labelText: "Metro Station",
-                      labelStyle: TextStyle(color: secondaryTextColor),
-                      prefixIcon: Icon(Icons.train_rounded, color: primaryColor),
+                      labelStyle:
+                      TextStyle(color: secondaryTextColor),
+                      prefixIcon: Icon(Icons.train_rounded,
+                          color: primaryColor),
                       hintText: "Select Metro Station",
-                      hintStyle: TextStyle(color: secondaryTextColor),
+                      hintStyle:
+                      TextStyle(color: secondaryTextColor),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                        borderSide:
+                        BorderSide(color: Colors.grey.withOpacity(0.2)),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+                        borderSide:
+                        BorderSide(color: Colors.grey.withOpacity(0.2)),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: primaryColor),
                       ),
                       filled: true,
-                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      fillColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
                     ),
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w500),
                     onTap: () {
                       showMetroLocalityPicker(context, (metro, localities) {
                         setState(() {
                           metroController.text = metro;
-                          localityController.text = localities.join(", ");
+                          localityController.text =
+                              localities.join(", ");
                         });
                       });
                     },
-                    validator: (value) => (value == null || value.isEmpty) ? 'Please select metro station' : null,
+                    validator: (value) =>
+                    (value == null || value.isEmpty)
+                        ? 'Please select metro station'
+                        : null,
                   ),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: selectedMetroDistance,
                       decoration: InputDecoration(
                         labelText: 'Metro Distance',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.straighten_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.straighten_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: metroDistanceOptions
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           selectedMetroDistance = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select metro distance' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select metro distance'
+                          : null,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // MARKET DISTANCE + LIFT (RESPONSIVE)
                 _buildTwoFieldRow(
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: selectedMarketDistance,
                       decoration: InputDecoration(
                         labelText: 'Market Distance',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.shopping_cart_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon:
+                        Icon(Icons.shopping_cart_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: marketDistanceOptions
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           selectedMarketDistance = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select market distance' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select market distance'
+                          : null,
                     ),
                   ),
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
                     ),
                     child: DropdownButtonFormField<String>(
                       value: _selectedLift,
                       decoration: InputDecoration(
                         labelText: 'Lift Availability',
-                        labelStyle: TextStyle(color: secondaryTextColor),
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
                         border: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.elevator_rounded, color: primaryColor),
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.elevator_rounded,
+                            color: primaryColor),
                         filled: true,
-                        fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
                       ),
-                      dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                      style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
                       items: lift_options
-                          .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
                           _selectedLift = newValue;
                         });
                       },
-                      validator: (value) => (value == null || value.isEmpty) ? 'Please select lift availability' : null,
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select lift availability'
+                          : null,
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // PARKING
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                    border: Border.all(
+                        color: Colors.grey.withOpacity(0.2)),
                   ),
                   child: DropdownButtonFormField<String>(
                     value: _selectedParking,
                     decoration: InputDecoration(
                       labelText: 'Parking',
-                      labelStyle: TextStyle(color: secondaryTextColor),
+                      labelStyle:
+                      TextStyle(color: secondaryTextColor),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                      prefixIcon: Icon(Icons.local_parking_rounded, color: primaryColor),
+                      contentPadding:
+                      const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      prefixIcon: Icon(Icons.local_parking_rounded,
+                          color: primaryColor),
                       filled: true,
-                      fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                      fillColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
                     ),
-                    dropdownColor: isDarkMode ? Colors.grey[850] : Colors.white,
-                    style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+                    dropdownColor: isDarkMode
+                        ? Colors.grey[850]
+                        : Colors.white,
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w500),
                     items: parkingOptions
-                        .map((String value) => DropdownMenuItem<String>(value: value, child: Text(value, style: TextStyle(color: textColor))))
+                        .map((String value) =>
+                        DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: TextStyle(
+                                    color: textColor))))
                         .toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         _selectedParking = newValue;
                       });
                     },
-                    validator: (value) => (value == null || value.isEmpty) ? 'Please select parking type' : null,
+                    validator: (value) =>
+                    (value == null || value.isEmpty)
+                        ? 'Please select parking type'
+                        : null,
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
-                // LOCALITIES SECTION (clean & wrapping chips)
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -1175,12 +1535,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   maxLines: 2,
                   decoration: InputDecoration(
                     hintText: "Selected Localities",
-                    hintStyle: TextStyle(color: secondaryTextColor),
+                    hintStyle:
+                    TextStyle(color: secondaryTextColor),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                    fillColor: isDarkMode
+                        ? Colors.grey[850]
+                        : Colors.white,
                   ),
                   style: TextStyle(color: textColor),
                 ),
@@ -1196,7 +1559,11 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                         label: Text(
                           loc.trim(),
                           style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark ? Colors.white : Colors.black,
+                            color: Theme.of(context)
+                                .brightness ==
+                                Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
                             fontSize: 12,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -1215,7 +1582,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildFacilityField(bool isDarkMode, Color textColor, Color secondaryTextColor) {
+  Widget _buildFacilityField(
+      bool isDarkMode, Color textColor, Color secondaryTextColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1232,13 +1600,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           controller: _facilityController,
           readOnly: true,
           onTap: _showFacilitySelectionDialog,
-          style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+          style: TextStyle(
+              color: textColor, fontWeight: FontWeight.w500),
           decoration: InputDecoration(
             labelText: 'Tap to select facilities',
             labelStyle: TextStyle(color: secondaryTextColor),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+              borderSide:
+              BorderSide(color: Colors.grey.withOpacity(0.2)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1246,13 +1616,16 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.withOpacity(0.2)),
+              borderSide:
+              BorderSide(color: Colors.grey.withOpacity(0.2)),
             ),
-            suffixIcon: Icon(Icons.arrow_drop_down_rounded, color: primaryColor),
+            suffixIcon: Icon(Icons.arrow_drop_down_rounded,
+                color: primaryColor),
             filled: true,
             fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
           ),
-          validator: (val) => val == null || val.isEmpty ? "Select facilities" : null,
+          validator: (val) =>
+          val == null || val.isEmpty ? "Select facilities" : null,
         ),
         const SizedBox(height: 16),
         Wrap(
@@ -1268,18 +1641,22 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   } else {
                     selectedFacilities.add(facility);
                   }
-                  _facilityController.text = selectedFacilities.join(', ');
+                  _facilityController.text =
+                      selectedFacilities.join(', ');
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? primaryColor.withOpacity(0.1)
                       : Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: isSelected ? primaryColor : Colors.grey.withOpacity(0.3),
+                    color: isSelected
+                        ? primaryColor
+                        : Colors.grey.withOpacity(0.3),
                     width: 1,
                   ),
                 ),
@@ -1287,7 +1664,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(
-                      isSelected ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                      isSelected
+                          ? Icons.check_circle_rounded
+                          : Icons.radio_button_unchecked_rounded,
                       size: 14,
                       color: isSelected ? primaryColor : Colors.grey,
                     ),
@@ -1296,7 +1675,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       child: Text(
                         facility,
                         style: TextStyle(
-                          color: isSelected ? primaryColor : textColor.withOpacity(0.7),
+                          color: isSelected
+                              ? primaryColor
+                              : textColor.withOpacity(0.7),
                           fontWeight: FontWeight.w500,
                           fontSize: 11,
                         ),
@@ -1313,9 +1694,14 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildNearbyFacilitiesSection(bool isDarkMode, Color cardColor, Color textColor) {
-    if (nearbyHospitals.isEmpty && nearbySchools.isEmpty && nearbyMetros.isEmpty &&
-        nearbyMalls.isEmpty && nearbyParks.isEmpty && nearbyCinemas.isEmpty) {
+  Widget _buildNearbyFacilitiesSection(
+      bool isDarkMode, Color cardColor, Color textColor) {
+    if (nearbyHospitals.isEmpty &&
+        nearbySchools.isEmpty &&
+        nearbyMetros.isEmpty &&
+        nearbyMalls.isEmpty &&
+        nearbyParks.isEmpty &&
+        nearbyCinemas.isEmpty) {
       return const SizedBox();
     }
 
@@ -1325,23 +1711,30 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Nearby Facilities', Icons.local_activity_rounded, textColor),
+          _buildSectionHeader(
+              'Nearby Facilities', Icons.local_activity_rounded, textColor),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
               children: [
                 if (nearbyHospitals.isNotEmpty)
-                  _buildNearbyCard('Hospitals', nearbyHospitals, textColor, isDarkMode),
+                  _buildNearbyCard('Hospitals', nearbyHospitals,
+                      textColor, isDarkMode),
                 if (nearbySchools.isNotEmpty)
-                  _buildNearbyCard('Schools', nearbySchools, textColor, isDarkMode),
+                  _buildNearbyCard(
+                      'Schools', nearbySchools, textColor, isDarkMode),
                 if (nearbyMetros.isNotEmpty)
-                  _buildNearbyCard('Metro Stations', nearbyMetros, textColor, isDarkMode),
+                  _buildNearbyCard('Metro Stations', nearbyMetros,
+                      textColor, isDarkMode),
                 if (nearbyMalls.isNotEmpty)
-                  _buildNearbyCard('Shopping Malls', nearbyMalls, textColor, isDarkMode),
+                  _buildNearbyCard('Shopping Malls', nearbyMalls,
+                      textColor, isDarkMode),
                 if (nearbyParks.isNotEmpty)
-                  _buildNearbyCard('Parks', nearbyParks, textColor, isDarkMode),
+                  _buildNearbyCard(
+                      'Parks', nearbyParks, textColor, isDarkMode),
                 if (nearbyCinemas.isNotEmpty)
-                  _buildNearbyCard('Cinemas', nearbyCinemas, textColor, isDarkMode),
+                  _buildNearbyCard(
+                      'Cinemas', nearbyCinemas, textColor, isDarkMode),
               ],
             ),
           ),
@@ -1351,7 +1744,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildNearbyCard(String title, List<Map<String, dynamic>> places, Color textColor, bool isDarkMode) {
+  Widget _buildNearbyCard(String title, List<Map<String, dynamic>> places,
+      Color textColor, bool isDarkMode) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1379,7 +1773,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.grey.withOpacity(0.2)),
+                  border: Border.all(
+                      color: Colors.grey.withOpacity(0.2)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1411,7 +1806,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.star_rounded, size: 12, color: Colors.amber),
+                        Icon(Icons.star_rounded,
+                            size: 12, color: Colors.amber),
                         const SizedBox(width: 4),
                         Text(
                           '${place['rating'] ?? 'N/A'}',
@@ -1459,12 +1855,14 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
               color: Colors.white.withOpacity(0.2),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.add_home_work_rounded, size: 32, color: Colors.white),
+            child: const Icon(Icons.add_home_work_rounded,
+                size: 32, color: Colors.white),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment:
+              CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Add Building',
@@ -1490,7 +1888,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 Container(
                   height: 2,
                   width: double.infinity,
-                  decoration: BoxDecoration(color: Colors.amber[400], borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(
+                      color: Colors.amber[400],
+                      borderRadius: BorderRadius.circular(2)),
                 ),
               ],
             ),
@@ -1500,7 +1900,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildPremiumCard({required bool isDarkMode, required Color cardColor, required Widget child}) {
+  Widget _buildPremiumCard(
+      {required bool isDarkMode,
+        required Color cardColor,
+        required Widget child}) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 16),
@@ -1520,7 +1923,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, Color textColor) {
+  Widget _buildSectionHeader(
+      String title, IconData icon, Color textColor) {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Row(
@@ -1529,7 +1933,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [primaryColor.withOpacity(0.1), secondaryColor.withOpacity(0.1)],
+                colors: [
+                  primaryColor.withOpacity(0.1),
+                  secondaryColor.withOpacity(0.1)
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -1584,7 +1991,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     );
   }
 
-  Widget _buildImageUploadSection(bool isDarkMode, Color cardColor, Color textColor) {
+  Widget _buildImageUploadSection(
+      bool isDarkMode, Color cardColor, Color textColor) {
     return _buildPremiumCard(
       isDarkMode: isDarkMode,
       cardColor: cardColor,
@@ -1599,11 +2007,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [primaryColor.withOpacity(0.1), secondaryColor.withOpacity(0.1)],
+                      colors: [
+                        primaryColor.withOpacity(0.1),
+                        secondaryColor.withOpacity(0.1)
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(Icons.photo_library_rounded, size: 18, color: primaryColor),
+                  child: Icon(Icons.photo_library_rounded,
+                      size: 18, color: primaryColor),
                 ),
                 const SizedBox(width: 10),
                 Text(
@@ -1617,7 +2029,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const Spacer(),
                 if (_selectedImages.isNotEmpty)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: accentColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(10),
@@ -1659,7 +2072,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           ),
                           child: _singleImage == null
                               ? Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment:
+                            MainAxisAlignment.center,
                             children: [
                               Icon(Icons.camera_alt_rounded,
                                   size: 24, color: Colors.grey),
@@ -1677,7 +2091,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                               : Stack(
                             children: [
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius:
+                                BorderRadius.circular(8),
                                 child: Image.file(
                                   File(_singleImage!.path),
                                   width: double.infinity,
@@ -1689,10 +2104,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                                 bottom: 4,
                                 left: 4,
                                 child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets
+                                      .symmetric(
+                                      horizontal: 6,
+                                      vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: Colors.black.withOpacity(0.7),
-                                    borderRadius: BorderRadius.circular(4),
+                                    color: Colors.black
+                                        .withOpacity(0.7),
+                                    borderRadius:
+                                    BorderRadius.circular(4),
                                   ),
                                   child: const Text(
                                     'Main',
@@ -1724,13 +2144,18 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                             color: Colors.grey.withOpacity(0.02),
                           ),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment:
+                            MainAxisAlignment.center,
                             children: [
                               Icon(Icons.collections_rounded,
-                                  size: 28, color: Colors.grey.withOpacity(0.6)),
+                                  size: 28,
+                                  color:
+                                  Colors.grey.withOpacity(0.6)),
                               const SizedBox(height: 4),
                               Text(
-                                _selectedImages.isEmpty ? 'Add More' : '+${_selectedImages.length}',
+                                _selectedImages.isEmpty
+                                    ? 'Add More'
+                                    : '+${_selectedImages.length}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -1794,7 +2219,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           child: Stack(
                             children: [
                               ClipRRect(
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius:
+                                BorderRadius.circular(6),
                                 child: Image.file(
                                   File(_selectedImages[index].path),
                                   width: 60,
@@ -1813,7 +2239,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                                       color: Colors.red,
                                       shape: BoxShape.circle,
                                     ),
-                                    child: const Icon(Icons.close_rounded, size: 10, color: Colors.white),
+                                    child: const Icon(
+                                        Icons.close_rounded,
+                                        size: 10,
+                                        color: Colors.white),
                                   ),
                                 ),
                               ),
@@ -1851,19 +2280,24 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 : primaryColor.withOpacity(0.05),
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color:
-              isDanger ? Colors.red.withOpacity(0.2) : primaryColor.withOpacity(0.2),
+              color: isDanger
+                  ? Colors.red.withOpacity(0.2)
+                  : primaryColor.withOpacity(0.2),
             ),
           ),
           child: Column(
             children: [
-              Icon(icon, size: 16, color: isDanger ? Colors.red : primaryColor),
+              Icon(icon,
+                  size: 16,
+                  color:
+                  isDanger ? Colors.red : primaryColor),
               const SizedBox(height: 2),
               Text(
                 label,
                 style: TextStyle(
                   fontSize: 10,
-                  color: isDanger ? Colors.red : primaryColor,
+                  color:
+                  isDanger ? Colors.red : primaryColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -1894,7 +2328,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   Future<void> _pickMultipleImages() async {
     try {
-      final List<XFile> images = await _imagePicker.pickMultiImage(
+      final List<XFile> images =
+      await _imagePicker.pickMultiImage(
         maxWidth: 1200,
         maxHeight: 800,
         imageQuality: 80,
@@ -1944,14 +2379,16 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white),
+            const Icon(Icons.check_circle_rounded,
+                color: Colors.white),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
         ),
         backgroundColor: accentColor,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -1962,24 +2399,30 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20)),
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: isDarkMode ? const Color(0xFF1E1E1E) : Colors.white,
+              color: isDarkMode
+                  ? const Color(0xFF1E1E1E)
+                  : Colors.white,
               borderRadius: BorderRadius.circular(20),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline_rounded, size: 50, color: Colors.red),
+                const Icon(Icons.error_outline_rounded,
+                    size: 50, color: Colors.red),
                 const SizedBox(height: 16),
                 Text(
                   'Error',
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
-                    color: isDarkMode ? Colors.white : const Color(0xFF2D3748),
+                    color: isDarkMode
+                        ? Colors.white
+                        : const Color(0xFF2D3748),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -1988,7 +2431,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     message,
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: isDarkMode ? Colors.white70 : const Color(0xFF2D3748).withOpacity(0.7),
+                      color: isDarkMode
+                          ? Colors.white70
+                          : const Color(0xFF2D3748)
+                          .withOpacity(0.7),
                     ),
                     maxLines: 5,
                     overflow: TextOverflow.ellipsis,
@@ -1998,10 +2444,15 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 Container(
                   width: double.infinity,
                   height: 45,
-                  decoration: BoxDecoration(color: primaryColor, borderRadius: BorderRadius.circular(12)),
+                  decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(12)),
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('OK', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    child: const Text('OK',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
@@ -2017,7 +2468,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       width: double.infinity,
       height: 60,
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [primaryColor, secondaryColor], begin: Alignment.centerLeft, end: Alignment.centerRight),
+        gradient: LinearGradient(
+            colors: [primaryColor, secondaryColor],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -2038,9 +2492,11 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
           },
           child: Center(
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment:
+              MainAxisAlignment.center,
               children: const [
-                Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
+                Icon(Icons.rocket_launch_rounded,
+                    color: Colors.white, size: 20),
                 SizedBox(width: 10),
                 Text(
                   'SUBMIT PROPERTY',
@@ -2060,7 +2516,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   }
 
   void _showFacilitySelectionDialog() async {
-    final result = await showModalBottomSheet<List<String>>(
+    final result =
+    await showModalBottomSheet<List<String>>(
       context: context,
       isScrollControlled: true,
       builder: (_) => _FacilityBottomSheet(
@@ -2072,7 +2529,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     if (result != null) {
       setState(() {
         selectedFacilities = result;
-        _facilityController.text = selectedFacilities.join(', ');
+        _facilityController.text =
+            selectedFacilities.join(', ');
       });
     }
   }
@@ -2105,10 +2563,12 @@ class _FacilityBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_FacilityBottomSheet> createState() => _FacilityBottomSheetState();
+  State<_FacilityBottomSheet> createState() =>
+      _FacilityBottomSheetState();
 }
 
-class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
+class _FacilityBottomSheetState
+    extends State<_FacilityBottomSheet> {
   late List<String> _tempSelected;
 
   @override
@@ -2120,80 +2580,111 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final padding = (screenWidth * 0.04).clamp(12.0, 20.0);
-    final fontSize = (screenWidth * 0.04).clamp(14.0, 18.0);
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final Color backgroundColor = isDarkMode ? Color(0xFF1E1E1E) : Colors.white;
-    final Color textColor = isDarkMode ? Colors.white : Color(0xFF2D3748);
-    final Color primaryBlue = Color(0xFF2D5BFF);
-    final Color secondaryBlue = Color(0xFF6C63FF);
+    final padding =
+    (screenWidth * 0.04).clamp(12.0, 20.0);
+    final fontSize =
+    (screenWidth * 0.04).clamp(14.0, 18.0);
+    final bool isDarkMode =
+        Theme.of(context).brightness == Brightness.dark;
+    final Color backgroundColor =
+    isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color textColor =
+    isDarkMode ? Colors.white : const Color(0xFF2D3748);
+    final Color primaryBlue = const Color(0xFF2D5BFF);
+    final Color secondaryBlue = const Color(0xFF6C63FF);
 
+    // ✅ Responsive + scrollable bottom sheet (NO overflow)
     return SafeArea(
       child: Container(
         color: backgroundColor,
-        child: Padding(
-          padding: EdgeInsets.all(padding),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.all(padding),
-                child: Text(
-                  "Select Facilities",
-                  style: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold, color: textColor),
-                ),
-              ),
-              ...widget.options.map((option) {
-                final isSelected = _tempSelected.contains(option);
-                return CheckboxListTile(
-                  title: Text(option, style: TextStyle(color: textColor, fontSize: fontSize * 0.8)),
-                  value: isSelected,
-                  onChanged: (val) {
-                    setState(() {
-                      if (val == true) {
-                        _tempSelected.add(option);
-                      } else {
-                        _tempSelected.remove(option);
-                      }
-                    });
-                  },
-                  controlAffinity: ListTileControlAffinity.leading,
-                  contentPadding: EdgeInsets.zero,
-                );
-              }).toList(),
-              SizedBox(height: padding),
-              Container(
-                width: double.infinity,
-                height: (fontSize * 3).clamp(45.0, 55.0),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [primaryBlue, secondaryBlue],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ),
-                  borderRadius: BorderRadius.circular(padding * 0.75),
-                ),
-                child: TextButton(
-                  onPressed: () => Navigator.pop(context, _tempSelected),
-                  child: Text(
-                    "Done",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: fontSize * 0.8,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return Padding(
+              padding: EdgeInsets.all(padding),
+              child: Column(
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(padding),
+                    child: Text(
+                      "Select Facilities",
+                      style: TextStyle(
+                        fontSize: fontSize,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
                     ),
                   ),
-                ),
+                  // Scrollable list of facilities
+                  Expanded(
+                    child: ListView.builder(
+                      itemCount: widget.options.length,
+                      itemBuilder: (context, index) {
+                        final option = widget.options[index];
+                        final isSelected =
+                        _tempSelected.contains(option);
+                        return CheckboxListTile(
+                          title: Text(
+                            option,
+                            style: TextStyle(
+                              color: textColor,
+                              fontSize: fontSize * 0.8,
+                            ),
+                          ),
+                          value: isSelected,
+                          onChanged: (val) {
+                            setState(() {
+                              if (val == true) {
+                                _tempSelected.add(option);
+                              } else {
+                                _tempSelected.remove(option);
+                              }
+                            });
+                          },
+                          controlAffinity:
+                          ListTileControlAffinity.leading,
+                          contentPadding: EdgeInsets.zero,
+                        );
+                      },
+                    ),
+                  ),
+                  SizedBox(height: padding),
+                  Container(
+                    width: double.infinity,
+                    height: (fontSize * 3)
+                        .clamp(45.0, 55.0),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [primaryBlue, secondaryBlue],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                      ),
+                      borderRadius:
+                      BorderRadius.circular(padding * 0.75),
+                    ),
+                    child: TextButton(
+                      onPressed: () =>
+                          Navigator.pop(context, _tempSelected),
+                      child: Text(
+                        "Done",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: fontSize * 0.8,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: padding * 0.5),
+                ],
               ),
-              SizedBox(height: padding * 0.5),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
   }
 }
-
 
 void showMetroLocalityPicker(
     BuildContext context,
@@ -2204,11 +2695,9 @@ void showMetroLocalityPicker(
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     barrierColor: Colors.black.withOpacity(0.5),
-
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
-
     builder: (context) {
       return DraggableScrollableSheet(
         initialChildSize: 0.85,
@@ -2225,24 +2714,26 @@ void showMetroLocalityPicker(
   );
 }
 
-
 class MetroLocalitySheet extends StatefulWidget {
   final Function(String metro, List<String> localities) onSelected;
 
-  const MetroLocalitySheet({super.key, required this.onSelected});
+  const MetroLocalitySheet(
+      {super.key, required this.onSelected});
 
   @override
-  State<MetroLocalitySheet> createState() => _MetroLocalitySheetState();
+  State<MetroLocalitySheet> createState() =>
+      _MetroLocalitySheetState();
 }
 
-class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
+class _MetroLocalitySheetState
+    extends State<MetroLocalitySheet> {
   final MetroAPI api = MetroAPI();
 
-  // Controllers
-  final TextEditingController metroCtrl = TextEditingController();
-  final TextEditingController localityCtrl = TextEditingController();
+  final TextEditingController metroCtrl =
+  TextEditingController();
+  final TextEditingController localityCtrl =
+  TextEditingController();
 
-  // State
   List<Map<String, dynamic>> metroList = [];
   List<Map<String, dynamic>> nearbyList = [];
   List<Map<String, dynamic>> filteredNearby = [];
@@ -2264,26 +2755,27 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
     super.dispose();
   }
 
-  /* ------------------------ FETCH METRO ------------------------ */
   void searchMetro(String q) {
-    if (metroDebounce?.isActive ?? false) metroDebounce!.cancel();
+    if (metroDebounce?.isActive ?? false) {
+      metroDebounce!.cancel();
+    }
 
-    metroDebounce = Timer(const Duration(milliseconds: 300), () async {
-      if (q.trim().length < 2) {
-        setState(() => metroList = []);
-        return;
-      }
+    metroDebounce =
+        Timer(const Duration(milliseconds: 300), () async {
+          if (q.trim().length < 2) {
+            setState(() => metroList = []);
+            return;
+          }
 
-      setState(() => loadingMetro = true);
-      final result = await api.fetchStations(q);
-      setState(() {
-        metroList = result;
-        loadingMetro = false;
-      });
-    });
+          setState(() => loadingMetro = true);
+          final result = await api.fetchStations(q);
+          setState(() {
+            metroList = result;
+            loadingMetro = false;
+          });
+        });
   }
 
-  /* ------------------------ FETCH LOCALITIES ------------------------ */
   Future<void> fetchNearby(String metroName) async {
     setState(() {
       loadingNearby = true;
@@ -2301,43 +2793,54 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
     });
   }
 
-  /* ------------------------ FILTER LOCALITY ------------------------ */
   void searchLocality(String q) {
-    if (localityDebounce?.isActive ?? false) localityDebounce!.cancel();
+    if (localityDebounce?.isActive ?? false) {
+      localityDebounce!.cancel();
+    }
 
-    localityDebounce = Timer(const Duration(milliseconds: 200), () {
-      if (q.trim().isEmpty) {
-        setState(() => filteredNearby = nearbyList);
-        return;
-      }
+    localityDebounce =
+        Timer(const Duration(milliseconds: 200), () {
+          if (q.trim().isEmpty) {
+            setState(() => filteredNearby = nearbyList);
+            return;
+          }
 
-      setState(() {
-        filteredNearby = nearbyList
-            .where((e) =>
-            e["name"].toString().toLowerCase().contains(q.toLowerCase()))
-            .toList();
-      });
-    });
+          setState(() {
+            filteredNearby = nearbyList
+                .where((e) => e["name"]
+                .toString()
+                .toLowerCase()
+                .contains(q.toLowerCase()))
+                .toList();
+          });
+        });
   }
 
-  /* ------------------------ MAIN UI ------------------------ */
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF1A1A1A) : Colors.white;
-    final cardBg = isDark ? const Color(0xFF222222) : Colors.grey.shade100;
-    final textCol = isDark ? Colors.white : Colors.black87;
+    final isDark =
+        Theme.of(context).brightness == Brightness.dark;
+    final bg =
+    isDark ? const Color(0xFF1A1A1A) : Colors.white;
+    final cardBg = isDark
+        ? const Color(0xFF222222)
+        : Colors.grey.shade100;
+    final textCol =
+    isDark ? Colors.white : Colors.black87;
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
       padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: 16,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 20),
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom:
+        MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius:
+        const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
@@ -2350,30 +2853,34 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
               borderRadius: BorderRadius.circular(10),
             ),
           ),
-
-          Text('Bottom Sheet',style: TextStyle(fontSize: 26,fontWeight: FontWeight.bold, color: textCol),),
-          SizedBox(height: 10,),
-
+          Text(
+            'Bottom Sheet',
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+              color: textCol,
+            ),
+          ),
+          const SizedBox(height: 10),
           TextField(
             controller: metroCtrl,
             onChanged: searchMetro,
             style: TextStyle(color: textCol),
             decoration: InputDecoration(
               labelText: "Metro Station",
-              labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
+              labelStyle:
+              TextStyle(color: textCol.withOpacity(0.8)),
               filled: true,
               fillColor: cardBg,
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14)),
             ),
           ),
-
           if (loadingMetro)
             const Padding(
               padding: EdgeInsets.all(10),
               child: CircularProgressIndicator(),
             ),
-
           if (metroList.isNotEmpty)
             Expanded(
               flex: 3,
@@ -2395,17 +2902,13 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                       selectedMetro = m["name"];
                       metroList.clear();
                       FocusScope.of(context).unfocus();
-
                       await fetchNearby(m["name"]);
                     },
                   );
                 },
               ),
             ),
-
           const SizedBox(height: 20),
-
-          /* ------------------- LOCALITY INPUT ------------------- */
           TextField(
             controller: localityCtrl,
             onChanged: searchLocality,
@@ -2415,21 +2918,19 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
               labelText: nearbyList.isEmpty
                   ? "Select Metro First"
                   : "Search Locality",
-              labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
+              labelStyle:
+              TextStyle(color: textCol.withOpacity(0.8)),
               filled: true,
               fillColor: cardBg,
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14)),
             ),
           ),
-
           if (loadingNearby)
             const Padding(
               padding: EdgeInsets.all(10),
               child: CircularProgressIndicator(),
             ),
-
-          /* ------------------- SELECTED CHIPS ------------------- */
           if (selectedLocalities.isNotEmpty)
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -2442,9 +2943,11 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                       loc,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    backgroundColor:
-                    isDark ? Colors.white12 : Colors.grey.shade300,
-                    deleteIcon: const Icon(Icons.close, size: 18),
+                    backgroundColor: isDark
+                        ? Colors.white12
+                        : Colors.grey.shade300,
+                    deleteIcon: const Icon(Icons.close,
+                        size: 18),
                     onDeleted: () {
                       setState(() {
                         selectedLocalities.remove(loc);
@@ -2455,10 +2958,7 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                     .toList(),
               ),
             ),
-
           const SizedBox(height: 10),
-
-          /* ------------------- LOCALITY LIST ------------------- */
           if (filteredNearby.isNotEmpty)
             Expanded(
               flex: 5,
@@ -2480,21 +2980,24 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                       subtitle: Text(
                         loc["type"] ?? "",
                         style: TextStyle(
-                          color: textCol.withOpacity(0.6),
+                          color:
+                          textCol.withOpacity(0.6),
                           fontSize: 12,
                         ),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
                       trailing: Icon(
-                        selectedLocalities.contains(loc["name"])
+                        selectedLocalities
+                            .contains(loc["name"])
                             ? Icons.check_circle
                             : Icons.add_circle_outline,
                         color: Colors.redAccent,
                       ),
                       onTap: () {
                         setState(() {
-                          if (!selectedLocalities.contains(loc["name"])) {
+                          if (!selectedLocalities
+                              .contains(loc["name"])) {
                             selectedLocalities.add(loc["name"]);
                           }
                         });
@@ -2504,27 +3007,29 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                 },
               ),
             ),
-
           const SizedBox(height: 12),
-
           ElevatedButton(
             onPressed: () {
               if (selectedMetro != null) {
-                widget.onSelected(selectedMetro!, selectedLocalities);
+                widget.onSelected(
+                    selectedMetro!, selectedLocalities);
               }
               Navigator.pop(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade700,
-              padding:
-              const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+              padding: const EdgeInsets.symmetric(
+                  vertical: 14, horizontal: 40),
               shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12)),
             ),
-            child: const Text("Done",
-                style: TextStyle(color: Colors.white, fontSize: 16)),
+            child: const Text(
+              "Done",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
           ),
-        ],),
+        ],
+      ),
     );
   }
 }

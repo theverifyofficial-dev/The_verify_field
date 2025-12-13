@@ -759,7 +759,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       detailRows.add(_DetailRow(
         icon: Icons.location_on,
         label: '',
-        value: property.locations!,
+        value: property.locations,
         theme: theme,
         getIconColor: _getIconColor,
         fontSize: detailFontSize,

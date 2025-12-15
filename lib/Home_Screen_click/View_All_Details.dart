@@ -1013,9 +1013,7 @@ class _View_DetailsState extends State<View_Details> {
                                 final chipsData = <Map<String, dynamic>>[
 
                                   {'icon': Icons.install_desktop_sharp, 'text': 'Live Property Id: ${prop.id}', 'color': Colors.lightGreen},
-                                  {'icon': Icons.bedroom_parent, 'text': prop.bhk ?? '', 'color': Colors.blue},
-                                  {'icon': Icons.chair, 'text': prop.furnishing ?? '', 'color': Colors.purple},
-                                  {'icon': Icons.apartment, 'text': prop.residenceCommercial ?? '', 'color': Colors.amber},
+                                  {'icon': Icons.bedroom_parent, 'text': prop.bhk ?? '', 'color': Colors.purple},
                                   {'icon': Icons.apartment_sharp, 'text': 'Building Id: ${prop.subid}', 'color': Colors.lightBlue},
 
                                   if ((prop.sourceId ?? '').isNotEmpty && prop.sourceId != 'null')
@@ -1132,7 +1130,7 @@ class _View_DetailsState extends State<View_Details> {
                                 ),
                               ),
                               SizedBox(height: verticalPadding),
-                              _buildResponsiveInfoGrid(_getPropertyDetailsRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding), context, isSmallScreen),
+                              _buildResponsiveInfoGrid(_getPropertyDetailsRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding), context, isSmallScreen, isTablet),
                             ],
                           ),
                         ),
@@ -1194,7 +1192,6 @@ class _View_DetailsState extends State<View_Details> {
                                 ),
                               ),
                               SizedBox(height: verticalPadding * 2),
-                              _buildContactCard("FIELD WORKER", prop.fieldWorkerName, prop.fieldWorkerNumber, bgColor: Colors.blue, context: context, onCall: () => _showCallConfirmation(context, prop.fieldWorkerName, prop.fieldWorkerNumber)),
                               if (prop.ownerNumber.isNotEmpty)
                                 _buildContactCard("OWNER", prop.ownerName, prop.ownerNumber, bgColor: Colors.green, context: context, onCall: () => _showCallConfirmation(context, prop.ownerName, prop.ownerNumber)),
                               if (prop.caretakerNumber.isNotEmpty)
@@ -1370,6 +1367,8 @@ class _View_DetailsState extends State<View_Details> {
       ),
     );
   }
+
+
   Widget _buildContactCard(String role, String name, String number, {Color? bgColor, required BuildContext context, required VoidCallback onCall}) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
@@ -1587,57 +1586,71 @@ class _View_DetailsState extends State<View_Details> {
       ),
     );
   }
-  Widget  _buildResponsiveInfoGrid(List<Widget> infoRows, BuildContext context, bool isSmallScreen) {
+  Widget  _buildResponsiveInfoGrid(List<Widget> infoRows, BuildContext context, bool isSmallScreen, bool isTablet) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        if (screenWidth > 350) {
-          final half = (infoRows.length / 2).ceil();
-          final leftColumn = infoRows.sublist(0, half);
-          final rightColumn = infoRows.length > half ? infoRows.sublist(half) : <Widget>[];
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: leftColumn,
-                ),
-              ),
-              SizedBox(width: isSmallScreen ? 8.0 : 12.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: rightColumn,
-                ),
-              ),
-            ],
+        // Adjusted threshold: Use single column for very small screens (<360), two columns for medium+ (including tablets)
+        // For tablets, ensure even wider spacing and more balanced split
+        final columnSpacing = isTablet ? 16.0 : (isSmallScreen ? 8.0 : 12.0);
+        final half = (infoRows.length / 2).ceil();
+        final leftColumn = infoRows.sublist(0, half);
+        final rightColumn = infoRows.length > half ? infoRows.sublist(half) : <Widget>[];
+        if (screenWidth <= 360) {
+          // Single column for very small screens to avoid overflow
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: infoRows,
+            ),
           );
         } else {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: infoRows,
+          // Two columns for tablets and medium screens
+          return IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  flex: 1,
+                  child: Padding(
+                    padding: EdgeInsets.only(right: columnSpacing / 2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: leftColumn,
+                    ),
+                  ),
+                ),
+                if (rightColumn.isNotEmpty)
+                  Expanded(
+                    flex: 1,
+                    child: Padding(
+                      padding: EdgeInsets.only(left: columnSpacing / 2),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: rightColumn,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           );
         }
       },
     );
   }
+
   List<Widget> _getPropertyDetailsRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
     List<Widget> rows = [];
-    if ((prop.metroDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.train, Colors.orange, "Metro Station", prop.metroDistance, isSmallScreen, isDarkMode));
-    if ((prop.mainMarketDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.store, Colors.purple, "Market Distance", prop.mainMarketDistance, isSmallScreen, isDarkMode));
-    if ((prop.registryAndGpa ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.document_scanner, Colors.purple, "Registry & GPA", prop.registryAndGpa, isSmallScreen, isDarkMode));
-    if ((prop.typeofProperty ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.category, Colors.deepOrange, "Type of Property", prop.typeofProperty, isSmallScreen, isDarkMode));
-    if ((prop.availableDate ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", formatDate(prop.availableDate), isSmallScreen, isDarkMode));
 
-    if ((prop.floor ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.apartment, Colors.red, "Floor", prop.floor, isSmallScreen, isDarkMode));
+    // Helper function to safely get value or "Not Available"
+    String safeValue(String? value, [String suffix = ""]) {
+      if (value == null || value.trim().isEmpty || value.trim().toLowerCase() == "null" || value.trim() == "0") {
+        return "Not Available";
+      }
+      return value.trim() + suffix;
+    }
 
+<<<<<<< HEAD
     if ((prop.highwayDistance ?? '').isNotEmpty)
       rows.add(_buildInfoRow(Icons.vaccines, Colors.red, "Metro Distance", prop.highwayDistance, isSmallScreen, isDarkMode));
     if ((prop.roadSize ?? '').isNotEmpty)
@@ -1649,45 +1662,173 @@ class _View_DetailsState extends State<View_Details> {
         : (prop.totalFloor ?? '').isNotEmpty
         ? prop.totalFloor
         : '';
+=======
+    // Helper for date fields
+    String safeDate(String? dateStr) {
+      if (dateStr == null || dateStr.trim().isEmpty || dateStr.trim().toLowerCase() == "null") {
+        return "Not Available";
+      }
+      try {
+        final date = DateTime.parse(dateStr.trim());
+        return formatDate(dateStr.trim()); // your existing formatDate function
+      } catch (e) {
+        return "Not Available";
+      }
+    }
+>>>>>>> origin/dev
 
-    if ((prop.loan ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.balance, Colors.purple, "Loan", prop.loan, isSmallScreen, isDarkMode));
-    if ((prop.flatNumber ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.format_list_numbered, Colors.green, "Flat Number", prop.flatNumber, isSmallScreen, isDarkMode));
+    // 15. Metro Station (highwayDistance)
+    rows.add(_buildInfoRow(
+      Icons.directions_car,
+      Colors.red,
+      "Metro Station",
+      safeValue(prop.highwayDistance),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-    if ((prop.ageOfProperty ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.real_estate_agent, Colors.green, "Age of property", prop.ageOfProperty, isSmallScreen, isDarkMode));
+    // 13. Market Distance
+    rows.add(_buildInfoRow(
+      Icons.store_mall_directory,
+      Colors.purple,
+      "Market Distance",
+      safeValue(prop.mainMarketDistance),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-    if ((prop.squarefit ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.square_foot, Colors.black, "Square Fit", prop.squarefit, isSmallScreen, isDarkMode));
+    // 2. Floor (Floor / Total Floor)
+    String floorText = "Not Available";
+    if (prop.floor != null && prop.floor.trim().isNotEmpty && prop.floor.trim() != "null") {
+      floorText = prop.floor.trim();
+    }
+    if (prop.totalFloor != null && prop.totalFloor.trim().isNotEmpty && prop.totalFloor.trim() != "null") {
+      floorText += (floorText != "Not Available" ? " / ${prop.totalFloor.trim()}" : prop.totalFloor.trim());
+    }
+    rows.add(_buildInfoRow(
+      Icons.layers,
+      Colors.green,
+      "Floor",
+      floorText,
+      isSmallScreen,
+      isDarkMode,
+    ));
 
+    // 6. Type of Property
+    rows.add(_buildInfoRow(
+      Icons.home_work,
+      Colors.orange,
+      "Type of Property",
+      safeValue(prop.typeofProperty),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-    //
-    // if ((prop.id ?? '').isNotEmpty)
-    //   rows.add(_buildInfoRow(Icons.location_on, Colors.pink, "Apartment Address", prop.id, isSmallScreen, isDarkMode));
-    // Add ID chips
-    // rows.add(
-    //   Padding(
-    //     padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
-    //     child: Wrap(
-    //       spacing: 8,
-    //       runSpacing: 8,
-    //       children: [
-    //         _buildChip(Icons.install_desktop_sharp, "Live Property Id : ${prop.id}", Colors.lightGreen, context),
-    //         _buildChip(Icons.apartment_sharp, "Building Id : ${prop.subid}", Colors.lightBlue, context),
-    //         if (prop.sourceId != null) _buildChip(Icons.file_open, "Building Flat Id : ${prop.sourceId}", Colors.deepOrange, context),
-    //       ],
-    //     ),
-    //   ),
-    //);
+    // 7. Square Feet
+    rows.add(_buildInfoRow(
+      Icons.square_foot,
+      Colors.teal,
+      "Sq. Ft.",
+      safeValue(prop.squarefit),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 19. Registry & GPA
+    rows.add(_buildInfoRow(
+      Icons.description,
+      Colors.blue,
+      "Registry & GPA",
+      safeDate(prop.registryAndGpa),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 12. Furnishing
+    rows.add(_buildInfoRow(
+      Icons.chair,
+      Colors.pink,
+      "Furnishing",
+      safeValue(prop.furnishing),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 14. Metro Distance
+    rows.add(_buildInfoRow(
+      Icons.train,
+      Colors.orange,
+      "Metro Distance",
+      safeValue(prop.metroDistance),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 18. Road Size
+    String roadSize = safeValue(prop.roadSize, " Feet");
+    if (roadSize == "Not Available Feet") roadSize = "Not Available";
+    rows.add(_buildInfoRow(
+      Icons.straighten,
+      Colors.teal,
+      "Road Size",
+      roadSize,
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 16. Flat Number
+    rows.add(_buildInfoRow(
+      Icons.format_list_numbered,
+      Colors.green,
+      "Flat Number",
+      safeValue(prop.flatNumber),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 17. Age of Property
+    rows.add(_buildInfoRow(
+      Icons.history,
+      Colors.brown,
+      "Age of Property",
+      safeValue(prop.ageOfProperty),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 21. Residence / Commercial
+    rows.add(_buildInfoRow(
+      Icons.domain,
+      Colors.amber,
+      "Residence / Commercial",
+      safeValue(prop.residenceCommercial),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
+    // 20. Loan
+    rows.add(_buildInfoRow(
+      Icons.account_balance,
+      Colors.blue,
+      "Loan",
+      safeDate(prop.loan),
+      isSmallScreen,
+      isDarkMode,
+    ));
+
     return rows;
   }
+
   List<Widget> _getBuildingFacilityRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
     List<Widget> rows = [];
     if ((prop.facility ?? '').isNotEmpty) {
       rows.add(_buildInfoRow(Icons.local_hospital, Colors.amber, "Building Facility", prop.facility, isSmallScreen, isDarkMode));
     }
     final double verticalPadding = isSmallScreen ? 2.0 : 4.0;
+    if ((prop.apartmentName ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.local_hospital, Colors.green, "Flat Facility", prop.apartmentName, isSmallScreen, isDarkMode));
+    }
+    // final double verticalPadding = isSmallScreen ? 2.0 : 4.0;
     // Row 1: Kitchen and Bathroom
     List<Widget> row1Cards = [];
     if ((prop.kitchen ?? '').isNotEmpty) {
@@ -1753,7 +1894,7 @@ class _View_DetailsState extends State<View_Details> {
     List<Widget> rows = [];
     // Current Date
     if ((prop.currentDate ?? '').isNotEmpty) {
-      rows.add(_buildSimpleInfoCard("Current Date", formatDate(prop.currentDate), Icons.date_range, Colors.indigo, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
+      rows.add(_buildSimpleInfoCard("Property Added Date", formatDate(prop.currentDate), Icons.date_range, Colors.indigo, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
     }
     // Asking Price and Last Price Row
     List<Widget> priceWidgets = [];
@@ -1778,12 +1919,125 @@ class _View_DetailsState extends State<View_Details> {
         ),
       );
     }
-    // Video Link
-    if ((prop.videoLink ?? '').isNotEmpty) {
+    // Video Link (Additional Information section में यह code लगाएं)
+
+    String videoLink = (prop.videoLink ?? '').trim();
+    bool hasVideoLink = videoLink.isNotEmpty && videoLink.toLowerCase() != "null";
+
+    if (hasVideoLink) {
+      // Valid video link available → clickable with underlined blue text
       rows.add(
         GestureDetector(
-          onTap: () => _launchVideo(prop.videoLink, context),
-          child: _buildSimpleInfoCard("Video Link", prop.videoLink, Icons.video_library, Colors.lime, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
+          onTap: () => _launchVideo(videoLink, context),
+          child: Container(
+            margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
+            padding: EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
+            decoration: BoxDecoration(
+              color: isDarkMode ? Colors.white : Color(0xFFF5F5F5),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.red.withOpacity(0.3)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: isSmallScreen ? 32.0 : 36.0,
+                  height: isSmallScreen ? 32.0 : 36.0,
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_circle_outline,
+                    color: Colors.white,
+                    size: isSmallScreen ? 18.0 : 20.0,
+                  ),
+                ),
+                SizedBox(width: isSmallScreen ? 8.0 : 10.0),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Video Link",
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 10.0 : 11.0,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        videoLink,
+                        style: TextStyle(
+                          fontSize: isSmallScreen ? 13.0 : 14.0,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue, // link color
+                          decoration: TextDecoration.underline, // underline
+                          decorationColor: Colors.blue,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2,
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.open_in_new,
+                  color: Colors.blue,
+                  size: isSmallScreen ? 18.0 : 20.0,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      // No video link → show "Not Available"
+      rows.add(
+        _buildSimpleInfoCard(
+          "Video Link",
+          "Not Available",
+          Icons.play_circle_outline,
+          Colors.grey,
+          isSmallScreen: isSmallScreen,
+          isDarkMode: isDarkMode,
+        ),
+      );
+    }
+    // Additional Information या जहाँ आप यह field add कर रहे हैं, वहाँ यह code लगाएं
+
+// Field Worker Current Location
+    String currentLocation = prop.fieldWorkerCurrentLocation ?? '';
+
+    if (currentLocation.trim().isEmpty || currentLocation.trim().toLowerCase() == "null") {
+      // Not Available case
+      rows.add(
+        _buildSimpleInfoCard(
+          "Current Location",
+          "Not Available",
+          Icons.location_on_outlined,
+          Colors.red,  // grey color to indicate unavailable
+          isSmallScreen: isSmallScreen,
+          isDarkMode: isDarkMode,
+        ),
+      );
+    } else {
+      // Valid location available
+      rows.add(
+        GestureDetector(
+          onTap: () {
+            // अगर यह location link है (जैसे Google Maps URL) या video है, तो launch करें
+            // यहाँ _launchVideo की जगह आप _launchURL या map launcher भी use कर सकते हैं
+            _launchVideo(currentLocation.trim(), context); // या आपका custom launcher
+          },
+          child: _buildSimpleInfoCard(
+            "Current Location",
+            currentLocation.trim(),
+            Icons.location_on,
+            Colors.red,
+            isSmallScreen: isSmallScreen,
+            isDarkMode: isDarkMode,
+          ),
         ),
       );
     }

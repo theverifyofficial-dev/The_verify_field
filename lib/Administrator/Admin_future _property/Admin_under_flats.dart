@@ -1013,11 +1013,20 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       rows.add(buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", prop.availableDate));
     }
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> origin/dev
     if (prop.roadSize.isNotEmpty) {
       rows.add(buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize}"));
     }
+
+    if (prop.highwayDistance.isNotEmpty) {
+      rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Metro Distance", prop.highwayDistance));
+    }
+
+
 
     if (prop.loan.isNotEmpty) {
       rows.add(buildInfoRow(Icons.balance, Colors.purple, "Loan", prop.loan));
@@ -1255,7 +1264,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                   ),
                                   child: Center(
                                     child: Text(
-                                      prop.showPrice,
+                                      '₹ ${prop.showPrice}',
                                       style: TextStyle(
                                         fontSize: (isSmallScreen ? 14.0 : 16.0) * fontScale,
                                         fontWeight: FontWeight.bold,

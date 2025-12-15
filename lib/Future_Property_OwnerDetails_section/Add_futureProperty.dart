@@ -933,6 +933,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
+<<<<<<< HEAD
+=======
+                _buildTwoFieldRow(
+>>>>>>> origin/dev
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -981,7 +985,60 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           : null,
                     ),
                   ),
+<<<<<<< HEAD
 
+=======
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: Colors.grey.withOpacity(0.2)),
+                    ),
+                    child:
+                    DropdownButtonFormField<String>(
+                      value: _typeofproperty,
+                      decoration: InputDecoration(
+                        labelText: 'Type of Property',
+                        labelStyle:
+                        TextStyle(color: secondaryTextColor),
+                        border: InputBorder.none,
+                        contentPadding:
+                        const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 16),
+                        prefixIcon: Icon(Icons.home_work_rounded,
+                            color: primaryColor),
+                        filled: true,
+                        fillColor: isDarkMode
+                            ? Colors.grey[850]
+                            : Colors.white,
+                      ),
+                      dropdownColor: isDarkMode
+                          ? Colors.grey[850]
+                          : Colors.white,
+                      style: TextStyle(
+                          color: textColor,
+                          fontWeight: FontWeight.w500),
+                      items: name
+                          .map((String value) =>
+                          DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value,
+                                  style: TextStyle(
+                                      color: textColor))))
+                          .toList(),
+                      onChanged: (String? newValue) {
+                        setState(() {
+                          _typeofproperty = newValue;
+                        });
+                      },
+                      validator: (value) =>
+                      (value == null || value.isEmpty)
+                          ? 'Please select type of property'
+                          : null,
+                    ),
+                  ),
+                ),
+>>>>>>> origin/dev
               ],
             ),
           ),
@@ -1099,6 +1156,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       : null,
                 ),
                 const SizedBox(height: 12),
+<<<<<<< HEAD
                 // TextFormField(
                 //   controller: _Building_information,
                 //   style: TextStyle(
@@ -1116,6 +1174,25 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 //       ? 'Please enter building information'
                 //       : null,
                 // ),
+=======
+                TextFormField(
+                  controller: _Building_information,
+                  style: TextStyle(
+                      color: textColor, fontWeight: FontWeight.w500),
+                  decoration: _buildInputDecoration(
+                    label: 'Building Information',
+                    icon: Icons.info_outline_rounded,
+                    textColor: textColor,
+                    secondaryTextColor: secondaryTextColor,
+                    isDarkMode: isDarkMode,
+                  ),
+                  maxLines: 3,
+                  validator: (value) =>
+                  (value == null || value.trim().isEmpty)
+                      ? 'Please enter building information'
+                      : null,
+                ),
+>>>>>>> origin/dev
                 const SizedBox(height: 12),
                 _buildFacilityField(
                     isDarkMode, textColor, secondaryTextColor),
@@ -1258,6 +1335,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       showMetroLocalityPicker(context, (metro, localities) {
                         setState(() {
                           metroController.text = metro;
+<<<<<<< HEAD
 
                           final existing = localityController.text
                               .split(',')
@@ -1273,6 +1351,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           }
 
                           localityController.text = existing.join(', ');
+=======
+                          localityController.text =
+                              localities.join(", ");
+>>>>>>> origin/dev
                         });
                       });
                     },
@@ -1496,13 +1578,21 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   controller: localityController,
                   maxLines: 2,
                   decoration: InputDecoration(
+<<<<<<< HEAD
                     hintText: "Type or select localities",
                     hintStyle: TextStyle(color: secondaryTextColor),
+=======
+                    hintText: "Selected Localities",
+                    hintStyle:
+                    TextStyle(color: secondaryTextColor),
+>>>>>>> origin/dev
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
-                    fillColor: isDarkMode ? Colors.grey[850] : Colors.white,
+                    fillColor: isDarkMode
+                        ? Colors.grey[850]
+                        : Colors.white,
                   ),
                   style: TextStyle(color: textColor),
                   onChanged: (_) {
@@ -1529,7 +1619,13 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                         label: Text(
                           loc,
                           style: TextStyle(
+<<<<<<< HEAD
                             color: Theme.of(context).brightness == Brightness.dark
+=======
+                            color: Theme.of(context)
+                                .brightness ==
+                                Brightness.dark
+>>>>>>> origin/dev
                                 ? Colors.white
                                 : Colors.black,
                             fontSize: 12,
@@ -2708,7 +2804,8 @@ class MetroLocalitySheet extends StatefulWidget {
       _MetroLocalitySheetState();
 }
 
-class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
+class _MetroLocalitySheetState
+    extends State<MetroLocalitySheet> {
   final MetroAPI api = MetroAPI();
 
   final TextEditingController metroCtrl =
@@ -2786,6 +2883,7 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
             setState(() => filteredNearby = nearbyList);
             return;
           }
+<<<<<<< HEAD
 
           setState(() {
             filteredNearby = nearbyList
@@ -2816,6 +2914,18 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
       localityCtrl.text = selectedLocalities.join(", ");
       filteredNearby = nearbyList;
     });
+=======
+
+          setState(() {
+            filteredNearby = nearbyList
+                .where((e) => e["name"]
+                .toString()
+                .toLowerCase()
+                .contains(q.toLowerCase()))
+                .toList();
+          });
+        });
+>>>>>>> origin/dev
   }
 
   @override
@@ -2918,6 +3028,7 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
             decoration: InputDecoration(
               labelText: nearbyList.isEmpty
                   ? "Select Metro First"
+<<<<<<< HEAD
                   : "Search or type locality",
               labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
               hintText: "Type & press enter or comma",
@@ -2926,6 +3037,15 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
+=======
+                  : "Search Locality",
+              labelStyle:
+              TextStyle(color: textCol.withOpacity(0.8)),
+              filled: true,
+              fillColor: cardBg,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14)),
+>>>>>>> origin/dev
             ),
             onChanged: searchLocality,
             onSubmitted: (value) {
@@ -2954,6 +3074,7 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                         : Colors.grey.shade300,
                     deleteIcon: const Icon(Icons.close,
                         size: 18),
+<<<<<<< HEAD
                         onDeleted: () {
                           setState(() {
                             selectedLocalities.remove(loc);
@@ -2964,6 +3085,14 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                         },
 
                       ),
+=======
+                    onDeleted: () {
+                      setState(() {
+                        selectedLocalities.remove(loc);
+                      });
+                    },
+                  ),
+>>>>>>> origin/dev
                 )
                     .toList(),
               ),
@@ -3009,8 +3138,13 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
 
                         setState(() {
                           if (!selectedLocalities
+<<<<<<< HEAD
                               .any((e) => e.toLowerCase() == name.toLowerCase())) {
                             selectedLocalities.add(name);
+=======
+                              .contains(loc["name"])) {
+                            selectedLocalities.add(loc["name"]);
+>>>>>>> origin/dev
                           }
 
                           // 🔥 SHOW SELECTED LOCALITIES
@@ -3026,6 +3160,7 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
           ElevatedButton(
             onPressed: () {
               if (selectedMetro != null) {
+<<<<<<< HEAD
                 final finalLocalities = localityCtrl.text
                     .split(',')
                     .map((e) => e.trim())
@@ -3033,6 +3168,10 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                     .toList();
 
                 widget.onSelected(selectedMetro!, finalLocalities);
+=======
+                widget.onSelected(
+                    selectedMetro!, selectedLocalities);
+>>>>>>> origin/dev
               }
               Navigator.pop(context);
             },

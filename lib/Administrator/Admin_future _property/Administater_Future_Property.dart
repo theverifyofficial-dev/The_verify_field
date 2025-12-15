@@ -264,8 +264,12 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     List<Map<String, String>> visibleWorkers = fieldWorkers.where((fw) {
       if (isAdmin) return true;
       final name = fw['name']!.toLowerCase();
+<<<<<<< HEAD
       if (loc.contains("sultanpur")) {
         return name.contains("sumit") || name.contains("ravi") || name.contains("faizan");}
+=======
+      if (loc.contains("sultanpur")) return ["sumit", "ravi", "faizan"].contains(name);
+>>>>>>> origin/dev
       if (loc.contains("rajpur") || loc.contains("chhattar")) return ["manish", "abhay"].contains(name);
       return false;
     }).toList();

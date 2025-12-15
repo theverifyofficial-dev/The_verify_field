@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:android_intent_plus/android_intent.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
@@ -28,8 +28,6 @@ import 'Edit_Page_Realestate.dart';
 import 'Add_multi_image_in_Realestate.dart';
 import 'Edit_Property_SecondPage.dart';
 import 'Real-Estate.dart';
-import 'package:android_intent_plus/android_intent.dart';
-import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:xml/xml.dart' as xml;
 import 'Reverse_in_Futureproperty.dart';
 import 'Update_realEstate_form.dart';
@@ -81,7 +79,7 @@ class Catid {
   final String latitude;
   final String videoLink;
   final int subid;
-  final String? sourceId; // NEW, nullable
+  final String? sourceId; // nullable
   Catid({
     required this.id,
     required this.propertyPhoto,
@@ -130,7 +128,7 @@ class Catid {
     required this.latitude,
     required this.videoLink,
     required this.subid,
-    this.sourceId, // NEW
+    this.sourceId,
   });
   static String _s(dynamic v) => v?.toString() ?? '';
   static int _i(dynamic v) => int.tryParse(v?.toString() ?? '') ?? 0;
@@ -165,7 +163,6 @@ class Catid {
       ownerName: _s(json['owner_name']),
       ownerNumber: _s(json['owner_number']),
       currentDate: _s(json['current_dates']),
-      // your API sometimes sends ISO datetime; we keep it as raw string
       availableDate: _s(json['available_date']),
       kitchen: _s(json['kitchen']),
       bathroom: _s(json['bathroom']),
@@ -195,45 +192,32 @@ class AllViewDetails extends StatefulWidget {
   State<AllViewDetails> createState() => _View_DetailsState();
 }
 class _View_DetailsState extends State<AllViewDetails> {
-  Future<void> Book_property() async {
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book'));
-    if (responce.statusCode == 200) {
-      print(responce.body);
-      if (mounted) {
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Show_Real_Estate()), (route) => route.isFirst);
-      }
-    } else {
-      print('Failed Registration');
-    }
-  }
-  Future<List<RealEstateSlider>> fetchCarouselData(int id) async {
-    final url = 'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
+  Future<List<RealEstateSlider>> fetchCarouselData(int subid) async {
+    final url = 'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid';
+    print('Fetching gallery for subid: $subid'); // Debug
     final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
-    print('Response status: ${response.statusCode}');
-    print('Response body: ${response.body}');
+    print('Gallery Response status: ${response.statusCode}'); // Debug
+    print('Gallery Response body: ${response.body}'); // Debug
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       if (data is String) {
         final innerData = json.decode(data);
-        return (innerData as List)
-            .map((item) => RealEstateSlider.fromJson(item))
-            .toList();
+        return (innerData as List).map((item) => RealEstateSlider.fromJson(item)).toList();
       }
-      return (data as List)
-          .map((item) => RealEstateSlider.fromJson(item))
-          .toList();
+      return (data as List).map((item) => RealEstateSlider.fromJson(item)).toList();
     } else if (response.statusCode == 404) {
-      // No data found for this subid, return empty list instead of throwing
       return [];
     } else {
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }
+
   Future<List<Catid>> fetchData(int id) async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
-    );
+    final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id");
+    print('Fetching property for id: $id'); // Debug
     final response = await http.get(url).timeout(const Duration(seconds: 30));
+    print('Property Response status: ${response.statusCode}'); // Debug
+    print('Property Response body: ${response.body}'); // Debug
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
@@ -248,98 +232,47 @@ class _View_DetailsState extends State<AllViewDetails> {
       listResponse = const [];
     }
     final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
-    // >>> store firstProperty for later navigation
-    if (properties.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          firstProperty = properties.first;
-        });
-      }
+    if (properties.isNotEmpty && mounted) {
+      setState(() {
+        firstProperty = properties.first;
+      });
     }
     return properties;
   }
-  bool _isDeleting = false;
-  //Delete api
-  Future<void> DeletePropertybyid(itemId) async {
-    final url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId');
-    final response = await http.get(url).timeout(const Duration(seconds: 30));
-    // await Future.delayed(Duration(seconds: 1));
-    if (response.statusCode == 200) {
-      setState(() {
-        _isDeleting = false;
-        //ShowVehicleNumbers(id);
-        //showVehicleModel?.vehicleNo;
-      });
-      print(response.body.toString());
-      print('Item deleted successfully');
-    } else {
-      print('Error deleting item. Status code: ${response.statusCode}');
-      throw Exception('Failed to load data');
-    }
-  }
-  // final result = await fetchData();
-  List<String> name = [];
-  // late final int iid;
-  int _id = 0;
+  Future<List<Catid>>? _propertyFuture;
+  Catid? firstProperty;
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loaduserdata();
-      if (_id != 0) {
-        setState(() {
-          _propertyFuture = fetchData(widget.id);
-          _galleryFuture = fetchCarouselData(_id); // pass _id here
-        });
-      } else {
-        print('Invalid ID loaded: $_id');
-      }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      setState(() {
+        _propertyFuture = fetchData(widget.id); // Only property, gallery later
+      });
     });
   }
-  Future<void> _loaduserdata() async {
-    try {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      int loadedId = prefs.getInt('id_Building') ?? 0;
-      print('Loaded ID from SharedPreferences: $loadedId');
-      setState(() {
-        _id = loadedId;
-      });
-    } catch (e) {
-      print('Error loading ID: $e');
-      setState(() {
-        _id = 0;
-      });
-    }
-  }
-  Future<List<Catid>>? _propertyFuture;
-  Future<List<RealEstateSlider>>? _galleryFuture;
-  final PageController _galleryController = PageController();
-  int _currentGalleryIndex = 0;
   void _refreshData() {
     setState(() {
       _propertyFuture = fetchData(widget.id);
-      _galleryFuture = fetchCarouselData(_id);
-      data = 'Refreshed Data at ${DateTime.now()}';
     });
   }
-  String data = 'Initial Data';
-  Catid? firstProperty;
-  // final result = await profile();
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenWidth < 360;
     final isTablet = screenWidth > 600;
-    // Responsive values
     final horizontalPadding = isSmallScreen ? 8.0 : (isTablet ? 24.0 : 12.0);
     final verticalPadding = isSmallScreen ? 4.0 : (isTablet ? 12.0 : 8.0);
     final imageHeight = screenHeight * (isTablet ? 0.35 : 0.3);
     final carouselHeight = screenHeight * (isTablet ? 0.3 : 0.25);
     final chipSpacing = isSmallScreen ? 4.0 : 6.0;
     final fontScale = isSmallScreen ? 0.9 : (isTablet ? 1.1 : 1.0);
+    // Always white cards, adjust borders/text for dark mode
+    final cardBgColor = Colors.white;
+    final cardBorderColor = isDarkMode ? Colors.grey[400]! : Colors.grey[200]!;
+    final titleTextColor = Colors.grey[700]!;
+    final valueTextColor = Colors.black87;
     return Scaffold(
       backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
       appBar: AppBar(
@@ -348,19 +281,11 @@ class _View_DetailsState extends State<AllViewDetails> {
         surfaceTintColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
+          onTap: () => Navigator.pop(context),
           child: const Row(
             children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
+              SizedBox(width: 3),
+              Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
             ],
           ),
         ),
@@ -368,22 +293,13 @@ class _View_DetailsState extends State<AllViewDetails> {
       body: RefreshIndicator(
         onRefresh: () async {
           _refreshData();
-          // Wait for futures to complete to reflect changes in UI
-          if (_propertyFuture != null && _galleryFuture != null) {
-            await Future.wait([
-              _propertyFuture!,
-              _galleryFuture!,
-            ]);
-          }
+          if (_propertyFuture != null) await _propertyFuture!;
         },
         child: FutureBuilder<List<Catid>>(
           future: _propertyFuture,
           builder: (context, propertySnapshot) {
             if (propertySnapshot.connectionState == ConnectionState.waiting) {
-              return SizedBox(
-                height: screenHeight * 0.4,
-                child: Center(child: CircularProgressIndicator()),
-              );
+              return SizedBox(height: screenHeight * 0.4, child: const Center(child: CircularProgressIndicator()));
             } else if (propertySnapshot.hasError) {
               return SizedBox(
                 height: screenHeight * 0.25,
@@ -398,8 +314,7 @@ class _View_DetailsState extends State<AllViewDetails> {
                     children: [
                       Icon(Icons.error_outline, size: 50 * fontScale, color: Colors.grey),
                       SizedBox(height: verticalPadding * 2),
-                      Text("No Property Found!",
-                          style: TextStyle(fontSize: 16 * fontScale, color: Colors.grey)),
+                      Text("No Property Found!", style: TextStyle(fontSize: 16 * fontScale, color: Colors.grey)),
                     ],
                   ),
                 ),
@@ -407,466 +322,292 @@ class _View_DetailsState extends State<AllViewDetails> {
             } else {
               final prop = propertySnapshot.data!.first;
               firstProperty = prop;
-              return CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverToBoxAdapter(
-                    child: Column(
-                      children: [
-                        // Hero Image Section
-                        Stack(
-                          children: [
-                            Container(
-                              height: imageHeight,
-                              width: double.infinity,
-                              child: GestureDetector(
-                                onTap: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (context) => PropertyPreview(
-                                        ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: (prop.videoLink != null && prop.videoLink!.isNotEmpty)
-                                    ? ClipRRect(
-                                  borderRadius: BorderRadius.only(
-                                    bottomLeft: Radius.circular(20),
-                                    bottomRight: Radius.circular(20),
-                                  ),
-                                  child: VideoPlayerWidget(videoUrl: prop.videoLink!),
-                                )
-                                    : CachedNetworkImage(
-                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => Container(
-                                    color: Colors.grey[300],
-                                    child: Center(child: CircularProgressIndicator()),
-                                  ),
-                                  errorWidget: (context, url, error) => Container(
-                                    color: Colors.grey[300],
-                                    child: Icon(Icons.error, size: 50 * fontScale, color: Colors.grey),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            // Back Button - already in AppBar, but if needed
-                            Positioned(
-                              bottom: isSmallScreen ? 8.0 : 16.0,
-                              right: horizontalPadding,
-                              child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
-                                decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.7),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    prop.buyRent,
-                                    style: TextStyle(
-                                      fontSize: (isSmallScreen ? 16.0 : 18.0) * fontScale,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: verticalPadding * 2),
-                        // Price and Maintenance Chips
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: Row(
-                            children: [
-                              /// PRICE BOX
-                              Expanded(
-                                flex: 1,
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: horizontalPadding,
-                                    vertical: verticalPadding,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.purple.withOpacity(0.85),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '₹ ${prop.showPrice}',
-                                      style: TextStyle(
-                                        fontSize: (isSmallScreen ? 14.0 : 16.0) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
-                              SizedBox(width: 12),
-
-                              /// MAINTENANCE BOX — FULL TEXT SHOW!
-                              Expanded(
-                                flex: 2,  // <- Maintenance ko zyada space mil jayega
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: horizontalPadding,
-                                    vertical: verticalPadding,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.purple.withOpacity(0.85),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "${prop.maintenance} Maintenance", // Full visible
-                                      style: TextStyle(
-                                        fontSize: (isSmallScreen ? 14.0 : 16.0) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                      maxLines: 2,        // FULL TEXT SHOW
-                                      overflow: TextOverflow.visible, // No cutting
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // Property Info Section
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: horizontalPadding,
-                            vertical: verticalPadding * 1.5,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                prop.locations,
-                                style: TextStyle(
-                                  fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
-                                  fontWeight: FontWeight.w600,
-                                  color: isDarkMode ? Colors.white : Colors.black87,
-                                ),
-                              ),
-                              SizedBox(height: verticalPadding * 1.2),
-                              LayoutBuilder(builder: (context, constraints) {
-
-                                final available = constraints.maxWidth;
-                                final spacing = chipSpacing * 1.5;
-                                final int itemsPerRow = available >= 800 ? 4 : available >= 520 ? 3 : 2;
-                                final rawWidth = (available - spacing * (itemsPerRow - 1)) / itemsPerRow;
-                                final chipWidth = rawWidth.clamp(64.0, available).toDouble();
-
-                                final chipsData = <Map<String, dynamic>>[
-
-                                  {'icon': Icons.install_desktop_sharp, 'text': 'Live Property Id: ${prop.id}', 'color': Colors.lightGreen},
-                                  {'icon': Icons.bedroom_parent, 'text': prop.bhk ?? '', 'color': Colors.blue},
-                                  {'icon': Icons.chair, 'text': prop.furnishing ?? '', 'color': Colors.purple},
-                                  {'icon': Icons.apartment, 'text': prop.residenceCommercial ?? '', 'color': Colors.amber},
-                                  {'icon': Icons.apartment_sharp, 'text': 'Building Id: ${prop.subid}', 'color': Colors.lightBlue},
-
-                                  if ((prop.sourceId ?? '').isNotEmpty && prop.sourceId != 'null')
-                                    {'icon': Icons.file_open, 'text': 'Building Flat Id: ${prop.sourceId}', 'color': Colors.deepOrange},
-
-                                ].where((e) {
-
-                                  final t = (e['text'] as String?)?.trim() ?? '';
-                                  return t.isNotEmpty && t != 'null';
-
-                                }).toList();
-
-                                return Wrap(
-                                  spacing: spacing,
-                                  runSpacing: verticalPadding * 1.2,
-                                  children: chipsData.map((e) {
-                                    return SizedBox(
-                                      width: chipWidth,
-                                      child: _buildChip(
-                                        e['icon'] as IconData,
-                                        e['text'] as String,
-                                        e['color'] as Color,
-                                        context,
-                                      ),
-                                    );
-                                  }).toList(),
-                                );
-                              }),
-                              SizedBox(height: verticalPadding * 2),
-                            ],
-                          ),
-                        ),
-
-                        // Image Carousel
-                        FutureBuilder<List<RealEstateSlider>>(
-                          future: _galleryFuture,
-                          builder: (context, sliderSnapshot) {
-                            if (sliderSnapshot.connectionState == ConnectionState.waiting) {
-                              return SizedBox(height: carouselHeight * 0.4);
-                            }
-                            if (sliderSnapshot.hasError || sliderSnapshot.data == null || sliderSnapshot.data!.isEmpty) {
-                              return const SizedBox();
-                            }
-                            final images = sliderSnapshot.data!;
-                            final viewportFraction = isSmallScreen ? 0.85 : (isTablet ? 0.7 : 0.8);
-                            return Container(
-                              margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CarouselSlider(
-                                    options: CarouselOptions(
-                                      height: carouselHeight,
-                                      autoPlay: true,
-                                      enlargeCenterPage: false,
-                                      autoPlayInterval: const Duration(seconds: 3),
-                                      viewportFraction: viewportFraction,
-                                    ),
-                                    items: images.map((item) {
-                                      return Builder(
-                                        builder: (BuildContext context) {
-                                          return GestureDetector(
-                                            onTap: () {
-                                              Navigator.of(context).push(
-                                                MaterialPageRoute(
-                                                  builder: (context) => PropertyPreview(
-                                                    ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
-                                                  ),
-                                                ),
-                                              );
-                                            },
-                                            child: Container(
-                                              margin: EdgeInsets.symmetric(horizontal: 4),
-                                              child: ClipRRect(
-                                                borderRadius: BorderRadius.circular(8),
-                                                child: CachedNetworkImage(
-                                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
-                                                  fit: BoxFit.cover,
-                                                  width: double.infinity,
-                                                ),
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      );
-                                    }).toList(),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                        // Property Details Section
-                        Container(
-                          margin: EdgeInsets.all(horizontalPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.info_outline, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
-                                    SizedBox(width: horizontalPadding),
-                                    Text(
-                                      "Property Details",
-                                      style: TextStyle(
-                                        fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDarkMode ? Colors.white : Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: verticalPadding),
-                              _buildResponsiveInfoGrid(_getPropertyDetailsRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding), context, isSmallScreen),
-                            ],
-                          ),
-                        ),
-                        // Building Facility Section
-                        Container(
-                          margin: EdgeInsets.all(horizontalPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.local_hospital, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
-                                    SizedBox(width: horizontalPadding),
-                                    Text(
-                                      "Building Facility",
-                                      style: TextStyle(
-                                        fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDarkMode ? Colors.white : Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: verticalPadding),
-                              if (_getBuildingFacilityRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding).isNotEmpty)
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: _getBuildingFacilityRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding),
-                                )
-                              else
-                                const SizedBox.shrink(),
-                            ],
-                          ),
-                        ),
-                        // Contact Information Section
-                        // Container(
-                        //   margin: EdgeInsets.all(horizontalPadding),
-                        //   child: Column(
-                        //     crossAxisAlignment: CrossAxisAlignment.start,
-                        //     children: [
-                        //       Padding(
-                        //         padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                        //         child: Row(
-                        //           children: [
-                        //             Icon(Icons.contact_page, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
-                        //             SizedBox(width: horizontalPadding),
-                        //             Text(
-                        //               "Contact Information",
-                        //               style: TextStyle(
-                        //                 fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
-                        //                 fontWeight: FontWeight.bold,
-                        //                 color: isDarkMode ? Colors.white : Colors.black,
-                        //               ),
-                        //             ),
-                        //           ],
-                        //         ),
-                        //       ),
-                        //       SizedBox(height: verticalPadding * 2),
-                        //       _buildContactCard("FIELD WORKER", prop.fieldWorkerName, prop.fieldWorkerNumber, bgColor: Colors.blue, context: context, onCall: () => _showCallConfirmation(context, prop.fieldWorkerName, prop.fieldWorkerNumber)),
-                        //       if (prop.ownerNumber.isNotEmpty)
-                        //         _buildContactCard("OWNER", prop.ownerName, prop.ownerNumber, bgColor: Colors.green, context: context, onCall: () => _showCallConfirmation(context, prop.ownerName, prop.ownerNumber)),
-                        //       if (prop.caretakerNumber.isNotEmpty)
-                        //         _buildContactCard("CARETAKER", prop.caretakerName, prop.caretakerNumber, bgColor: Colors.purple, context: context, onCall: () => _showCallConfirmation(context, prop.caretakerName, prop.caretakerNumber)),
-                        //     ],
-                        //   ),
-                        // ),
-                        // Additional Information Section
-                        Container(
-                          margin: EdgeInsets.all(horizontalPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.info_outline, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
-                                    SizedBox(width: horizontalPadding),
-                                    Text(
-                                      "Additional Information",
-                                      style: TextStyle(
-                                        fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDarkMode ? Colors.white : Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: verticalPadding),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: _getAdditionalInfoRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Bottom spacing for bottom nav
-                        SizedBox(height: screenHeight * 0.15),
-                      ],
-                    ),
-                  ),
-                ],
+              // Nested Gallery FutureBuilder - Fix #1: Use prop.subid
+              return FutureBuilder<List<RealEstateSlider>>(
+                future: fetchCarouselData(prop.subid), // Correct subid from prop
+                builder: (context, gallerySnapshot) {
+                  if (gallerySnapshot.connectionState == ConnectionState.waiting) {
+                    // Show property UI, gallery loading
+                    return _buildPropertyUI(prop, gallerySnapshot.data ?? [], isDarkMode, screenWidth, screenHeight, isSmallScreen, isTablet, horizontalPadding, verticalPadding, imageHeight, carouselHeight, chipSpacing, fontScale, cardBgColor, cardBorderColor, titleTextColor, valueTextColor);
+                  } else if (gallerySnapshot.hasError) {
+                    print('Gallery Error: ${gallerySnapshot.error}'); // Debug
+                    return _buildPropertyUI(prop, [], isDarkMode, screenWidth, screenHeight, isSmallScreen, isTablet, horizontalPadding, verticalPadding, imageHeight, carouselHeight, chipSpacing, fontScale, cardBgColor, cardBorderColor, titleTextColor, valueTextColor);
+                  } else {
+                    final images = gallerySnapshot.data ?? [];
+                    return _buildPropertyUI(prop, images, isDarkMode, screenWidth, screenHeight, isSmallScreen, isTablet, horizontalPadding, verticalPadding, imageHeight, carouselHeight, chipSpacing, fontScale, cardBgColor, cardBorderColor, titleTextColor, valueTextColor);
+                  }
+                },
               );
             }
           },
         ),
       ),
-      // bottomNavigationBar: Container(
-      //   padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
-      //   decoration: BoxDecoration(
-      //     color: isDarkMode ? Colors.grey[900] : Colors.white,
-      //     boxShadow: [
-      //       BoxShadow(
-      //         color: Colors.black12,
-      //         blurRadius: 6,
-      //         offset: const Offset(0, -2),
-      //       ),
-      //     ],
-      //   ),
-      //   child: Row(
-      //     children: [
-      //       Expanded(
-      //         child: ElevatedButton(
-      //           style: ElevatedButton.styleFrom(
-      //             backgroundColor: Colors.green,
-      //             shape: RoundedRectangleBorder(
-      //               borderRadius: BorderRadius.circular(8),
-      //             ),
-      //             padding: EdgeInsets.symmetric(vertical: verticalPadding * 2),
-      //             elevation: 2,
-      //           ),
-      //           onPressed: Book_property,
-      //           child: Text(
-      //             "Book Property",
-      //             style: TextStyle(
-      //               fontSize: (isSmallScreen ? 11.0 : 13.0) * fontScale,
-      //               fontWeight: FontWeight.bold,
-      //               color: Colors.white,
-      //             ),
-      //             overflow: TextOverflow.ellipsis,
-      //           ),
-      //         ),
-      //       ),
-      //     ],
-      //   ),
-      // ),
     );
   }
-  // Helper methods adapted from upper code
-  Widget _buildInfoRow(IconData icon, Color iconColor, String title, String value, bool isSmallScreen, bool isDarkMode) {
+  // Extracted UI builder to avoid code duplication
+  Widget _buildPropertyUI(Catid prop, List<RealEstateSlider> images, bool isDarkMode, double screenWidth, double screenHeight, bool isSmallScreen, bool isTablet, double horizontalPadding, double verticalPadding, double imageHeight, double carouselHeight, double chipSpacing, double fontScale, Color cardBgColor, Color cardBorderColor, Color titleTextColor, Color valueTextColor) {
+    final viewportFraction = isSmallScreen ? 0.85 : (isTablet ? 0.7 : 0.8);
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Hero Image / Video (same, but video check added in widget)
+              Stack(
+                children: [
+                  SizedBox(
+                    height: imageHeight,
+                    width: double.infinity,
+                    child: GestureDetector(
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => PropertyPreview(ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}"),
+                        ),
+                      ),
+                      child: prop.videoLink.isNotEmpty
+                          ? ClipRRect(
+                        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                        child: VideoPlayerWidget(videoUrl: prop.videoLink), // Fixed: handles non-YouTube
+                      )
+                          : ClipRRect(
+                        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(20), bottomRight: Radius.circular(20)),
+                        child: CachedNetworkImage(
+                          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${prop.propertyPhoto}",
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(color: Colors.grey[300], child: const Center(child: CircularProgressIndicator())),
+                          errorWidget: (context, url, error) => Container(
+                            color: Colors.grey[300],
+                            child: Icon(Icons.error, size: 50 * fontScale, color: Colors.grey),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: isSmallScreen ? 8.0 : 16.0,
+                    right: horizontalPadding,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
+                      decoration: BoxDecoration(color: Colors.green.withOpacity(0.7), borderRadius: BorderRadius.circular(16)),
+                      child: Center(
+                        child: Text(
+                          prop.buyRent,
+                          style: TextStyle(
+                            fontSize: (isSmallScreen ? 16.0 : 18.0) * fontScale,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: verticalPadding * 2),
+              // Price & Maintenance (same)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: Row(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
+                        decoration: BoxDecoration(color: Colors.purple.withOpacity(0.85), borderRadius: BorderRadius.circular(16)),
+                        child: Center(
+                          child: Text(
+                            '₹ ${prop.showPrice}',
+                            style: TextStyle(fontSize: (isSmallScreen ? 14.0 : 16.0) * fontScale, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding),
+                        decoration: BoxDecoration(color: Colors.purple.withOpacity(0.85), borderRadius: BorderRadius.circular(16)),
+                        child: Center(
+                          child: Text(
+                            "${prop.maintenance} Maintenance",
+                            style: TextStyle(fontSize: (isSmallScreen ? 14.0 : 16.0) * fontScale, fontWeight: FontWeight.bold, color: Colors.white),
+                            maxLines: 2,
+                            overflow: TextOverflow.visible,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Location + IDs (same)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: verticalPadding * 1.5),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      prop.locations,
+                      style: TextStyle(fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale, fontWeight: FontWeight.w600, color: isDarkMode ? Colors.white : Colors.black87),
+                    ),
+                    SizedBox(height: verticalPadding * 1.5),
+                    LayoutBuilder(builder: (context, constraints) {
+                      final available = constraints.maxWidth;
+                      final spacing = chipSpacing * 1.5;
+                      final int itemsPerRow = available >= 800 ? 4 : available >= 520 ? 3 : 2;
+                      final rawWidth = (available - spacing * (itemsPerRow - 1)) / itemsPerRow;
+                      final chipWidth = rawWidth.clamp(64.0, available).toDouble();
+                      final chipsData = <Map<String, dynamic>>[
+                        {'icon': Icons.install_desktop_sharp, 'text': 'Live Property Id: ${prop.id.toString()}', 'color': Colors.lightGreen},
+                        {'icon': Icons.apartment_sharp, 'text': 'Building Id: ${prop.subid.toString()}', 'color': Colors.lightBlue},
+                        if ((prop.sourceId ?? '').trim().isNotEmpty) {'icon': Icons.file_open, 'text': 'Building Flat Id: ${prop.sourceId}', 'color': Colors.deepOrange},
+                        if ((prop.bhk ?? '').trim().isNotEmpty) {'icon': Icons.apartment_outlined, 'text': ' ${prop.bhk}', 'color': Colors.yellow},
+                      ];
+                      return Wrap(
+                        spacing: spacing,
+                        runSpacing: verticalPadding * 1.2,
+                        children: chipsData.map((e) => SizedBox(width: chipWidth, child: _buildChip(e['icon'] as IconData, e['text'] as String, e['color'] as Color, context))).toList(),
+                      );
+                    }),
+                    SizedBox(height: verticalPadding * 2),
+                  ],
+                ),
+              ),
+              // Multiple Images Carousel (same, but with images param)
+              if (images.isNotEmpty)
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: CarouselSlider(
+                    options: CarouselOptions(
+                      height: carouselHeight,
+                      autoPlay: true,
+                      enlargeCenterPage: false,
+                      autoPlayInterval: const Duration(seconds: 3),
+                      viewportFraction: viewportFraction,
+                    ),
+                    items: images.map((item) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return GestureDetector(
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => PropertyPreview(ImageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}"),
+                              ),
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.mImages}",
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              // Property Details Section (same structure)
+              Container(
+                margin: EdgeInsets.all(horizontalPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
+                          SizedBox(width: horizontalPadding),
+                          Text("Property Details", style: TextStyle(fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.black)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: verticalPadding),
+                    _buildResponsiveInfoGrid(
+                      _getPropertyDetailsRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding, titleTextColor, valueTextColor, cardBgColor, cardBorderColor),
+                      context,
+                      isSmallScreen,
+                    ),
+                  ],
+                ),
+              ),
+              // Building Facility Section (same)
+              Container(
+                margin: EdgeInsets.all(horizontalPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
+                      child: Row(
+                        children: [
+                          Icon(Icons.local_hospital, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
+                          SizedBox(width: horizontalPadding),
+                          Text("Building Facility", style: TextStyle(fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.black)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: verticalPadding),
+                    if (_getBuildingFacilityRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding, titleTextColor, valueTextColor, cardBgColor, cardBorderColor).isNotEmpty)
+                      ..._getBuildingFacilityRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding, titleTextColor, valueTextColor, cardBgColor, cardBorderColor),
+                  ],
+                ),
+              ),
+              // Additional Information (same)
+              Container(
+                margin: EdgeInsets.all(horizontalPadding),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info_outline, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
+                          SizedBox(width: horizontalPadding),
+                          Text("Additional Information", style: TextStyle(fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale, fontWeight: FontWeight.bold, color: isDarkMode ? Colors.white : Colors.black)),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: verticalPadding),
+                    ..._getAdditionalInfoRows(prop, context, isSmallScreen, isDarkMode, horizontalPadding, titleTextColor, valueTextColor, cardBgColor, cardBorderColor),
+                  ],
+                ),
+              ),
+              SizedBox(height: screenHeight * 0.15),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  // Updated _buildInfoRow with dynamic colors - Fix #3
+  Widget _buildInfoRow(IconData icon, Color iconColor, String title, String value, bool isSmallScreen, bool isDarkMode, Color titleTextColor, Color valueTextColor, Color cardBgColor, Color cardBorderColor) {
     if (value.isEmpty || value == "null" || value == "0") return const SizedBox.shrink();
-    final Color cardColor = Colors.white;
-    final Color borderColor = isDarkMode ? Colors.grey.shade700.withOpacity(0.2) : Colors.grey.shade200;
-    final Color titleColor = isDarkMode ? Colors.black87 : Colors.grey.shade700;
-    final Color valueColor = isDarkMode ? Colors.black87 : Colors.black87;
     final Color iconBg = iconColor.withOpacity(0.10);
     return Container(
       margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
       padding: EdgeInsets.symmetric(horizontal: 12, vertical: isSmallScreen ? 6.0 : 8.0),
       decoration: BoxDecoration(
-        color: cardColor,
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: borderColor),
-        boxShadow: isDarkMode
-            ? [BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))]
-            : null,
+        border: Border.all(color: cardBorderColor),
+        boxShadow: isDarkMode ? [const BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))] : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: EdgeInsets.all(isSmallScreen ? 4.0 : 6.0),
-            decoration: BoxDecoration(
-              color: iconBg,
-              borderRadius: BorderRadius.circular(6),
-            ),
+            decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(6)),
             child: Icon(icon, size: isSmallScreen ? 16.0 : 18.0, color: iconColor),
           ),
           SizedBox(width: isSmallScreen ? 6.0 : 8.0),
@@ -874,24 +615,9 @@ class _View_DetailsState extends State<AllViewDetails> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 10.0 : 11.0,
-                    fontWeight: FontWeight.w500,
-                    color: titleColor,
-                  ),
-                ),
+                Text(title, style: TextStyle(fontSize: isSmallScreen ? 10.0 : 11.0, fontWeight: FontWeight.w500, color: titleTextColor)),
                 SizedBox(height: isSmallScreen ? 1.0 : 2.0),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: isSmallScreen ? 11.0 : 12.0,
-                    fontWeight: FontWeight.w500,
-                    color: valueColor,
-                  ),
-                  softWrap: true,
-                ),
+                Text(value, style: TextStyle(fontSize: isSmallScreen ? 11.0 : 12.0, fontWeight: FontWeight.w500, color: valueTextColor), softWrap: true),
               ],
             ),
           ),
@@ -899,16 +625,26 @@ class _View_DetailsState extends State<AllViewDetails> {
       ),
     );
   }
-  Widget _buildContactCard(String role, String name, String number, {Color? bgColor, required BuildContext context, required VoidCallback onCall}) {
+  // Updated _buildContactCard with dynamic colors
+  Widget _buildContactCard(
+      String role,
+      String name,
+      String number, {
+        Color? bgColor,
+        required BuildContext context,
+        required VoidCallback onCall,
+      }) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     Color cardColor = bgColor ?? Colors.blue;
     String maskedNumber = _maskPhoneNumber(number);
+    final cardBgColor = Colors.white;
+    final valueTextColor = Colors.black87;
     return Container(
       margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
       decoration: BoxDecoration(
-        color: Color(0xFFF5F5F5),
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: cardColor.withOpacity(0.3)),
       ),
@@ -927,9 +663,12 @@ class _View_DetailsState extends State<AllViewDetails> {
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    role == "OWNER" ? Icons.person
-                        : role == "CARETAKER" ? Icons.support_agent
-                        : role == "FIELD WORKER" ? Icons.engineering
+                    role == "OWNER"
+                        ? Icons.person
+                        : role == "CARETAKER"
+                        ? Icons.support_agent
+                        : role == "FIELD WORKER"
+                        ? Icons.engineering
                         : Icons.person,
                     color: Colors.white,
                     size: isSmallScreen ? 16.0 : 18.0,
@@ -954,7 +693,7 @@ class _View_DetailsState extends State<AllViewDetails> {
                         style: TextStyle(
                           fontSize: isSmallScreen ? 13.0 : 14.0,
                           fontWeight: FontWeight.w500,
-                          color: isDarkMode ? Colors.black : Colors.black87,
+                          color: valueTextColor,
                         ),
                         softWrap: true,
                       ),
@@ -969,35 +708,59 @@ class _View_DetailsState extends State<AllViewDetails> {
                 onTap: onCall,
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: isSmallScreen ? 6.0 : 8.0),
+                  padding: EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: isSmallScreen ? 6.0 : 8.0),
                   decoration: BoxDecoration(
                     color: cardColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: cardColor.withOpacity(0.3)),
+                    border: Border.all(
+                        color: cardColor.withOpacity(0.3)),
                   ),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
                     children: [
                       Flexible(
                         child: Text(
                           maskedNumber,
                           style: TextStyle(
-                            fontSize: isSmallScreen ? 13.0 : 14.0,
+                            fontSize: isSmallScreen
+                                ? 13.0
+                                : 14.0,
                             fontWeight: FontWeight.w500,
                             color: cardColor,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          overflow:
+                          TextOverflow.ellipsis,
                         ),
                       ),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           GestureDetector(
-                            onTap: () => _openWhatsApp(number, context),
-                            child: Icon(PhosphorIcons.whatsapp_logo_bold, color: Colors.green, size: isSmallScreen ? 20.0 : 24.0),
+                            onTap: () =>
+                                _openWhatsApp(number, context),
+                            child: Icon(
+                              PhosphorIcons
+                                  .whatsapp_logo_bold,
+                              color: Colors.green,
+                              size: isSmallScreen
+                                  ? 20.0
+                                  : 24.0,
+                            ),
                           ),
-                          SizedBox(width: isSmallScreen ? 12.0 : 16.0),
-                          Icon(Icons.call, color: cardColor, size: isSmallScreen ? 20.0 : 24.0),
+                          SizedBox(
+                              width: isSmallScreen
+                                  ? 12.0
+                                  : 16.0),
+                          Icon(
+                            Icons.call,
+                            color: cardColor,
+                            size: isSmallScreen
+                                ? 20.0
+                                : 24.0,
+                          ),
                         ],
                       ),
                     ],
@@ -1007,7 +770,9 @@ class _View_DetailsState extends State<AllViewDetails> {
             else
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: isSmallScreen ? 6.0 : 8.0),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: isSmallScreen ? 6.0 : 8.0),
                 decoration: BoxDecoration(
                   color: Colors.grey.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
@@ -1016,7 +781,8 @@ class _View_DetailsState extends State<AllViewDetails> {
                   child: Text(
                     "Not Available",
                     style: TextStyle(
-                      fontSize: isSmallScreen ? 11.0 : 12.0,
+                      fontSize:
+                      isSmallScreen ? 11.0 : 12.0,
                       color: Colors.grey,
                     ),
                   ),
@@ -1027,17 +793,30 @@ class _View_DetailsState extends State<AllViewDetails> {
       ),
     );
   }
-  Widget _buildSimpleInfoCard(String title, String value, IconData icon, Color cardColor, {bool isSmallScreen = false, bool isDarkMode = false}) {
-    if (value.isEmpty || value == "null" || value == "0") return const SizedBox.shrink();
-    final Widget card = Container(
-      margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
+  // Updated _buildSimpleInfoCard with dynamic colors
+  Widget _buildSimpleInfoCard(
+      String title,
+      String value,
+      IconData icon,
+      Color cardColor, {
+        bool isSmallScreen = false,
+        bool isDarkMode = false,
+      }) {
+    if (value.isEmpty || value == "null" || value == "0") {
+      return const SizedBox.shrink();
+    }
+    final valueTextColor = Colors.black87;
+    return Container(
+      margin:
+      EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
       decoration: BoxDecoration(
-        color: Color(0xFFF5F5F5),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: cardColor.withOpacity(0.3)),
       ),
       child: Padding(
-        padding: EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
+        padding:
+        EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
         child: Row(
           children: [
             Container(
@@ -1056,23 +835,28 @@ class _View_DetailsState extends State<AllViewDetails> {
             SizedBox(width: isSmallScreen ? 6.0 : 8.0),
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: isSmallScreen ? 10.0 : 11.0,
+                      fontSize:
+                      isSmallScreen ? 10.0 : 11.0,
                       fontWeight: FontWeight.w600,
                       color: cardColor,
                     ),
                   ),
-                  SizedBox(height: isSmallScreen ? 1.0 : 2.0),
+                  SizedBox(
+                      height:
+                      isSmallScreen ? 1.0 : 2.0),
                   Text(
                     value,
                     style: TextStyle(
-                      fontSize: isSmallScreen ? 13.0 : 14.0,
+                      fontSize:
+                      isSmallScreen ? 13.0 : 14.0,
                       fontWeight: FontWeight.w500,
-                      color: isDarkMode ? Colors.black : Colors.black87,
+                      color: valueTextColor,
                     ),
                     softWrap: true,
                   ),
@@ -1083,14 +867,15 @@ class _View_DetailsState extends State<AllViewDetails> {
         ),
       ),
     );
-    return card;
   }
-  Widget _buildChip(IconData icon, String text, Color color, BuildContext context) {
+  Widget _buildChip(
+      IconData icon, String text, Color color, BuildContext context) {
     if (text.isEmpty) return const SizedBox.shrink();
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 6.0 : 8.0, vertical: 8),
+      padding: EdgeInsets.symmetric(
+          horizontal: isSmallScreen ? 6.0 : 8.0, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(16),
@@ -1099,8 +884,9 @@ class _View_DetailsState extends State<AllViewDetails> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: isSmallScreen ? 14.0 : 16.0, color: color),
-          SizedBox(width: 4),
+          Icon(icon,
+              size: isSmallScreen ? 14.0 : 16.0, color: color),
+          const SizedBox(width: 4),
           Flexible(
             child: Text(
               text,
@@ -1116,43 +902,39 @@ class _View_DetailsState extends State<AllViewDetails> {
       ),
     );
   }
-  Widget  _buildResponsiveInfoGrid(List<Widget> infoRows, BuildContext context, bool isSmallScreen) {
+  // Fixed Grid to Adaptive Wrap - No empty spaces for missing details
+  Widget _buildResponsiveInfoGrid(List<Widget> infoRows,
+      BuildContext context, bool isSmallScreen) {
+    if (infoRows.isEmpty) return const SizedBox.shrink();
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
-        if (screenWidth > 350) {
-          final half = (infoRows.length / 2).ceil();
-          final leftColumn = infoRows.sublist(0, half);
-          final rightColumn = infoRows.length > half ? infoRows.sublist(half) : <Widget>[];
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: leftColumn,
-                ),
-              ),
-              SizedBox(width: isSmallScreen ? 8.0 : 12.0),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: rightColumn,
-                ),
-              ),
-            ],
-          );
-        } else {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: infoRows,
-          );
-        }
+        final padding = isSmallScreen ? 4.0 : 8.0;
+        final availableWidth = screenWidth - 2 * padding;
+        final spacing = screenWidth > 350 ? (isSmallScreen ? 12.0 : 16.0) : 8.0;
+        final itemWidth = (availableWidth - spacing) / 2;
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: padding),
+          child: Wrap(
+            spacing: spacing,
+            runSpacing: 8.0,
+            children: infoRows.map((row) => SizedBox(
+              width: itemWidth,
+              child: row,
+            )).toList(),
+          ),
+        );
       },
     );
   }
-  List<Widget> _getPropertyDetailsRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
+  // Fixed _getPropertyDetailsRows - Reordered to match image, added missing fields, corrected labels
+  List<Widget> _getPropertyDetailsRows(Catid prop,
+      BuildContext context, bool isSmallScreen,
+      bool isDarkMode, double horizontalPadding,
+      Color titleTextColor, Color valueTextColor,
+      Color cardBgColor, Color cardBorderColor) {
     List<Widget> rows = [];
+<<<<<<< HEAD
     if ((prop.metroDistance ?? '').isNotEmpty)
       rows.add(_buildInfoRow(Icons.train, Colors.orange, "Metro Name", prop.metroDistance, isSmallScreen, isDarkMode));
     if ((prop.mainMarketDistance ?? '').isNotEmpty)
@@ -1163,185 +945,261 @@ class _View_DetailsState extends State<AllViewDetails> {
       rows.add(_buildInfoRow(Icons.category, Colors.deepOrange, "Type of Property", prop.typeofProperty, isSmallScreen, isDarkMode));
     if ((prop.availableDate ?? '').isNotEmpty)
       rows.add(_buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", _formatDate(prop.availableDate), isSmallScreen, isDarkMode));
+=======
+    // Metro Distance
+    if (
+    prop.highwayDistance.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.train,
+          Colors.orange, "Metro Station",
+          prop.highwayDistance, isSmallScreen,
+          isDarkMode, titleTextColor,
+          valueTextColor, cardBgColor,
+          cardBorderColor));
+    }
+    // Highway Distance
+    if (
+    prop.metroDistance.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.directions_car,
+          Colors.red, "Metro Distance",
+          prop.metroDistance, isSmallScreen,
+          isDarkMode, titleTextColor, valueTextColor,
+          cardBgColor, cardBorderColor));
+    }
+    // Main Market Distance
+    if (prop.mainMarketDistance.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.store, Colors.purple, "Market Distance", prop.mainMarketDistance, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    // Road Size
+    if (prop.roadSize.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize} Feet", isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    // Residence/Commercial
+    if (prop.residenceCommercial.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.business, Colors.teal, "Residence/Commercial", prop.residenceCommercial, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    // Age of Property
+    if (prop.ageOfProperty.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.home, Colors.orange, "Age of Property", prop.ageOfProperty, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    // Type of Property
+    if (prop.typeofProperty.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.home, Colors.orange, "Type of Property", prop.typeofProperty, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    // Flat Number
+    if (prop.flatNumber.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.format_list_numbered, Colors.green, "Flat Number", prop.flatNumber, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    if (prop.floor.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.layers, Colors.green, "Floor", prop.floor, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    if (prop.squarefit.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.square_foot, Colors.green, "Square Fit", prop.squarefit, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    if (prop.furnishing.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.chair, Colors.green, "Furnishing", prop.furnishing, isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    if (prop.registryAndGpa.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.calendar_today, Colors.blue, "Registry&GPA", _formatDate(prop.registryAndGpa), isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+    if (prop.loan.isNotEmpty) {
+      rows.add(_buildInfoRow(Icons.account_balance_sharp, Colors.blue, "Loan", _formatDate(prop.loan), isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
+    }
+>>>>>>> origin/dev
 
-    if ((prop.floor ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.apartment, Colors.red, "Floor", prop.floor, isSmallScreen, isDarkMode));
-
-    if ((prop.highwayDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.vaccines, Colors.red, "Metro Distance", prop.highwayDistance, isSmallScreen, isDarkMode));
-    if ((prop.roadSize ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize} Feet", isSmallScreen, isDarkMode));
-    final floorText = (prop.floor ?? '').isNotEmpty && (prop.totalFloor ?? '').isNotEmpty
-        ? "${prop.floor}/${prop.totalFloor}"
-        : (prop.floor ?? '').isNotEmpty
-        ? prop.floor
-        : (prop.totalFloor ?? '').isNotEmpty
-        ? prop.totalFloor
-        : '';
-
-    if ((prop.loan ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.balance, Colors.purple, "Loan", prop.loan, isSmallScreen, isDarkMode));
-    if ((prop.flatNumber ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.format_list_numbered, Colors.green, "Flat Number", prop.flatNumber, isSmallScreen, isDarkMode));
-
-    if ((prop.ageOfProperty ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.real_estate_agent, Colors.green, "Age of property", prop.ageOfProperty, isSmallScreen, isDarkMode));
-
-    if ((prop.squarefit ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.square_foot, Colors.black, "Square Fit", prop.squarefit, isSmallScreen, isDarkMode));
-
-
-    //
-    // if ((prop.id ?? '').isNotEmpty)
-    //   rows.add(_buildInfoRow(Icons.location_on, Colors.pink, "Apartment Address", prop.id, isSmallScreen, isDarkMode));
-    // Add ID chips
-    // rows.add(
-    //   Padding(
-    //     padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
-    //     child: Wrap(
-    //       spacing: 8,
-    //       runSpacing: 8,
-    //       children: [
-    //         _buildChip(Icons.install_desktop_sharp, "Live Property Id : ${prop.id}", Colors.lightGreen, context),
-    //         _buildChip(Icons.apartment_sharp, "Building Id : ${prop.subid}", Colors.lightBlue, context),
-    //         if (prop.sourceId != null) _buildChip(Icons.file_open, "Building Flat Id : ${prop.sourceId}", Colors.deepOrange, context),
-    //       ],
-    //     ),
-    //   ),
-    //);
+    // Other fields (BHK, Floor, etc.) can be added here if needed, but keeping to match image
     return rows;
   }
-  List<Widget> _getBuildingFacilityRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
+  // Updated _getBuildingFacilityRows with new params
+  List<Widget> _getBuildingFacilityRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding, Color titleTextColor, Color valueTextColor, Color cardBgColor, Color cardBorderColor) {
     List<Widget> rows = [];
-    if ((prop.facility ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(Icons.local_hospital, Colors.amber, "Building Facility", prop.facility, isSmallScreen, isDarkMode));
-    }
     final double verticalPadding = isSmallScreen ? 2.0 : 4.0;
-    // Row 1: Kitchen and Bathroom
-    List<Widget> row1Cards = [];
-    if ((prop.kitchen ?? '').isNotEmpty) {
-      row1Cards.add(_buildSimpleInfoCard("Kitchen", prop.kitchen, Icons.kitchen, Colors.pink, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
+    // Facilities
+    if (prop.facility.isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.local_hospital,
+        Colors.amber,
+        "Facilities",
+        prop.facility,
+        isSmallScreen,
+        isDarkMode,
+        titleTextColor,
+        valueTextColor,
+        cardBgColor,
+        cardBorderColor,
+      ));
+      if (prop.apartmentName.isNotEmpty) {
+        rows.add(_buildInfoRow(
+          Icons.apartment_outlined,
+          Colors.green,
+          "Flat Facility",
+          prop.apartmentName,
+          isSmallScreen,
+          isDarkMode,
+          titleTextColor,
+          valueTextColor,
+          cardBgColor,
+          cardBorderColor,
+        ));
+      }
     }
-    if ((prop.bathroom ?? '').isNotEmpty) {
-      row1Cards.add(_buildSimpleInfoCard("Bathroom", prop.bathroom, Icons.bathroom, Colors.lightBlue, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
+    // Row 1: Kitchen, Bathroom
+    List<Widget> row1Cards = [];
+    if (prop.kitchen.isNotEmpty) {
+      row1Cards.add(_buildSimpleInfoCard(
+        "Kitchen",
+        prop.kitchen,
+        Icons.kitchen,
+        Colors.pink,
+        isSmallScreen: isSmallScreen,
+        isDarkMode: isDarkMode,
+      ));
+    }
+    if (prop.bathroom.isNotEmpty) {
+      row1Cards.add(_buildSimpleInfoCard(
+        "Bathroom",
+        prop.bathroom,
+        Icons.bathroom,
+        Colors.lightBlue,
+        isSmallScreen: isSmallScreen,
+        isDarkMode: isDarkMode,
+      ));
     }
     if (row1Cards.isNotEmpty) {
-      rows.add(Padding(
-        padding: EdgeInsets.symmetric(vertical: verticalPadding),
-        child: _buildAdaptiveRows(row1Cards, context, verticalPadding),
+      rows.add(
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: verticalPadding),
+          child: _buildAdaptiveRows(row1Cards, context, verticalPadding),
+        ),
+      );
+    }
+    // Row 2: Parking, Lift, Balcony, Meter Type
+    List<Widget> row2Cards = [];
+    if (prop.parking.isNotEmpty) {
+      row2Cards.add(_buildSimpleInfoCard(
+        "Parking",
+        prop.parking,
+        Icons.local_parking,
+        Colors.purple,
+        isSmallScreen: isSmallScreen,
+        isDarkMode: isDarkMode,
       ));
     }
-    // Row 2: Parking, Lift, and Meter
-    List<Widget> row2Cards = [];
-    if ((prop.parking ?? '').isNotEmpty) {
-      row2Cards.add(_buildSimpleInfoCard("Parking", prop.parking, Icons.local_parking, Colors.purple, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
+    if (prop.lift.isNotEmpty) {
+      final String liftText =
+      prop.lift.toLowerCase() == 'yes' ? 'Available' : 'Not Available';
+      row2Cards.add(_buildSimpleInfoCard(
+        "Lift",
+        liftText,
+        Icons.elevator,
+        Colors.red,
+        isSmallScreen: isSmallScreen,
+        isDarkMode: isDarkMode,
+      ));
     }
-    if ((prop.lift ?? '').isNotEmpty) {
-      row2Cards.add(_buildSimpleInfoCard("Lift", "${prop.lift.toLowerCase() == 'yes' ? 'Available' : 'Not Available'}", Icons.elevator, Colors.red, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
+    if (prop.balcony.isNotEmpty) {
+      row2Cards.add(_buildSimpleInfoCard(
+        "Balcony",
+        prop.balcony,
+        Icons.balcony,
+        Colors.orange,
+        isSmallScreen: isSmallScreen,
+        isDarkMode: isDarkMode,
+      ));
     }
-
-    if ((prop.balcony ?? '').isNotEmpty) {
-      row2Cards.add(_buildSimpleInfoCard("Balcony", prop.balcony, Icons.balcony, Colors.purple, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
-    }
-
-    if ((prop.meter ?? '').isNotEmpty) {
-      row2Cards.add(_buildSimpleInfoCard("Meter", "${prop.meter}/- per unit.", Icons.electric_meter, Colors.blue, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
+    if (prop.meter.isNotEmpty) {
+      row2Cards.add(_buildSimpleInfoCard(
+        "Meter Type",
+        prop.meter,
+        Icons.electric_meter,
+        Colors.blue,
+        isSmallScreen: isSmallScreen,
+        isDarkMode: isDarkMode,
+      ));
     }
     if (row2Cards.isNotEmpty) {
-      rows.add(Padding(
-        padding: EdgeInsets.symmetric(vertical: verticalPadding),
-        child: _buildAdaptiveRows(row2Cards, context, verticalPadding),
-      ));
+      rows.add(
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: verticalPadding),
+          child: _buildAdaptiveRows(row2Cards, context, verticalPadding),
+        ),
+      );
     }
     return rows;
   }
-  Widget _buildAdaptiveRows(List<Widget> cards, BuildContext context, double verticalPadding) {
+  Widget _buildAdaptiveRows(
+      List<Widget> cards, BuildContext context, double verticalPadding) {
     return LayoutBuilder(builder: (context, constraints) {
       final available = constraints.maxWidth;
-      final spacing = MediaQuery.of(context).size.width < 360 ? 6.0 : 8.0;
+      final spacing =
+      MediaQuery.of(context).size.width < 360 ? 6.0 : 8.0;
       final runSpacing = verticalPadding;
-      // Decide how many items fit horizontally
-      final int itemsPerRow = available >= 800
-          ? 4
-          : available >= 520
-          ? 3
-          : 2;
-      final itemWidth = (available - spacing * (itemsPerRow - 1)) / itemsPerRow;
-      // If only one card, give it full width
+      final int itemsPerRow =
+      available >= 800 ? 4 : available >= 520 ? 3 : 2;
+      final itemWidth =
+          (available - spacing * (itemsPerRow - 1)) / itemsPerRow;
       return Wrap(
         spacing: spacing,
         runSpacing: runSpacing,
         children: cards.map((card) {
-          final width = cards.length == 1 ? available : itemWidth;
+          final width =
+          cards.length == 1 ? available : itemWidth;
           return SizedBox(width: width, child: card);
         }).toList(),
       );
     });
   }
-  List<Widget> _getAdditionalInfoRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
+  // Updated _getAdditionalInfoRows with new params
+  List<Widget> _getAdditionalInfoRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding, Color titleTextColor, Color valueTextColor, Color cardBgColor, Color cardBorderColor) {
     List<Widget> rows = [];
-    // Current Date
-    if ((prop.currentDate ?? '').isNotEmpty) {
-      rows.add(_buildSimpleInfoCard("Current Date", _formatDate(prop.currentDate), Icons.date_range, Colors.indigo, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode));
-    }
-    // Asking Price and Last Price Row
-    List<Widget> priceWidgets = [];
-    // if ((prop.askingPrice ?? '').isNotEmpty) {
-    //   priceWidgets.add(Expanded(
-    //     child: _buildSimpleInfoCard("Asking Price", prop.askingPrice, Icons.currency_rupee, Colors.green, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
-    //   ));
-    // }
-    // if ((prop.lastPrice ?? '').isNotEmpty) {
-    //   if (priceWidgets.isNotEmpty) {
-    //     priceWidgets.add(SizedBox(width: isSmallScreen ? 6.0 : 8.0));
-    //   }
-    //   priceWidgets.add(Expanded(
-    //     child: _buildSimpleInfoCard("Last Price", prop.lastPrice, Icons.currency_rupee, Colors.pink, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
-    //   ));
-    // }
-    if (priceWidgets.isNotEmpty) {
+    // Property Added Date
+    if (prop.currentDate.isNotEmpty) {
       rows.add(
-        Padding(
-          padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
-          child: Row(children: priceWidgets),
+        _buildSimpleInfoCard(
+          "Property Added Date",
+          _formatDate(prop.currentDate),
+          Icons.date_range,
+          Colors.indigo,
+          isSmallScreen: isSmallScreen,
+          isDarkMode: isDarkMode,
         ),
       );
     }
-    // Video Link
-    if ((prop.videoLink ?? '').isNotEmpty) {
-      rows.add(
-        GestureDetector(
-          onTap: () => _launchVideo(prop.videoLink, context),
-          child: _buildSimpleInfoCard("Video Link", prop.videoLink, Icons.video_library, Colors.lime, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
-        ),
-      );
-    }
-    // Fieldworker Info Card
-    rows.add(_buildFieldworkerInfoCard(prop, context, isSmallScreen, isDarkMode));
+    // Field Worker Info
+    rows.add(
+        _buildFieldworkerInfoCard(prop, context, isSmallScreen, isDarkMode));
     return rows;
   }
-  Widget _buildFieldworkerInfoCard(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode) {
-    final String name = prop.fieldWorkerName ?? '';
-    final String number = prop.fieldWorkerNumber ?? '';
-    final String address = prop.fieldWorkerAddress ?? '';
-    final String location = prop.fieldWorkerCurrentLocation ?? '';
-    if (name.isEmpty && number.isEmpty && address.isEmpty && location.isEmpty) {
-      return const SizedBox.shrink();
-    }
+  // Updated _buildFieldworkerInfoCard with dynamic colors
+  Widget _buildFieldworkerInfoCard(Catid prop, BuildContext context,
+      bool isSmallScreen, bool isDarkMode) {
+    final String name = prop.fieldWorkerName;
+    final String number = prop.fieldWorkerNumber;
+    //final String address = prop.fieldWorkerAddress;
+    final String location = prop.fieldWorkerCurrentLocation;
     final Color cardColor = Colors.blue;
     final Color bgColor = Colors.blue;
+    final cardBgColor = Colors.white;
+    final valueTextColor = Colors.black87;
+    if (name.isEmpty &&
+        number.isEmpty &&
+        // address.isEmpty &&
+        location.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return Container(
-      margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
-      padding: EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
+      margin:
+      EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
+      padding:
+      EdgeInsets.all(isSmallScreen ? 10.0 : 12.0),
       decoration: BoxDecoration(
-        color: Color(0xFFF5F5F5),
+        color: cardBgColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: cardColor.withOpacity(0.3)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header: Role and Name
+          // Header
           Row(
             children: [
               Container(
@@ -1360,23 +1218,27 @@ class _View_DetailsState extends State<AllViewDetails> {
               SizedBox(width: isSmallScreen ? 6.0 : 8.0),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment:
+                  CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "FIELD WORKER",
                       style: TextStyle(
-                        fontSize: isSmallScreen ? 10.0 : 11.0,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: bgColor,
+                        color: Colors.blue,
                       ),
                     ),
-                    SizedBox(height: isSmallScreen ? 1.0 : 2.0),
+                    SizedBox(
+                        height:
+                        isSmallScreen ? 1.0 : 2.0),
                     Text(
                       name.isNotEmpty ? name : "Not Available",
                       style: TextStyle(
-                        fontSize: isSmallScreen ? 13.0 : 14.0,
+                        fontSize:
+                        isSmallScreen ? 13.0 : 14.0,
                         fontWeight: FontWeight.w500,
-                        color: isDarkMode ? Colors.black : Colors.black87,
+                        color: valueTextColor,
                       ),
                       softWrap: true,
                     ),
@@ -1386,26 +1248,33 @@ class _View_DetailsState extends State<AllViewDetails> {
             ],
           ),
           SizedBox(height: isSmallScreen ? 6.0 : 8.0),
-          // Number (if available)
+          // Number
           if (number.isNotEmpty)
             GestureDetector(
-              onTap: () => _showCallConfirmation(context, name, number),
+              onTap: () =>
+                  _showCallConfirmation(context, name, number),
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: isSmallScreen ? 6.0 : 8.0),
+                padding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: isSmallScreen ? 6.0 : 8.0),
                 decoration: BoxDecoration(
                   color: bgColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: bgColor.withOpacity(0.3)),
+                  border: Border.all(
+                      color: bgColor.withOpacity(0.3)),
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisAlignment:
+                  MainAxisAlignment.spaceBetween,
                   children: [
                     Flexible(
                       child: Text(
                         _maskPhoneNumber(number),
                         style: TextStyle(
-                          fontSize: isSmallScreen ? 13.0 : 14.0,
+                          fontSize: isSmallScreen
+                              ? 13.0
+                              : 14.0,
                           fontWeight: FontWeight.w500,
                           color: bgColor,
                         ),
@@ -1416,49 +1285,76 @@ class _View_DetailsState extends State<AllViewDetails> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         GestureDetector(
-                          onTap: () => _openWhatsApp(number, context),
-                          child: Icon(PhosphorIcons.whatsapp_logo_bold, color: Colors.green, size: isSmallScreen ? 20.0 : 24.0),
+                          onTap: () =>
+                              _openWhatsApp(number, context),
+                          child: Icon(
+                            PhosphorIcons.whatsapp_logo_bold,
+                            color: Colors.green,
+                            size: isSmallScreen
+                                ? 20.0
+                                : 24.0,
+                          ),
                         ),
-                        SizedBox(width: isSmallScreen ? 12.0 : 16.0),
-                        Icon(Icons.call, color: bgColor, size: isSmallScreen ? 20.0 : 24.0),
+                        SizedBox(
+                            width: isSmallScreen
+                                ? 12.0
+                                : 16.0),
+                        Icon(
+                          Icons.call,
+                          color: bgColor,
+                          size: isSmallScreen
+                              ? 20.0
+                              : 24.0,
+                        ),
                       ],
                     ),
                   ],
                 ),
               ),
             ),
-          // Address (if available)
-          if (address.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(top: isSmallScreen ? 6.0 : 8.0),
-              child: _buildSimpleInfoCard("Fieldworker Address", address, Icons.location_on, Colors.lime, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
-            ),
-          // Current Location (if available)
+          // Current Location
           if (location.isNotEmpty)
             Padding(
-              padding: EdgeInsets.only(top: isSmallScreen ? 6.0 : 8.0),
-              child: _buildSimpleInfoCard("Fieldworker Location", location, Icons.my_location, Colors.lightBlue, isSmallScreen: isSmallScreen, isDarkMode: isDarkMode),
+              padding: EdgeInsets.only(
+                  top: isSmallScreen ? 6.0 : 8.0),
+              child: _buildSimpleInfoCard(
+                "Fieldworker Location",
+                location,
+                Icons.my_location,
+                Colors.lightBlue,
+                isSmallScreen: isSmallScreen,
+                isDarkMode: isDarkMode,
+              ),
             ),
         ],
       ),
     );
   }
-  void _showCallConfirmation(BuildContext context, String name, String number) async {
+  void _showCallConfirmation(
+      BuildContext context, String name, String number) async {
     bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Call $name',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
+        title: Text(
+          'Call $name',
+          style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black),
+        ),
         content: Text(
-            'Do you really want to call ${name.isNotEmpty ? name : "this contact"}?',
-            style: TextStyle(color: isDarkMode ? Colors.white : Colors.black)),
-        backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          'Do you really want to call ${name.isNotEmpty ? name : "this contact"}?',
+          style: TextStyle(
+              color: isDarkMode ? Colors.white : Colors.black),
+        ),
+        backgroundColor:
+        isDarkMode ? Colors.grey[800] : Colors.white,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
         actions: <Widget>[
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No', style: TextStyle(color: Colors.grey)),
+            child: const Text('No',
+                style: TextStyle(color: Colors.grey)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -1477,7 +1373,8 @@ class _View_DetailsState extends State<AllViewDetails> {
     String lastPart = number.substring(number.length - 4);
     return '$firstPart****$lastPart';
   }
-  Future<void> _launchVideo(String url, BuildContext context) async {
+  Future<void> _launchVideo(
+      String url, BuildContext context) async {
     final Uri videoUri = Uri.parse(url);
     if (await canLaunchUrl(videoUri)) {
       await launchUrl(videoUri);
@@ -1489,18 +1386,24 @@ class _View_DetailsState extends State<AllViewDetails> {
       }
     }
   }
-  Future<void> _openWhatsApp(String number, BuildContext context) async {
+  Future<void> _openWhatsApp(
+      String number, BuildContext context) async {
     try {
-      String cleanNumber = number.replaceAll(RegExp(r'[^0-9]'), '');
+      String cleanNumber =
+      number.replaceAll(RegExp(r'[^0-9]'), '');
       if (!cleanNumber.startsWith('91')) {
         cleanNumber = '91$cleanNumber';
       }
-      final Uri whatsappUri = Uri.parse("whatsapp://send?phone=$cleanNumber");
-      final Uri whatsappWebUri = Uri.parse("https://wa.me/$cleanNumber");
+      final Uri whatsappUri =
+      Uri.parse("whatsapp://send?phone=$cleanNumber");
+      final Uri whatsappWebUri =
+      Uri.parse("https://wa.me/$cleanNumber");
       if (await canLaunchUrl(whatsappUri)) {
-        await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
+        await launchUrl(whatsappUri,
+            mode: LaunchMode.externalApplication);
       } else if (await canLaunchUrl(whatsappWebUri)) {
-        await launchUrl(whatsappWebUri, mode: LaunchMode.externalApplication);
+        await launchUrl(whatsappWebUri,
+            mode: LaunchMode.externalApplication);
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -1511,12 +1414,15 @@ class _View_DetailsState extends State<AllViewDetails> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error opening WhatsApp: ${e.toString()}')),
+          SnackBar(
+              content:
+              Text('Error opening WhatsApp: ${e.toString()}')),
         );
       }
     }
   }
-  Future<void> _makePhoneCall(String number, BuildContext context) async {
+  Future<void> _makePhoneCall(
+      String number, BuildContext context) async {
     try {
       bool? res = await FlutterPhoneDirectCaller.callNumber(number);
       if (res != true) {
@@ -1534,9 +1440,9 @@ class _View_DetailsState extends State<AllViewDetails> {
     if (dateString == null || dateString.isEmpty) return "N/A";
     try {
       final date = DateTime.parse(dateString);
-      return DateFormat('dd MMM yyyy').format(date); // e.g., 02 Aug 2025
+      return DateFormat('dd MMM yyyy').format(date);
     } catch (e) {
-      return "Invalid Date";
+      return dateString;
     }
   }
   Future<bool> _checkCallPermission() async {
@@ -1545,7 +1451,6 @@ class _View_DetailsState extends State<AllViewDetails> {
       status = await Permission.phone.request();
     }
     if (status.isPermanentlyDenied) {
-      // Open app settings
       openAppSettings();
       return false;
     }
@@ -1568,12 +1473,14 @@ class VideoPlayerWidget extends StatefulWidget {
 }
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late YoutubePlayerController _controller;
+  bool _isYouTube = false;
   @override
   void initState() {
     super.initState();
-    final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl) ?? '';
+    final videoId = YoutubePlayer.convertUrlToId(widget.videoUrl);
+    _isYouTube = videoId != null && videoId.isNotEmpty;
     _controller = YoutubePlayerController(
-      initialVideoId: videoId,
+      initialVideoId: videoId ?? '',
       flags: const YoutubePlayerFlags(
         autoPlay: true,
         mute: false,
@@ -1595,34 +1502,35 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   }
   @override
   Widget build(BuildContext context) {
+    if (!_isYouTube) {
+      return Container(
+        color: Colors.grey[300],
+        child: const Center(child: Icon(Icons.video_file, size: 50, color: Colors.grey)),
+      ); // Placeholder for non-YouTube
+    }
     return YoutubePlayerBuilder(
-      onExitFullScreen: () {
-        // code to run when exiting full screen, if any
-      },
-      builder: (context, player) {
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            height: MediaQuery.of(context).size.height * 0.25,
-            width: double.infinity,
-            child: player,
-          ),
-        );
-      },
+      onExitFullScreen: () {},
+      builder: (context, player) => ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.25,
+          width: double.infinity,
+          child: player,
+        ),
+      ),
       player: YoutubePlayer(
         controller: _controller,
         showVideoProgressIndicator: true,
         progressIndicatorColor: Colors.redAccent,
-        onReady: () {
-          print("Player is ready.");
-        },
+        onReady: () => print("Player is ready."),
       ),
     );
   }
 }
 void openWhatsApp(String phoneNumber) {
   if (defaultTargetPlatform == TargetPlatform.android) {
-    final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+    final cleanNumber =
+    phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
     final intent = AndroidIntent(
       action: 'action_view',
       data: Uri.encodeFull('whatsapp://send?phone=$cleanNumber'),
@@ -1630,7 +1538,7 @@ void openWhatsApp(String phoneNumber) {
     );
     intent.launch();
   } else {
-    // For iOS or others fallback to url_launcher or show message
-    print('WhatsApp open only supported on Android with this method');
+    print(
+        'WhatsApp open only supported on Android with this method');
   }
 }

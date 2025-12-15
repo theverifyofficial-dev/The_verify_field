@@ -8,6 +8,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Administrator/All_Rented_Flat/Pending_Add%20_Property_Form.dart';
+import 'package:verify_feild_worker/Propert_verigication_Document/Add_Property_Veerification.dart';
+import 'package:verify_feild_worker/Upcoming/add_coming_flats.dart';
 import 'dart:io';
 import '../property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -20,9 +23,10 @@ import 'add_flat_form.dart';
 import 'New_Update/under_flats_infutureproperty.dart';
 import 'package:intl/intl.dart';
 // Your existing model classes
+// Updated Model - FutureProperty2
 class FutureProperty2 {
-  final int id;
-  final String images;
+  final String id;
+  final String images; // single image for now
   final String ownerName;
   final String ownerNumber;
   final String caretakerName;
@@ -38,8 +42,8 @@ class FutureProperty2 {
   final String propertyAddressForFieldworker;
   final String ownerVehicleNumber;
   final String yourAddress;
-  final String fieldworkerName;
-  final String fieldworkerNumber;
+  final String fieldworkarName;
+  final String fieldworkarNumber;
   final String currentDate;
   final String longitude;
   final String latitude;
@@ -51,11 +55,10 @@ class FutureProperty2 {
   final String lift;
   final String parking;
   final String totalFloor;
-  final String apartmentName;
+  final String residenceCommercial;
   final String facility;
   final String localityList;
-  final String currentLocation;
-  final String residenceCommercial;
+
   FutureProperty2({
     required this.id,
     required this.images,
@@ -74,8 +77,8 @@ class FutureProperty2 {
     required this.propertyAddressForFieldworker,
     required this.ownerVehicleNumber,
     required this.yourAddress,
-    required this.fieldworkerName,
-    required this.fieldworkerNumber,
+    required this.fieldworkarName,
+    required this.fieldworkarNumber,
     required this.currentDate,
     required this.longitude,
     required this.latitude,
@@ -87,15 +90,18 @@ class FutureProperty2 {
     required this.lift,
     required this.parking,
     required this.totalFloor,
-    required this.apartmentName,
-    required this.facility,
-    required this.currentLocation,
     required this.residenceCommercial,
+    required this.facility,
     required this.localityList,
   });
+
   factory FutureProperty2.fromJson(Map<String, dynamic> json) {
     return FutureProperty2(
+<<<<<<< HEAD
       id: int.tryParse(json['id'].toString()) ?? 0, // ✅ FIX
+=======
+      id: json['id']?.toString() ?? '',
+>>>>>>> origin/dev
       images: json['images'] ?? '',
       ownerName: json['ownername'] ?? '',
       ownerNumber: json['ownernumber'] ?? '',
@@ -112,8 +118,8 @@ class FutureProperty2 {
       propertyAddressForFieldworker: json['property_address_for_fieldworkar'] ?? '',
       ownerVehicleNumber: json['owner_vehical_number'] ?? '',
       yourAddress: json['your_address'] ?? '',
-      fieldworkerName: json['fieldworkarname'] ?? '',
-      fieldworkerNumber: json['fieldworkarnumber'] ?? '',
+      fieldworkarName: json['fieldworkarname'] ?? '',
+      fieldworkarNumber: json['fieldworkarnumber'] ?? '',
       currentDate: json['current_date_'] ?? '',
       longitude: json['longitude'] ?? '',
       latitude: json['latitude'] ?? '',
@@ -125,10 +131,8 @@ class FutureProperty2 {
       lift: json['lift'] ?? '',
       parking: json['parking'] ?? '',
       totalFloor: json['total_floor'] ?? '',
-      apartmentName: json['apartment_name'] ?? '',
-      facility: json['facility'] ?? '',
-      currentLocation: json['your_address'] ?? '',
       residenceCommercial: json['Residence_commercial'] ?? '',
+      facility: json['facility'] ?? '',
       localityList: json['locality_list'] ?? '',
     );
   }
@@ -378,14 +382,21 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       throw Exception('Unexpected error occurred!');
     }
   }
+
   Future<List<FutureProperty2>> fetchData() async {
+<<<<<<< HEAD
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
     );
+=======
+    var url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}");
+>>>>>>> origin/dev
 
     final response = await http.get(url);
 
     if (response.statusCode == 200) {
+<<<<<<< HEAD
       final decoded = json.decode(response.body);
 
       List listResponse = [];
@@ -415,8 +426,21 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           .toList();
     } else {
       throw Exception('API Error: ${response.statusCode}');
+=======
+      final Map<String, dynamic> jsonResponse = json.decode(response.body);
+
+      if (jsonResponse['status'] == 'success') {
+        final List<dynamic> dataList = jsonResponse['data'];
+        return dataList.map((data) => FutureProperty2.fromJson(data)).toList();
+      } else {
+        throw Exception('API returned failure status');
+      }
+    } else {
+      throw Exception('Failed to load data: ${response.statusCode}');
+>>>>>>> origin/dev
     }
   }
+
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
     final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_future_property_multiple_images?subid=${widget.idd}'));
     if (response.statusCode == 200) {
@@ -779,7 +803,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       if (property.place.isNotEmpty) _buildChip(property.place, Colors.blue, isDarkMode),
                       if (property.residenceCommercial.isNotEmpty) _buildChip(property.residenceCommercial, Colors.green, isDarkMode),
                       if (property.buyRent.isNotEmpty) _buildChip(property.buyRent, Colors.orange, isDarkMode),
-                      if (property.typeOfProperty.isNotEmpty) _buildChip(property.typeOfProperty, Colors.purple, isDarkMode),
                     ].where((chip) => chip !=  null).toList(),
                   ),
                   const SizedBox(height: 16),
@@ -1018,7 +1041,8 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            child: Text(
+                            child:
+                            Text(
                               "${flat.bhk} • ${flat.typeOfProperty}",
                               style: const TextStyle(
                                 fontSize: 13,
@@ -1277,12 +1301,10 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   // Specifications Section - Improved with dynamic grid and better overflow
   Widget _buildSpecificationsSection(FutureProperty2 property, bool isDarkMode) {
     final specifications = [
-      //{"icon": Icons.stairs, "label": "Total Floors", "value": property.totalFloor},
-      //{"icon": Icons.aod, "label": "Road Size", "value": property.roadSize},
       {"icon": Icons.train, "label": "Metro Station", "value": property.metroName},
       {"icon": Icons.place, "label": "Metro Distance", "value": property.metroDistance},
       {"icon": Icons.shopping_cart, "label": "Market Distance", "value": property.mainMarketDistance},
-      //{"icon": Icons.calendar_today, "label": "Property Age", "value": property.ageOfProperty},
+      {"icon": Icons.shopping_cart, "label": "Locality", "value": property.localityList},
       {"icon": Icons.elevator, "label": "Lift", "value": property.lift},
       {"icon": Icons.location_on_sharp, "label": "Localities", "value": property.localityList},
       {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
@@ -1486,86 +1508,136 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
             padding: const EdgeInsets.all(16),
             child: const Center(child: CircularProgressIndicator(color: Colors.black)),
           );
-        } else if (snapshot.hasError || snapshot.data == null || (snapshot.data!['catidList'] as List).isEmpty) {
+        } else if (snapshot.hasError ||
+            snapshot.data == null ||
+            (snapshot.data!['catidList'] as List).isEmpty) {
           return Container();
         } else {
           final catidList = snapshot.data!['catidList'] as List<FutureProperty2>;
           final data = catidList[0];
+
+          // Fieldworker number for calling
+          final String fieldWorkerNumber = data.fieldworkarNumber.trim();
+
           return Container(
             margin: const EdgeInsets.all(16),
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[600],
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-              ),
-              onPressed: () {
-                if (data.roadSize.isEmpty ||
-                    data.metroName.isEmpty ||
-                    data.metroDistance.isEmpty ||
-                    data.mainMarketDistance.isEmpty ||
-                    data.ageOfProperty.isEmpty ||
-                    data.lift.isEmpty ||
-                    data.parking.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        "⚠ Please update property details before adding flats.",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
+            child: Row(
+              children: [
+                // Call Button (Left side) - Ab sahi kaam karega: Phone call
+                Expanded(
+                  flex: 3,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      duration: Duration(seconds: 4),
-                      backgroundColor: Colors.red,
-                      behavior: SnackBarBehavior.floating,
+                      elevation: 2,
                     ),
-                  );
-                  return;
-                }
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Add_Flatunder_futureproperty(
-                      id: widget.idd,
-                      Owner_name: data.ownerName,
-                      Owner_num: data.ownerNumber,
-                      Caretaker_name: data.caretakerName,
-                      Caretaker_num: data.caretakerNumber,
-                      market_dis: data.mainMarketDistance,
-                      metro_name: data.metroName,
-                      metro_dis: data.metroDistance,
-                      road_size: data.roadSize,
-                      age_property: data.ageOfProperty,
-                      apartment_address: data.propertyNameAddress,
-                      apartment_name: data.propertyNameAddress,
-                      field_address: data.propertyAddressForFieldworker,
-                      current_loc: data.currentDate,
-                      place: data.place,
-                      lift: data.lift,
-                      totalFloor: data.totalFloor,
-                      Residence_commercial: data.residenceCommercial,
-                      facility: data.facility,
-                      google_loc: data.currentLocation, locality_list: data.localityList, apartment: '',
+                    onPressed: fieldWorkerNumber.isEmpty
+                        ? null // Agar number nahi hai to button disable
+                        : () async {
+                      final Uri telUri = Uri(scheme: 'tel', path: fieldWorkerNumber);
+                      // Optional: Check if can launch (url_launcher package chahiye)
+                      // if (await canLaunchUrl(telUri)) {
+                      //   await launchUrl(telUri);
+                      // }
+                      launchUrl(telUri); // Direct launch (url_launcher add karna padega)
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(Icons.call, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          "Calling section",
+                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              },
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.add, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    "Add New Flat",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(width: 12),
+                // Add Flat Button (Right side) - Yeh pehle se sahi tha
+                Expanded(
+                  flex: 3,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    onPressed: () {
+                      if (data.roadSize.isEmpty ||
+                          data.metroName.isEmpty ||
+                          data.metroDistance.isEmpty ||
+                          data.mainMarketDistance.isEmpty ||
+                          data.ageOfProperty.isEmpty ||
+                          data.lift.isEmpty ||
+                          data.parking.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              "⚠ Please update property details before adding flats.",
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                            ),
+                            duration: Duration(seconds: 4),
+                            backgroundColor: Colors.red,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Add_Flatunder_futureproperty(
+                            id: widget.idd,
+                            Owner_name: data.ownerName,
+                            Owner_num: data.ownerNumber,
+                            Caretaker_name: data.caretakerName,
+                            Caretaker_num: data.caretakerNumber,
+                            market_dis: data.mainMarketDistance,
+                            metro_name: data.metroName,
+                            metro_dis: data.metroDistance,
+                            road_size: data.roadSize,
+                            age_property: data.ageOfProperty,
+                            apartment_address: data.propertyNameAddress,
+                            apartment_name: data.propertyNameAddress,
+                            field_address: data.propertyAddressForFieldworker,
+                            current_loc: data.currentDate,
+                            place: data.place,
+                            lift: data.lift,
+                            totalFloor: data.totalFloor,
+                            Residence_commercial: data.residenceCommercial,
+                            facility: data.facility,
+                            google_loc: data.place,
+                            locality_list: data.localityList,
+                            apartment: '',
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          "Add New Flat",
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         }

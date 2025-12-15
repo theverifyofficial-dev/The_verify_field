@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 
+import '../../model/demand_model.dart';
+import 'Redemand_subadmin.dart';
+
 class SubDemandDetails extends StatefulWidget {
   final String demandId;
   const SubDemandDetails({super.key, required this.demandId});
@@ -18,6 +21,8 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
 
   String? _selectedName;
   String? _selectedLocation;
+  List<TenantDemandModel> _redemands = [];
+  String? _parentId;
 
   final List<String> _nameList = [
     "Faizan Khan",
@@ -42,6 +47,8 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       if (response.statusCode == 200) {
         final jsonRes = jsonDecode(response.body);
 
+
+
         if (jsonRes["success"] == true &&
             jsonRes["data"] is List &&
             (jsonRes["data"] as List).isNotEmpty) {
@@ -52,7 +59,9 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
             _demand = d;
             _selectedLocation = d["Location"]?.toString() ?? "";
             _isLoading = false;
+            _parentId = widget.demandId;
           });
+          await _fetchRedemands();
         } else {
           setState(() => _isLoading = false);
         }
@@ -65,6 +74,41 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       setState(() => _isLoading = false);
     }
   }
+
+  Future<void> _fetchRedemands() async {
+    if (_parentId == null) return;
+
+    try {
+      final url =
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=$_parentId";
+
+      final response = await http.get(Uri.parse(url));
+
+      if (response.statusCode == 200) {
+        final jsonRes = jsonDecode(response.body);
+
+        if (jsonRes["success"] == true && jsonRes["data"] is List) {
+          List data = jsonRes["data"];
+
+          // convert to model
+          final list = data
+              .map<TenantDemandModel>((e) =>
+              TenantDemandModel.fromJson(Map<String, dynamic>.from(e)))
+              .toList();
+
+          // newest on top
+          list.sort((a, b) => b.id.compareTo(a.id));
+
+          setState(() => _redemands = list);
+          return;
+        }
+      }
+      setState(() => _redemands = []);
+    } catch (e) {
+      setState(() => _redemands = []);
+    }
+  }
+
 
   // ---------------------- DATE FORMATTER ---------------------- //
 
@@ -193,6 +237,28 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       padding: const EdgeInsets.all(18),
       child: Column(
         children: [
+          // --- REDEMAND LIST ---
+          if (_redemands.isNotEmpty) ...[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("ReDemands (${_redemands.length})",
+                    style: const TextStyle(
+                        fontWeight: FontWeight.bold, fontSize: 16)),
+                IconButton(
+                    icon: const Icon(Icons.refresh, size: 20),
+                    onPressed: _fetchRedemands)
+              ],
+            ),
+            const SizedBox(height: 6),
+            ..._redemands.asMap().entries.map((e) {
+              return _redemandTile(e.value, Theme.of(context), e.key == 0);
+            }),
+            const SizedBox(height: 14),
+            const Divider(),
+            const SizedBox(height: 14),
+          ],
+
           _buildTenantCard(isDark, accent),
           const SizedBox(height: 24),
 
@@ -624,4 +690,90 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
       ),
     );
   }
+
+  Widget _redemandTile(TenantDemandModel d, ThemeData theme, bool isFirst) {
+    final bool isDark = theme.brightness == Brightness.dark;
+    final bool isUrgent = d.mark == "1";
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RedemandSubadmin(redemandId: d.id.toString()),
+          ),
+        ).then((_) {
+          _fetchRedemands();
+          _fetchDemandDetails();
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(18),
+          color: isUrgent
+              ? Colors.redAccent.withOpacity(0.25)
+              : theme.colorScheme.primary.withOpacity(0.25),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: theme.colorScheme.primary,
+                child: Text(
+                  d.tname[0].toUpperCase(),
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  d.tname,
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: isDark ? Colors.white : Colors.black),
+                ),
+              ),
+              // STATUS BADGE
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  d.status.toUpperCase(),
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 8),
+            Text("${d.location} • ${d.bhk} BHK",
+                style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black54)),
+            Text("₹ ${d.price}",
+                style: TextStyle(
+                    color: isDark ? Colors.white60 : Colors.black54)),
+            Text("Ref: ${d.reference}",
+                style: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black45)),
+            Align(
+                alignment: Alignment.centerRight,
+                child: Text(formatApiDate(d.createdDate),
+                    style: TextStyle(color: Colors.grey.shade500)))
+          ],
+        ),
+      ),
+    );
+  }
+
 }

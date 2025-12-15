@@ -71,7 +71,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
       });
 
       final response = await http.post(
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php"),
+        Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/redemand_assign_to_subadmin.php'),
         headers: {"Content-Type": "application/json"},
         body: body,
       );
@@ -80,12 +80,19 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
 
       if (response.statusCode == 200) {
         if (mounted) {
+          Navigator.pop(context); // ✅ CLOSE BOTTOM SHEET
+
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(backgroundColor: Colors.green, content: Text(result["message"] ?? "Assigned successfully")),
+            SnackBar(
+              backgroundColor: Colors.green,
+              content: Text(result["message"] ?? "Assigned successfully"),
+            ),
           );
         }
-        await _fetchRedemandDetails();
-      } else {
+
+        await _fetchRedemandDetails(); // refresh UI after closing
+      }
+      else {
         throw Exception(result["message"] ?? "Assignment failed");
       }
     } catch (e) {

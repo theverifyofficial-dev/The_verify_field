@@ -365,14 +365,21 @@ class _TenantDemandState extends State<ShowTenantDemandPage> {
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
-                                    Text(
-                                      d.buyRent,
-                                      style: TextStyle(
-                                        fontSize: 13,
+                                    Container(
+                                      padding:
+                                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                      decoration: BoxDecoration(
                                         color: isUrgent
-                                            ? Colors.redAccent
-                                            : theme.colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
+                                            ? Colors.redAccent.withOpacity(0.8)
+                                            : theme.colorScheme.primary.withOpacity(0.45),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(d.buyRent.toUpperCase(),
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10.5,
+                                        ),
                                       ),
                                     ),
                                   ],

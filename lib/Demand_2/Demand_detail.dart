@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
 
+import '../model/demand_model.dart';
 import 'demand_Form.dart';
 
 class DemandDetail extends StatefulWidget {
@@ -22,6 +24,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   bool _isSubmittingFinal = false;
   final TextEditingController _otherReasonCtrl = TextEditingController();
   bool _isDisclosing = false;
+  List<Map<String, dynamic>> _redemands = [];
+  bool _isRedemandLoading = true;
 
 
 
@@ -30,6 +34,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   void initState() {
     super.initState();
     _fetchDemandDetails();
+    _fetchRedemands();
+
   }
 
   Future<void> _fetchDemandDetails() async {
@@ -58,6 +64,40 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             SnackBar(content: Text("Error fetching details: $e")));
       }
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _fetchRedemands() async {
+    try {
+      final res = await http.get(Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=${widget.demandId}",
+      ));
+
+      if (res.statusCode == 200) {
+        final json = jsonDecode(res.body);
+        if (json["success"] == true && json["data"] is List) {
+          final List list = json["data"];
+
+          // newest first
+          list.sort((a, b) =>
+              DateTime.parse(b["created_date"]["date"])
+                  .compareTo(DateTime.parse(a["created_date"]["date"])));
+
+          setState(() {
+            _redemands = List<Map<String, dynamic>>.from(list);
+            _isRedemandLoading = false;
+          });
+        } else {
+          _isRedemandLoading = false;
+        }
+      }
+    } catch (e) {
+      _isRedemandLoading = false;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to load redemands")),
+        );
+      }
     }
   }
 
@@ -147,6 +187,41 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         padding: const EdgeInsets.all(18),
         child: Column(
           children: [
+            if (_redemands.isNotEmpty) ...[
+              const SizedBox(height: 22),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  "Redemands",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: accent,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+
+              _isRedemandLoading
+                  ? const CircularProgressIndicator()
+                  : Column(
+                children: List.generate(_redemands.length, (index) {
+                  final bool isLatest = index == 0;
+
+                  final TenantDemandModel d =
+                  TenantDemandModel.fromJson(_redemands[index]);
+
+                  return _redemandListTile(
+                    d,
+                    theme,
+                    isLatest,
+                  );
+                }),
+
+
+              ),
+            ],
+            Divider(),
             _buildTenantCard(isDark, accent),
             const SizedBox(height: 24),
 
@@ -166,7 +241,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: isDisclosed
-                      ? Colors.grey.shade200
+                      ? Colors.grey.shade300   // 🔒 disabled state
                       : theme.colorScheme.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
@@ -174,20 +249,21 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                   ),
                 ),
                 onPressed: isDisclosed
-                    ? null
+                    ? null // 🔒 fully disabled
                     : () {
                   if (_demand == null) return;
 
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => TenantDemandUpdatePage(demand: _demand!),
+                      builder: (_) =>
+                          TenantDemandUpdatePage(demand: _demand!),
                     ),
                   ).then((_) => _fetchDemandDetails());
                 },
                 child: Text(
-                  "Add More Details",
-                  style: TextStyle(
+                  isDisclosed ? "Demand Closed" : "Add More Details",
+                  style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
@@ -195,6 +271,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
 
             SizedBox(
@@ -306,6 +383,338 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       ),
     );
   }
+
+  Widget _buildRibbon(String text, Color c1, Color c2) {
+    return Positioned(
+      top: 12,
+      left: -30,
+      child: Transform.rotate(
+        angle: -0.785398,
+        child: Container(
+          width: 140,
+          padding: const EdgeInsets.symmetric(vertical: 4),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [c1, c2]),
+            boxShadow: [
+              BoxShadow(
+                color: c1.withOpacity(0.4),
+                blurRadius: 6,
+                offset: const Offset(2, 2),
+              ),
+            ],
+          ),
+          alignment: Alignment.center,
+          child: Text(
+            "$text   ",
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+              fontSize: 11.5,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  Widget _redemandListTile(
+      TenantDemandModel d,
+      ThemeData theme,
+      bool isFirst,
+      ) {
+    final bool isDark = theme.brightness == Brightness.dark;
+    final bool isUrgent = d.mark == "1";
+    final Color baseColor =
+    isUrgent ? Colors.redAccent : theme.colorScheme.primary;
+
+    return Stack(
+      children: [
+
+        if (d.status.toLowerCase() == "disclosed")
+          Positioned(
+            top: 12,
+            left: -30,
+            child: Transform.rotate(
+              angle: -0.785398, // -45 degrees in radians
+              child: Container(
+                width: 140,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.red.shade500,
+                      Colors.red.shade700,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(2, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  "DISCLOSED   ",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    fontSize: 11.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (d.status.toLowerCase() == "assigned to fieldworker")
+          Positioned(
+            top: 12,
+            left: -30,
+            child: Transform.rotate(
+              angle: -0.785398, // -45 degrees in radians
+              child: Container(
+                width: 140,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.green.shade500,
+                      Colors.green.shade700,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(2, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  "ASSIGNED   ",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    fontSize: 11.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        if (d.status.toLowerCase() == "assign to subadmin")
+          Positioned(
+            top: 12,
+            left: -30,
+            child: Transform.rotate(
+              angle: -0.785398, // -45 degrees in radians
+              child: Container(
+                width: 140,
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.green.shade500,
+                      Colors.green.shade700,
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.redAccent.withOpacity(0.4),
+                      blurRadius: 6,
+                      offset: const Offset(2, 2),
+                    ),
+                  ],
+                ),
+                alignment: Alignment.center,
+                child: const Text(
+                  "ASSIGNED   ",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.2,
+                    fontSize: 11.5,
+                  ),
+                ),
+              ),
+            ),
+          ),
+
+
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => field_RedemandDetailPage(redemandId: d.id.toString()),
+              ),
+            ).then((_) {
+              _fetchRedemands();
+              _fetchDemandDetails();
+            });
+          },
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            margin: const EdgeInsets.only(bottom: 14),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(22),
+              color: baseColor.withOpacity(isDark ? 0.35 : 0.85),
+              boxShadow: [
+                BoxShadow(
+                  color: isUrgent
+                      ? Colors.redAccent.withOpacity(0.25)
+                      : Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+              border: Border.all(
+                color: isUrgent
+                    ? Colors.redAccent.withOpacity(0.6)
+                    : Colors.white.withOpacity(0.05),
+                width: 1.2,
+              ),
+            ),
+            child: ListTile(
+              contentPadding:
+              const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              leading: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                height: 52,
+                width: 52,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: isUrgent
+                        ? [
+                      Colors.redAccent,
+                      Colors.redAccent.shade700,
+                    ]
+                        : [
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary.withOpacity(0.8),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isUrgent
+                          ? Colors.redAccent.withOpacity(0.3)
+                          : theme.colorScheme.primary.withOpacity(0.25),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    d.tname.isNotEmpty ? d.tname[0].toUpperCase() : '?',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                    ),
+                  ),
+                ),
+              ),
+              title: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      d.tname,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+
+                  // 🔥 NEWEST BADGE HERE
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: isUrgent
+                          ? Colors.redAccent.withOpacity(0.8)
+                          : theme.colorScheme.primary.withOpacity(0.45),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(d.buyRent.toUpperCase(),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("${d.location} • ${d.bhk} BHK",
+                        style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.black54,
+                            fontSize: 14)),
+                    const SizedBox(height: 2),
+                    Text("₹ ${d.price}",
+                        style: TextStyle(
+                            color: isDark ? Colors.white60 : Colors.black54,
+                            fontSize: 14)),
+                    if (d.reference.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text("Ref: ${d.reference}",
+                                style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white38
+                                        : Colors.black45,
+                                    fontSize: 13)),
+                            Text(
+                              formatApiDate(d.createdDate),
+                              style: TextStyle(
+                                  color: Colors.grey.shade500, fontSize: 13),
+                            )
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+
+        // ----- Existing ribbons -------
+        if (d.status.toLowerCase() == "disclosed")
+          _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
+
+        if (d.status.toLowerCase() == "assigned to fieldworker" ||
+            d.status.toLowerCase() == "assign to subadmin")
+          _buildRibbon("ASSIGNED", Colors.green.shade500, Colors.green.shade700),
+      ],
+    );
+  }
+
+
 
 
   Widget _buildCompletionSection(bool isDark, Color accent) {
@@ -437,7 +846,9 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                 backgroundColor: Colors.redAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
-              onPressed: _isDisclosing ? null : _showDiscloseConfirmDialog,
+              onPressed: (_isDisclosing || _isSubmittingFinal)
+                  ? null
+                  : _showDiscloseConfirmDialog,
               child: _isDisclosing
                   ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                   : const Text(

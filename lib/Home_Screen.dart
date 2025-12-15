@@ -407,6 +407,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         Navigator.push(
             context, MaterialPageRoute(
             builder: (_) => const CalendarTaskPage()));
+
       },
       child: Container(
         margin:  EdgeInsets.symmetric(horizontal: 16),
@@ -423,6 +424,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                 : [
               Colors.white,
               Colors.white,
+
             ],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -1265,17 +1267,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       //   },
       //   "gradient": cardGradients[8],
       // },
-      // {
-      //   "image": AppImages.demand_2,
-      //   "title": "Costumer Demands 2.O",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const CostumerDemand()));
-      //   },
-      //   "gradient": cardGradients[9],
-      // },
+      {
+        "image": AppImages.demand_2,
+        "title": "Costumer Demands 2.O",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const CostumerDemand()));
+        },
+        "gradient": cardGradients[9],
+      },
     ];
 
     return Scaffold(
@@ -1395,8 +1397,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Today's Card (replacing welcome back)
-                  _todayCard(isDark),
-                  const SizedBox(height: 16),
+                  /*_todayCard(isDark),
+                  const SizedBox(height: 16),*/
                   // Feature Grid
                   GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),

@@ -1639,7 +1639,7 @@ class _View_DetailsState extends State<View_Details> {
       rows.add(_buildInfoRow(Icons.apartment, Colors.red, "Floor", prop.floor, isSmallScreen, isDarkMode));
 
     if ((prop.highwayDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.vaccines, Colors.red, "Highway Distance", prop.highwayDistance, isSmallScreen, isDarkMode));
+      rows.add(_buildInfoRow(Icons.vaccines, Colors.red, "Metro Distance", prop.highwayDistance, isSmallScreen, isDarkMode));
     if ((prop.roadSize ?? '').isNotEmpty)
       rows.add(_buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize} Feet", isSmallScreen, isDarkMode));
     final floorText = (prop.floor ?? '').isNotEmpty && (prop.totalFloor ?? '').isNotEmpty

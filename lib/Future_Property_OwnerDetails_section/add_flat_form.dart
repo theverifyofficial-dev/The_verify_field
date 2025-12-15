@@ -129,12 +129,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
   Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
 
-
-
-
-
-
-
   // this is for image compressor
   DateTime now = DateTime.now();
   late String formattedDate;

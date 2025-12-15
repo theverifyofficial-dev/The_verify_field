@@ -1078,7 +1078,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
     if (prop.highwayDistance.isNotEmpty) {
       rows.add(buildInfoRow(Icons.directions_car, Colors.red,
-          "Highway Distance", prop.highwayDistance));
+          "Metro Distance", prop.highwayDistance));
     }
 
     if (prop.roadSize.isNotEmpty) {
@@ -1578,8 +1578,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                       ? 4.0
                                       : 8.0),
                               right: horizontalPadding,
-                              child: PopupMenuButton<
-                                  String>(
+                              child: PopupMenuButton<String>(
                                 onSelected: (value) =>
                                     handleMenuItemClick(
                                         value),

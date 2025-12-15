@@ -2,18 +2,14 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../../Home_Screen_click/Commercial_property_Filter.dart';
-import '../../Home_Screen_click/Filter_Options.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import '../Administrator_HomeScreen.dart';
 import 'Future_Property_Details.dart';
 import 'See_All_Futureproperty.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 
 class Catid {
   final int id;
@@ -48,7 +44,6 @@ class Catid {
   final String? totalFloor;
   final String? residenceCommercial;
   final String? facility;
-
   Catid({
     required this.id,
     required this.images,
@@ -83,7 +78,6 @@ class Catid {
     required this.residenceCommercial,
     required this.facility,
   });
-
   factory Catid.fromJson(Map<String, dynamic> json) {
     return Catid(
       id: json['id'] ?? 0,
@@ -121,7 +115,7 @@ class Catid {
     );
   }
 }
-
+// Reusable DetailRow - Same as in SeeAll_FutureProperty
 class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -129,9 +123,8 @@ class _DetailRow extends StatelessWidget {
   final ThemeData theme;
   final Color Function(IconData, ThemeData) getIconColor;
   final int maxLines;
-  final double? fontSize; // Added for responsive font sizing
-  final FontWeight? fontWeight; // Optional for value highlighting
-
+  final double? fontSize;
+  final FontWeight? fontWeight;
   const _DetailRow({
     required this.icon,
     required this.label,
@@ -142,30 +135,29 @@ class _DetailRow extends StatelessWidget {
     this.fontSize,
     this.fontWeight,
   });
-
   @override
   Widget build(BuildContext context) {
     final cs = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0), // Reduced bottom padding to minimize space
+      padding: const EdgeInsets.only(bottom: 10.0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             icon,
-            size: 14, // Slightly smaller icon for compact layout
+            size: 16,
             color: getIconColor(icon, theme),
           ),
-          const SizedBox(width: 4), // Reduced width
+          const SizedBox(width: 6),
           Expanded(
             child: RichText(
               maxLines: maxLines,
               overflow: TextOverflow.ellipsis,
               text: TextSpan(
                 style: theme.textTheme.bodyMedium?.copyWith(
-                  height: 1.1, // Tighter line height
+                  height: 1.2,
                   color: cs.onSurface.withOpacity(0.70),
-                  fontSize: fontSize ?? 12, // Slightly smaller font
+                  fontSize: fontSize ?? 13,
                 ),
                 children: [
                   if (label.isNotEmpty)
@@ -174,14 +166,14 @@ class _DetailRow extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: cs.onSurface.withOpacity(0.8),
-                        fontSize: fontSize ?? 12,
+                        fontSize: fontSize ?? 13,
                       ),
                     ),
                   TextSpan(
                     text: value,
                     style: TextStyle(
-                      fontWeight: fontWeight ?? FontWeight.normal, // Apply fontWeight if provided
-                      color: cs.onSurface.withOpacity(0.9), // Slightly darker for value
+                      fontWeight: fontWeight ?? FontWeight.normal,
+                      color: cs.onSurface.withOpacity(0.9),
                     ),
                   ),
                 ],
@@ -193,24 +185,18 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
-
 class ADministaterShow_FutureProperty extends StatefulWidget {
   final bool fromNotification;
   final String? buildingId;
-
   const ADministaterShow_FutureProperty({
     super.key,
     this.fromNotification = false,
     this.buildingId,
   });
-
   @override
   State<ADministaterShow_FutureProperty> createState() => _ADministaterShow_FuturePropertyState();
-
 }
-
-class _ADministaterShow_FuturePropertyState
-    extends State<ADministaterShow_FutureProperty> {
+class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_FutureProperty> {
   final Map<String, GlobalKey> _cardKeys = {};
   final Map<String, ScrollController> _horizontalControllers = {};
   String? _highlightedBuildingId;
@@ -218,83 +204,42 @@ class _ADministaterShow_FuturePropertyState
   String _number = '';
   String _location = '';
   String _post = '';
-
-
   List<Map<String, String>> fieldWorkers = [
-    {"name": "Sumit", "id": "9711775300"},
-    {"name": "Ravi", "id": "9711275300"},
-    {"name": "Faizan", "id": "9971172204"},
+    {"name": "Sumit Kasaniya", "id": "9711775300"},
+    {"name": "Ravi Kumar", "id": "9711275300"},
+    {"name": "Faizan Khan", "id": "9971172204"},
     {"name": "Manish", "id": "8130209217"},
     {"name": "Abhay", "id": "9675383184"},
   ];
-
   Map<String, List<Catid>> _groupedData = {};
-  final Map<int, int> _liveCountMap = {}; // subid -> live count
-  final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
-
+  final Map<int, int> _liveCountMap = {};
+  final Map<int, String> _totalFlatsMap = {};
   @override
   void initState() {
     super.initState();
-
-    // Empty list for each field worker
     for (var fw in fieldWorkers) {
       _groupedData[fw['name']!] = [];
       _horizontalControllers[fw['id']!] = ScrollController();
     }
-
-    // Load user data first, then fetch (to determine visible workers)
     _initializeData();
-
-    // Notification listeners
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      final buildingId = message.data['building_id'];
-      if (buildingId != null) _handleNotification(buildingId.toString());
-    });
-
-    FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-      if (message != null) {
-        final buildingId = message.data['building_id'];
-        if (buildingId != null) _handleNotification(buildingId.toString());
-      }
-    });
-
-    // Scroll to building if from notification
     if (widget.buildingId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _handleNotification(widget.buildingId!);
       });
     }
   }
-
   Future<void> _initializeData() async {
     await _loadUserData();
     await _fetchAndUpdateData();
-
-    // Scroll to highlighted if exists
-    if (_highlightedBuildingId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _scrollToHighlighted();
-      });
-    }
   }
-
   Future<void> _loadUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _number = prefs.getString('number') ?? '';
       _location = prefs.getString('location') ?? '';
       _post = prefs.getString('post') ?? '';
-
     });
-
-    print("===== SHARED PREF DATA LOADED =====");
-    print("Number: $_number");
-    print("Location: $_location");
-    print("Post: $_post");
-    print("===================================");
   }
-
-
   Future<List<Catid>> _fetchDataByNumber(String number) async {
     final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
@@ -302,137 +247,117 @@ class _ADministaterShow_FuturePropertyState
       final response = await http.get(url);
       if (response.statusCode == 200) {
         dynamic decoded = json.decode(response.body);
-        List listData = decoded is List
-            ? decoded
-            : (decoded['data'] ?? decoded['Table'] ?? []);
+        List listData = decoded is List ? decoded : (decoded['data'] ?? decoded['Table'] ?? []);
         listData.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
         return listData.map((e) => Catid.fromJson(e)).toList();
-      } else {
-        return [];
       }
     } catch (e) {
-      return [];
+      debugPrint("Fetch error: $e");
     }
+    return [];
   }
-
   Future<void> _fetchAndUpdateData() async {
     setState(() => _isLoading = true);
-
-    // Compute visible workers based on loaded _location and _post
     final loc = _location.trim().toLowerCase();
     final post = _post.trim().toLowerCase();
-    bool isSubAdmin = post == "sub administrator";
     bool isAdmin = post == "administrator";
     List<Map<String, String>> visibleWorkers = fieldWorkers.where((fw) {
       if (isAdmin) return true;
       final name = fw['name']!.toLowerCase();
       if (loc.contains("sultanpur")) {
-        return name == "sumit" || name == "ravi" || name == "faizan";
-      }
-      if (loc.contains("rajpur") || loc.contains("chhattar")) {
-        return name == "manish" || name == "abhay" || name == "abhey";
-      }
+        return name.contains("sumit") || name.contains("ravi") || name.contains("faizan");}
+      if (loc.contains("rajpur") || loc.contains("chhattar")) return ["manish", "abhay"].contains(name);
       return false;
     }).toList();
-
-    // Parallel fetch for visible workers only (reduces unnecessary API calls)
-    final workerFutures = visibleWorkers.map((fw) async {
-      final data = await _fetchDataByNumber(fw['id']!);
-      return MapEntry(fw['name']!, data);
-    }).toList();
-
+    final workerFutures = visibleWorkers.map((fw) => _fetchDataByNumber(fw['id']!).then((data) => MapEntry(fw['name']!, data)));
     final groupedEntries = await Future.wait(workerFutures);
-    final Map<String, List<Catid>> grouped = Map<String, List<Catid>>.fromEntries(groupedEntries);
-
-    // Ensure all fieldWorkers have empty lists if not visible (for consistency)
+    final Map<String, List<Catid>> grouped = Map.fromEntries(groupedEntries);
     for (var fw in fieldWorkers) {
-      if (!grouped.containsKey(fw['name'])) {
-        grouped[fw['name']!] = [];
-      }
+      grouped[fw['name']!] ??= [];
     }
-
     setState(() {
       _groupedData = grouped;
       _isLoading = false;
     });
-
-    // Start prefetch in background (non-blocking, UI shows immediately with placeholders)
     _prefetchAllPropertyData();
-
-    // No await here - UI is responsive now
   }
-
   Future<void> _prefetchAllPropertyData() async {
     final allProperties = _groupedData.values.expand((list) => list).toList();
     if (allProperties.isEmpty) return;
-
-    // Parallel fetches for all properties (already optimized with Future.wait)
     final futures = allProperties.map((p) async {
       try {
-        // Fetch total flats
-        final response2 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}',
-        ));
-        String totalStr = "0";
-        if (response2.statusCode == 200) {
-          final body = jsonDecode(response2.body);
-          if (body is List && body.isNotEmpty) {
-            totalStr = body[0]['logg'].toString();
-          }
+        final resp1 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}'));
+        if (resp1.statusCode == 200) {
+          final body = jsonDecode(resp1.body);
+          if (body is List && body.isNotEmpty) _totalFlatsMap[p.id] = body[0]['logg'].toString();
         }
-        _totalFlatsMap[p.id] = totalStr;
-        // Fetch live count
-        final response3 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}',
-        ));
-        int liveC = 0;
-        if (response3.statusCode == 200) {
-          final body3 = jsonDecode(response3.body);
-          if (body3 is List && body3.isNotEmpty) {
-            for (var item in body3) {
+        final resp2 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}'));
+        if (resp2.statusCode == 200) {
+          final body = jsonDecode(resp2.body);
+          if (body is List) {
+            for (var item in body) {
               if (item['live_unlive'] == 'Live') {
-                liveC = (item['logs'] as num?)?.toInt() ?? 0;
+                _liveCountMap[p.id] = (item['logs'] as num?)?.toInt() ?? 0;
                 break;
               }
             }
           }
         }
-        _liveCountMap[p.id] = liveC;
-      } catch (_) {
-        _totalFlatsMap[p.id] = "0";
-        _liveCountMap[p.id] = 0;
-      }
-    }).toList();
+      } catch (_) {}
+    });
     await Future.wait(futures);
-    if (mounted) setState(() {}); // Refresh UI with fetched counts
+    if (mounted) setState(() {});
   }
-
   Future<void> _handleNotification(String buildingId) async {
-    setState(() {
-      _highlightedBuildingId = buildingId;
-    });
-
-    // Fetch latest data
+    setState(() => _highlightedBuildingId = buildingId);
     await _fetchAndUpdateData();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollToHighlighted();
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
   }
-
   Future<void> _scrollToHighlighted() async {
     if (_highlightedBuildingId == null) return;
     final key = _cardKeys[_highlightedBuildingId!];
-    if (key != null && key.currentContext != null) {
-      await Scrollable.ensureVisible(
-        key.currentContext!,
-        duration: const Duration(seconds: 1),
-        curve: Curves.easeInOut,
-      );
+    if (key?.currentContext != null) {
+      await Scrollable.ensureVisible(key!.currentContext!, duration: const Duration(milliseconds: 800), curve: Curves.easeInOut);
     }
   }
-
+  String formatDate(String s) {
+    if (s.isEmpty) return '-';
+    try {
+      final dt = DateFormat('yyyy-MM-dd ').parse(s);
+      return DateFormat('dd MMM yyyy').format(dt);
+    } catch (_) {
+      try {
+        return DateFormat('dd MMM yyyy').format(DateTime.parse(s));
+      } catch (_) {
+        return s;
+      }
+    }
+  }
+  Color _getIconColor(IconData icon, ThemeData theme) {
+    final cs = theme.colorScheme;
+    switch (icon) {
+      case Icons.location_on: return Colors.red;
+      case Icons.square_foot: return Colors.orange;
+      case Icons.handshake_outlined: return Colors.orangeAccent;
+      case Icons.apartment: return Colors.blue;
+      case Icons.layers: return Colors.teal;
+      case Icons.format_list_numbered: return Colors.indigo;
+      case Icons.date_range: return Colors.purple;
+      case Icons.home: return Colors.brown;
+      case Icons.numbers: return Colors.cyan;
+      case Icons.real_estate_agent_outlined: return Colors.brown;
+      default: return cs.primary;
+    }
+  }
+  List<String> _buildMultipleImages(Catid p) {
+    final List<String> imgs = [];
+    if (p.images != null && p.images!.trim().isNotEmpty) {
+      final base = 'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/';
+      imgs.add('$base${p.images!.trim()}');
+    }
+    return imgs;
+  }
   bool _blank(String? s) => s == null || s.trim().isEmpty;
-
   List<String> _missingFieldsFor(Catid i) {
     final m = <String>[];
     final checks = <String, String?>{
@@ -471,50 +396,6 @@ class _ADministaterShow_FuturePropertyState
     checks.forEach((k, v) { if (_blank(v)) m.add(k); });
     return m;
   }
-
-  bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
-
-  String formatDate(String s) {
-    if (s.isEmpty) return '-';
-    try {
-      final dt = DateFormat('yyyy-MM-dd ').parse(s);
-      return DateFormat('dd MMM yyyy,').format(dt);
-    } catch (_) {
-      try {
-        final dt2 = DateTime.parse(s);
-        return DateFormat('dd MMM yyyy,').format(dt2);
-      } catch (_) {
-        return s;
-      }
-    }
-  }
-
-  Color _getIconColor(IconData icon, ThemeData theme) {
-    final cs = theme.colorScheme;
-    switch (icon) {
-      case Icons.location_on:
-        return Colors.red;
-      case Icons.square_foot:
-        return Colors.orange;
-      case Icons.handshake_outlined:
-        return Colors.orangeAccent;
-      case Icons.apartment:
-        return Colors.blue;
-      case Icons.layers:
-        return Colors.teal;
-      case Icons.format_list_numbered:
-        return Colors.indigo;
-      case Icons.date_range:
-        return Colors.purple;
-      case Icons.home:
-        return Colors.brown;
-      case Icons.numbers:
-        return Colors.cyan;
-      default:
-        return cs.primary;
-    }
-  }
-
   Widget _buildImageSection({
     required List<String> images,
     required ColorScheme cs,
@@ -522,12 +403,10 @@ class _ADministaterShow_FuturePropertyState
     required Map<String, dynamic> status,
     required double imageHeight,
     required double multiImgHeight,
-    required bool isTablet,
   }) {
     final int liveCount = status['liveCount'] ?? 0;
     final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
     final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";
-
     Widget imageWidget;
     if (images.isEmpty) {
       imageWidget = Container(
@@ -536,11 +415,7 @@ class _ADministaterShow_FuturePropertyState
           color: cs.surfaceVariant,
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Icon(
-          Icons.apartment,
-          size: 90,
-          color: Colors.grey,
-        ),
+        child: const Icon(Icons.apartment, size: 90, color: Colors.grey),
       );
     } else if (images.length == 1) {
       imageWidget = ClipRRect(
@@ -551,15 +426,8 @@ class _ADministaterShow_FuturePropertyState
           child: CachedNetworkImage(
             imageUrl: images.first,
             fit: BoxFit.cover,
-            placeholder: (_, __) => const Center(
-              child: SizedBox(
-                height: 50,
-                width: 50,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-            errorWidget: (_, __, ___) =>
-                Icon(Icons.broken_image, color: cs.error, size: 90),
+            placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: 90),
           ),
         ),
       );
@@ -577,15 +445,8 @@ class _ADministaterShow_FuturePropertyState
                     child: CachedNetworkImage(
                       imageUrl: images[0],
                       fit: BoxFit.cover,
-                      placeholder: (_, __) => const Center(
-                        child: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) =>
-                          Icon(Icons.broken_image, color: cs.error, size: 50),
+                      placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                      errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: 50),
                     ),
                   ),
                 ),
@@ -600,15 +461,8 @@ class _ADministaterShow_FuturePropertyState
                           CachedNetworkImage(
                             imageUrl: images[1],
                             fit: BoxFit.cover,
-                            placeholder: (_, __) => const Center(
-                              child: SizedBox(
-                                height: 30,
-                                width: 30,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) =>
-                                Icon(Icons.broken_image, color: cs.error, size: 50),
+                            placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                            errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: 50),
                           ),
                           if (images.length > 2)
                             Positioned(
@@ -616,17 +470,8 @@ class _ADministaterShow_FuturePropertyState
                               right: 4,
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  '+${images.length - 2}',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                                decoration: BoxDecoration(color: Colors.black54, borderRadius: BorderRadius.circular(10)),
+                                child: Text('+${images.length - 2}', style: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
                               ),
                             ),
                         ],
@@ -637,18 +482,12 @@ class _ADministaterShow_FuturePropertyState
               ],
             ),
           ),
-          const SizedBox(height: 4), // Reduced height for less space
-          Text(
-            '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: cs.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          const SizedBox(height: 6),
+          Text('${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
+              style: theme.textTheme.bodySmall?.copyWith(color: cs.primary, fontWeight: FontWeight.w600)),
         ],
       );
     }
-
     return Stack(
       children: [
         imageWidget,
@@ -657,82 +496,34 @@ class _ADministaterShow_FuturePropertyState
           right: 4,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: liveColor.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              liveLabel,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            decoration: BoxDecoration(color: liveColor.withOpacity(0.8), borderRadius: BorderRadius.circular(10)),
+            child: Text(liveLabel, style: theme.textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ),
       ],
     );
   }
-
-  List<String> _buildMultipleImages(Catid p) {
-    final List<String> imgs = [];
-    if (p.images != null && p.images!.isNotEmpty) {
-      imgs.add('https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${p.images}');
-    }
-    return imgs;
-  }
-
-  Widget _buildCard(Catid property, int displayIndex, bool isDarkMode) {
-    final bool isHighlighted = _highlightedBuildingId == property.id.toString();
+  Widget _buildCard(Catid property, int displayIndex) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth > 600;
-    final isSmallScreen = screenWidth < 400;
-
+    final isDark = theme.brightness == Brightness.dark;
+    final size = MediaQuery.of(context).size;
+    final isTablet = size.width > 600;
+    final screenHeight = size.height;
+    final screenWidth = size.width;
     final status = {
-      "loggValue2": _totalFlatsMap[property.id] ?? '0',
       "liveCount": _liveCountMap[property.id] ?? 0,
+      "loggValue2": _totalFlatsMap[property.id] ?? '0',
     };
-
     final images = _buildMultipleImages(property);
-
-    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0); // Reduced padding for compact
-    final double horizontalMargin = (screenWidth * 0.0).clamp(0.5, 0.8);
-    final double titleFontSize = isTablet ? 18 : 14; // Adjusted for compact
-    final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
-    final double imageH = (screenHeight * 0.22).clamp(120.0, 200.0); // Reduced height
+    final double cardPadding = (screenWidth * 0.03).clamp(8.0, 20.0);
+    final double titleFontSize = isTablet ? 20 : 16;
+    final double detailFontSize = isTablet ? 14 : 13;
+    final double imageH = (screenHeight * 0.29).clamp(150.0, 250.0);
     final double multiH = imageH * 0.8;
-
-    // Calculate missing fields
     final missingFields = _missingFieldsFor(property);
     final hasMissingFields = missingFields.isNotEmpty;
-
-    final Object loggValue2 = status['loggValue2'] ?? 'N/A';
-
-    final Widget totalDetail = _DetailRow(
-      icon: Icons.format_list_numbered,
-      label: 'Total Flats',
-      value: '$loggValue2',
-      theme: theme,
-      getIconColor: _getIconColor,
-      maxLines: 1,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    );
-
-    final Widget buildingDetail = _DetailRow(
-      icon: Icons.numbers,
-      label: 'Building ID',
-      value: property.id.toString(),
-      theme: theme,
-      getIconColor: _getIconColor,
-      maxLines: 1,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    );
-
+// Image section - ab badge nahi hai yahan
     final Widget imageSection = _buildImageSection(
       images: images,
       cs: cs,
@@ -740,10 +531,8 @@ class _ADministaterShow_FuturePropertyState
       status: status,
       imageHeight: imageH,
       multiImgHeight: multiH,
-      isTablet: isTablet,
     );
-
-    // Priority detail rows: location, buy/rent, residence/commercial, added (removed Building ID)
+// Detail rows banaye
     final List<Widget> detailRows = [];
     if ((property.place ?? '').isNotEmpty) {
       detailRows.add(_DetailRow(
@@ -756,15 +545,6 @@ class _ADministaterShow_FuturePropertyState
         fontWeight: FontWeight.bold,
       ));
     }
-    // detailRows.add(_DetailRow(
-    //   icon: Icons.bedroom_parent,
-    //   label: 'BHK',  // Added label for visibility
-    //   value: property.selectBhk ?? 'N/A',  // Fallback to prevent empty row
-    //   theme: theme,
-    //   getIconColor: _getIconColor,
-    //   fontSize: detailFontSize,
-    //   fontWeight: FontWeight.bold,
-    // ));
     detailRows.add(_DetailRow(
       icon: Icons.handshake_outlined,
       label: '',
@@ -789,7 +569,6 @@ class _ADministaterShow_FuturePropertyState
       value: property.ageOfProperty ?? 'N/A',
       theme: theme,
       getIconColor: _getIconColor,
-      maxLines: 2,
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
@@ -799,276 +578,238 @@ class _ADministaterShow_FuturePropertyState
       value: formatDate(property.currentDate ?? ''),
       theme: theme,
       getIconColor: _getIconColor,
-      maxLines: 2,
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-
-
-    final Widget leftColumn = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        imageSection,
-        SizedBox(height: isTablet ? 12 : 8), // Reduced spacing
-        totalDetail,
-      ],
-    );
-
-    final Widget rightColumn = Padding(
-      padding: EdgeInsets.only(top: isTablet ? 16.0 : 12.0), // Reduced top padding
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            property.propertyAddressForFieldworker ?? property.propertyNameAddress ?? property.place ?? 'No Title',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: titleFontSize,
-            ),
-            maxLines: 2, // Reduced lines for compact
-            overflow: TextOverflow.ellipsis,
-          ),
-          SizedBox(height: isTablet ? 12 : 8), // Reduced height
-          // Render detail rows
-          ...detailRows,
-          const Spacer(),
-          // Shift Building ID to the right
-          Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              width: double.infinity,
-              child: buildingDetail,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => Administater_Future_Property_details(
+              buildingId: property.id.toString(),
             ),
           ),
-        ],
-      ),
-    );
-
-    // Ensure GlobalKey exists
-    _cardKeys[property.id.toString()] ??= GlobalKey();
-
-    return Container(
-      key: _cardKeys[property.id.toString()],
-      width: 350,
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8), // Reduced vertical margin
-      child: GestureDetector(
-        onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) =>
-                    Administater_Future_Property_details(buildingId: property.id.toString()))),
-        child: Card(
-          margin: EdgeInsets.zero, // No extra margin inside
-          elevation: isDarkMode ? 0 : 4, // Reduced elevation for flatter look
-          color: theme.cardColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12), // Slightly smaller radius
-            side: BorderSide(color: theme.dividerColor),
-          ),
-          child: Stack(
+        );
+      },
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        elevation: isDark ? 0 : 6,
+        color: theme.cardColor,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: theme.dividerColor),
+        ),
+        child: Padding(
+          padding: EdgeInsets.all(cardPadding),
+          child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.all(cardPadding),
-                child: Column(
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    IntrinsicHeight(
-                      child: Row(
+// Left: Image + Total Flats
+                    Expanded(
+                      flex: 3,
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Expanded(
-                            flex: isSmallScreen ? 1 : (isTablet ? 2 : 2), // Adjust flex for small screens
-                            child: leftColumn,
-                          ),
-                          SizedBox(width: isTablet ? 16 : 12), // Responsive width
-                          Expanded(
-                            flex: isSmallScreen ? 1 : (isTablet ? 3 : 3), // Adjust flex
-                            child: rightColumn,
+                          imageSection,
+                          const SizedBox(height: 12),
+                          _DetailRow(
+                            icon: Icons.format_list_numbered,
+                            label: 'Total Flats',
+                            value: status['loggValue2'].toString(),
+                            theme: theme,
+                            getIconColor: _getIconColor,
+                            fontSize: detailFontSize,
+                            fontWeight: FontWeight.bold,
                           ),
                         ],
                       ),
                     ),
-                    if (hasMissingFields)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6.0), // Reduced top padding
-                        child: Container(
-                          width: double.infinity,
-                          padding: EdgeInsets.all(isTablet ? 6 : 4), // Reduced padding
-                          decoration: BoxDecoration(
-                            color: cs.errorContainer,
-                            borderRadius: BorderRadius.circular(6), // Smaller radius
-                            border: Border.all(color: cs.error),
+                    const SizedBox(width: 12),
+// Right: Title, Details + Count Badge at top-right
+                    Expanded(
+                      flex: 4,
+                      child: Stack(
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 22,),
+                              Text(
+                                property.propertyAddressForFieldworker ??
+                                    property.propertyNameAddress ??
+                                    property.place ??
+                                    'No Title',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: titleFontSize,
+                                ),
+                                maxLines: 3,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 12),
+                              ...detailRows,
+                              const Spacer(),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: _DetailRow(
+                                  icon: Icons.numbers,
+                                  label: 'Building ID',
+                                  value: property.id.toString(),
+                                  theme: theme,
+                                  getIconColor: _getIconColor,
+                                  fontSize: detailFontSize,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
                           ),
-                          child: Text(
-                            "⚠ Missing: ${missingFields.join(', ')}",
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: cs.error,
-                              fontWeight: FontWeight.w600,
-                              fontSize: detailFontSize - 1, // Smaller font
+// Count Badge - Top Right mein
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 4, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: cs.primary.withOpacity(0.95),
+                                borderRadius: BorderRadius.circular(14),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.4),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                '$displayIndex',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
-                            maxLines: 2, // Reduced lines
-                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
+                        ],
                       ),
+                    ),
                   ],
                 ),
               ),
-              // Top right count number badge
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), // Reduced padding
-                  decoration: BoxDecoration(
-                    color: cs.primary.withOpacity(0.8),
-                    borderRadius: BorderRadius.circular(8), // Smaller radius
-                  ),
-                  child: Text(
-                    '$displayIndex',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 10, // Smaller font
+// Missing fields warning
+              if (hasMissingFields)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: cs.errorContainer,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: cs.error),
+                    ),
+                    child: Text(
+                      "⚠ Missing: ${missingFields.join(', ')}",
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.error,
+                        fontWeight: FontWeight.w600,
+                        fontSize: detailFontSize,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ),
-              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  Widget _buildFieldWorkerSection(List<Catid> data, String workerId, String workerName) {
-    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);  // FIXED: Define theme variable for access
-    final ScrollController controller = _horizontalControllers[workerId]!;
-
+  Widget _buildSection(String name, String id, List<Catid> properties) {
+    if (properties.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(20),
+        child: Center(child: Text('No Properties Found', style: TextStyle(color: Colors.grey, fontSize: 16))),
+      );
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(workerName,
-                style: theme.textTheme.headlineSmall?.copyWith(  // Use textTheme for semantic sizing
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onSurface,  // Dynamic: white-ish in dark, black-ish in light
-                  fontSize: 20,  // Override if needed; headlineSmall is ~20 by default
-                ) ?? const TextStyle(  // Fallback if textTheme is null
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,  // Safe fallback, but theme will override
-                ),
-              ),
+              Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               GestureDetector(
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => SeeAll_FutureProperty(number: workerId)),
-                  ),
-                  child: Text("See All",  // REMOVED const to allow dynamic style if needed
-                      style: theme.textTheme.bodyMedium?.copyWith(  // FIXED: Made dynamic (optional, but consistent)
-                        fontSize: 16,
-                        color: theme.colorScheme.error,  // Dynamic red equivalent
-                        fontWeight: FontWeight.w600,
-                      ) ?? const TextStyle(fontSize: 16, color: Colors.red))),  // Fallback to red
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SeeAll_FutureProperty(number: id))),
+                child: const Text('See All →', style: TextStyle(color: Colors.red, fontWeight: FontWeight.w600)),
+              ),
             ],
           ),
         ),
-        if (data.isEmpty)
-          Container(
-            height: 150, // Reduced height
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // Reduced margin
-            decoration: BoxDecoration(
-                color: theme.cardColor,  // FIXED: Made dynamic (white in light, dark in dark)
-                borderRadius: BorderRadius.circular(12), // Smaller radius
-                border: Border.all(color: theme.colorScheme.error)),  // FIXED: Dynamic red
-            child: Center(  // REMOVED const to allow dynamic style
-              child: Text("No Properties Found",
-                  style: theme.textTheme.bodySmall?.copyWith(  // FIXED: Made dynamic
-                    fontSize: 14,
-                    color: theme.colorScheme.error,  // Dynamic red
-                  ) ?? const TextStyle(fontSize: 14, color: Colors.redAccent)),
-            ),
-          )
-        else
-          SizedBox(
-            height: 300, // Reduced overall height for compact cards
-            child: ListView.builder(
-              controller: controller,
-              scrollDirection: Axis.horizontal,
-              itemCount: data.length,
-              itemBuilder: (context, index) {
-                final displayIndex = data.length - index; // calculate display index
-                return _buildCard(data[index], displayIndex, isDarkMode); // pass displayIndex
-              },
-            ),
+        SizedBox(
+          height: 400,
+          child: ListView.builder(
+            controller: _horizontalControllers[id],
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            itemCount: properties.length,
+            itemBuilder: (context, i) {
+              final property = properties[i];
+              _cardKeys[property.id.toString()] = GlobalKey();
+              return SizedBox(
+                width: 330,
+                child: Container(
+                  key: _cardKeys[property.id.toString()],
+                  child: _buildCard(property, properties.length - i),
+                ),
+              );
+            },
           ),
+        ),
       ],
     );
   }
-
   @override
   Widget build(BuildContext context) {
-    final loc = _location.trim().toLowerCase();
-    final post = _post.trim().toLowerCase();
-
-    bool isSubAdmin = post == "sub administrator";
-    bool isAdmin = post == "administrator";
-
     return Scaffold(
       appBar: AppBar(
-        centerTitle: true,
-        surfaceTintColor: Colors.transparent,
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white, size: 30),
-        ),
-
+        centerTitle: true,
+        title: Image.asset(AppImages.transparent, height: 40),
+        leading: IconButton(icon: const Icon(PhosphorIcons.caret_left_bold), onPressed: () => Navigator.pop(context)),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: fieldWorkers
-              .where((fw) {
-            final name = fw['name']!.toLowerCase();
-
-            // ADMIN → SHOW EVERYONE
-            if (isAdmin) return true;
-
-            // SUB-ADMIN → FILTER BY LOCATION
-            if (loc.contains("sultanpur")) {
-              return name == "sumit" || name == "ravi" || name == "faizan";
-            }
-
-            if (loc.contains("rajpur") || loc.contains("chhattar")) {
-              return name == "manish" || name == "abhay" || name == "abhey";
-            }
-
-            return false;
-          })
-              .map((fw) {
+          ? const Center(child: CircularProgressIndicator(color: Colors.blue))
+          : RefreshIndicator(
+        onRefresh: _fetchAndUpdateData,
+        child: ListView(
+          children: fieldWorkers.map((fw) {
             final props = _groupedData[fw['name']] ?? [];
-            return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
-          })
-              .toList(),
+            final loc = _location.toLowerCase();
+            final post = _post.toLowerCase();
+            bool show = post == "administrator" ||
+                (loc.contains("sultanpur") && ["sumit", "ravi", "faizan"].contains(fw['name']!.toLowerCase())) ||
+                ((loc.contains("rajpur") || loc.contains("chhattar")) && ["manish", "abhay"].contains(fw['name']!.toLowerCase()));
+            return show ? _buildSection(fw['name']!, fw['id']!, props) : const SizedBox.shrink();
+          }).toList(),
         ),
       ),
-
     );
+  }
+  @override
+  void dispose() {
+    _horizontalControllers.values.forEach((c) => c.dispose());
+    super.dispose();
   }
 }

@@ -95,7 +95,7 @@ class FutureProperty2 {
   });
   factory FutureProperty2.fromJson(Map<String, dynamic> json) {
     return FutureProperty2(
-      id: json['id'],
+      id: int.tryParse(json['id'].toString()) ?? 0, // ✅ FIX
       images: json['images'] ?? '',
       ownerName: json['ownername'] ?? '',
       ownerNumber: json['ownernumber'] ?? '',
@@ -379,14 +379,42 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
     }
   }
   Future<List<FutureProperty2>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=${widget.idd}");
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
+    );
+
     final response = await http.get(url);
+
     if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
+      final decoded = json.decode(response.body);
+
+      List listResponse = [];
+
+      /// ✅ CASE 1: Direct List
+      if (decoded is List) {
+        listResponse = decoded;
+      }
+
+      /// ✅ CASE 2: Map with `data`
+      else if (decoded is Map<String, dynamic>) {
+        if (decoded['data'] != null && decoded['data'] is List) {
+          listResponse = decoded['data'];
+        }
+        else if (decoded['Table'] != null && decoded['Table'] is List) {
+          listResponse = decoded['Table'];
+        }
+        else {
+          throw Exception("No list data found in response");
+        }
+      }
+
       listResponse.sort((a, b) => b['id'].compareTo(a['id']));
-      return listResponse.map((data) => FutureProperty2.fromJson(data)).toList();
+
+      return listResponse
+          .map((e) => FutureProperty2.fromJson(e))
+          .toList();
     } else {
-      throw Exception('Unexpected error occurred!');
+      throw Exception('API Error: ${response.statusCode}');
     }
   }
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
@@ -944,36 +972,36 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                     ),
 
                     // 🔥 DUPLICATE BUTTON
-                    // Positioned(
-                    //   top: 8,
-                    //   right: 8,
-                    //   child: GestureDetector(
-                    //     onTap: () {
-                    //       Navigator.push(context, MaterialPageRoute(builder: (context){
-                    //         return DuplicateFutureProperty(id: flat.id.toString(),);
-                    //       }));
-                    //       // 👉 Duplicate logic here
-                    //       print("Duplicate flat id: ${flat.id}");
-                    //     },
-                    //     child: Container(
-                    //       padding:
-                    //       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    //       decoration: BoxDecoration(
-                    //         color: Colors.black.withOpacity(0.65),
-                    //         borderRadius: BorderRadius.circular(6),
-                    //         border: Border.all(color: Colors.white)
-                    //       ),
-                    //       child: const Text(
-                    //         "Duplicate",
-                    //         style: TextStyle(
-                    //           color: Colors.white,
-                    //           fontSize: 12,
-                    //           fontWeight: FontWeight.w600,
-                    //         ),
-                    //       ),
-                    //     ),
-                    //   ),
-                    // ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context){
+                            return DuplicateFutureProperty(id: flat.id.toString(),);
+                          }));
+                          // 👉 Duplicate logic here
+                          print("Duplicate flat id: ${flat.id}");
+                        },
+                        child: Container(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.65),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.white)
+                          ),
+                          child: const Text(
+                            "Duplicate",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -1256,6 +1284,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       {"icon": Icons.shopping_cart, "label": "Market Distance", "value": property.mainMarketDistance},
       //{"icon": Icons.calendar_today, "label": "Property Age", "value": property.ageOfProperty},
       {"icon": Icons.elevator, "label": "Lift", "value": property.lift},
+      {"icon": Icons.location_on_sharp, "label": "Localities", "value": property.localityList},
       {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
     ].where((spec) => (spec["value"] as String).isNotEmpty).toList();
     if (specifications.isEmpty) {
@@ -1381,7 +1410,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
               if (property.propertyAddressForFieldworker.isNotEmpty) const SizedBox(height: 8),
               if (property.yourAddress.isNotEmpty)
                 _buildLocationItem("Current Location", property.yourAddress, isDarkMode, isClickable: true),
-            ],
+             ],
           ),
         ),
       ],

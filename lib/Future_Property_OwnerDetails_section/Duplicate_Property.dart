@@ -12,6 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../constant.dart';
+import 'New_Update/add_image_under_futureproperty.dart';
 import 'New_Update/flat_edit_model.dart';
 
 
@@ -101,7 +102,10 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   void initState() {
     super.initState();
     _loaduserdata();
-    autofillFormFields();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      autofillFormFields(); // ✅ AFTER build
+    });
+
     _maintenanceController = TextEditingController();
     getFurnishingStringForApi();
     // Add listener for _priceController
@@ -167,12 +171,11 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   }
 
   Future<void> updateImageWithTitle(File? imageFile) async {
-    String uploadUrl = 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_flat_in_future_property.php';
+    final uploadUrl =
+        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php';
 
-    print('Starting update to: $uploadUrl');
-    FormData formData = FormData();
+    final formData = FormData();
 
-    // ✅ Only attach image if a new one is picked
     if (imageFile != null) {
       formData.files.add(
         MapEntry(
@@ -185,83 +188,85 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
       );
     }
 
-    List<MapEntry<String, String>> fields = [
+    formData.fields.addAll([
       MapEntry("P_id", widget.id),
-      MapEntry("owner_name", _Ownername.text.trim() ?? ''),
-      MapEntry("Balcony", balcony.toString()),
-      MapEntry("Flat_number", _FlatNumber.text),
-      MapEntry("owner_number", _Owner_number.text ?? ''),
-      MapEntry("video_link", _videoLink.text ?? ''),
-      MapEntry("care_taker_name", _CareTaker_name.text.trim() ?? ''),
-      MapEntry("care_taker_number", _CareTaker_number.text ?? ''),
-      MapEntry("locations", _selectedItem.toString()),
+      MapEntry("owner_name", _Ownername.text.trim()),
+      MapEntry("owner_number", _Owner_number.text.trim()),
+      MapEntry("care_taker_name", _CareTaker_name.text.trim()),
+      MapEntry("care_taker_number", _CareTaker_number.text.trim()),
+      MapEntry("video_link", _videoLink.text.trim()),
+
+      MapEntry("locations", _selectedItem ?? ''),
       MapEntry("Buy_Rent", _selectedItem1 ?? ''),
       MapEntry("Residence_Commercial", _residenceCommercial ?? ''),
       MapEntry("Typeofproperty", selectedPropertyType ?? ''),
       MapEntry("Bhk", selectedBHK ?? ''),
       MapEntry("Floor_", _floor1 ?? ''),
-      MapEntry("Total_floor", _totalFloor.toString()),
+      MapEntry("Total_floor", _totalFloor ?? ''),
       MapEntry("squarefit", _sqft.text),
-      MapEntry("maintance", (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance) ?? ''),
-      MapEntry("Apartment_name", (_furnished == 'Semi Furnished' || _furnished == 'Fully Furnished')
-          ? (_selectedFurniture.entries.map((e) => '${e.key}(${e.value})').join(', '))
-          : (_furnished ?? ''),),
+
+      MapEntry("Balcony", balcony ?? ''),
+      MapEntry("parking", parking ?? ''),
+      MapEntry("kitchen", kitchen ?? ''),
+      MapEntry("bathroom", bathroom ?? ''),
+      MapEntry("lift", _lift ?? ''),
+
+      MapEntry("registry_and_gpa", _registry ?? ''),
+      MapEntry("loan", _loan ?? ''),
+      MapEntry("furnished_unfurnished", _furnished ?? ''),
+
+      MapEntry("Apartment_name", _ApartmentName.text),
       MapEntry("Apartment_Address", _Apartment_Address.text),
       MapEntry("fieldworkar_address", field_address.text),
       MapEntry("field_worker_current_location", _Google_Location.text),
-      MapEntry("parking", parking.toString()),
-      MapEntry("field_warkar_name", _name),
-      MapEntry("field_workar_number", _number),
+
+      MapEntry("Longitude", _Longitude.text),
+      MapEntry("Latitude", _Latitude.text),
+
+      MapEntry(
+        "maintance",
+        _maintenance == "Custom"
+            ? (_customMaintenance ?? '')
+            : (_maintenance ?? ''),
+      ),
+
+      MapEntry("show_Price", _showPrice.text),       // 🔴 send RAW values
+      MapEntry("Last_Price", _lastPrice.text),
+      MapEntry("asking_price", _askingPrice.text),
+
+      MapEntry("meter", _meter.text),
       MapEntry("current_dates", dateFormatter.format(uploadDate)),
       MapEntry(
         "available_date",
-        _availableDate != null ? dateFormatter.format(_availableDate!) : '',
+        _availableDate != null
+            ? dateFormatter.format(_availableDate!)
+            : '',
       ),
-      MapEntry("Longitude", _Longitude.text),
-      MapEntry("Latitude", _Latitude.text),
-      MapEntry("kitchen", kitchen.toString()),
-      MapEntry("bathroom", bathroom.toString()),
-      MapEntry("lift", _lift.toString()),
-      MapEntry("Facility", _facilityController.text),
-      MapEntry("furnished_unfurnished", _furnished.toString()),
-      MapEntry("registry_and_gpa", _registry.toString()),
-      MapEntry("loan", _loan.toString()),
-      MapEntry("show_Price", _formattedPrice),
-      MapEntry("Last_Price", _formattedLastPrice),
-      MapEntry("asking_price", _formattedAskingPrice),
-      MapEntry("meter", _meter.text),
-      // MapEntry("subid", widget.id),
-    ];
 
-    formData.fields.addAll(fields);
+      MapEntry("field_warkar_name", _name),
+      MapEntry("field_workar_number", _number),
+    ]);
 
-    print('📝 Fields to send (${fields.length}):');
-    for (var field in fields) {
-      print('➡️ ${field.key}: ${field.value}');
-    }
-
-    Dio dio = Dio();
+    final dio = Dio();
 
     try {
-      Response response = await dio.post(uploadUrl, data: formData);
-      print('✅ Status Code: ${response.statusCode}');
-      print('🔁 Response: ${response.data}');
+      final response = await dio.post(uploadUrl, data: formData);
+
+      debugPrint("✅ STATUS CODE: ${response.statusCode}");
+      debugPrint("✅ RESPONSE DATA: ${response.data}");
 
       if (response.statusCode == 200) {
         showSnack("Property Updated Successfully");
-        Navigator.pop(context);
       } else {
-        showSnack("Something went wrong");
+        showSnack("Unexpected server response");
       }
-    } catch (e) {
-      print("❌ Upload error: $e");
-      showSnack("Upload failed: $e");
 
+    } on DioException catch (e) {
+
+      rethrow; // 👈 IMPORTANT: don’t swallow error
     } finally {
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        setState(() => _isLoading = false);
       }
     }
   }
@@ -493,54 +498,118 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     print("DEBUG: Unrecognized date format from API → $str");
     return null;
   }
+  List<String> _apiMultipleImages = [];
+  static const String imageBaseUrl =
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
 
   Future<List<Property1>> fetchData() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}");
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Property1.fromJson(data)).toList();
+    final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/fecth_data_dublicate_flat.php?id=${widget.id}"
+    );
+
+    final response = await http.get(url);
+    final decoded = json.decode(response.body);
+
+    if (decoded is Map<String, dynamic>) {
+      final flat = decoded['flat'];
+      final List images = decoded['multiple_images'] ?? [];
+
+      if (flat != null) {
+        final model = Property1.fromJson(flat);
+
+        // ✅ convert relative paths → full URLs
+        model.multipleImages = images
+            .map<String>((e) => imageBaseUrl + e)
+            .toList();
+
+        return [model];
+      }
     }
-    else {
-      throw Exception('Unexpected error occured!');
+    return [];
+  }
+
+  String? matchDropdown(String? apiValue, List<String> items) {
+    if (apiValue == null) return null;
+
+    try {
+      return items.firstWhere(
+            (e) => e.trim().toLowerCase() == apiValue.trim().toLowerCase(),
+      );
+    } catch (_) {
+      return null;
     }
   }
 
-  void autofillFormFields() async {
+
+  Future autofillFormFields() async {
     try {
       final dataList = await fetchData();
-      if (dataList.isNotEmpty) {
-        print(dataList);
-        final data = dataList.first;
-        _networkImageUrl = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"+data.propertyPhoto;
+      if (dataList.isEmpty) return;
+
+      final data = dataList.first;
+
+      setState(() {
+        /// IMAGE
+        _networkImageUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data.propertyPhoto}";
         apiImageUrl = data.propertyPhoto;
-        _facilityController.text = data.facility;
-        _FlatNumber.text = data.flatNumber;
-        _selectedItem = data.locations;
-        print(data.locations);
-        _selectedItem1 = data.buyRent;
+        _apiMultipleImages = data.multipleImages;
+
+        /// DROPDOWNS (MATCHED SAFELY)
+        selectedPropertyType =
+            matchDropdown(data.typeOfProperty, _typeofproperty);
+
+        selectedBHK =
+            matchDropdown(data.bhk, bhkOptions);
+
+        _selectedItem1 =
+            matchDropdown(data.buyRent, buy_rent);
+
+        _registry =
+            matchDropdown(data.registryAndGpa, registryOptions);
+
+        _loan =
+            matchDropdown(data.loan, yesNoOptions);
+
+        balcony =
+            matchDropdown(data.balcony, _balcony_items);
+
+        parking =
+            matchDropdown(data.parking, _Parking_items);
+
+        kitchen =
+            matchDropdown(data.kitchen, _kitchen_items);
+
+        bathroom =
+            matchDropdown(data.bathroom, _bathroom_items);
+
+        _floor1 =
+            matchDropdown(data.floor, _items_floor1);
+
+        _lift =
+            matchDropdown(data.lift, yesNoOptions);
+
+        _furnished =
+            matchDropdown(data.furnishedUnfurnished, furnishingOptions);
+
         _residenceCommercial = data.residenceCommercial;
-        _ApartmentName.text = data.apartmentName;
-        _Apartment_Address.text = data.apartmentAddress;
-        selectedPropertyType = data.typeOfProperty;
-        selectedBHK = data.bhk;
-        _lastPrice.text = data.lastPrice;
-        _askingPrice.text = data.askingPrice;
-        _showPrice.text = data.showPrice;
-        _floor1 = data.floor;
+        _selectedItem = data.locations;
         _totalFloor = data.totalFloor;
-        _loan= data.loan;
-        _registry = data.registryAndGpa;
-        _CareTaker_name.text = data.careTakerName;
-        _videoLink.text = data.videoLink;
-        _CareTaker_number.text = data.careTakerNumber;
-        _Owner_number.text = data.ownerNumber;
-        _Ownername.text = data.ownerName;
 
-        // Handle Maintenance value from API
+        /// DATE
+        _availableDate = _parseApiDate(data.availableDate);
+
+        /// METER
+        if (data.meter == 'Commercial' || data.meter == 'Govt') {
+          _houseMeter = data.meter;
+          _meter.text = data.meter;
+        } else {
+          _houseMeter = 'Custom';
+          _meter.text = data.meter;
+        }
+
+        /// MAINTENANCE
         final apiMaintenance = data.maintenance?.toString() ?? '';
-        print("DEBUG: Maintenance from API = $apiMaintenance");
-
         if (apiMaintenance.toLowerCase() == "included") {
           _maintenance = "Included";
           _maintenanceController.text = "Included";
@@ -551,58 +620,38 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
           _maintenanceController.text = "Custom";
           _customMaintenance = apiMaintenance;
           _customMaintenanceController.text = apiMaintenance;
-        } else {
-          // default case if API sends null/empty
-          _maintenance = null;
-          _maintenanceController.clear();
-          _customMaintenance = null;
-          _customMaintenanceController.clear();
-        }
-        print("DEBUG: _maintenance=$_maintenance, _maintenanceController.text=${_maintenanceController.text}, _customMaintenance=$_customMaintenance");
-
-
-        // Autofill for meter
-        if (data.meter == 'Commercial' || data.meter == 'Govt') {
-          _houseMeter = data.meter;
-          _meter.text = data.meter; // predefined
-          print("DEBUG: Predefined meter = ${data.meter}");
-        } else {
-          _houseMeter = 'Custom';
-          _meter.text = data.meter; // custom value like "500"
-          print("DEBUG: Custom meter = ${data.meter}");
         }
 
-        balcony = data.balcony;
-        _sqft.text = data.squareFit;
-        parking = data.parking;
-        final apiDate = data.availableDate;
-
-        _availableDate = _parseApiDate(apiDate);
-
-
-        kitchen = data.kitchen;
-        bathroom = data.bathroom;
-        _lift = data.lift;
-        field_address.text = data.fieldWorkerAddress;
-        _Google_Location.text = data.fieldWorkerCurrentLocation;
+        /// FURNITURE
         parseFurnishingFromApi(data.furnishedUnfurnished ?? '');
-        // _customMaintenanceController.text = data.maintenance;
-        // _customMaintenance = data.maintenance;
-        _furnished = data.furnishedUnfurnished;
-        print(_furnished);
-        String furnitureString = data.apartmentName; // "Bed(1), Sofa(2), Chair(4)"
-        print(furnitureString);
-        _selectedFurniture = parseFurnitureString(furnitureString);
-        print(_selectedFurniture);
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error fetching data: $e');
-      setState(() {
+        _selectedFurniture =
+            parseFurnitureString(data.apartmentName);
+
         _isLoading = false;
       });
+
+      /// TEXT CONTROLLERS (NO setState REQUIRED)
+      _facilityController.text = data.facility;
+      _FlatNumber.text = data.flatNumber;
+      _ApartmentName.text = data.apartmentName;
+      _Apartment_Address.text = data.apartmentAddress;
+      _lastPrice.text = data.lastPrice;
+      _askingPrice.text = data.askingPrice;
+      _showPrice.text = data.showPrice;
+      _CareTaker_name.text = data.careTakerName;
+      _CareTaker_number.text = data.careTakerNumber;
+      _Owner_number.text = data.ownerNumber;
+      _Ownername.text = data.ownerName;
+      field_address.text = data.fieldWorkerAddress;
+      _Google_Location.text = data.fieldWorkerCurrentLocation;
+      _sqft.text = data.squareFit;
+      _videoLink.text = data.videoLink;
+
+    } catch (e) {
+      print('❌ Error fetching data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -721,6 +770,9 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
       });
     }
   }
+  Future<void> _refreshPage() async {
+    await autofillFormFields(); // re-fetch API
+  }
 
 
   @override
@@ -751,734 +803,794 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
           ),
 
         ),
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
+        body: RefreshIndicator(
+          color: Colors.blue,
+          backgroundColor: Colors.white,
+          onRefresh: _refreshPage,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
 
-                  Container(
-                    margin: EdgeInsets.only(left: 20),
-                    child: Row(
-                      children: [
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
-                          onPressed: () async {
-                            XFile? pickedImage = await pickAndCompressImage(); // XFile returned
-                            if (pickedImage != null) {
-                              setState(() {
-                                _imageFile = File(pickedImage.path);
-                              });
-                            }
-                          },
-                          child: Text('Pick Image',style: TextStyle(color: Colors.white),),
-                        ),
-
-                        SizedBox(
-                          width: 80,
-                        ),
-
-                        Container(
-                          width: 100,
-                          height: 100,
-                          child: _imageFile != null
-                              ? Image.file(_imageFile!)
-                              : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
-                              ? ClipRRect(
-                            borderRadius: BorderRadius.circular(4),
-                            child: Image.network(
-                              _networkImageUrl!,
-                              height: 100,
-                              width: 100,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                              : Center(child: Text('No image selected.',style: TextStyle(color: Colors.black),)),
-
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-
-
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 10,),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Container(
+                      margin: EdgeInsets.only(left: 20),
+                      child: Row(
                         children: [
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _buildDropdownRow(
-                                  'Type of property',
-                                  _typeofproperty,
-                                  selectedPropertyType,
-                                      (val) => setState(() => selectedPropertyType = val),
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Please select a property type'
-                                      : null,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: _buildDropdownRow(
-                                  'Buy/Rent',
-                                  buy_rent,
-                                  _selectedItem1,
-                                      (val) => setState(() => _selectedItem1 = val),
-                                  validator: (val) => val == null || val.isEmpty
-                                      ? 'Please select Buy/Rent'
-                                      : null,
-                                ),
-                              ),
-                            ],
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
+                            onPressed: () async {
+                              XFile? pickedImage = await pickAndCompressImage(); // XFile returned
+                              if (pickedImage != null) {
+                                setState(() {
+                                  _imageFile = File(pickedImage.path);
+                                });
+                              }
+                            },
+                            child: Text('Pick Image',style: TextStyle(color: Colors.white),),
                           ),
 
-                          // 👇 Show extra dropdowns when Sell is selected
-                          if (_selectedItem1 == "Buy") ...[
-                            const SizedBox(width: 16),
+                          SizedBox(
+                            width: 80,
+                          ),
+
+                          Container(
+                            width: 100,
+                            height: 100,
+                            child: _imageFile != null
+                                ? Image.file(_imageFile!)
+                                : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
+                                ? ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                _networkImageUrl!,
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                                : Center(child: Text('No image selected.',style: TextStyle(color: Colors.black),)),
+
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    if (_apiMultipleImages.isNotEmpty)
+                      SizedBox(
+                        height: 110,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _apiMultipleImages.length,
+                          itemBuilder: (context, index) {
+                            final img = _apiMultipleImages[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  img,
+                                  width: 110,
+                                  height: 110,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (c, w, p) =>
+                                  p == null ? w : const Center(),
+                                  errorBuilder: (c, e, s) =>
+                                  const Icon(Icons.broken_image, size: 40),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    SizedBox(height: 20),
+
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                Futureproipoerty_FileUploadPage(idd: widget.id),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.photo_library_outlined, color: Colors.white),
+                      label: const Text(
+                        "Update Images",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade600,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10,),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Row(
                               children: [
                                 Expanded(
-                                  child: _buildDropdownRegister(
-                                    'Register',
-                                    registryOptions,
-                                    _registry,
-                                        (val) => setState(() => _registry = val),
-                                    validator: (val) =>
-                                    val == null || val.isEmpty
-                                        ? 'Please select Register'
+                                  child: _buildDropdownRow(
+                                    'Type of property',
+                                    _typeofproperty,
+                                    selectedPropertyType,
+                                        (val) => setState(() => selectedPropertyType = val),
+                                    validator: (val) => val == null || val.isEmpty
+                                        ? 'Please select a property type'
                                         : null,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
                                 Expanded(
-                                  child: _buildDropdownRegister(
-                                    'Loan',
-                                    yesNoOptions,
-                                    _loan,
-                                        (val) => setState(() => _loan = val),
-                                    validator: (val) =>
-                                    val == null || val.isEmpty
-                                        ? 'Please select Loan'
+                                  child: _buildDropdownRow(
+                                    'Buy/Rent',
+                                    buy_rent,
+                                    _selectedItem1,
+                                        (val) => setState(() => _selectedItem1 = val),
+                                    validator: (val) => val == null || val.isEmpty
+                                        ? 'Please select Buy/Rent'
                                         : null,
                                   ),
                                 ),
                               ],
-                            )
-                          ],
-                        ],
-                      ),
-
-
-
-
-                      _buildSectionCard(
-                        child: DropdownButtonFormField<String>(
-                          value: _furnished,
-                          decoration: InputDecoration(
-                            labelText: "",
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8.0),
                             ),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                          ),
-                          items: furnishingOptions.map((option) {
-                            return DropdownMenuItem(
-                              value: option,
-                              child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                              ),
-                            );
-                          }).toList(),
-                          onChanged: (val) {
-                            setState(() {
-                              _furnished = val;
-                              // Clear previously selected furniture if not furnished
-                              if (val == 'Unfurnished') {
-                                _selectedFurniture.clear();
-                              }
-                            });
-                          },
 
-                          validator: (val) =>
-                          val == null || val.isEmpty ? 'Please select furnishing' : null,
-                        ), title: 'Furnishing',
-                      ),
-                      if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
-                        _blueSectionCard(
-                          child: GestureDetector(
-                            onTap: () => _showFurnitureBottomSheet(context),
-                            child: AbsorbPointer(
-                              child: Padding(
-                                padding:  EdgeInsets.only(top: 16.0),
-                                child:
-                                TextFormField(
-                                  decoration: InputDecoration(
-                                    labelText: "Select Furniture Items",
-                                    labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(8),
+                            // 👇 Show extra dropdowns when Sell is selected
+                            if (_selectedItem1 == "Buy") ...[
+                              const SizedBox(width: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildDropdownRegister(
+                                      'Register',
+                                      registryOptions,
+                                      _registry,
+                                          (val) => setState(() => _registry = val),
+                                      validator: (val) =>
+                                      val == null || val.isEmpty
+                                          ? 'Please select Register'
+                                          : null,
                                     ),
-                                    filled: true, // ✅ enable background color
-                                    fillColor: Theme.of(context).brightness==Brightness.dark?Colors.grey.shade800:Colors.white,
-                                    contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                   ),
-                                  controller: TextEditingController(
-                                    text: _selectedFurniture.isEmpty
-                                        ? ''
-                                        : _selectedFurniture.entries
-                                        .map((e) => '${e.key} (${e.value})')
-                                        .join(', '),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildDropdownRegister(
+                                      'Loan',
+                                      yesNoOptions,
+                                      _loan,
+                                          (val) => setState(() => _loan = val),
+                                      validator: (val) =>
+                                      val == null || val.isEmpty
+                                          ? 'Please select Loan'
+                                          : null,
+                                    ),
                                   ),
-                                ),
-                              ),
-                            ),
-                          ), title: 'Furniture Items',
+                                ],
+                              )
+                            ],
+                          ],
                         ),
-                      const SizedBox(height: 10,),
-                      _buildDropdownRow(
-                        'Parking',
-                        _Parking_items,
-                        parking,
-                            (val) => setState(() => parking = val),
-                        validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
-                      ),
-                      const SizedBox(height: 10,),
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10,),
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
 
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
-                          ),
-                        ],
-                      ),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildDropdownRow('Balcony', _balcony_items, balcony, (val) => setState(() => balcony = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
-                            ),
-                          ),
-                        ],
-                      ),
 
-                      const SizedBox(height: 10,),
 
-                      Row(
-                        children: [
-                          Expanded(
-                            child:
-                            _buildSectionCard(
-                              title: 'Available Date',
-                              child: GestureDetector(
-                                onTap: () async {
-                                  final DateTime? picked = await showDatePicker(
-                                    context: context,
-                                    initialDate: DateTime.now(),
-                                    firstDate: DateTime(2020),
-                                    lastDate: DateTime(2100),
-                                  );
-                                  if (picked != null) {
-                                    setState(() {
-                                      _availableDate = picked;
-                                    });
-                                  }
-                                },
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade600,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    _availableDate != null
-                                        ? DateFormat('dd MMMM yyyy').format(_availableDate!)
-                                        : '', // 👈 empty string if null
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ),
+                        _buildSectionCard(
+                          child: DropdownButtonFormField<String>(
+                            value: _furnished,
+                            decoration: InputDecoration(
+                              labelText: "",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
                               ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child:              _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
-                              validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      TextFormField(
-                        controller: _showPrice,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText:"Show Price (₹)",
-                          floatingLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-
-                          suffix: _formattedPrice.isNotEmpty
-                              ? Padding(
-                            padding: EdgeInsets.only(right: 8),
-                            child: Text(
-                              _formattedPrice,
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                            ),
-                          )
-                              : null,
-
-                          labelStyle: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                            color: Theme.of(context).brightness == Brightness.dark
-                                ? Colors.grey.shade300
-                                : Colors.black54,
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            borderSide: BorderSide(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.blue.shade200
-                                    : Colors.blue.shade300,
-                                width: 2),
-                          ),
-                          contentPadding:
-                          const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                          filled: true,
-                          fillColor: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.grey.shade900
-                              : Colors.white,
-                        ),
-                        validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
-                      ),
-                      const SizedBox(height: 10,),
-                      TextFormField(
-                        controller: _lastPrice,
-                        keyboardType: TextInputType.number,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        decoration: _buildInputDecoration(
-                          context,
-                          "Last Price (₹) by owner",
-                        ).copyWith(
-                          suffix: Text(
-                            _formattedLastPrice,
-                            style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10,),
-                      TextFormField(
-                        controller: _askingPrice,
-                        keyboardType: TextInputType.number,
-                        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                        decoration: _buildInputDecoration(
-                          context,
-                          "Asking Price (₹) by owner",
-                        ).copyWith(
-                          suffix: Padding(
-                            padding: const EdgeInsets.only(right: 8.0),
-                            child: Text(
-                              _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
-                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10,),
-
-                      Row(
-                        children: [
-                          /// Maintenance dropdown field
-                          Expanded(
-                            child: _buildReadOnlyField(
-                              label: "Maintenance",
-                              controller: _maintenanceController,
-                              onTap: () => _showBottomSheet(
-                                options: ['Included', 'Custom'],
-                                onSelected: (val) {
-                                  setState(() {
-                                    _maintenance = val;
-                                    _maintenanceController.text = val;
-                                    if (val != 'Custom') _customMaintenance = null;
-                                  });
-                                },
-                              ),
-                              validator: (val) =>
-                              val == null || val.isEmpty ? "Select maintenance" : null,
-                            ),
-                          ),
-
-                          if (_maintenance == 'Custom')
-
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 16.0),
-                                child: TextFormField(
-                                  controller: _customMaintenanceController, // ✅ attach controller
-                                  decoration: InputDecoration(
-                                      labelText: "Enter Maintenance Fee",
-                                      labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.grey.shade700
-                                              : Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      // ✅ Error text style
-                                      errorStyle: const TextStyle(
-                                        color: Colors.redAccent, // deep red text
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-
-                                      // ✅ Error border (deep red)
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                          color: Colors.redAccent,
-                                          width: 2,
-                                        ),
-                                      ),
-
-                                      // ✅ Focused border when error
-                                      focusedErrorBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: const BorderSide(
-                                          color: Colors.red,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.grey.shade700
-                                              : Colors.grey.shade300,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                        borderSide: BorderSide(
-                                          color: Theme.of(context).brightness == Brightness.dark
-                                              ? Colors.blue
-                                              : Colors.blue.shade300,
-                                          width: 2,
-                                        ),
-                                      ),
-
-                                      contentPadding:
-                                      const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-                                      filled: true,
-                                      fillColor:Colors.blue
-                                  ),
-                                  style: TextStyle(
-                                    color: Theme.of(context).brightness == Brightness.dark
-                                        ? Colors.white
-                                        : Colors.black,
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  onChanged: (val) => _customMaintenance = val,
-                                  validator: (val) => _maintenance == 'Custom' &&
-                                      (val == null || val.isEmpty)
-                                      ? "Enter maintenance fee"
-                                      : null,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-
-
-                      const SizedBox(height: 16,),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          DropdownButtonFormField<String>(
-                            value: (_houseMeter != null && _houseMeter != 'Custom')
-                                ? _houseMeter
-                                : (_meter.text.isNotEmpty ? 'Custom' : null),
-                            decoration: _buildInputDecoration(context, "House Meter Type"),
-                            items: ['Commercial', 'Govt', 'Custom'].map((option) {
-                              return DropdownMenuItem<String>(
+                            items: furnishingOptions.map((option) {
+                              return DropdownMenuItem(
                                 value: option,
-                                child: Text(option),
+                                child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                                ),
                               );
                             }).toList(),
                             onChanged: (val) {
                               setState(() {
-                                _houseMeter = val;
-                                if (val != 'Custom') {
-                                  _meter.text = val!;
-                                  print("DEBUG: Selected predefined meter = $val");
-                                } else {
-                                  _meter.clear();
-                                  print("DEBUG: Cleared for custom input");
+                                _furnished = val;
+                                // Clear previously selected furniture if not furnished
+                                if (val == 'Unfurnished') {
+                                  _selectedFurniture.clear();
                                 }
                               });
                             },
-                            validator: (val) => (val == null || val.isEmpty)
-                                ? "Select house meter type"
-                                : null,
-                          ),
 
-                          const SizedBox(height: 20),
-
-                          if (_houseMeter == 'Custom')
-                            _blueTextInput(
-                              'Enter Custom Meter Type',
-                              _meter,
-                              keyboardType: TextInputType.text,
-                            ),
-                        ],
-                      ),
-
-
-                      buildTextInput('Video Link', _videoLink),
-                      buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
-                      buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
-                      buildTextInput('Owner Name (Optional)', _Ownername),
-                      buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
-
-                    ],
-                  ),
-                  SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: _isLoading
-                        ? null
-                        : () async {
-                      // ✅ Validate form before starting countdown
-                      if (!_formKey.currentState!.validate()) {
-                        showDialog(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text(
-                              "Form Incomplete",
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            content: const Text(
-                              "Please fill all the required fields before submitting.",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(),
-                                child: const Text("OK"),
-                              )
-                            ],
-                          ),
-                        );
-                        return; // Stop here if any field is empty
-                      }
-
-                      setState(() {
-                        _isLoading = true;
-                      });
-
-                      int countdown = 3;
-
-                      // Show countdown dialog
-                      await showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (context) {
-                          return StatefulBuilder(
-                            builder: (context, setStateDialog) {
-                              // Countdown logic
-                              Future.delayed(const Duration(seconds: 1), () async {
-                                if (countdown > 1) {
-                                  setStateDialog(() {
-                                    countdown--;
-                                  });
-                                } else {
-                                  setStateDialog(() {
-                                    countdown = 0;
-                                  });
-
-                                  await Future.delayed(const Duration(seconds: 1));
-                                  if (Navigator.of(context).canPop()) {
-                                    Navigator.of(context).pop(); // close dialog
-                                  }
-
-                                  // Run your upload logic
-                                  await _handleUpload();
-
-                                  if (!mounted) return;
-
-                                  // Show success message
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text("✅ Submitted Successfully!"),
-                                      backgroundColor: Colors.green,
+                            validator: (val) =>
+                            val == null || val.isEmpty ? 'Please select furnishing' : null,
+                          ), title: 'Furnishing',
+                        ),
+                        if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+                          _blueSectionCard(
+                            child: GestureDetector(
+                              onTap: () => _showFurnitureBottomSheet(context),
+                              child: AbsorbPointer(
+                                child: Padding(
+                                  padding:  EdgeInsets.only(top: 16.0),
+                                  child:
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                      labelText: "Select Furniture Items",
+                                      labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      filled: true, // ✅ enable background color
+                                      fillColor: Theme.of(context).brightness==Brightness.dark?Colors.grey.shade800:Colors.white,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                                     ),
-                                  );
-                                }
-                              });
-
-                              return AlertDialog(
-                                backgroundColor:
-                                Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey[900]
-                                    : Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                title: const Text(
-                                  "Submitting...",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    controller: TextEditingController(
+                                      text: _selectedFurniture.isEmpty
+                                          ? ''
+                                          : _selectedFurniture.entries
+                                          .map((e) => '${e.key} (${e.value})')
+                                          .join(', '),
+                                    ),
                                   ),
                                 ),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    AnimatedSwitcher(
-                                      duration: const Duration(milliseconds: 500),
-                                      transitionBuilder: (child, animation) =>
-                                          ScaleTransition(scale: animation, child: child),
-                                      child: countdown > 0
-                                          ? Text(
-                                        "$countdown",
-                                        key: ValueKey<int>(countdown),
-                                        style: TextStyle(
-                                          fontSize: 40,
-                                          fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).brightness ==
-                                              Brightness.dark
-                                              ? Colors.red[300]
-                                              : Colors.red,
-                                        ),
-                                      )
-                                          : const Icon(
-                                        Icons.verified_rounded,
-                                        key: ValueKey<String>("verified"),
-                                        color: Colors.green,
-                                        size: 60,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      countdown > 0 ? "Please wait..." : "Verified!",
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500,
-                                        color: Theme.of(context).brightness ==
-                                            Brightness.dark
-                                            ? Colors.white
-                                            : Colors.black,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      );
-
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    },
-                    child: Center(
-                      child: Container(
-                        height: 50,
-                        padding: const EdgeInsets.symmetric(horizontal: 40),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(40),
-                          color: Colors.red,
+                              ),
+                            ), title: 'Furniture Items',
+                          ),
+                        const SizedBox(height: 10,),
+                        _buildDropdownRow(
+                          'Parking',
+                          _Parking_items,
+                          parking,
+                              (val) => setState(() => parking = val),
+                          validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
                         ),
-                        child: _isLoading
-                            ? Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            SizedBox(
-                              width: 18,
-                              height: 30,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
+                        const SizedBox(height: 10,),
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
                               ),
                             ),
-                            SizedBox(width: 12),
-                            Text(
-                              "Processing...",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
                               ),
                             ),
                           ],
-                        )
-                            : const Center(
-                          child: Text(
-                            "Submit",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'Poppins',
-                              letterSpacing: 0.8,
-                              fontSize: 18,
+                        ),
+                        const SizedBox(height: 10,),
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
+
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
+                            ),
+                          ],
+                        ),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildDropdownRow('Balcony', _balcony_items, balcony, (val) => setState(() => balcony = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10,),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildSectionCard(
+                                title: 'Available Date',
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    final DateTime? picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (picked != null) {
+                                      setState(() {
+                                        _availableDate = picked;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade600,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      _availableDate != null
+                                          ? DateFormat('dd MMMM yyyy').format(_availableDate!)
+                                          : '', // 👈 empty string if null
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child:              _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        TextFormField(
+                          controller: _showPrice,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText:"Show Price (₹)",
+                            floatingLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+
+                            suffix: _formattedPrice.isNotEmpty
+                                ? Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: Text(
+                                _formattedPrice,
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                              ),
+                            )
+                                : null,
+
+                            labelStyle: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade300
+                                  : Colors.black54,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.blue.shade200
+                                      : Colors.blue.shade300,
+                                  width: 2),
+                            ),
+                            contentPadding:
+                            const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                            filled: true,
+                            fillColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade900
+                                : Colors.white,
+                          ),
+                          validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
+                        ),
+                        const SizedBox(height: 10,),
+                        TextFormField(
+                          controller: _lastPrice,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                          decoration: _buildInputDecoration(
+                            context,
+                            "Last Price (₹) by owner",
+                          ).copyWith(
+                            suffix: Text(
+                              _formattedLastPrice,
+                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+                        TextFormField(
+                          controller: _askingPrice,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                          decoration: _buildInputDecoration(
+                            context,
+                            "Asking Price (₹) by owner",
+                          ).copyWith(
+                            suffix: Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(
+                                _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+
+                        Row(
+                          children: [
+                            /// Maintenance dropdown field
+                            Expanded(
+                              child: _buildReadOnlyField(
+                                label: "Maintenance",
+                                controller: _maintenanceController,
+                                onTap: () => _showBottomSheet(
+                                  options: ['Included', 'Custom'],
+                                  onSelected: (val) {
+                                    setState(() {
+                                      _maintenance = val;
+                                      _maintenanceController.text = val;
+                                      if (val != 'Custom') _customMaintenance = null;
+                                    });
+                                  },
+                                ),
+                                validator: (val) =>
+                                val == null || val.isEmpty ? "Select maintenance" : null,
+                              ),
+                            ),
+
+                            if (_maintenance == 'Custom')
+
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 16.0),
+                                  child: TextFormField(
+                                    controller: _customMaintenanceController, // ✅ attach controller
+                                    decoration: InputDecoration(
+                                        labelText: "Enter Maintenance Fee",
+                                        labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade700
+                                                : Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        // ✅ Error text style
+                                        errorStyle: const TextStyle(
+                                          color: Colors.redAccent, // deep red text
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+
+                                        // ✅ Error border (deep red)
+                                        errorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: const BorderSide(
+                                            color: Colors.redAccent,
+                                            width: 2,
+                                          ),
+                                        ),
+
+                                        // ✅ Focused border when error
+                                        focusedErrorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: const BorderSide(
+                                            color: Colors.red,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade700
+                                                : Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.blue
+                                                : Colors.blue.shade300,
+                                            width: 2,
+                                          ),
+                                        ),
+
+                                        contentPadding:
+                                        const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                                        filled: true,
+                                        fillColor:Colors.blue
+                                    ),
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (val) => _customMaintenance = val,
+                                    validator: (val) => _maintenance == 'Custom' &&
+                                        (val == null || val.isEmpty)
+                                        ? "Enter maintenance fee"
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+
+
+                        const SizedBox(height: 16,),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DropdownButtonFormField<String>(
+                              value: (_houseMeter != null && _houseMeter != 'Custom')
+                                  ? _houseMeter
+                                  : (_meter.text.isNotEmpty ? 'Custom' : null),
+                              decoration: _buildInputDecoration(context, "House Meter Type"),
+                              items: ['Commercial', 'Govt', 'Custom'].map((option) {
+                                return DropdownMenuItem<String>(
+                                  value: option,
+                                  child: Text(option),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  _houseMeter = val;
+                                  if (val != 'Custom') {
+                                    _meter.text = val!;
+                                    print("DEBUG: Selected predefined meter = $val");
+                                  } else {
+                                    _meter.clear();
+                                    print("DEBUG: Cleared for custom input");
+                                  }
+                                });
+                              },
+                              validator: (val) => (val == null || val.isEmpty)
+                                  ? "Select house meter type"
+                                  : null,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            if (_houseMeter == 'Custom')
+                              _blueTextInput(
+                                'Enter Custom Meter Type',
+                                _meter,
+                                keyboardType: TextInputType.text,
+                              ),
+                          ],
+                        ),
+
+
+                        buildTextInput('Video Link', _videoLink),
+                        buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
+                        buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
+                        buildTextInput('Owner Name (Optional)', _Ownername),
+                        buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
+
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: _isLoading
+                          ? null
+                          : () async {
+                        // ✅ Validate form before starting countdown
+                        if (!_formKey.currentState!.validate()) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text(
+                                "Form Incomplete",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              content: const Text(
+                                "Please fill all the required fields before submitting.",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text("OK"),
+                                )
+                              ],
+                            ),
+                          );
+                          return; // Stop here if any field is empty
+                        }
+
+                        setState(() {
+                          _isLoading = true;
+                        });
+
+                        int countdown = 3;
+
+                        // Show countdown dialog
+                        await showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            return StatefulBuilder(
+                              builder: (context, setStateDialog) {
+                                // Countdown logic
+                                Future.delayed(const Duration(seconds: 1), () async {
+                                  if (!mounted) return;
+
+                                  if (countdown > 1) {
+                                    setStateDialog(() {
+                                      countdown--;
+                                    });
+                                  } else {
+                                    setStateDialog(() {
+                                      countdown = 0;
+                                    });
+
+                                    await Future.delayed(const Duration(seconds: 1));
+                                    if (!mounted) return;
+
+                                    Navigator.of(context).pop(); // close dialog safely
+
+                                    await _handleUpload();
+
+                                    if (!mounted) return;
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("✅ Submitted Successfully!"),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                });
+
+                                return AlertDialog(
+                                  backgroundColor:
+                                  Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey[900]
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  title: const Text(
+                                    "Submitting...",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 500),
+                                        transitionBuilder: (child, animation) =>
+                                            ScaleTransition(scale: animation, child: child),
+                                        child: countdown > 0
+                                            ? Text(
+                                          "$countdown",
+                                          key: ValueKey<int>(countdown),
+                                          style: TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                                ? Colors.red[300]
+                                                : Colors.red,
+                                          ),
+                                        )
+                                            : const Icon(
+                                          Icons.verified_rounded,
+                                          key: ValueKey<String>("verified"),
+                                          color: Colors.green,
+                                          size: 60,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        countdown > 0 ? "Please wait..." : "Verified!",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(40),
+                            color: Colors.red,
+                          ),
+                          child: _isLoading
+                              ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              SizedBox(
+                                width: 18,
+                                height: 30,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                "Processing...",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                              : const Center(
+                            child: Text(
+                              "Submit",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                                letterSpacing: 0.8,
+                                fontSize: 18,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  )
-                ],
+                    )
+                  ],
+                ),
               ),
             ),
           ),

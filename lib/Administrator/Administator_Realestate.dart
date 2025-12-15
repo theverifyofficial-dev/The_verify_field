@@ -331,9 +331,9 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   }
 
   List<Map<String, String>> fieldWorkers = [
-    {"name": "Sumit Singh", "id": "9711775300"},
-    {"name": "Ravi Kumar", "id": "9711275300"},
-    {"name": "Faizan Ahmed", "id": "9971172204"},
+    {"name": "Sumit", "id": "9711775300"},
+    {"name": "Ravi", "id": "9711275300"},
+    {"name": "Faizan", "id": "9971172204"},
     {"name": "Manish", "id": "8130209217"},
     {"name": "Abhey", "id": "9675383184"},
   ];
@@ -1048,7 +1048,7 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           if (isAdmin) return true;
           // SUB-ADMIN → FILTER BY LOCATION
           if (loc.contains("sultanpur")) {
-            return name == "sumit singh" || name == "ravi kumar" || name == "faizan ahmed";
+            return name == "sumit" || name == "ravi" || name == "faizan";
           }
           if (loc.contains("rajpur") || loc.contains("chhattar")) {
             return name == "manish" || name == "abhey";

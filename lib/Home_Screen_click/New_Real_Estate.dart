@@ -263,16 +263,15 @@ class NewRealEstateShowDateModel {
 }
 
 class Show_New_Real_Estate extends StatefulWidget {
-  final String? highlightPropertyId;   // 👈 NEW
+  final String? highlightPropertyId;
 
-  const Show_New_Real_Estate({super.key,this.highlightPropertyId});
+  const Show_New_Real_Estate({super.key, this.highlightPropertyId});
 
   @override
   State<Show_New_Real_Estate> createState() => _Show_New_Real_EstateState();
 }
 
 class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
-
   List<NewRealEstateShowDateModel> _allProperties = [];
   List<NewRealEstateShowDateModel> _filteredProperties = [];
   TextEditingController _searchController = TextEditingController();
@@ -283,60 +282,65 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   String _aadhar = '';
   int propertyCount = 0;
   String? selectedLabel;
-  Timer? _debounce;
   final ScrollController _scrollController = ScrollController();
+
+  Map<int, String> submittedStatus = {};
 
   @override
   void dispose() {
     _searchController.dispose();
-    _debounce?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
+
   Future<void> saveStatus(int id, String status) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString("video_status_$id", status);
   }
+
   Future<String?> loadStatus(int id) async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString("video_status_$id");
   }
 
   void _onSearchChanged() {
-    final query = _searchController.text.toLowerCase();
+    final query = _searchController.text.toLowerCase().trim();
     final filtered = _allProperties.where((item) {
-      return (item.locations ?? '').toLowerCase().contains(query) ||
-          (item.apartmentAddress ?? '').toLowerCase().contains(query) ||
-          (item.pId ?? '').toString().toLowerCase().contains(query) ||
-          (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
-          (item.bhk ?? '').toLowerCase().contains(query) ||
-          (item.showPrice ?? '').toLowerCase().contains(query) ||
-          (item.floor ?? '').toLowerCase().contains(query) ||
-          (item.totalFloor ?? '').toLowerCase().contains(query) ||
-          (item.balcony ?? '').toLowerCase().contains(query) ||
-          (item.squarefit ?? '').toLowerCase().contains(query) ||
-          (item.maintance ?? '').toLowerCase().contains(query) ||
-          (item.parking ?? '').toLowerCase().contains(query) ||
-          (item.kitchen ?? '').toLowerCase().contains(query) ||
-          (item.bathroom ?? '').toLowerCase().contains(query) ||
-          (item.facility ?? '').toLowerCase().contains(query) ||
-          (item.furnishedUnfurnished ?? '').toLowerCase().contains(query) ||
-          (item.buyRent ?? '').toLowerCase().contains(query) ||
-          (item.longitude ?? '').toLowerCase().contains(query) ||
-          (item.latitude ?? '').toLowerCase().contains(query) ||
-          (item.propertyPhoto ?? '').toLowerCase().contains(query) ||
-          (item.ageOfProperty ?? '').toLowerCase().contains(query) ||
-          (item.registryAndGpa ?? '').toLowerCase().contains(query) ||
-          (item.loan ?? '').toLowerCase().contains(query) ||
-          (item.flatNumber ?? '').toLowerCase().contains(query) ||
-          (item.currentDates ?? '').toLowerCase().contains(query) ||
-          (item.availableDate ?? '').toLowerCase().contains(query) ||
-          (item.ownerName ?? '').toLowerCase().contains(query) ||
-          (item.ownerNumber ?? '').toLowerCase().contains(query) ||
-          (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
-          (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
-          (item.careTakerName ?? '').toLowerCase().contains(query) ||
-          // (item. ?? '').toLowerCase().contains(query) ||
-          (item.careTakerNumber ?? '').toLowerCase().contains(query);
+      final values = [
+        item.pId?.toString(),
+        item.locations,
+        item.apartmentAddress,
+        item.typeOfProperty,
+        item.bhk,
+        item.showPrice,
+        item.floor,
+        item.totalFloor,
+        item.balcony,
+        item.squarefit,
+        item.maintance,
+        item.parking,
+        item.kitchen,
+        item.bathroom,
+        item.facility,
+        item.furnishedUnfurnished,
+        item.buyRent,
+        item.longitude,
+        item.latitude,
+        item.propertyPhoto,
+        item.ageOfProperty,
+        item.registryAndGpa,
+        item.loan,
+        item.flatNumber,
+        item.currentDates,
+        item.availableDate,
+        item.ownerName,
+        item.ownerNumber,
+        item.fieldWorkerName,
+        item.fieldWorkerNumber,
+        item.careTakerName,
+        item.careTakerNumber,
+      ];
+      return values.any((v) => v != null && v.toString().toLowerCase().contains(query));
     }).toList();
 
     setState(() {
@@ -345,7 +349,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     });
   }
 
-
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
@@ -353,17 +356,13 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     );
 
     final response = await http.get(url);
-
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}: ${response.body}");
     }
 
     final decoded = json.decode(response.body);
-
-    // Most backends wrap results like { success: true, data: [...] }
     final raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
 
-    // Normalize to a List<Map<String,dynamic>>
     final List<Map<String, dynamic>> listResponse;
     if (raw is List) {
       listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -373,105 +372,66 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       listResponse = const [];
     }
 
-    int _asInt(dynamic v) =>
-        v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
-
+    int _asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
     listResponse.sort((a, b) => _asInt(b['P_id']).compareTo(_asInt(a['P_id'])));
 
-    return listResponse
-        .map((data) => NewRealEstateShowDateModel.fromJson(data))
-        .toList();
+    return listResponse.map((data) => NewRealEstateShowDateModel.fromJson(data)).toList();
   }
 
   @override
   void initState() {
     super.initState();
-
-    _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-
     _loaduserdata();
-    _fetchInitialData();
   }
-  Map<int, String> submittedStatus = {};
-
 
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
-
-    _name = prefs.getString('name') ?? '';      // FName
-    _number = prefs.getString('number') ?? '';  // FNumber
-    _aadhar = prefs.getString('post') ?? '';    // FAadharCard
-
-    print("Loaded Name: $_name");
-    print("Loaded Number: $_number");
-    print("Loaded Aadhar: $_aadhar");
+    _name = prefs.getString('name') ?? '';
+    _number = prefs.getString('number') ?? '';
+    _aadhar = prefs.getString('post') ?? '';
 
     await _fetchProperties();
+
     for (var property in _allProperties) {
       final saved = await loadStatus(property.pId ?? 0);
       if (saved != null) {
-        submittedStatus[property.pId!] = saved;
+        submittedStatus[property.pId ?? 0] = saved;
       }
     }
-
   }
-
 
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
-
     try {
       final data = await fetchData(_number);
+      setState(() {
+        _allProperties = data;
+        _filteredProperties = data;
+        _isLoading = false;
+      });
 
-      _allProperties = data;
-      _filteredProperties = data;
-
-      // 🔥 Load saved video submission status
       for (var property in _allProperties) {
         final saved = await loadStatus(property.pId ?? 0);
-        if (saved != null) {
-          submittedStatus[property.pId ?? 0] = saved;
-        }
+        if (saved != null) submittedStatus[property.pId ?? 0] = saved;
       }
-
-      setState(() => _isLoading = false);
 
       if (widget.highlightPropertyId != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           int index = _filteredProperties.indexWhere(
                 (item) => item.pId.toString() == widget.highlightPropertyId,
           );
-
-          print("🔥 Highlight Property ID = ${widget.highlightPropertyId}");
-          print("📍 Found at index = $index");
-
           if (index != -1) {
             _scrollController.animateTo(
               index * MediaQuery.of(context).size.height * 0.80,
-              duration: Duration(milliseconds: 700),
+              duration: const Duration(milliseconds: 700),
               curve: Curves.easeOut,
             );
           }
         });
       }
-
     } catch (e) {
-      print("❌ Error: $e");
-      setState(() => _isLoading = false);
-    }
-  }
-
-
-  Future<void> _fetchInitialData() async {
-    setState(() => _isLoading = true);
-    try {
-      setState(() {
-
-        _isLoading = false;
-      });
-    } catch (e) {
-      print("❌ Error fetching data: $e");
+      print("Error: $e");
       setState(() => _isLoading = false);
     }
   }
@@ -482,221 +442,325 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       _searchController.text = text;
       _searchController.selection = TextSelection.fromPosition(
         TextPosition(offset: _searchController.text.length),
-
       );
-      // propertyCount = _getMockPropertyCount(text); // Mock or real count
-
     });
-
-    print("Search for: $text");
   }
-  bool get _isSearchActive {
-    return _searchController.text.trim().isNotEmpty || selectedLabel!="";
-  }
-  Future<String?> submitVideo({
-    required int id,
-    required String byName,
-    required String role,
-    required String text,
-  }) async {
-    final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php");
 
-    try {
-      final response = await http.post(url, body: {
-        "action": "submit_video",
-        "id": id.toString(),
-        "by_name": byName,
-        "role": role,
-        "text": text,
-      });
+  bool get _isSearchActive => _searchController.text.trim().isNotEmpty || selectedLabel != null;
 
-      print("📤 SENT: action = submit_video, id=$id, by=$byName, role=$role, text=$text");
-      print("📩 RESPONSE: ${response.body}");
+  // ====================== CARD HELPERS ======================
 
-      final jsonBody = jsonDecode(response.body);
+  bool _blank(String? s) => s == null || s.trim().isEmpty;
 
-      if (jsonBody["ok"] == true) {
-        final status = jsonBody["data"]["messages"][0]["status_after"];
-        return status;   // 🔥 return the status string
-      }
-
-      return null;
-    } catch (e) {
-      print("❌ API ERROR: $e");
-      return null;
+  Color _getIconColor(IconData icon, ThemeData theme) {
+    final cs = theme.colorScheme;
+    switch (icon) {
+      case Icons.location_on: return Colors.red;
+      case Icons.currency_rupee: return Colors.green;
+      case Icons.king_bed: return Colors.pink;
+      case Icons.layers: return Colors.teal;
+      case Icons.apartment: return Colors.blue;
+      case Icons.format_list_numbered: return Colors.indigo;
+      case Icons.numbers: return Colors.cyan;
+      case Icons.person: return Colors.deepPurple;
+      default: return cs.primary;
     }
   }
 
+  Widget _buildImageSection({
+    required String? imageUrl,
+    required ColorScheme cs,
+    required ThemeData theme,
+    required double imageHeight,
+  }) {
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return Container(
+        height: imageHeight,
+        decoration: BoxDecoration(color: cs.surfaceVariant, borderRadius: BorderRadius.circular(12)),
+        child: const Icon(Icons.apartment, size: 90, color: Colors.grey),
+      );
+    }
 
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: SizedBox(
+        height: imageHeight,
+        width: double.infinity,
+        child: CachedNetworkImage(
+          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
+          fit: BoxFit.cover,
+          placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: 90),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(NewRealEstateShowDateModel property, List<String> missingFields, bool hasMissingFields) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final isTablet = screenWidth > 600;
+    final isSmallScreen = screenWidth < 400;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0);
+    final double titleFontSize = isTablet ? 18 : 14;
+    final double detailFontSize = isTablet ? 13 : 12;
+    final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0);
+
+    final Widget imageSection = _buildImageSection(
+      imageUrl: property.propertyPhoto,
+      cs: cs,
+      theme: theme,
+      imageHeight: imageH,
+    );
+
+    final Widget livePropertyIdRow = _DetailRow(
+      icon: Icons.numbers,
+      label: 'Live Property ID',
+      value: property.pId?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+    final List<Widget> detailRows = [];
+
+    if (!_blank(property.locations)) {
+      detailRows.add(_DetailRow(icon: Icons.location_on, label: '', value: property.locations!, theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    }
+    detailRows.add(_DetailRow(icon: Icons.currency_rupee, label: '', value: '₹${property.showPrice ?? 'N/A'}', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    detailRows.add(_DetailRow(icon: Icons.currency_rupee, label: '', value: '${property.buyRent ?? 'N/A'}', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    detailRows.add(_DetailRow(icon: Icons.king_bed, label: '', value: property.bhk ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    detailRows.add(_DetailRow(icon: Icons.layers, label: '', value: property.floor ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    detailRows.add(_DetailRow(icon: Icons.apartment, label: '', value: property.typeOfProperty ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    detailRows.add(_DetailRow(icon: Icons.format_list_numbered, label: 'Flat No', value: property.flatNumber ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+
+    if (property.sId != null && property.sId != 0) {
+      detailRows.add(_DetailRow(icon: Icons.numbers, label: 'Building ID', value: property.sId.toString(), theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    }
+    detailRows.add(_DetailRow(icon: Icons.numbers, label: 'Building Flat ID', value: property.sourceId ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
+    // Video Status Button
+    Widget? videoStatusButton;
+    if (!_blank(property.videoStatus)) {
+      String st = (property.videoStatus ?? "").trim().toLowerCase();
+      Color btnColor = Colors.red;
+      IconData btnIcon = Icons.error_outline;
+      String btnText = "Pending";
+
+      if (st == "video submitted") { btnColor = Colors.green; btnIcon = Icons.check_circle; btnText = "Video Submitted"; }
+      else if (st == "video requested by editor") { btnColor = Colors.blue; btnText = property.videoStatus!; }
+      else if (st == "video recived and editing started") { btnColor = Colors.orange; btnText = property.videoStatus!; }
+      else if (st == "video uploaded") { btnColor = Colors.purple; btnIcon = Icons.check_circle; btnText = property.videoStatus!; }
+      else if (st.isEmpty) { btnText = "Pending"; }
+
+      videoStatusButton = Padding(
+        padding: const EdgeInsets.only(top: 8.0),
+        child: InkWell(
+          onTap: () async {
+            bool isPending = st.isEmpty;
+            bool isEditingStarted = st == "video recived and editing started";
+            bool isUploaded = st == "video uploaded";
+
+            if (isEditingStarted || isUploaded) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Editing already started")));
+              await Navigator.push(context, MaterialPageRoute(builder: (_) => SubmitVideoPage(propertyId: property.pId ?? 0, status: st, action: "view_only", userName: _name, userRole: "fieldworker")));
+              return;
+            }
+
+            String actionToSend = st == "video requested by editor" ? "fieldworker_reply" : "submit_video";
+            String displayStatus = isPending ? "Pending" : property.videoStatus!;
+
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => SubmitVideoPage(propertyId: property.pId ?? 0, status: displayStatus, action: actionToSend, userName: _name, userRole: "fieldworker")),
+            );
+            if (result == true) _fetchProperties();
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(color: btnColor, borderRadius: BorderRadius.circular(10)),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(btnIcon, color: Colors.white, size: 18),
+                const SizedBox(width: 6),
+                Text(btnText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: GestureDetector(
+        onTap: () async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setInt('id_Building', property.pId ?? 0);
+          prefs.setString('id_Longitude', property.longitude ?? '');
+          prefs.setString('id_Latitude', property.latitude ?? '');
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => View_Details(id: property.pId ?? 0)),
+          );
+        },
+        child: Card(
+          elevation: isDarkMode ? 0 : 4,
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: theme.dividerColor.withOpacity(0.5)),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(cardPadding),
+            child: Column(
+              children: [
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: isSmallScreen ? 1 : (isTablet ? 2 : 2), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [imageSection, const SizedBox(height: 6), livePropertyIdRow])),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: isSmallScreen ? 1 : (isTablet ? 3 : 3),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              property.apartmentAddress ?? property.fieldWorkerAddress ?? property.locations ?? 'No Title',
+                              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: titleFontSize),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 8),
+                            ...detailRows,
+                            if (videoStatusButton != null) videoStatusButton,
+                            const Spacer(),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (hasMissingFields)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(6), border: Border.all(color: cs.error)),
+                      child: Text(
+                        "⚠ Missing: ${missingFields.join(', ')}",
+                        style: theme.textTheme.bodySmall?.copyWith(color: cs.error, fontWeight: FontWeight.w600),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-      _isLoading
-          ? Center(child: Image.asset(AppImages.loader,height: 50,))
+      body: _isLoading
+          ? Center(child: Image.asset(AppImages.loader, height: 50))
           : Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
             child: TextField(
               controller: _searchController,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-                fontSize: 16,
-              ),
+              style: const TextStyle(fontSize: 16),
               decoration: InputDecoration(
                 hintText: 'Search properties...',
-                hintStyle: TextStyle(
-                  color: Theme.of(context).hintColor,
-                  fontSize: 16,
-                ),
-                prefixIcon: Icon(
-                  Icons.search_rounded,
-                  color: Theme.of(context).iconTheme.color?.withOpacity(0.8),
-                ),
+                prefixIcon: const Icon(Icons.search_rounded),
                 suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                  icon: Icon(
-                    Icons.clear_rounded,
-                    color: Theme.of(context).iconTheme.color?.withOpacity(0.6),
-                  ),
-                  onPressed: () => _searchController.clear(),
-                )
+                    ? IconButton(icon: const Icon(Icons.clear_rounded), onPressed: () => _searchController.clear())
                     : null,
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                    width: 1,
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(
-                    color: Theme.of(context).colorScheme.primary,
-                    width: 1.5,
-                  ),
-                ),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.3))),
+                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Theme.of(context).colorScheme.primary, width: 1.5)),
                 contentPadding: const EdgeInsets.symmetric(vertical: 16),
               ),
             ),
           ),
+          // Filter buttons (Rent, Buy, Commercial) - same as before
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Align(
-                alignment: Alignment.centerLeft, // 👈 Force start from left
-                child: Row(
-                  children: ['Rent', 'Buy', 'Commercial'].map((label) {
-                    final bool isSelected = label == selectedLabel;
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: ElevatedButton(
-                        onPressed: () => _setSearchText(label, label),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                          isSelected ? Colors.blue : Colors.grey.shade300,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                        ),
-                        child: Text(
-                          label,
-                          style: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black,
-                            fontFamily: "Poppins",
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+              child: Row(
+                children: ['Rent', 'Buy', 'Commercial'].map((label) {
+                  final bool isSelected = label == selectedLabel;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: ElevatedButton(
+                      onPressed: () => _setSearchText(label, label),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isSelected ? Colors.blue : Colors.grey.shade300,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                       ),
-                    );
-                  }).toList(),
-                ),
+                      child: Text(label, style: TextStyle(color: isSelected ? Colors.white : Colors.black, fontSize: 12, fontWeight: FontWeight.w600)),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
           ),
           if (propertyCount > 0 && _isSearchActive)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
-                        const SizedBox(width: 6),
-                        Text(
-                          "$propertyCount properties found",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        InkWell(
-                          onTap: () {
-                            setState(() {
-                              _searchController.clear();
-                              selectedLabel = '';
-                              _filteredProperties = _allProperties;
-                              propertyCount = 0;
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(20),
-                          child: Icon(Icons.close, size: 18, color: Colors.grey[600]),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Theme.of(context).colorScheme.primary.withOpacity(0.5)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                    const SizedBox(width: 6),
+                    Text("$propertyCount properties found"),
+                    const SizedBox(width: 6),
+                    InkWell(onTap: () {
+                      setState(() {
+                        _searchController.clear();
+                        selectedLabel = null;
+                        _filteredProperties = _allProperties;
+                        propertyCount = 0;
+                      });
+                    }, child: const Icon(Icons.close, size: 18)),
+                  ],
+                ),
               ),
             ),
           _filteredProperties.isEmpty
-              ? Expanded(
+              ? const Expanded(
             child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
-                  const SizedBox(height: 16),
-                  Text(
-                    "No properties found",
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Try a different search term",
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
-                  ),
+                  Icon(Icons.search_off, size: 60, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text("No properties found", style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500)),
+                  Text("Try a different search term", style: TextStyle(color: Colors.grey)),
                 ],
               ),
             ),
@@ -709,398 +773,39 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                 itemCount: _filteredProperties.length,
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
-                  return StreamBuilder<http.Response>(
-                    stream: Stream.periodic(const Duration(seconds: 5))
-                        .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
-                    ))),
-                    builder: (context, snapshot) {
-                      bool isRedDot = false;
 
-                      if (snapshot.hasData) {
-                        try {
-                          final body = jsonDecode(snapshot.data!.body);
-                          isRedDot = body is List && body.isNotEmpty && body[0]['logg'] == 0;
-                        } catch (_) {}
-                      }
+                  final Map<String, String?> fields = {
+                    "Images": property.propertyPhoto,
+                    "Owner Name": property.ownerName,
+                    "Owner Number": property.ownerNumber,
+                    "Caretaker Name": property.careTakerName,
+                    "Caretaker Number": property.careTakerNumber,
+                    "Place": property.locations,
+                    "Buy/Rent": property.buyRent,
+                    "Property Name/Address": property.apartmentAddress,
+                    "Property Address (Fieldworker)": property.fieldWorkerAddress,
+                    "Field Worker Name": property.fieldWorkerName,
+                    "Field Worker Number": property.fieldWorkerNumber,
+                    "Current Date": property.currentDates,
+                    "Longitude": property.longitude,
+                    "Latitude": property.latitude,
+                    "Road Size": property.roadSize,
+                    "Metro Distance": property.metroDistance,
+                    "Metro Name": property.highwayDistance,
+                    "Main Market Distance": property.mainMarketDistance,
+                    "Age of Property": property.ageOfProperty,
+                    "Lift": property.lift,
+                    "Parking": property.parking,
+                    "Total Floor": property.totalFloor,
+                    "Residence/Commercial": property.typeOfProperty,
+                    "Facility": property.facility,
+                    "Video": property.video,
+                  };
 
-                      final Map<String, dynamic> fields = {
-                        "Images": property.propertyPhoto,
-                        "Owner Name": property.ownerName,
-                        "Owner Number": property.ownerNumber,
-                        "Caretaker Name": property.careTakerName,
-                        "Caretaker Number": property.careTakerNumber,
-                        "Place": property.locations,
-                        "Buy/Rent": property.buyRent,
-                        "Property Name/Address": property.apartmentAddress,
-                        "Property Address (Fieldworker)":
-                        property.fieldWorkerAddress,
-                        // "Owner Vehicle Number": property.ownerVehicleNumber,
-                        // "Your Address": property.fieldWorkerCurrentLocation,
-                        "Field Worker Name": property.fieldWorkerName,
-                        "Field Worker Number": property.fieldWorkerNumber,
-                        "Current Date": property.currentDates,
-                        "Longitude": property.longitude,
-                        "Latitude": property.latitude,
-                        "Road Size": property.roadSize,
-                        "Metro Distance": property.metroDistance,
-                        "Metro Name": property.highwayDistance,
-                        "Main Market Distance": property.mainMarketDistance,
-                        "Age of Property": property.ageOfProperty,
-                        "Lift": property.lift,
-                        "Parking": property.parking,
-                        "Total Floor": property.totalFloor,
-                        "Residence/Commercial": property.typeOfProperty,
-                        "Facility": property.facility,
-                        "Video": property.video,
-                      };
+                  final missingFields = fields.entries.where((e) => _blank(e.value)).map((e) => e.key).toList();
+                  final hasMissingFields = missingFields.isNotEmpty;
 
-                      final missingFields = fields.entries
-                          .where((entry) {
-                        final value = entry.value;
-                        if (value == null) return true;
-                        if (value is String && value.trim().isEmpty) return true;
-                        return false;
-                      })
-                          .map((entry) => entry.key)
-                          .toList();
-
-                      final hasMissingFields = missingFields.isNotEmpty;
-                      return Column(
-                        children: [
-                          GestureDetector(
-                            onTap: () async {
-                              SharedPreferences prefs = await SharedPreferences.getInstance();
-                              prefs.setInt('id_Building', _filteredProperties[index].pId??0);
-                              prefs.setString('id_Longitude', _filteredProperties[index].longitude.toString());
-                              prefs.setString('id_Latitude', _filteredProperties[index].latitude.toString());
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => View_Details(id: _filteredProperties[index].pId??0),
-                                ),
-                              );
-                              print(_filteredProperties[index].pId??0);
-                            },
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                              decoration: BoxDecoration(
-                                color: property.pId.toString() == widget.highlightPropertyId
-                                    ? Colors.red  // 🔥 CLEAR HIGHLIGHT
-                                    : null,
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Card(
-                              elevation: 4, // ✅ elevation added
-                              shadowColor:  Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white
-                                  : Colors.black,
-                              shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              ),
-                                color: property.pId.toString() == widget.highlightPropertyId
-                                    ? Colors.red.withOpacity(0.01)       // ✅ Visible now
-                                    : Colors.white,
-                                child:
-                               Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Stack(
-                                      children: [
-                                        Container(
-                                          height: 450,
-                                          width: double.infinity,
-                                          decoration: BoxDecoration(
-                                            color: Theme.of(context).highlightColor,
-                                            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                          ),
-                                          child: Image.network(
-                                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                            fit: BoxFit.cover,
-                                            errorBuilder: (context, error, stackTrace) => Center(
-                                              child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-                                            ),
-                                          ),
-                                        ),
-                                        Positioned(
-                                          top: 12,
-                                          right: 12,
-                                          child: Wrap(
-                                            spacing: 8, // space between the two containers
-                                            children: [
-                                              _buildFeatureItem(
-                                                context: context,
-                                                // icon: Icons.king_bed,
-                                                text: "Live Property ID : ${_filteredProperties[index].pId}",
-                                                borderColor: Colors.grey.shade700,
-                                                backgroundColor: Colors.white,
-                                                textColor: Colors.blue,
-                                                shadowColor: Colors.white60,
-                                              ),  _buildFeatureItem(
-                                                context: context,
-                                                // icon: Icons.king_bed,
-                                                text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
-                                                borderColor: Colors.green.shade400,
-                                                backgroundColor: Colors.green.shade100,
-                                                textColor: Colors.green.shade700,
-                                                shadowColor: Colors.green.shade100,
-                                              ),
-
-                                            ],
-                                          ),
-                                        ),
-                                        Column(
-                                            children: [
-                                              if (hasMissingFields) ...[
-                                                SizedBox(
-                                                  height: MediaQuery.of(context).size.height * 0.41,
-                                                ),
-                                                Padding(
-                                               padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                                               child: Container(
-                                                      width: double.infinity,
-                                                      padding: const EdgeInsets.all(10),
-                                                      decoration: BoxDecoration(
-                                                        color: Colors.red[50],
-                                                        borderRadius: BorderRadius.circular(10),
-                                                        border: Border.all(color: Colors.redAccent, width: 1),
-                                                      ),
-                                                      child: Text(
-                                                        "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                        style: TextStyle(
-                                                          fontSize: 12,
-                                                          fontWeight: FontWeight.w600,
-                                                          color: Colors.redAccent,
-                                                        ),
-                                                      ),
-                                                    ),
-                                             ),
-
-                                              ]
-                                            ],
-                                          ),
-
-
-
-                                      ],
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.all(16),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(
-                                                     "₹${_filteredProperties[index].showPrice??"-"
-                                                         ".0"}"
-                                                  ,
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 20,
-                                                  fontFamily: "PoppinsBold",
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                              Text(
-                                                _filteredProperties[index].locations ?? "",
-                                                style: TextStyle(
-                                                  fontFamily: "PoppinsBold",
-                                                  color: Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Wrap(
-                                            spacing: 4, // horizontal spacing between items
-                                            runSpacing: 8, // vertical spacing between lines
-                                            alignment: WrapAlignment.start,
-                                            children: [
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.king_bed,
-                                                text: "${_filteredProperties[index].bhk}",
-                                                borderColor: Colors.purple.shade200,
-                                                backgroundColor: Colors.purple.shade50,
-                                                textColor: Colors.purple.shade700,
-                                                shadowColor: Colors.purple.shade100,
-                                              ),
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.apartment,
-                                                text: "${_filteredProperties[index].floor}",
-                                                borderColor: Colors.teal.shade200,
-                                                backgroundColor: Colors.teal.shade50,
-                                                textColor: Colors.teal.shade700,
-                                                shadowColor: Colors.teal.shade100,
-                                              ),
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.receipt_rounded,
-                                                text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                borderColor: Colors.red.shade200,
-                                                backgroundColor: Colors.red.shade50,
-                                                textColor: Colors.red.shade700,
-                                                shadowColor: Colors.red.shade100,
-                                              ),
-                                              _buildFeatureItem(
-                                                context: context,
-                                                icon: Icons.home_work,
-                                                text: _filteredProperties[index].typeOfProperty ?? "",
-                                                borderColor: Colors.orange.shade200,
-                                                backgroundColor: Colors.orange.shade50,
-                                                textColor: Colors.orange.shade700,
-                                                shadowColor: Colors.orange.shade100,
-                                              ),
-
-                                              _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
-                                                  ? _buildFeatureItem(
-                                                context: context,
-                                                text: "Building ID : ${_filteredProperties[index].sId.toString()}",
-                                                borderColor: Colors.deepOrange.shade400,
-                                                backgroundColor: Colors.deepOrange.shade100,
-                                                textColor: Colors.deepOrange.shade700,
-                                                shadowColor: Colors.deepOrange.shade100,
-                                              )
-                                                  : SizedBox.shrink(), // Empty widget if condition is not met
-
-
-                                              _buildFeatureItem(
-                                                context: context,
-                                                text: "Building Flat ID : ${_filteredProperties[index].sourceId.toString()}",
-                                                borderColor: Colors.blue.shade400,
-                                                backgroundColor: Colors.blue.shade100,
-                                                textColor: Colors.blue.shade700,
-                                                shadowColor: Colors.blue.shade100,
-                                              )
-
-                                            ],
-                                          ),
-                                          if(property.videoStatus!=""&&property.videoStatus!=null)
-                                            Wrap(
-                                              spacing: 8,
-                                              children: [
-                                                InkWell(
-                                                  onTap: () async {
-                                                    String st = (property.videoStatus ?? "").trim().toLowerCase();
-
-                                                    // ----------------- FIELDWORKER STATUS CHECK -----------------
-                                                    bool isPending = st.isEmpty;
-                                                    bool isSubmitted = st == "video submitted";
-                                                    bool isEditorRequested = st == "video requested by editor";
-                                                    bool isEditingStarted = st == "video recived and editing started";
-                                                    bool isUploaded = st == "video uploaded";
-
-                                                    // ----------------- IF EDITING STARTED OR UPLOADED → VIEW ONLY -----------------
-                                                    if (isEditingStarted || isUploaded) {
-                                                      ScaffoldMessenger.of(context).showSnackBar(
-                                                        SnackBar(
-                                                            duration: Duration(seconds: 2),
-                                                            content: Text("Editing already started")),
-                                                      );
-
-                                                      // OPEN VIEW ONLY PAGE
-                                                      await Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (_) => SubmitVideoPage(
-                                                            propertyId: property.pId ?? 0,
-                                                            status: st,
-                                                            action: "view_only",
-                                                            userName: _name,
-                                                            userRole: "fieldworker",  // 🔥 FIXED HERE
-                                                          ),
-                                                        ),
-                                                      );
-                                                      return;
-                                                    }
-
-                                                    // ----------------- FIELDWORKER ACTION -----------------
-                                                    String actionToSend = "submit_video";
-
-                                                    if (isEditorRequested) {
-                                                      actionToSend = "fieldworker_reply";
-                                                    }
-
-                                                    // ----------------- UI TEXT -----------------
-                                                    String displayStatus = isPending ? "Pending" : property.videoStatus!;
-
-                                                    // ----------------- NAVIGATE -----------------
-                                                    final result = await Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                        builder: (context) => SubmitVideoPage(
-                                                          propertyId: property.pId ?? 0,
-                                                          status: displayStatus,
-                                                          action: actionToSend,
-                                                          userName: _name,
-                                                          userRole: "fieldworker",   // 🔥 FIXED HERE ALSO
-                                                        ),
-                                                      ),
-                                                    );
-
-                                                    if (result == true) {
-                                                      _fetchProperties();
-                                                    }
-                                                  },
-
-                                                  child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: (() {
-                                                        String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                        if (st.isEmpty) return Colors.red;
-                                                        if (st == "video submitted") return Colors.green;
-                                                        if (st == "video requested by editor") return Colors.blue;
-                                                        if (st == "video recived and editing started") return Colors.orange;
-                                                        if (st == "video uploaded") return Colors.purple;
-                                                        return Colors.red;
-                                                      })(),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                    ),
-                                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          (() {
-                                                            String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                            if (st == "video submitted") return Icons.check_circle;
-                                                            return Icons.error_outline;
-                                                          })(),
-                                                          color: Colors.white,
-                                                        ),
-                                                        SizedBox(width: 8),
-                                                        Text(
-                                                          (() {
-                                                            String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                            if (st.isEmpty) return "Pending";
-                                                            return property.videoStatus!;
-                                                          })(),
-                                                          style: TextStyle(
-                                                            color: Colors.white,
-                                                            fontWeight: FontWeight.bold,
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                )
-                                              ],
-                                            )
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                      ]
-                      );
-                    },
-                  );
-
+                  return _buildCard(property, missingFields, hasMissingFields);
                 },
               ),
             ),
@@ -1109,70 +814,54 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       ),
     );
   }
+}
 
-  Widget _buildFeatureItem({
-    required BuildContext context,
-    required String text,
-    required Color borderColor,
-    IconData? icon, // 👈 optional now
-    Color? backgroundColor,
-    Color? textColor,
-    Color? shadowColor,
-  }) {
-    final width = MediaQuery.of(context).size.width;
+// Detail Row Widget (same as before)
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
+  final Color Function(IconData, ThemeData) getIconColor;
+  final double? fontSize;
+  final FontWeight? fontWeight;
 
-    // Scale text, padding, and icon size relative to screen width
-    double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
-    double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
-    double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
-    double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.theme,
+    required this.getIconColor,
+    this.fontSize,
+    this.fontWeight,
+  });
 
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalPadding,
-      ),
-      margin: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.transparent,
-        border: Border.all(color: borderColor, width: 2),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: (shadowColor ?? borderColor).withOpacity(0.10),
-            blurRadius: 6,
-            spreadRadius: 2,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+  @override
+  Widget build(BuildContext context) {
+    final cs = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (icon != null) ...[ // 👈 only shows if passed
-            Icon(
-              icon,
-              size: iconSize,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
-            ),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              fontFamily: "Poppins",
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
+          Icon(icon, size: 14, color: getIconColor(icon, theme)),
+          const SizedBox(width: 4),
+          Expanded(
+            child: RichText(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: theme.textTheme.bodyMedium?.copyWith(height: 1.1, color: cs.onSurface.withOpacity(0.7), fontSize: fontSize ?? 12),
+                children: [
+                  if (label.isNotEmpty)
+                    TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
+                  TextSpan(text: value, style: TextStyle(fontWeight: fontWeight ?? FontWeight.normal, color: cs.onSurface.withOpacity(0.9))),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
 }

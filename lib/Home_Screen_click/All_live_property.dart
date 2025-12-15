@@ -258,20 +258,20 @@ class _AllLiveProperty extends State<AllLiveProperty> {
               child: Row(
                 children: [
 
-                        Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
-                        const SizedBox(width: 6),
-                        Text(
-                          "Total : $propertyCount",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Theme.of(context).textTheme.bodyLarge?.color,
-                          ),
-                        ),
-
-                      ],
+                  Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Total : $propertyCount",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
+
+                ],
+              ),
+            ),
           _filteredProperties.isEmpty
               ? Expanded(
             child: Center(
@@ -313,16 +313,15 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                       "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
                     ))),
                     builder: (context, snapshot) {
-                      bool isRedDot = false;
-
+                      int cctvCount = 0;
                       if (snapshot.hasData) {
                         try {
                           final body = jsonDecode(snapshot.data!.body);
-                          isRedDot = body is List && body.isNotEmpty && body[0]['logg'] == 0;
+                          cctvCount = body is List && body.isNotEmpty ? (body[0]['logg'] as num?)?.toInt() ?? 0 : 0;
                         } catch (_) {}
                       }
 
-                      final Map<String, dynamic> fields = {
+                      final Map<String, String?> fields = {
                         "Images": property.propertyPhoto,
                         "Owner Name": property.ownerName,
                         "Owner Number": property.ownerNumber,
@@ -331,10 +330,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                         "Place": property.locations,
                         "Buy/Rent": property.buyRent,
                         "Property Name/Address": property.apartmentAddress,
-                        "Property Address (Fieldworker)":
-                        property.fieldWorkerAddress,
-                        // "Owner Vehicle Number": property.ownerVehicleNumber,
-                        // "Your Address": property.fieldWorkerCurrentLocation,
+                        "Property Address (Fieldworker)": property.fieldWorkerAddress,
                         "Field Worker Name": property.fieldWorkerName,
                         "Field Worker Number": property.fieldWorkerNumber,
                         "Current Date": property.currentDates,
@@ -354,234 +350,15 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                       };
 
                       final missingFields = fields.entries
-                          .where((entry) {
-                        final value = entry.value;
-                        if (value == null) return true;
-                        if (value is String && value.trim().isEmpty) return true;
-                        return false;
-                      })
+                          .where((entry) => _blank(entry.value))
                           .map((entry) => entry.key)
                           .toList();
 
                       final hasMissingFields = missingFields.isNotEmpty;
-                      return Column(
-                          children: [
-                            GestureDetector(
-                              onTap: () async {
-                                SharedPreferences prefs = await SharedPreferences.getInstance();
-                                prefs.setInt('id_Building', _filteredProperties[index].pId??0);
-                                prefs.setString('id_Longitude', _filteredProperties[index].longitude.toString());
-                                prefs.setString('id_Latitude', _filteredProperties[index].latitude.toString());
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => AllViewDetails(id: _filteredProperties[index].pId??0),
-                                  ),
-                                );
-                                print(_filteredProperties[index].pId??0);
-                              },
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
 
-                                child: Card(
-                                  elevation: 4, // ✅ elevation added
-                                  shadowColor:  Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white
-                                      : Colors.black,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.white,
-                                  child:
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Stack(
-                                        children: [
-                                          Container(
-                                            height: 450,
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context).highlightColor,
-                                              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
-                                            ),
-                                            child: Image.network(
-                                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${_filteredProperties[index].propertyPhoto}",
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => Center(
-                                                child: Icon(Icons.home, size: 50, color: Theme.of(context).hintColor),
-                                              ),
-                                            ),
-                                          ),
-                                          Positioned(
-                                            top: 12,
-                                            right: 12,
-                                            child: Wrap(
-                                              spacing: 8,
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  text: "Live Property ID : ${_filteredProperties[index].pId}",
-                                                  borderColor: Colors.grey.shade700,
-                                                  backgroundColor: Colors.white,
-                                                  textColor: Colors.blue,
-                                                  shadowColor: Colors.white60,
-                                                ),  _buildFeatureItem(
-                                                  context: context,
-                                                  //
-                                                  text: "For: ${_filteredProperties[index].buyRent}" ?? "Property",
-                                                  borderColor: Colors.green.shade400,
-                                                  backgroundColor: Colors.green.shade100,
-                                                  textColor: Colors.green.shade700,
-                                                  shadowColor: Colors.green.shade100,
-                                                ),
-
-                                              ],
-                                            ),
-                                          ),
-                                          Positioned(
-                                            bottom: 0,
-                                            right: 0,
-                                            child:
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  text: "Added by : ${_filteredProperties[index].fieldWorkerName}",
-                                                  borderColor: Colors.red.shade400,
-                                                  backgroundColor: Colors.red.shade200,
-                                                  textColor: Colors.white,
-                                                  shadowColor: Colors.white60,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16),
-                                        child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                              children: [
-                                                Text(
-                                                  "₹${_filteredProperties[index].showPrice??"-"
-                                                      ".0"}"
-                                                  ,
-                                                  style: TextStyle(
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  _filteredProperties[index].locations ?? "",
-                                                  style: TextStyle(
-                                                    fontFamily: "PoppinsBold",
-                                                    color: Colors.black,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Wrap(
-                                              spacing: 4, // horizontal spacing between items
-                                              runSpacing: 8, // vertical spacing between lines
-                                              alignment: WrapAlignment.start,
-                                              children: [
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.king_bed,
-                                                  text: "${_filteredProperties[index].bhk}",
-                                                  borderColor: Colors.purple.shade200,
-                                                  backgroundColor: Colors.purple.shade50,
-                                                  textColor: Colors.purple.shade700,
-                                                  shadowColor: Colors.purple.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.apartment,
-                                                  text: "${_filteredProperties[index].floor}",
-                                                  borderColor: Colors.teal.shade200,
-                                                  backgroundColor: Colors.teal.shade50,
-                                                  textColor: Colors.teal.shade700,
-                                                  shadowColor: Colors.teal.shade100,
-                                                ),
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.home_work,
-                                                  text: _filteredProperties[index].typeOfProperty ?? "",
-                                                  borderColor: Colors.orange.shade200,
-                                                  backgroundColor: Colors.orange.shade50,
-                                                  textColor: Colors.orange.shade700,
-                                                  shadowColor: Colors.orange.shade100,
-                                                ),
-
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  icon: Icons.receipt_rounded,
-                                                  text: "Flat No. ${_filteredProperties[index].flatNumber}",
-                                                  borderColor: Colors.red.shade200,
-                                                  backgroundColor: Colors.red.shade50,
-                                                  textColor: Colors.red.shade700,
-                                                  shadowColor: Colors.red.shade100,
-                                                ),
-
-                                                _filteredProperties[index].sId != null && _filteredProperties[index].sId != 0
-                                                    ? _buildFeatureItem(
-                                                  context: context,
-                                                  text: "Building ID : ${_filteredProperties[index].sId.toString()}",
-                                                  borderColor: Colors.deepOrange.shade400,
-                                                  backgroundColor: Colors.deepOrange.shade100,
-                                                  textColor: Colors.deepOrange.shade700,
-                                                  shadowColor: Colors.deepOrange.shade100,
-                                                )
-                                                    : SizedBox.shrink(), // Empty widget if condition is not met
-
-
-                                                _buildFeatureItem(
-                                                  context: context,
-                                                  text: "Building Flat ID : ${_filteredProperties[index].sourceId.toString()}",
-                                                  borderColor: Colors.blue.shade400,
-                                                  backgroundColor: Colors.blue.shade100,
-                                                  textColor: Colors.blue.shade700,
-                                                  shadowColor: Colors.blue.shade100,
-                                                )
-
-                                              ],
-                                            ),
-                                            if (hasMissingFields) ...[
-                                              SizedBox(height: 20),
-                                              Container(
-                                                width: double.infinity,
-                                                padding: const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.red[50],
-                                                  borderRadius: BorderRadius.circular(10),
-                                                  border: Border.all(color: Colors.redAccent, width: 1),
-                                                ),
-                                                child: Text(
-                                                  "⚠ Missing fields: ${missingFields.join(", ")}",
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Colors.redAccent,
-                                                  ),
-                                                ),
-                                              ),
-                                            ]
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ]
-                      );
+                      return _buildCard(property, cctvCount, missingFields, hasMissingFields, context);
                     },
                   );
-
                 },
               ),
             ),
@@ -638,82 +415,508 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     );
   }
 
+  bool _blank(String? s) => s == null || s.trim().isEmpty;
 
-  Color _getPropertyTypeColor(String? type) {
-    switch (type?.toLowerCase()) {
-      case 'rent':
-        return Colors.green;
-      case 'buy':
-        return Colors.blueAccent;
-      case 'lease':
-        return Colors.purple;
-      default:
+  Color _getIconColor(IconData icon, ThemeData theme) {
+    final cs = theme.colorScheme;
+    switch (icon) {
+      case Icons.location_on:
+        return Colors.red;
+      case Icons.square_foot:
+        return Colors.orange;
+      case Icons.handshake_outlined:
+        return Colors.orangeAccent;
+      case Icons.apartment:
         return Colors.blue;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.format_list_numbered:
+        return Colors.indigo;
+      case Icons.date_range:
+        return Colors.purple;
+      case Icons.home:
+        return Colors.brown;
+      case Icons.numbers:
+        return Colors.cyan;
+      case Icons.king_bed:
+        return Colors.pink;
+      case Icons.real_estate_agent_outlined:
+        return Colors.amber;
+      case Icons.currency_rupee:
+        return Colors.green;
+      case Icons.person:
+        return Colors.deepPurple;
+      case Icons.room:
+        return Colors.teal;
+      default:
+        return cs.primary;
     }
   }
 
-  Widget _buildFeatureItem({
-    required BuildContext context,
-    required String text,
-    required Color borderColor,
-    IconData? icon, // 👈 optional now
-    Color? backgroundColor,
-    Color? textColor,
-    Color? shadowColor,
+  Widget _buildImageSection({
+    required String? imageUrl,
+    required ColorScheme cs,
+    required ThemeData theme,
+    required int cctvCount,
+    required double imageHeight,
+    required bool isTablet,
   }) {
-    final width = MediaQuery.of(context).size.width;
+    final Color cctvColor = cctvCount > 0 ? Colors.green : Colors.red;
+    final String cctvLabel = cctvCount > 0 ? "CCTV: $cctvCount" : "CCTV: 0";
 
-    // Scale text, padding, and icon size relative to screen width
-    double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
-    double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
-    double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
-    double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
-
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: horizontalPadding,
-        vertical: verticalPadding,
-      ),
-      margin: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: backgroundColor ?? Colors.transparent,
-        border: Border.all(color: borderColor, width: 2),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: (shadowColor ?? borderColor).withOpacity(0.10),
-            blurRadius: 6,
-            spreadRadius: 2,
-            offset: const Offset(0, 3),
+    Widget imageWidget;
+    if (imageUrl == null || imageUrl.isEmpty) {
+      imageWidget = Container(
+        height: imageHeight,
+        decoration: BoxDecoration(
+          color: cs.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Icon(
+          Icons.apartment,
+          size: 90,
+          color: Colors.grey,
+        ),
+      );
+    } else {
+      imageWidget = ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: SizedBox(
+          height: imageHeight,
+          width: double.infinity,
+          child: CachedNetworkImage(
+            imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
+            fit: BoxFit.cover,
+            placeholder: (_, __) => const Center(
+              child: SizedBox(
+                height: 50,
+                width: 50,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: (_, __, ___) =>
+                Icon(Icons.broken_image, color: cs.error, size: 90),
           ),
+        ),
+      );
+    }
+
+    return Stack(
+      children: [
+        imageWidget,
+        Positioned(
+          top: 4,
+          right: 4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: cctvColor.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              cctvLabel,
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCard(NewRealEstateShowDateModel property, int cctvCount, List<String> missingFields, bool hasMissingFields, BuildContext context) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isTablet = screenWidth > 600;
+    final isSmallScreen = screenWidth < 400;
+    final isDarkMode = theme.brightness == Brightness.dark;
+
+    final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0);
+    final double titleFontSize = isTablet ? 18 : 14;
+    final double detailFontSize = isTablet ? 13 : 12;
+    final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0); // Increased image height
+
+    final Widget imageSection = _buildImageSection(
+      imageUrl: property.propertyPhoto,
+      cs: cs,
+      theme: theme,
+      cctvCount: cctvCount,
+      imageHeight: imageH,
+      isTablet: isTablet,
+    );
+
+    // Live Property ID row to place below image
+    final Widget livePropertyIdRow = _DetailRow(
+      icon: Icons.numbers,
+      label: 'Live Property ID',
+      value: property.pId?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    );
+
+
+
+    // Other priority detail rows (excluding Live Property ID)
+    final List<Widget> detailRows = [];
+
+    // Locations
+    if ((property.locations ?? '').isNotEmpty) {
+      detailRows.add(_DetailRow(
+        icon: Icons.location_on,
+        label: '',
+        value: property.locations!,
+        theme: theme,
+        getIconColor: _getIconColor,
+        fontSize: detailFontSize,
+        fontWeight: FontWeight.bold,
+      ));
+    }
+    // Price
+    detailRows.add(_DetailRow(
+      icon: Icons.currency_rupee,
+      label: '',
+      value: '₹${property.showPrice ?? 'N/A'}',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // BHK
+    detailRows.add(_DetailRow(
+      icon: Icons.king_bed,
+      label: '',
+      value: property.bhk?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // // Floor
+    detailRows.add(_DetailRow(
+      icon: Icons.layers,
+      label: '',
+      value: property.floor?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // Flat (assuming typeOfProperty as flat type)
+    detailRows.add(_DetailRow(
+      icon: Icons.apartment,
+      label: '',
+      value: property.typeOfProperty ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // Flat No
+    detailRows.add(_DetailRow(
+      icon: Icons.format_list_numbered,
+      label: 'Flat No',
+      value: property.flatNumber?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // Building ID
+    detailRows.add(_DetailRow(
+      icon: Icons.numbers,
+      label: 'Building ID',
+      value: property.sId?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // Building Flat ID
+    detailRows.add(_DetailRow(
+      icon: Icons.numbers,
+      label: 'Building Flat ID',
+      value: property.sourceId?.toString() ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+    // Added by Name
+    detailRows.add(_DetailRow(
+      icon: Icons.person,
+      label: 'Added By',
+      value: property.fieldWorkerName ?? 'N/A',
+      theme: theme,
+      getIconColor: _getIconColor,
+      fontSize: detailFontSize,
+      fontWeight: FontWeight.bold,
+    ));
+
+    final Widget leftColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        imageSection,
+        SizedBox(height: isTablet ? 8 : 6), // Reduced spacing for ID below image
+        livePropertyIdRow, // Live Property ID below image
+        SizedBox(height: isTablet ? 12 : 8),
+      ],
+    );
+
+    final Widget rightColumn = Padding(
+      padding: EdgeInsets.only(top: isTablet ? 16.0 : 12.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            property.apartmentAddress ?? property.fieldWorkerAddress ?? property.locations ?? 'No Title',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+              fontSize: titleFontSize,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: isTablet ? 12 : 8),
+          // Render other detail rows
+          ...detailRows,
+          const Spacer(),
         ],
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) ...[ // 👈 only shows if passed
-            Icon(
-              icon,
-              size: iconSize,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
+    );
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: GestureDetector(
+        onTap: () async {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setInt('id_Building', property.pId ?? 0);
+          prefs.setString('id_Longitude', property.longitude ?? '');
+          prefs.setString('id_Latitude', property.latitude ?? '');
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AllViewDetails(id: property.pId ?? 0),
             ),
-            const SizedBox(width: 4),
-          ],
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: FontWeight.bold,
-              fontFamily: "Poppins",
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.black
-                  : (textColor ?? Colors.black),
+          );
+        },
+        child: Card(
+          margin: EdgeInsets.zero,
+          elevation: isDarkMode ? 0 : 4,
+          color: theme.cardColor,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: theme.dividerColor),
+          ),
+          child: Stack(
+            children: [
+              Padding(
+                padding: EdgeInsets.all(cardPadding),
+                child: Column(
+                  children: [
+                    IntrinsicHeight(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 2 : 2),
+                            child: leftColumn,
+                          ),
+                          SizedBox(width: isTablet ? 16 : 12),
+                          Expanded(
+                            flex: isSmallScreen ? 1 : (isTablet ? 3 : 3),
+                            child: rightColumn,
+                          ),
+                        ],
+                      ),
+                    ),
+                    if (hasMissingFields)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 6.0),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.all(isTablet ? 6 : 4),
+                          decoration: BoxDecoration(
+                            color: cs.errorContainer,
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: cs.error),
+                          ),
+                          child: Text(
+                            "⚠ Missing: ${missingFields.join(', ')}",
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.error,
+                              fontWeight: FontWeight.w600,
+                              fontSize: detailFontSize - 1,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final ThemeData theme;
+  final Color Function(IconData, ThemeData) getIconColor;
+  final int maxLines;
+  final double? fontSize;
+  final FontWeight? fontWeight;
+
+  const _DetailRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.theme,
+    required this.getIconColor,
+    this.maxLines = 1,
+    this.fontSize,
+    this.fontWeight,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = theme.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            size: 14,
+            color: getIconColor(icon, theme),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: RichText(
+              maxLines: maxLines,
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  height: 1.1,
+                  color: cs.onSurface.withOpacity(0.70),
+                  fontSize: fontSize ?? 12,
+                ),
+                children: [
+                  if (label.isNotEmpty)
+                    TextSpan(
+                      text: '$label: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: cs.onSurface.withOpacity(0.8),
+                        fontSize: fontSize ?? 12,
+                      ),
+                    ),
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontWeight: fontWeight ?? FontWeight.normal,
+                      color: cs.onSurface.withOpacity(0.9),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],
       ),
     );
   }
+}
+
+Color _getPropertyTypeColor(String? type) {
+  switch (type?.toLowerCase()) {
+    case 'rent':
+      return Colors.green;
+    case 'buy':
+      return Colors.blueAccent;
+    case 'lease':
+      return Colors.purple;
+    default:
+      return Colors.blue;
+  }
+}
+
+Widget _buildFeatureItem({
+  required BuildContext context,
+  required String text,
+  required Color borderColor,
+  IconData? icon, // 👈 optional now
+  Color? backgroundColor,
+  Color? textColor,
+  Color? shadowColor,
+}) {
+  final width = MediaQuery.of(context).size.width;
+
+  // Scale text, padding, and icon size relative to screen width
+  double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
+  double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
+  double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
+  double iconSize = width < 350 ? 14 : (width < 500 ? 16 : 18);
+
+  return Container(
+    padding: EdgeInsets.symmetric(
+      horizontal: horizontalPadding,
+      vertical: verticalPadding,
+    ),
+    margin: const EdgeInsets.all(6),
+    decoration: BoxDecoration(
+      color: backgroundColor ?? Colors.transparent,
+      border: Border.all(color: borderColor, width: 2),
+      borderRadius: BorderRadius.circular(10),
+      boxShadow: [
+        BoxShadow(
+          color: (shadowColor ?? borderColor).withOpacity(0.10),
+          blurRadius: 6,
+          spreadRadius: 2,
+          offset: const Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[ // 👈 only shows if passed
+          Icon(
+            icon,
+            size: iconSize,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black
+                : (textColor ?? Colors.black),
+          ),
+          const SizedBox(width: 4),
+        ],
+        Text(
+          text,
+          style: TextStyle(
+            fontSize: fontSize,
+            fontWeight: FontWeight.bold,
+            fontFamily: "Poppins",
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.black
+                : (textColor ?? Colors.black),
+          ),
+        ),
+      ],
+    ),
+  );
 }

@@ -46,7 +46,7 @@ class Property1 {
   final String careTakerName;
   final String careTakerNumber;
   final String subid;
-
+  List<String> multipleImages;
   Property1({
     required this.pId,
     required this.propertyPhoto,
@@ -95,6 +95,8 @@ class Property1 {
     required this.careTakerName,
     required this.careTakerNumber,
     required this.subid,
+    required this.multipleImages,
+
   });
 
   factory Property1.fromJson(Map<String, dynamic> json) {
@@ -153,6 +155,7 @@ class Property1 {
       careTakerName: json['care_taker_name'] ?? '',
       careTakerNumber: json['care_taker_number'] ?? '',
       subid: json['subid'].toString(),
+      multipleImages: [],
     );
   }
 

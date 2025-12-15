@@ -347,7 +347,7 @@ class _UpcomingDetailsPageState extends State<AdminUpcomingDetails> {
               infoRow(context, "Parking", data['parking']),
               infoRow(context, "Age of Property", data['age_of_property']),
               infoRow(context, "Metro Distance", data['metro_distance']),
-              infoRow(context, "Highway Distance", data['highway_distance']),
+              infoRow(context, "Metro Distance", data['highway_distance']),
               infoRow(context, "Main Market Distance",
                   data['main_market_distance']),
               infoRow(context, "Facility", data['Facility']),

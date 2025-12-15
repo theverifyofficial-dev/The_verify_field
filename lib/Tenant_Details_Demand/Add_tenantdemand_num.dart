@@ -127,7 +127,7 @@ class _add_Tenant_numState extends State<add_Tenant_num> {
               child: TextFormField(
                 controller: _number,
                 keyboardType: TextInputType.number,
-                maxLength: 12,
+                maxLength: 10,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(12),

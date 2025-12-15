@@ -129,12 +129,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
 
   Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
 
-
-
-
-
-
-
   // this is for image compressor
   DateTime now = DateTime.now();
   late String formattedDate;
@@ -715,7 +709,6 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
   Widget build(BuildContext context) {
     return SafeArea(
       child: Scaffold(
-        backgroundColor: Colors.black,
         appBar: AppBar(
           centerTitle: true,
           backgroundColor: Colors.black,
@@ -751,7 +744,7 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text("Add Flat",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
+                    Text("Add Flat",style: TextStyle(fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
                   ],
                 ),
                 SizedBox(height: 5,),

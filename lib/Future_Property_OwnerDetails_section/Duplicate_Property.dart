@@ -1,550 +1,302 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
-import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/provider/Theme_provider.dart';
-import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
-import 'package:verify_feild_worker/provider/multile_image_upload_provider.dart';
-import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
-import '../../provider/property_id_for_multipleimage_provider.dart';
-import '../Administrator/Add_Assign_Tenant_Demand/Feild_Workers_Bylocation.dart';
-import '../Home_Screen_click/Add_multi_image_in_Realestate.dart';
-import '../constant.dart';
-import '../model/realestateSlider.dart';
-class Ground {
-  final int id;
-  final String propertyPhoto;
-  final String locations;
-  final String flatNumber;
-  final String buyRent;
-  final String residenceCommercial;
-  final String apartmentName;
-  final String apartmentAddress;
-  final String typeOfProperty;
-  final String bhk;
-  final String showPrice;
-  final String lastPrice;
-  final String askingPrice;
-  final String floor;
-  final String totalFloor;
-  final String balcony;
-  final String squarefit;
-  final String maintance;
-  final String parking;
-  final String ageOfProperty;
-  final String fieldworkarAddress;
-  final String roadSize;
-  final String metroDistance;
-  final String highwayDistance;
-  final String mainMarketDistance;
-  final String meter;
-  final String ownerName;
-  final String ownerNumber;
-  final String currentDate;
-  final String availableDate;
-  final String kitchen;
-  final String bathroom;
-  final String lift;
-  final String facility;
-  final String furnishedUnfurnished;
-  final String fieldWorkerName;
-  final String fieldWorkerNumber;
-  final String registryAndGpa;
-  final String loan;
-  final String longitude;
-  final String latitude;
-  final String videoLink;
-  final String fieldWorkerLocation;
-  final String careTakerName;
-  final String careTakerNumber;
-  final String subid;
+import '../../constant.dart';
+import 'New_Update/add_image_under_futureproperty.dart';
+import 'New_Update/flat_edit_model.dart';
 
-  Ground({
+
+class DuplicateFutureProperty extends StatefulWidget {
+  String id;
+
+  DuplicateFutureProperty({
+    super.key,
     required this.id,
-    required this.propertyPhoto,
-    required this.locations,
-    required this.flatNumber,
-    required this.buyRent,
-    required this.residenceCommercial,
-    required this.apartmentName,
-    required this.apartmentAddress,
-    required this.typeOfProperty,
-    required this.bhk,
-    required this.showPrice,
-    required this.lastPrice,
-    required this.askingPrice,
-    required this.floor,
-    required this.totalFloor,
-    required this.balcony,
-    required this.squarefit,
-    required this.maintance,
-    required this.parking,
-    required this.ageOfProperty,
-    required this.fieldworkarAddress,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.highwayDistance,
-    required this.mainMarketDistance,
-    required this.meter,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.currentDate,
-    required this.availableDate,
-    required this.kitchen,
-    required this.bathroom,
-    required this.lift,
-    required this.facility,
-    required this.furnishedUnfurnished,
-    required this.fieldWorkerName,
-    required this.fieldWorkerNumber,
-    required this.registryAndGpa,
-    required this.loan,
-    required this.longitude,
-    required this.latitude,
-    required this.videoLink,
-    required this.fieldWorkerLocation,
-    required this.careTakerName,
-    required this.careTakerNumber,
-    required this.subid,
   });
 
-  factory Ground.fromJson(Map<String, dynamic> json) {
-    return Ground(
-      id: int.tryParse(json['P_id'].toString()) ?? 0,
-      propertyPhoto: json['property_photo'] ?? '',
-      locations: json['locations'] ?? '',
-      flatNumber: json['Flat_number'] ?? '',
-      buyRent: json['Buy_Rent'] ?? '',
-      residenceCommercial: json['Residence_Commercial'] ?? '',
-      apartmentName: json['Apartment_name'] ?? '',
-      apartmentAddress: json['Apartment_Address'] ?? '',
-      typeOfProperty: json['Typeofproperty'] ?? '',
-      bhk: json['Bhk'] ?? '',
-      showPrice: json['show_Price'] ?? '',
-      lastPrice: json['Last_Price'] ?? '',
-      askingPrice: json['asking_price'] ?? '',
-      floor: json['Floor_'] ?? '',
-      totalFloor: json['Total_floor'] ?? '',
-      balcony: json['Balcony'] ?? '',
-      squarefit: json['squarefit'] ?? '',
-      maintance: json['maintance'] ?? '',
-      parking: json['parking'] ?? '',
-      ageOfProperty: json['age_of_property'] ?? '',
-      fieldworkarAddress: json['fieldworkar_address'] ?? '',
-      roadSize: json['Road_Size'] ?? '',
-      metroDistance: json['metro_distance'] ?? '',
-      highwayDistance: json['highway_distance'] ?? '',
-      mainMarketDistance: json['main_market_distance'] ?? '',
-      meter: json['meter'] ?? '',
-      ownerName: json['owner_name'] ?? '',
-      ownerNumber: json['owner_number'] ?? '',
-      currentDate: json['current_dates'] ?? '',
-      availableDate: json['available_date'] ?? '',
-      kitchen: json['kitchen'] ?? '',
-      bathroom: json['bathroom'] ?? '',
-      lift: json['lift'] ?? '',
-      facility: json['Facility'] ?? '',
-      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
-      fieldWorkerName: json['field_warkar_name'] ?? '',
-      fieldWorkerNumber: json['field_workar_number'] ?? '',
-      registryAndGpa: json['registry_and_gpa'] ?? '',
-      loan: json['loan'] ?? '',
-      longitude: json['Longitude'] ?? '',
-      latitude: json['Latitude'] ?? '',
-      videoLink: json['video_link'] ?? '',
-      fieldWorkerLocation: json['field_worker_current_location'] ?? '',
-      careTakerName: json['care_taker_name'] ?? '',
-      careTakerNumber: json['care_taker_number'] ?? '',
-      subid: json['subid'] ?? '',
-    );
-  }
-}
-final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
-
-class DuplicateProperty extends StatefulWidget {
-  final int propertyId;
-
-  const DuplicateProperty({super.key, required this.propertyId});
-
   @override
-  State<DuplicateProperty> createState() => _DuplicatePropertyState();
+  DuplicateFuturePropertyState createState() => DuplicateFuturePropertyState();
 }
 
-class _DuplicatePropertyState extends State<DuplicateProperty> {
-  final _formKey = GlobalKey<FormState>();
+class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
 
-  String? _location;
-  String _buyOrRent = 'Buy';
-  String _resOrComm = 'Residential';
-  String? _propertyType;
-  String? _bhk;
-  String? _customBhk;
-  String? _price;
-  String? _floor;
-  String? _balcony;
-  String? _squareFeet;
+  bool _isLoading = false;
+
+  final TextEditingController _FlatNumber = TextEditingController();
+  final TextEditingController _address = TextEditingController();
+  final TextEditingController _sqft = TextEditingController();
+  final TextEditingController _Building_information = TextEditingController();
+  final TextEditingController _Google_Location = TextEditingController();
+  final TextEditingController _ApartmentName = TextEditingController();
+  final TextEditingController _showPrice = TextEditingController();
+  final TextEditingController _lastPrice = TextEditingController();
+  final TextEditingController _askingPrice = TextEditingController();
+  final TextEditingController _meter = TextEditingController();
+  final TextEditingController field_address = TextEditingController();
+  final TextEditingController _facilityController = TextEditingController();
+  final TextEditingController _Apartment_Address = TextEditingController();
+  final TextEditingController furnitureController = TextEditingController();
+  TextEditingController _customMaintenanceController = TextEditingController();
+
+  late TextEditingController _maintenanceController;
   String? _maintenance;
   String? _customMaintenance;
-  String? _buildingInfo;
-  String? _propertyAge;
-  String? _kitchenType;
-  DateTime? _flatAvailableDate;
-  String? _lift;
-  String? _furnishing;
-  String? _bathroom;
-  String? _customParking;
+
+
+
+  String? _residenceCommercial;
+  String? selectedPropertyType;
   String? _totalFloor;
-  String? _loan;
-
-  String? _registryAndGpa;
-
-  late TextEditingController _locationController;
-  late TextEditingController _propertyTypeController;
-  late TextEditingController _bhkController;
-  late TextEditingController _floorController;
-  late TextEditingController _balconyController;
-  late TextEditingController _maintenanceController;
-  late TextEditingController _squareFeetController;
-  late TextEditingController _propertyAgeController;
-  late TextEditingController _buildingInfoController;
-  late TextEditingController _parkingController;
-  late TextEditingController _priceController;
-  late TextEditingController _fieldWorkerAddressController;
-  late TextEditingController _flatNumberController;
-  late TextEditingController _apartmentNameController;
-  late TextEditingController _apartmentAddressController;
-  late TextEditingController _facilityController;
-  late TextEditingController _roadSizeController;
-  late TextEditingController _nearMetroController;
-  late TextEditingController _highwayController;
-  late TextEditingController _mainMarketController;
-  late TextEditingController _houseMeterController;
-  late TextEditingController _ownerNameController;
-  late TextEditingController _careTakerNumberController;
-  late TextEditingController _careTakerNameController;
-  late TextEditingController _totalFloorController;
-  late TextEditingController _ownerNumberController;
-  final TextEditingController _flatAvailableController = TextEditingController();
-  final TextEditingController _terraceGardenController = TextEditingController();
-  final TextEditingController _propertyNumberController = TextEditingController();
-  final TextEditingController _askingPriceController = TextEditingController();
-  final TextEditingController _lastPriceController = TextEditingController();
-  final TextEditingController _fieldWorkerNameController = TextEditingController();
-  final TextEditingController _fieldWorkerNumberController = TextEditingController();
-  final TextEditingController _Google_Location = TextEditingController();
-  final TextEditingController furnitureController = TextEditingController();
-
-  String? _parking, _houseMeter;
-  String full_address = '';
-  File? _imageFile;
+  String? selectedBHK;
+  String? _selectedItem;
   String? _networkImageUrl;
-  String? apiImageUrl; // This should be assigned from your API data
-  File? _imageFile2;
-  final cities = ['Delhi', 'Mumbai', 'Bangalore', 'Noida', 'Gurgaon'];
-  final propertyTypes = ['Home', 'Flat', 'Villa', 'Apartment'];
-  final bhkOptions = ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5 BHK', 'Custom'];
-  final floors = [
-    'Ground Floor',
-    '1st Floor',
-    '2nd Floor',
-    '3rd Floor',
-    '4th Floor',
-    '5th Floor',
-    '6th Floor',
-    '7th Floor',
-    '8th Floor',
-    '9th Floor',
-    '10th Floor',
-  ];
 
-  void _loadSavedFieldWorkerData() async {
-    final prefs = await SharedPreferences.getInstance();
+  final List<String> bhkOptions = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial',''];
+  String? _lift, _registry, _loan;
+  String? resident_commercial,bhk,parking,balcony,kitchen,bathroom;
+  DateTime? _availableDate;
 
-    final savedName = prefs.getString('name') ?? '';
-    final savedNumber = prefs.getString('number') ?? '';
+  File? _imageFile;
+  String long = '';
+  String lat = '';
+  String _number = '';
+  String _name = '';
+  String _date = '';
+  final _formKey = GlobalKey<FormState>();
+  List<String> selectedFacilities=[];
 
-    setState(() {
-      _fieldWorkerNameController.text = savedName;
-      _fieldWorkerNumberController.text = savedNumber;
-    });
+  String? _furnishing;
+
+
+  DateTime now = DateTime.now();
+
+  late String formattedDate;
+  String formatPrice(int value) {
+    if (value >= 10000000) {
+      return '${(value / 10000000).toStringAsFixed(2)}Cr';
+    } else if (value >= 100000) {
+      return '${(value / 100000).toStringAsFixed(2)}L';
+    } else {
+      return value.toString();
+    }
   }
 
-  void _loadSavedLatLong() async {
-    final latLong = await getSavedLatLong();
-    // print('Latitude: ${latLong['Latitude']}');
-    // print('Longitude: ${latLong['Longitude']}');
 
-    // If you want to set it to a controller or variable, do it here
-    setState(() {
-      _latitude = latLong['Latitude'] ?? '';
-      _longitude = latLong['Longitude'] ?? '';
-    });
-  }
+  String _formattedLastPrice = '';
+  String _formattedPrice = '';
+  String _formattedAskingPrice = '';
+  String? apiImageUrl;
 
-  String _latitude = '';
-  String _longitude = '';
-
-  Future<Map<String, String>> getSavedLatLong() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lat = prefs.getDouble('latitude')?.toString() ?? '';
-    final long = prefs.getDouble('longitude')?.toString() ?? '';
-    return {
-      'Latitude': lat,
-      'Longitude': long,
-    };
-  }
 
   @override
   void initState() {
     super.initState();
-
-    // Your existing initializations
-    autofillFormFields(widget.propertyId);
-    _loadSavedLatLong();
-    fetchAndSetData(widget.propertyId);
-
-    Future.microtask(() async {
-      final provider = Provider.of<PropertyIdProvider>(context, listen: false);
-      await provider.fetchLatestPropertyId();
-      _loadSavedFieldWorkerData();
+    _loaduserdata();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      autofillFormFields(); // ✅ AFTER build
     });
 
-    _locationController = TextEditingController(text: _location ?? '');
-    _propertyTypeController = TextEditingController(text: _propertyType ?? '');
-    _bhkController = TextEditingController(text: _bhk ?? '');
-    _floorController = TextEditingController(text: _floor ?? '');
-    _balconyController = TextEditingController(text: _balcony ?? '');
-    _maintenanceController = TextEditingController(text: _maintenance ?? '');
-    _squareFeetController = TextEditingController(text: _squareFeet ?? '');
-    _propertyAgeController = TextEditingController(text: _propertyAge ?? '');
-    _buildingInfoController = TextEditingController(text: _buildingInfo ?? '');
-    _parkingController = TextEditingController(text: _customParking ?? '');
-    _priceController = TextEditingController(text: _price ?? '');
-    _fieldWorkerAddressController = TextEditingController();
-    _flatNumberController = TextEditingController();
-    _apartmentNameController = TextEditingController();
-    _roadSizeController = TextEditingController();
-    _nearMetroController = TextEditingController();
-    _highwayController = TextEditingController();
-    _mainMarketController = TextEditingController();
-    _houseMeterController = TextEditingController();
-    _ownerNameController = TextEditingController();
-    _ownerNumberController = TextEditingController();
-    _totalFloorController = TextEditingController();
-    _apartmentAddressController = TextEditingController();
-    _facilityController = TextEditingController();
-    _careTakerNameController = TextEditingController();
-    _careTakerNumberController = TextEditingController();
-
-    _flatAvailableController.text = _flatAvailableDate != null
-        ? DateFormat('yyyy-MM-dd').format(_flatAvailableDate!)
-        : '';
-
-    _terraceGardenController.text = '';
-    _propertyNumberController.text = '';
-    _askingPriceController.text = '';
-    _lastPriceController.text = '';
-    _fieldWorkerNameController.text = '';
-    _fieldWorkerNumberController.text = '';
-
-
-    // Initialize furnishing & furnitureController based on your saved/fetched data:
-    if (_furnishing != null &&
-        (_furnishing == 'Fully Furnished' || _furnishing == 'Semi Furnished')) {
-      _selectedFurniture = parseFurnitureString(furnitureController.text);
-    } else {
-      _selectedFurniture.clear();
-      furnitureController.clear();
-    }
-  }
-
-  bool _isLoading = true;
-
-  void autofillFormFields(int id) async {
-    try {
-      final dataList = await fetchData(id);
-      if (dataList.isNotEmpty) {
-        final data = dataList.first;
-
-        _locationController.text = data.locations;
-        _flatNumberController.text = data.flatNumber;
-        _buyOrRent = data.buyRent;
-        _resOrComm = data.residenceCommercial;
-        _apartmentNameController.text = data.apartmentName;
-        _apartmentAddressController.text = data.apartmentAddress;
-        _propertyType = data.typeOfProperty;
-        _bhk = data.bhk;
-        _priceController.text = data.showPrice;
-        _lastPriceController.text = data.lastPrice;
-        _askingPriceController.text = data.askingPrice;
-        _floor = data.floor;
-        _totalFloorController.text = data.totalFloor;
-        _loan = data.loan;
-        _registryAndGpa = data.registryAndGpa;
-        _propertyTypeController.text = data.typeOfProperty;
-        _bhkController.text = data.bhk;
-        _floorController.text = data.floor;
-        _balconyController.text = data.balcony;
-        _maintenanceController.text = data.maintance;
-        _propertyAgeController.text = data.ageOfProperty;
-        _balcony = data.balcony;
-        _squareFeetController.text = data.squarefit;
-        DateTime parsedDate = DateTime.parse(data.availableDate);
-        String formattedDate = DateFormat('dd-MM-yyyy').format(parsedDate);
-        _flatAvailableController.text = formattedDate;
-        _parking = data.parking;
-        // _propertyAge = data.ageOfProperty;
-        _fieldWorkerAddressController.text = data.fieldworkarAddress;
-        _roadSizeController.text = data.roadSize;
-        _nearMetroController.text = data.metroDistance;
-        _highwayController.text = data.highwayDistance;
-        _mainMarketController.text = data.mainMarketDistance;
-        _houseMeter = data.meter;
-        _ownerNameController.text = data.ownerName;
-        _ownerNumberController.text = data.ownerNumber;
-        _flatAvailableDate = DateTime.tryParse(data.availableDate) ?? null;
-        _kitchenType = data.kitchen;
-        _bathroom = data.bathroom;
-        _lift = data.lift;
-        _facilityController.text = data.facility;
-        parseFurnishingFromApi(data.furnishedUnfurnished ?? '');
-        _fieldWorkerNumberController.text = data.fieldWorkerNumber;
-        _registryAndGpa = data.registryAndGpa;
-        _careTakerNameController.text = data.careTakerName;
-        _careTakerNumberController.text = data.careTakerNumber;
-        _Google_Location.text = data.fieldWorkerLocation;
-        _networkImageUrl =
-            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +
-                data.propertyPhoto; // or whatever the field name is
-
-        double? latitude = double.tryParse(data.latitude);
-        double? longitude = double.tryParse(data.longitude);
-
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error fetching data: $e');
+    _maintenanceController = TextEditingController();
+    getFurnishingStringForApi();
+    // Add listener for _priceController
+    _showPrice.addListener(() {
+      final input = _showPrice.text.replaceAll(',', '').trim();
+      final number = int.tryParse(input);
       setState(() {
-        _isLoading = false;
+        _formattedPrice = number != null ? formatPrice(number) : '';
       });
+    });
+    _lastPrice.addListener(() {
+      final input = _lastPrice.text.replaceAll(',', '').trim();
+      final number = int.tryParse(input);
+      setState(() {
+        _formattedLastPrice = number != null ? formatPrice(number) : '';
+      });
+    });
+    _askingPrice.addListener(() {
+      final input = _askingPrice.text.replaceAll(',', '').trim();
+      final number = int.tryParse(input);
+      setState(() {
+        _formattedAskingPrice = number != null ? formatPrice(number) : '';
+      });
+    });
+  }
+
+  DateTime uploadDate = DateTime.now();
+  final dateFormatter = DateFormat('yyyy-MM-dd');
+
+
+
+  Future<XFile?> pickAndCompressImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    formattedDate = "${now.day}_${now.month}_${now.year}";
+
+    if (pickedFile == null) return null;
+
+    final tempDir = await getTemporaryDirectory();
+    final targetPath = '${tempDir.path}/verify_${formattedDate}_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    var result = await FlutterImageCompress.compressAndGetFile(
+      pickedFile.path,
+      targetPath,
+      quality: 85,
+    );
+
+    return result;
+  }
+  String getFurnishingStringForApi() {
+    if (_furnishing == null || _furnishing == 'Unfurnished') {
+      return 'Unfurnished';
+    } else if (_selectedFurniture.isNotEmpty) {
+      // Only send furniture items for Semi/Fully Furnished
+      return _selectedFurniture.entries
+          .map((e) => '${e.key} (${e.value})')
+          .join(', ');
+    } else {
+      // If nothing selected, just send furnishing type
+      return _furnishing!;
     }
   }
 
-  Map<String, int> parseFurnitureString(String input) {
-    final Map<String, int> furnitureMap = {};
-    final regex = RegExp(r'([^,]+)\((\d+)\)');
-    // Matches: "Modular Kitchen(2)", "AC(2)" etc.
+  Future<void> updateImageWithTitle(File? imageFile) async {
+    final uploadUrl =
+        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php';
 
-    for (final match in regex.allMatches(input)) {
-      final name = match.group(1)?.trim() ?? '';
-      final count = int.tryParse(match.group(2) ?? '0') ?? 0;
-      if (name.isNotEmpty && count > 0) {
-        furnitureMap[name] = count;
+    final formData = FormData();
+
+    if (imageFile != null) {
+      formData.files.add(
+        MapEntry(
+          "property_photo",
+          await MultipartFile.fromFile(
+            imageFile.path,
+            filename: imageFile.path.split('/').last,
+          ),
+        ),
+      );
+    }
+
+    formData.fields.addAll([
+      MapEntry("P_id", widget.id),
+      MapEntry("owner_name", _Ownername.text.trim()),
+      MapEntry("owner_number", _Owner_number.text.trim()),
+      MapEntry("care_taker_name", _CareTaker_name.text.trim()),
+      MapEntry("care_taker_number", _CareTaker_number.text.trim()),
+      MapEntry("video_link", _videoLink.text.trim()),
+
+      MapEntry("locations", _selectedItem ?? ''),
+      MapEntry("Buy_Rent", _selectedItem1 ?? ''),
+      MapEntry("Residence_Commercial", _residenceCommercial ?? ''),
+      MapEntry("Typeofproperty", selectedPropertyType ?? ''),
+      MapEntry("Bhk", selectedBHK ?? ''),
+      MapEntry("Floor_", _floor1 ?? ''),
+      MapEntry("Total_floor", _totalFloor ?? ''),
+      MapEntry("squarefit", _sqft.text),
+
+      MapEntry("Balcony", balcony ?? ''),
+      MapEntry("parking", parking ?? ''),
+      MapEntry("kitchen", kitchen ?? ''),
+      MapEntry("bathroom", bathroom ?? ''),
+      MapEntry("lift", _lift ?? ''),
+
+      MapEntry("registry_and_gpa", _registry ?? ''),
+      MapEntry("loan", _loan ?? ''),
+      MapEntry("furnished_unfurnished", _furnished ?? ''),
+
+      MapEntry("Apartment_name", _ApartmentName.text),
+      MapEntry("Apartment_Address", _Apartment_Address.text),
+      MapEntry("fieldworkar_address", field_address.text),
+      MapEntry("field_worker_current_location", _Google_Location.text),
+
+      MapEntry("Longitude", _Longitude.text),
+      MapEntry("Latitude", _Latitude.text),
+
+      MapEntry(
+        "maintance",
+        _maintenance == "Custom"
+            ? (_customMaintenance ?? '')
+            : (_maintenance ?? ''),
+      ),
+
+      MapEntry("show_Price", _showPrice.text),       // 🔴 send RAW values
+      MapEntry("Last_Price", _lastPrice.text),
+      MapEntry("asking_price", _askingPrice.text),
+
+      MapEntry("meter", _meter.text),
+      MapEntry("current_dates", dateFormatter.format(uploadDate)),
+      MapEntry(
+        "available_date",
+        _availableDate != null
+            ? dateFormatter.format(_availableDate!)
+            : '',
+      ),
+
+      MapEntry("field_warkar_name", _name),
+      MapEntry("field_workar_number", _number),
+    ]);
+
+    final dio = Dio();
+
+    try {
+      final response = await dio.post(uploadUrl, data: formData);
+
+      debugPrint("✅ STATUS CODE: ${response.statusCode}");
+      debugPrint("✅ RESPONSE DATA: ${response.data}");
+
+      if (response.statusCode == 200) {
+        showSnack("Property Updated Successfully");
+      } else {
+        showSnack("Unexpected server response");
+      }
+
+    } on DioException catch (e) {
+
+      rethrow; // 👈 IMPORTANT: don’t swallow error
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
+  }
+
+  Map<String, int> parseFurnitureString(String furnitureString) {
+    if (furnitureString.isEmpty) return {};
+
+    final Map<String, int> furnitureMap = {};
+
+    furnitureString.split(',').forEach((item) {
+      item = item.trim(); // remove extra spaces
+      final match = RegExp(r'(.+)\((\d+)\)').firstMatch(item);
+      if (match != null) {
+        final name = match.group(1)?.trim() ?? '';
+        final count = int.tryParse(match.group(2) ?? '0') ?? 0;
+        if (name.isNotEmpty) {
+          furnitureMap[name] = count;
+        }
+      }
+    });
 
     return furnitureMap;
   }
-  Future<List<Ground>> fetchData(int id) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=First%20Floor&subid=${widget.propertyId}");
-    final response = await http.get(url);
-
-    print('Response body: ${response.body}');  // <-- Add this line to print the response body
-
-    if (response.statusCode == 200) {
-      List listresponse = json.decode(response.body);
-      return listresponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occured!');
-    }
-  }
 
 
-  Future<void> fetchAndSetData(int id) async {
-    try {
-      // 📥 Get API data
-      final apiDataList = await fetchData(id);
-
-      if (apiDataList.isNotEmpty) {
-        final apiData = apiDataList[0]; // Take first if list is not empty
-        _Google_Location.text = apiData.fieldWorkerLocation;
-      } else {
-        _Google_Location.text = 'No location found from API';
-      }
-
-      // 📍 Get saved lat/long
-      final saved = await getSavedLatLong();
-      print("Latitude: ${saved['Latitude']}");
-      print("Longitude: ${saved['Longitude']}");
-
-      _Google_Location.text +=
-      "\nSaved: ${saved['Latitude']}, ${saved['Longitude']}";
-    } catch (e) {
-      print("Error: $e");
-      _Google_Location.text = 'Error loading location';
-    }
-  }
-
-  List<String> allFacilities = [
-    'CCTV Camera',
-    'Lift',
-    'Parking',
-    'Security',
-    'Terrace Garden',
-    "Gas Pipeline "
-  ];
-  List<String> selectedFacilities = [];
-  Future<List<RealEstateSlider>>? _galleryFuture;
-
-  Future<List<RealEstateSlider>> fetchCarouselData(int id) async {
-    final url =
-        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
-
-    final response = await http.get(Uri.parse(url));
-
-    if (response.statusCode == 200) {
-      try {
-        // Try parsing JSON directly — no XML parsing
-        final data = json.decode(response.body);
-
-        // If data is a JSON string inside JSON (rare case), decode twice:
-        if (data is String) {
-          final innerData = json.decode(data);
-          return (innerData as List)
-              .map((item) => RealEstateSlider.fromJson(item))
-              .toList();
-        }
-
-        // Otherwise, map the list directly
-        return (data as List)
-            .map((item) => RealEstateSlider.fromJson(item))
-            .toList();
-      } catch (e) {
-        print("Error parsing response: $e");
-        throw Exception('Failed to parse response data');
-      }
-    } else {
-      throw Exception('Server error');
-    }
-  }
   void parseFurnishingFromApi(String apiString) {
     if (apiString.isEmpty || apiString == 'Unfurnished') {
       _furnishing = 'Unfurnished';
       _selectedFurniture.clear();
-      furnitureController.text = '';
+      furnitureController.text = 'Semi Furnished';
       return;
     }
 
@@ -575,1779 +327,412 @@ class _DuplicatePropertyState extends State<DuplicateProperty> {
         .join(', ');
   }
 
-  @override
-  void dispose() {
-    _apartmentAddressController.dispose();
-
-    _locationController.dispose();
-    _propertyTypeController.dispose();
-    _bhkController.dispose();
-    _floorController.dispose();
-    _balconyController.dispose();
-    _maintenanceController.dispose();
-    _parkingController.dispose();
-    _buildingInfoController.dispose();
-    _fieldWorkerAddressController.dispose();
-    _roadSizeController.dispose();
-    _nearMetroController.dispose();
-    _highwayController.dispose();
-    _mainMarketController.dispose();
-    _houseMeterController.dispose();
-    _ownerNameController.dispose();
-    _ownerNumberController.dispose();
-    _totalFloorController.dispose();
-    _facilityController.dispose();
-    _careTakerNameController.dispose();
-    _careTakerNumberController.dispose();
-    super.dispose();
-  }
-
-  List<RealEstateSlider> _fetchedImages = [];
-
-  void loadFetchedImages(int id) async {
-    try {
-      final images = await fetchCarouselData(id);
-      setState(() {
-        _fetchedImages = images;
-      });
-    } catch (e) {
-      print('Error loading API images: $e');
-    }
-  }
 
 
-  final List<String> _metroOptions = [
-    'Hauz khas',
-    'Malviya Nagar',
-    'Saket',
-    'Qutub Minar',
-    'Chhatarpur',
-    'Sultanpur',
-    'Ghitorni',
-    'Arhan Garh',
-    'Guru Dronacharya',
-    'Sikanderpur'
-  ];
   Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [
     'Fully Furnished',
     'Semi Furnished',
     'Unfurnished',
   ];
-  final ImagePicker _picker = ImagePicker();
+  void _showFurnitureBottomSheet(BuildContext context) {
+    final List<String> furnitureItems = [
+      'Fan', 'Light', 'Refrigerator', 'Washing Machine',
+      'Wardrobe', 'AC','Water Purifier', 'Modular Kitchen', 'Chimney',
+      'Single Bed', 'Double Bed', 'Geyser', 'Led Tv',
+      'Sofa Set', 'Dining Table', 'Induction', 'Gas Stove','',
+    ];
 
-  Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(
-        source: ImageSource.gallery);
+    // 👇 clone current selection so it shows already selected items ticked
+    Map<String, int> tempSelection = Map.from(_selectedFurniture);
 
-    if (pickedFile != null) {
-      final compressedBytes = await FlutterImageCompress.compressWithFile(
-        pickedFile.path,
-        quality: 40,
-        minWidth: 800,
-        minHeight: 800,
-      );
-
-      if (compressedBytes == null) {
-        print('❌ Image compression failed');
-        return;
-      }
-
-      final kbSize = compressedBytes.lengthInBytes / 1024;
-      print('✅ Compressed image size: ${kbSize.toStringAsFixed(2)} KB');
-
-      final tempDir = Directory.systemTemp;
-      final compressedFile = await File('${tempDir.path}/${DateTime
-          .now()
-          .millisecondsSinceEpoch}.jpg')
-          .writeAsBytes(compressedBytes);
-
-      setState(() {
-        _imageFile = compressedFile;
-      });
-
-      print("✅ Image path: ${compressedFile.path}");
-    } else {
-      print('❌ No image selected.');
-    }
-  }
-
-  Future<void> uploadCompressedImage(File imageFile) async {
-    final uri = Uri.parse(
-        "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php");
-
-    var request = http.MultipartRequest('POST', uri);
-    request.headers.addAll({
-      'Accept': '*/*',
-      'Connection': 'keep-alive',
-      'User-Agent': 'VerifyApp/1.0',
-    });
-    request.files.add(
-      await http.MultipartFile.fromPath(
-        'property_photo',
-        imageFile.path,
-        filename: imageFile.path
-            .split('/')
-            .last,
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      builder: (ctx) {
+        return Padding(
+          padding: MediaQuery.of(ctx).viewInsets,
+          child: StatefulBuilder(
+            builder: (context, setModalState) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'Select Furniture',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          children: furnitureItems.map((item) {
+                            // 👇 auto-tick if exists in tempSelection
+                            final isSelected = tempSelection.containsKey(item);
+
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 8),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Checkbox(
+                                        activeColor: Colors.blue,
+                                        value: isSelected,
+                                        onChanged: (checked) {
+                                          setModalState(() {
+                                            if (checked == true) {
+                                              tempSelection[item] = 1;
+                                            } else {
+                                              tempSelection.remove(item);
+                                            }
+                                          });
+                                        },
+                                      ),
+                                      Text(item, style: const TextStyle(fontSize: 16)),
+                                    ],
+                                  ),
+                                  if (isSelected)
+                                    Row(
+                                      children: [
+                                        IconButton(
+                                          icon: const Icon(Icons.remove_circle_outline),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              if (tempSelection[item]! > 1) {
+                                                tempSelection[item] =
+                                                    tempSelection[item]! - 1;
+                                              }
+                                            });
+                                          },
+                                        ),
+                                        Text('${tempSelection[item]}'),
+                                        IconButton(
+                                          icon: const Icon(Icons.add_circle_outline),
+                                          onPressed: () {
+                                            setModalState(() {
+                                              tempSelection[item] =
+                                                  tempSelection[item]! + 1;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          // 👇 update global selected furniture
+                          _selectedFurniture = Map.fromEntries(
+                            tempSelection.entries.where((e) => e.value > 0),
+                          );
+
+                          // 👇 update textfield with items + counts
+                          furnitureController.text = _selectedFurniture.entries
+                              .map((e) => '${e.key} (${e.value})')
+                              .join(', ');
+                        });
+                        Navigator.pop(ctx);
+                      },
+                      child: const Text("Save Selection"),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
-
-    try {
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
-
-      print("✅ Status code: ${response.statusCode}");
-      print("✅ Response body: ${response.body}");
-
-      if (response.statusCode != 200) {
-        // Handle common errors
-        print("❌ Upload failed: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("❌ Upload error: $e");
-    }
-  }
-
-  final ImagePicker _MultiPicker = ImagePicker();
-  List<XFile> _images = [];
-
-  Future<void> pickMultipleImages() async {
-    try {
-      final List<XFile> pickedImages = await _MultiPicker.pickMultiImage();
-      if (pickedImages.isNotEmpty) {
-        setState(() {
-          _images = pickedImages;
-        });
-        print("Picked ${_images.length} images");
-      } else {
-        print("No images selected.");
-      }
-    } catch (e) {
-      print("Error picking images: $e");
-    }
-  }
-
-  void _removeImage(int index) {
-    setState(() {
-      _images.removeAt(index);
-    });
-  }
-
-  Future<void> _handleMenuItemClick(String value) async {
-
-    if (value.toString() == 'Duplicate Images') {
-      Navigator.of(context).push(MaterialPageRoute(builder: (context)=> MultiImagePickerPage(propertyId: widget.propertyId,)));
-    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final propertyId = Provider
-        .of<PropertyIdProvider>(context)
-        .latestPropertyId;
+  void dispose() {
+    _FlatNumber.dispose();
+    _address.dispose();
+    _sqft.dispose();
+    _maintenanceController.dispose();
+    _Building_information.dispose();
+    _Google_Location.dispose();
+    _ApartmentName.dispose();
+    _showPrice.dispose();
+    _lastPrice.dispose();
+    _askingPrice.dispose();
+    _meter.dispose();
+    super.dispose();
+  }
 
-    return Scaffold(
+  DateTime? _parseApiDate(dynamic raw) {
+    if (raw == null) return null;
+    final str = raw.toString().trim();
+    if (str.isEmpty) return null;
 
-      appBar: AppBar(
-        surfaceTintColor: Colors.black,
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context);
-          },
-          child: const Icon(
-            CupertinoIcons.back,
-            color: Colors.white,
-          ),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: _handleMenuItemClick,
-            itemBuilder: (BuildContext context) {
-              return {'Duplicate Images'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
+    // Try ISO first
+    final iso = DateTime.tryParse(str);
+    if (iso != null) return iso;
+
+    // Try dd-MM-yyyy
+    try {
+      return DateFormat("dd-MM-yyyy").parseStrict(str);
+    } catch (_) {}
+
+    // Try dd/MM/yyyy
+    try {
+      return DateFormat("dd/MM/yyyy").parseStrict(str);
+    } catch (_) {}
+
+    // Couldn’t parse
+    print("DEBUG: Unrecognized date format from API → $str");
+    return null;
+  }
+  List<String> _apiMultipleImages = [];
+  static const String imageBaseUrl =
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
+
+  Future<List<Property1>> fetchData() async {
+    final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/fecth_data_dublicate_flat.php?id=${widget.id}"
+    );
+
+    final response = await http.get(url);
+    final decoded = json.decode(response.body);
+
+    if (decoded is Map<String, dynamic>) {
+      final flat = decoded['flat'];
+      final List images = decoded['multiple_images'] ?? [];
+
+      if (flat != null) {
+        final model = Property1.fromJson(flat);
+
+        // ✅ convert relative paths → full URLs
+        model.multipleImages = images
+            .map<String>((e) => imageBaseUrl + e)
+            .toList();
+
+        return [model];
+      }
+    }
+    return [];
+  }
+
+  String? matchDropdown(String? apiValue, List<String> items) {
+    if (apiValue == null) return null;
+
+    try {
+      return items.firstWhere(
+            (e) => e.trim().toLowerCase() == apiValue.trim().toLowerCase(),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
 
-        ],
-      ),
-      body: _isLoading
-          ? Center(child: CircularProgressIndicator())
-          : Padding(
-        padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            shrinkWrap: true,
-            scrollDirection: Axis.vertical,
-            // physics: NeverScrollableScrollPhysics(),
+  Future autofillFormFields() async {
+    try {
+      final dataList = await fetchData();
+      if (dataList.isEmpty) return;
+
+      final data = dataList.first;
+
+      setState(() {
+        /// IMAGE
+        _networkImageUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data.propertyPhoto}";
+        apiImageUrl = data.propertyPhoto;
+        _apiMultipleImages = data.multipleImages;
+
+        /// DROPDOWNS (MATCHED SAFELY)
+        selectedPropertyType =
+            matchDropdown(data.typeOfProperty, _typeofproperty);
+
+        selectedBHK =
+            matchDropdown(data.bhk, bhkOptions);
+
+        _selectedItem1 =
+            matchDropdown(data.buyRent, buy_rent);
+
+        _registry =
+            matchDropdown(data.registryAndGpa, registryOptions);
+
+        _loan =
+            matchDropdown(data.loan, yesNoOptions);
+
+        balcony =
+            matchDropdown(data.balcony, _balcony_items);
+
+        parking =
+            matchDropdown(data.parking, _Parking_items);
+
+        kitchen =
+            matchDropdown(data.kitchen, _kitchen_items);
+
+        bathroom =
+            matchDropdown(data.bathroom, _bathroom_items);
+
+        _floor1 =
+            matchDropdown(data.floor, _items_floor1);
+
+        _lift =
+            matchDropdown(data.lift, yesNoOptions);
+
+        _furnished =
+            matchDropdown(data.furnishedUnfurnished, furnishingOptions);
+
+        _residenceCommercial = data.residenceCommercial;
+        _selectedItem = data.locations;
+        _totalFloor = data.totalFloor;
+
+        /// DATE
+        _availableDate = _parseApiDate(data.availableDate);
+
+        /// METER
+        if (data.meter == 'Commercial' || data.meter == 'Govt') {
+          _houseMeter = data.meter;
+          _meter.text = data.meter;
+        } else {
+          _houseMeter = 'Custom';
+          _meter.text = data.meter;
+        }
+
+        /// MAINTENANCE
+        final apiMaintenance = data.maintenance?.toString() ?? '';
+        if (apiMaintenance.toLowerCase() == "included") {
+          _maintenance = "Included";
+          _maintenanceController.text = "Included";
+          _customMaintenance = null;
+          _customMaintenanceController.clear();
+        } else if (apiMaintenance.isNotEmpty) {
+          _maintenance = "Custom";
+          _maintenanceController.text = "Custom";
+          _customMaintenance = apiMaintenance;
+          _customMaintenanceController.text = apiMaintenance;
+        }
+
+        /// FURNITURE
+        parseFurnishingFromApi(data.furnishedUnfurnished ?? '');
+        _selectedFurniture =
+            parseFurnitureString(data.apartmentName);
+
+        _isLoading = false;
+      });
+
+      /// TEXT CONTROLLERS (NO setState REQUIRED)
+      _facilityController.text = data.facility;
+      _FlatNumber.text = data.flatNumber;
+      _ApartmentName.text = data.apartmentName;
+      _Apartment_Address.text = data.apartmentAddress;
+      _lastPrice.text = data.lastPrice;
+      _askingPrice.text = data.askingPrice;
+      _showPrice.text = data.showPrice;
+      _CareTaker_name.text = data.careTakerName;
+      _CareTaker_number.text = data.careTakerNumber;
+      _Owner_number.text = data.ownerNumber;
+      _Ownername.text = data.ownerName;
+      field_address.text = data.fieldWorkerAddress;
+      _Google_Location.text = data.fieldWorkerCurrentLocation;
+      _sqft.text = data.squareFit;
+      _videoLink.text = data.videoLink;
+
+    } catch (e) {
+      print('❌ Error fetching data: $e');
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+
+  Future<void> _handleUpload() async {
+    if (!_formKey.currentState!.validate()) {
+      Fluttertoast.showToast(msg: "Please fill all required fields.");
+      print("Please fill all required fields.");
+      return;
+    }
+
+    List<String> missingFields = [];
+
+    if (balcony == null) missingFields.add("Balcony");
+    if (kitchen == null) missingFields.add("Kitchen");
+    if (bathroom == null) missingFields.add("Bathroom");
+    if (_lift == null) missingFields.add("Lift");
+    if (_selectedItem1 == null) missingFields.add("Buy/Rent");
+    if (_residenceCommercial == null) missingFields.add("Residence/Commercial");
+
+    if (missingFields.isNotEmpty) {
+      Fluttertoast.showToast(
+        msg: "Please fill: ${missingFields.join(', ')}",
+        toastLength: Toast.LENGTH_LONG,
+      );
+      return;
+    }
+
+    // ✅ Always call updateImageWithTitle, even if no new image picked
+    await updateImageWithTitle(_imageFile);
+  }
+
+  final List<String> _typeofproperty = ['Flat','Office','Shop','Farms','Godown','Plots',''];
+
+  List<String> name = ['Lift','Security CareTaker','GOVT Meter','CCTV','Gas Meter',''];
+
+  String? _selectedItem1;
+  final List<String> buy_rent = ['Buy', 'Rent',''];
+  final List<String> yesNoOptions = ['Yes', 'No',''];
+  final List<String> registryOptions = ['Registry', 'GPA'];
+  String? _floor1;
+  final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
+  final List<String> _items_floor2 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
+
+  final List<String> _balcony_items = ['Front Side Balcony', 'Back Side Balcony','Side','Window', 'Park Facing', 'Road Facing', 'Corner', 'No Balcony',''];
+
+
+  final List<String> _Parking_items = ['Car','Bike','Both','No Parking',''];
+
+  final List<String> _kitchen_items = ['Western Style','Indian Style','No',''];
+
+  final List<String> _bathroom_items = ['Western Style','Indian Style','No',''];
+  List<String> allFacilities = ['CCTV Camera', 'Lift', 'Parking', 'Security', 'Terrace Garden',"Gas Pipeline",''];
+
+
+  final TextEditingController _Ownername = TextEditingController();
+  final TextEditingController _Owner_number = TextEditingController();
+  final TextEditingController _videoLink = TextEditingController();
+  final TextEditingController _CareTaker_name = TextEditingController();
+  final TextEditingController _CareTaker_number = TextEditingController();
+  final TextEditingController _Longitude = TextEditingController();
+  final TextEditingController _Latitude = TextEditingController();
+  final TextEditingController full_address = TextEditingController();
+  String? _houseMeter; // selected dropdown value
+
+  Widget _buildSectionCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        // color: Colors.white,
+        margin: const EdgeInsets.only(bottom: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(title, style: _sectionTitleStyle()),
               const SizedBox(height: 10),
-
-              // Location (read-only)
-              _buildReadOnlyField(
-                label: "Select Location",
-                controller: _locationController,
-                onTap: () =>
-                    _showBottomSheet(
-                      options: cities,
-                      onSelected: (val) {
-                        setState(() {
-                          _location = val;
-                          _locationController.text = val;
-                        });
-                      },
-                    ),
-                validator: (val) =>
-                val == null || val.isEmpty ? "Please select location" : null,
-              ),
-              const SizedBox(height: 16),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Purpose Selection
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Purpose:",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'Poppins',
-                        ),
-                      ),
-                      const SizedBox(width: 20),
-                      ChoiceChip(
-                        label: const Text("Buy"),
-                        labelStyle: TextStyle(
-                          fontFamily: 'Poppins',
-                          color: _buyOrRent == 'Buy'
-                              ? Colors.white
-                              : Theme
-                              .of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .color,
-                        ),
-                        selectedColor: Colors.blueAccent,
-                        backgroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .surface,
-                        selected: _buyOrRent == 'Buy',
-                        onSelected: (_) => setState(() => _buyOrRent = 'Buy'),
-                      ),
-                      const SizedBox(width: 10),
-                      ChoiceChip(
-                        label: const Text("Rent"),
-                        labelStyle: TextStyle(
-                          fontFamily: 'Poppins',
-                          color: _buyOrRent == 'Rent'
-                              ? Colors.white
-                              : Theme
-                              .of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .color,
-                        ),
-                        selectedColor: Colors.blueAccent,
-                        backgroundColor: Theme
-                            .of(context)
-                            .colorScheme
-                            .surface,
-                        selected: _buyOrRent == 'Rent',
-                        onSelected: (_) =>
-                            setState(() => _buyOrRent = 'Rent'),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Show only when "Buy" is selected
-                  if (_buyOrRent == 'Buy') ...[
-                    // Registry or GPA
-
-                    Row(
-                      children: [
-                        const Text(
-                          "Registry or GPA:",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ChoiceChip(
-                          label: const Text("Registry"),
-                          labelStyle: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: _registryAndGpa == 'Registry'
-                                ? Colors.white
-                                : Theme
-                                .of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .color,
-                          ),
-                          selectedColor: Colors.blueAccent,
-                          backgroundColor: Theme
-                              .of(context)
-                              .colorScheme
-                              .surface,
-                          selected: _registryAndGpa == 'Registry',
-                          onSelected: (_) =>
-                              setState(() => _registryAndGpa = 'Registry'),
-                        ),
-                        const SizedBox(width: 10),
-                        ChoiceChip(
-                          label: const Text("GPA"),
-                          labelStyle: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: _registryAndGpa == 'GPA'
-                                ? Colors.white
-                                : Theme
-                                .of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .color,
-                          ),
-                          selectedColor: Colors.blueAccent,
-                          backgroundColor: Theme
-                              .of(context)
-                              .colorScheme
-                              .surface,
-                          selected: _registryAndGpa == 'GPA',
-                          onSelected: (_) =>
-                              setState(() => _registryAndGpa = 'GPA'),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 16),
-                    // Loan
-                    Row(
-                      children: [
-                        const Text(
-                          "Loan availability ?",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Poppins',
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ChoiceChip(
-                          label: const Text("Yes"),
-                          labelStyle: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: _loan == 'Yes'
-                                ? Colors.white
-                                : Theme
-                                .of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .color,
-                          ),
-                          selectedColor: Colors.blueAccent,
-                          backgroundColor: Theme
-                              .of(context)
-                              .colorScheme
-                              .surface,
-                          selected: _loan == 'Yes',
-                          onSelected: (_) => setState(() => _loan = 'Yes'),
-                        ),
-                        const SizedBox(width: 10),
-                        ChoiceChip(
-                          label: const Text("No"),
-                          labelStyle: TextStyle(
-                            fontFamily: 'Poppins',
-                            color: _loan == 'No'
-                                ? Colors.white
-                                : Theme
-                                .of(context)
-                                .textTheme
-                                .bodyMedium!
-                                .color,
-                          ),
-                          selectedColor: Colors.blueAccent,
-                          backgroundColor: Theme
-                              .of(context)
-                              .colorScheme
-                              .surface,
-                          selected: _loan == 'No',
-                          onSelected: (_) => setState(() => _loan = 'No'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-
-              // Category: Residential or Commercial
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  const Text(
-                    "Category:",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  ChoiceChip(
-                    label: Text(
-                      "Residential",
-                      style: TextStyle(
-                        color: _resOrComm == 'Residential'
-                            ? Colors.white
-                            : Colors.black87,
-                      ),
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _resOrComm == 'Residential',
-                    onSelected: (_) =>
-                        setState(() => _resOrComm = 'Residential'),
-                  ),
-                  ChoiceChip(
-                    label: Text(
-                      "Commercial",
-                      style: TextStyle(
-                        color: _resOrComm == 'Commercial'
-                            ? Colors.white
-                            : Colors.black87,
-                      ),
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _resOrComm == 'Commercial',
-                    onSelected: (_) =>
-                        setState(() => _resOrComm = 'Commercial'),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  // Property Type
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "Property Type",
-                      controller: _propertyTypeController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: propertyTypes,
-                            onSelected: (val) {
-                              setState(() {
-                                _propertyType = val;
-                                _propertyTypeController.text = val;
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      val == null || val.isEmpty
-                          ? "Select property type"
-                          : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12), // space between the two fields
-                  // BHK
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "BHK",
-                      controller: _bhkController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: bhkOptions,
-                            onSelected: (val) {
-                              setState(() {
-                                _bhk = val;
-                                _bhkController.text = val;
-                                if (val != 'Custom') {
-                                  _customBhk = null;
-                                }
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      val == null || val.isEmpty ? "Select BHK" : null,
-                    ),
-                  ),
-                ],
-              ),
-
-
-              const SizedBox(height: 16),
-
-              // Custom BHK TextField only visible if 'Custom' selected
-              if (_bhk == 'Custom')
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: "Enter custom BHK",
-                    labelStyle: TextStyle(
-                      color: Theme
-                          .of(context)
-                          .brightness == Brightness.dark
-                          ? Colors.grey.shade300
-                          : Colors.black54,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300,
-                        width: 1,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300,
-                        width: 1,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.blue.shade200
-                            : Colors.blue.shade300,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 14),
-                    filled: true,
-                    fillColor: Theme
-                        .of(context)
-                        .brightness == Brightness.dark
-                        ? Colors.grey.shade900
-                        : Colors.white,
-                  ),
-                  keyboardType: TextInputType.number,
-                  onChanged: (val) => _customBhk = val,
-                  style: TextStyle(
-                    color: Theme
-                        .of(context)
-                        .brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                  validator: (val) =>
-                  _bhk == 'Custom' && (val == null || val.isEmpty)
-                      ? "Enter custom BHK value"
-                      : null,
-                ),
-              if (_bhk == 'Custom')
-                const SizedBox(height: 16),
-
-              // Price (normal input)
-              TextFormField(
-                controller: _priceController,
-                keyboardType: TextInputType.name,
-                decoration: InputDecoration(
-                  labelText: _buyOrRent == 'Buy'
-                      ? "Selling Price (₹)"
-                      : "Rent Price (₹)",
-                  labelStyle: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                    color: Theme
-                        .of(context)
-                        .brightness == Brightness.dark
-                        ? Colors.grey.shade300
-                        : Colors.black54,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.blue.shade200
-                            : Colors.blue.shade300,
-                        width: 2),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                      vertical: 14, horizontal: 14),
-                  filled: true,
-                  fillColor: Theme
-                      .of(context)
-                      .brightness == Brightness.dark
-                      ? Colors.grey.shade900
-                      : Colors.white,
-                ),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter price"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              // Asking Price
-              TextFormField(
-                controller: _askingPriceController,
-                keyboardType: TextInputType.name,
-                decoration: _buildInputDecoration(
-                    context, "Asking Price (₹) by owner"),
-              ),
-              const SizedBox(height: 16),
-
-              // Last Price
-              TextFormField(
-                controller: _lastPriceController,
-                keyboardType: TextInputType.name,
-                decoration: _buildInputDecoration(
-                    context, "Last Price (₹) by owner"),
-              ),
-              const SizedBox(height: 16),
-              //flatNumber
-              TextFormField(
-                keyboardType: TextInputType.name,
-                controller: _flatNumberController,
-                decoration: _buildInputDecoration(context, "Flat Number"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter number"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              // Property Number
-              // TextFormField(
-              //   keyboardType: TextInputType.number,
-              //   controller: _propertyNumberController,
-              //   decoration: _buildInputDecoration(context, "Property Number"),
-              // ),
-
-              // const SizedBox(height: 16),
-              //_apartmentNameController
-              TextFormField(
-                controller: _apartmentNameController,
-                decoration: _buildInputDecoration(context, "Apartment Name"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter Apartment Name"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              //_apartmentAddressController
-              TextFormField(
-                controller: _apartmentAddressController,
-                decoration: _buildInputDecoration(
-                    context, "Apartment Address"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter Apartment Name"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _facilityController,
-                readOnly: true,
-                // Prevents manual editing
-                onTap: _showFacilitySelectionDialog,
-                // Opens the selection dialog
-                decoration: _buildInputDecoration(context, "Facility"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter Apartment Name"
-                    : null,
-              ),
-
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "Floor",
-                      controller: _floorController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: floors,
-                            onSelected: (val) {
-                              setState(() {
-                                _floor = val;
-                                _floorController.text = val;
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      val == null || val.isEmpty ? "Select floor" : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-
-                  // Total Floor Dropdown
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "Total Floor",
-                      controller: _totalFloorController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: List.generate(
-                                10, (index) => (index + 1).toString()),
-                            // ['1', '2', ..., '10']
-                            onSelected: (val) {
-                              setState(() {
-                                _totalFloor = val;
-                                _totalFloorController.text = val;
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      _totalFloor == null || _totalFloor!.isEmpty
-                          ? "Select total floor"
-                          : null,
-                    ),
-                  ),
-
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Square Feet
-              Row(
-                children: [
-                  // Square Feet TextFormField
-                  Expanded(
-                    // flex: 2,
-                    child: TextFormField(
-                      controller: _squareFeetController,
-                      decoration: InputDecoration(
-                        labelText: "Square Feet (sq.ft)",
-                        labelStyle: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
-                              ? Colors.grey.shade300
-                              : Colors.black54,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: Theme
-                                .of(context)
-                                .brightness == Brightness.dark
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: Theme
-                                .of(context)
-                                .brightness == Brightness.dark
-                                ? Colors.grey.shade700
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: Theme
-                                .of(context)
-                                .brightness == Brightness.dark
-                                ? Colors.blue.shade200
-                                : Colors.blue.shade300,
-                            width: 2,
-                          ),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            vertical: 14, horizontal: 14),
-                        filled: true,
-                        fillColor: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade900
-                            : Colors.white,
-                      ),
-                      keyboardType: TextInputType.number,
-                      style: TextStyle(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.white
-                            : Colors.black,
-                      ),
-                      onSaved: (val) => _squareFeet = val,
-                      validator: (val) =>
-                      val == null || val.isEmpty
-                          ? "Enter square feet"
-                          : null,
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "Balcony",
-                      controller: _balconyController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: ['Front', 'Back'],
-                            onSelected: (val) {
-                              setState(() {
-                                _balcony = val;
-                                _balconyController.text = val;
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      _balcony == null || _balcony!.isEmpty
-                          ? "Select balcony"
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              //
-              // TextFormField(
-              //   controller: _buildingInfoController,
-              //   decoration: InputDecoration(
-              //     labelText: "Building Info (e.g. Tower A, Flat 301)",
-              //     labelStyle: TextStyle(
-              //       fontWeight: FontWeight.w600,
-              //       fontSize: 15,
-              //       color: Theme
-              //           .of(context)
-              //           .brightness == Brightness.dark
-              //           ? Colors.grey.shade300
-              //           : Colors.black54,
-              //     ),
-              //     border: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10),
-              //       borderSide: BorderSide(
-              //         color: Theme
-              //             .of(context)
-              //             .brightness == Brightness.dark
-              //             ? Colors.grey.shade700
-              //             : Colors.grey.shade300,
-              //       ),
-              //     ),
-              //     enabledBorder: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10),
-              //       borderSide: BorderSide(
-              //         color: Theme
-              //             .of(context)
-              //             .brightness == Brightness.dark
-              //             ? Colors.grey.shade700
-              //             : Colors.grey.shade300,
-              //       ),
-              //     ),
-              //     focusedBorder: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10),
-              //       borderSide: BorderSide(
-              //         color: Theme
-              //             .of(context)
-              //             .brightness == Brightness.dark
-              //             ? Colors.blue.shade200
-              //             : Colors.blue.shade300,
-              //         width: 2,
-              //       ),
-              //     ),
-              //     contentPadding: const EdgeInsets.symmetric(
-              //         vertical: 14, horizontal: 14),
-              //     filled: true,
-              //     fillColor: Theme
-              //         .of(context)
-              //         .brightness == Brightness.dark
-              //         ? Colors.grey.shade900
-              //         : Colors.white,
-              //   ),
-              //   style: TextStyle(
-              //     color: Theme
-              //         .of(context)
-              //         .brightness == Brightness.dark
-              //         ? Colors.white
-              //         : Colors.black,
-              //   ),
-              //   onSaved: (val) => _buildingInfo = val,
-              // ),
-              // const SizedBox(height: 16),
-
-              // Maintenance
-              Row(
-                children: [
-
-                  /// Maintenance dropdown field
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "Maintenance",
-                      controller: _maintenanceController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: ['Included', 'Custom'],
-                            onSelected: (val) {
-                              setState(() {
-                                _maintenance = val;
-                                _maintenanceController.text = val;
-                                if (val != 'Custom') _customMaintenance = null;
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      val == null || val.isEmpty ? "Select maintenance" : null,
-                    ),
-                  ),
-
-
-                  /// Custom maintenance fee field
-                  if (_maintenance == 'Custom')
-
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: TextFormField(
-                          decoration: InputDecoration(
-                            labelText: "Enter Maintenance Fee",
-                            labelStyle: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                              color: Theme
-                                  .of(context)
-                                  .brightness == Brightness.dark
-                                  ? Colors.grey.shade300
-                                  : Colors.black54,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme
-                                    .of(context)
-                                    .brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme
-                                    .of(context)
-                                    .brightness == Brightness.dark
-                                    ? Colors.grey.shade700
-                                    : Colors.grey.shade300,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                              borderSide: BorderSide(
-                                color: Theme
-                                    .of(context)
-                                    .brightness == Brightness.dark
-                                    ? Colors.blue.shade200
-                                    : Colors.blue.shade300,
-                                width: 2,
-                              ),
-                            ),
-                            contentPadding:
-                            const EdgeInsets.symmetric(
-                                vertical: 14, horizontal: 14),
-                            filled: true,
-                            fillColor: Theme
-                                .of(context)
-                                .brightness == Brightness.dark
-                                ? Colors.grey.shade900
-                                : Colors.white,
-                          ),
-                          style: TextStyle(
-                            color: Theme
-                                .of(context)
-                                .brightness == Brightness.dark
-                                ? Colors.white
-                                : Colors.black,
-                          ),
-                          keyboardType: TextInputType.number,
-                          onChanged: (val) => _customMaintenance = val,
-                          validator: (val) =>
-                          _maintenance == 'Custom' &&
-                              (val == null || val.isEmpty)
-                              ? "Enter maintenance fee"
-                              : null,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              _buildReadOnlyField(
-                label: "Age of Property",
-                controller: _propertyAgeController,
-                onTap: () =>
-                    _showBottomSheet(
-                      options: [
-                        '0-1 year',
-                        '1-3 years',
-                        '3-5 years',
-                        '5+ years'
-                      ],
-                      onSelected: (val) {
-                        setState(() {
-                          _propertyAge = val;
-                          _propertyAgeController.text = val;
-                        });
-                      },
-                    ),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Select property age"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-
-              // Parking Dropdown
-              // Dropdown (always shows selected value or 'Parking' for Custom)
-              _buildReadOnlyField(
-                label: "Parking",
-                controller: TextEditingController(
-                  text: _parking == 'Custom' ? 'Parking' : _parking ?? '',
-                ),
-                onTap: () =>
-                    _showBottomSheet(
-                      options: ['Car', 'Bike', 'Custom'],
-                      onSelected: (val) {
-                        setState(() {
-                          _parking = val;
-                          if (val != 'Custom') {
-                            _customParking = null; // clear custom
-                          }
-                        });
-                      },
-                    ),
-                validator: (val) =>
-                _parking == null || _parking!.isEmpty
-                    ? "Select parking type"
-                    : null,
-              ),
-
-              const SizedBox(height: 16),
-
-              // Custom parking input (visible only when 'Custom' selected)
-              if (_parking == 'Custom')
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: "Enter Custom Parking",
-                    labelStyle: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                      color: Theme
-                          .of(context)
-                          .brightness == Brightness.dark
-                          ? Colors.grey.shade300
-                          : Colors.black54,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300,
-                      ),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.grey.shade700
-                            : Colors.grey.shade300,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.blue.shade200
-                            : Colors.blue.shade300,
-                        width: 2,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 14),
-                    filled: true,
-                    fillColor: Theme
-                        .of(context)
-                        .brightness == Brightness.dark
-                        ? Colors.grey.shade900
-                        : Colors.white,
-                  ),
-                  style: TextStyle(
-                    color: Theme
-                        .of(context)
-                        .brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                  ),
-                  onChanged: (val) => _customParking = val,
-                  validator: (val) =>
-                  _parking == 'Custom' && (val == null || val.isEmpty)
-                      ? "Enter custom parking type"
-                      : null,
-                ),
-              if (_parking == 'Custom')
-
-
-                const SizedBox(height: 16),
-
-              // Road Size
-              TextFormField(
-                controller: _roadSizeController,
-                decoration: _buildInputDecoration(
-                    context, "Road Size (in feet)"),
-                keyboardType: TextInputType.name,
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter road size"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  // Near Metro
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "Near Metro Station",
-                      controller: _nearMetroController,
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: _metroOptions,
-                            onSelected: (val) {
-                              setState(() {
-                                _nearMetroController.text = val;
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      val == null || val.isEmpty
-                          ? "Select nearest metro station"
-                          : null,
-                    ),
-                  ),
-                  SizedBox(width: 16,),
-                  // Highway
-                  Expanded(
-                    child: TextFormField(
-                      controller: _highwayController,
-                      decoration: _buildInputDecoration(
-                          context, "Metro Distance"),
-                    ),
-                  ),
-                ],
-              ),
-
-
-              const SizedBox(height: 16),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextFormField(
-                    controller: _mainMarketController,
-                    decoration: _buildInputDecoration(
-                        context, "Nearby Main Market Distance"),
-                  ),
-                  const SizedBox(width: 16),
-
-
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildReadOnlyField(
-                      label: "House Meter Type",
-                      controller: TextEditingController(
-                          text: _houseMeter == 'Custom'
-                              ? 'Custom'
-                              : _houseMeter),
-                      onTap: () =>
-                          _showBottomSheet(
-                            options: ['Commercial', 'Govt', 'Custom'],
-                            onSelected: (val) {
-                              setState(() {
-                                _houseMeter = val;
-                                if (val != 'Custom') {
-                                  _houseMeterController.text =
-                                      val; // assign directly
-                                } else {
-                                  _houseMeterController
-                                      .clear(); // clear so user can type in custom input field
-                                }
-                              });
-                            },
-                          ),
-                      validator: (val) =>
-                      (_houseMeterController.text.isEmpty)
-                          ? "Select house meter type"
-                          : null,
-                    ),
-                  ),
-                  // Custom input only when "Custom" is selected
-                  if (_houseMeter == 'Custom') ...[
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16.0),
-                        child: TextFormField(
-                          decoration: _buildInputDecoration(
-                              context, "Enter Custom House Meter Type"),
-                          onChanged: (val) => _houseMeterController.text = val,
-                          // update same controller
-                          validator: (val) =>
-                          val == null || val.isEmpty
-                              ? "Enter custom meter type"
-                              : null,
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              // Owner Name
-              TextFormField(
-                controller: _ownerNameController,
-                decoration: _buildInputDecoration(context, "Owner Name"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter owner name"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-              // Owner Number
-              TextFormField(
-                controller: _ownerNumberController,
-                decoration: _buildInputDecoration(
-                    context, "Owner Contact Number"),
-                keyboardType: TextInputType.phone,
-                validator: (val) =>
-                val == null || val.length < 10
-                    ? "Enter valid contact number"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              Wrap(
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 10,
-                runSpacing: 10,
-                children: [
-                  const Text(
-                    "Kitchen Type:",
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  ChoiceChip(
-                    label: Text(
-                      "Modern",
-                      style: TextStyle(
-                        color: _kitchenType == 'Modern' ? Colors.white : Colors
-                            .black87,
-                      ),
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _kitchenType == 'Modern',
-                    onSelected: (_) => setState(() => _kitchenType = 'Modern'),
-                  ),
-                  ChoiceChip(
-                    label: Text(
-                      "Western",
-                      style: TextStyle(
-                        color: _kitchenType == 'Western' ? Colors.white : Colors
-                            .black87,
-                      ),
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _kitchenType == 'Western',
-                    onSelected: (_) => setState(() => _kitchenType = 'Western'),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Flat Available (Date Picker)
-              TextFormField(
-                controller: _flatAvailableController,
-                readOnly: true,
-                onTap: () async {
-                  final date = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime(2020),
-                    lastDate: DateTime(2100),
-                  );
-                  if (date != null) {
-                    setState(() {
-                      _flatAvailableDate = date;
-                      _flatAvailableController.text =
-                          DateFormat('dd-MM-yyyy').format(date);
-                    });
-                  }
-                },
-                decoration: _buildInputDecoration(
-                    context, "Flat Available From"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Select availability date"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-
-
-              // // Tarrish Garden
-              // TextFormField(
-              //   controller: _terraceGardenController,
-              //   decoration: _buildInputDecoration(
-              //       context, "Terrace/Garden Info"),
-              // ),
-              // const SizedBox(height: 16),
-
-              DropdownButtonFormField<String>(
-                value: _furnishing != null && furnishingOptions.contains(_furnishing)
-                    ? _furnishing
-                    : null,
-                decoration: _buildInputDecoration(context, "Furnishing"),
-                items: furnishingOptions.map((option) {
-                  return DropdownMenuItem<String>(
-                    value: option,
-                    child: Text(option),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _furnishing = val;
-
-                    if (val == 'Unfurnished') {
-                      _selectedFurniture.clear();
-                      furnitureController.text = '';
-                    } else {
-                      furnitureController.text = _selectedFurniture.entries
-                          .map((e) => '${e.key} (${e.value})')
-                          .join(', ');
-                    }
-                  });
-                },
-                validator: (val) => val == null || val.isEmpty ? 'Please select furnishing' : null,
-              ),
-
-              if (_furnishing == 'Fully Furnished' || _furnishing == 'Semi Furnished')
-                GestureDetector(
-                  onTap: () => _showFurnitureBottomSheet(context),
-                  child: AbsorbPointer(
-                    child: Padding(
-                      padding: EdgeInsets.only(top: 16.0),
-                      child: TextFormField(
-                        controller: furnitureController,
-                        decoration: _buildInputDecoration(context, "Select Furniture Items"),
-                      ),
-                    ),
-                  ),
-                ),
-
-
-              const SizedBox(height: 16),
-
-              //bathroom
-              Row(
-                children: [
-                  const Text(
-                    "Bathroom :",
-                    style: TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(width: 20),
-                  ChoiceChip(
-                    label: const Text("Yes"),
-                    labelStyle: TextStyle(
-                      color: _bathroom == 'Yes' ? Colors.white : Colors
-                          .black87,
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _bathroom == 'Yes',
-                    onSelected: (_) => setState(() => _bathroom = 'Yes'),
-                  ),
-                  const SizedBox(width: 10),
-                  ChoiceChip(
-                    label: const Text("No"),
-                    labelStyle: TextStyle(
-                      color: _bathroom == 'No' ? Colors.white : Colors
-                          .black87,
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _bathroom == 'No',
-                    onSelected: (_) =>
-                        setState(() => _bathroom = 'No'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  const Text(
-                    "Lift :",
-                    style: TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(width: 20),
-                  ChoiceChip(
-                    label: const Text("Yes"),
-                    labelStyle: TextStyle(
-                      color: _lift == 'Yes' ? Colors.white : Colors
-                          .black87,
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _lift == 'Yes',
-                    onSelected: (_) => setState(() => _lift = 'Yes'),
-                  ),
-                  const SizedBox(width: 10),
-                  ChoiceChip(
-                    label: const Text("No"),
-                    labelStyle: TextStyle(
-                      color: _lift == 'No' ? Colors.white : Colors
-                          .black87,
-                    ),
-                    selectedColor: Colors.blueAccent,
-                    backgroundColor: Colors.grey.shade200,
-                    selected: _lift == 'No',
-                    onSelected: (_) =>
-                        setState(() => _lift = 'No'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-
-              // Field Worker Name
-              TextFormField(
-                controller: _fieldWorkerNameController,
-                decoration: _buildInputDecoration(context, "Field Worker Name"),
-              ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                controller: _fieldWorkerNumberController,
-                keyboardType: TextInputType.phone,
-                decoration: _buildInputDecoration(
-                    context, "Field Worker Number"),
-              ),
-              const SizedBox(height: 16),
-
-              // Field Worker Address
-              TextFormField(
-                controller: _fieldWorkerAddressController,
-                decoration: _buildInputDecoration(
-                    context, "Field Worker Address"),
-                validator: (val) =>
-                val == null || val.isEmpty
-                    ? "Enter address"
-                    : null,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _careTakerNameController,
-                keyboardType: TextInputType.name,
-                decoration: _buildInputDecoration(
-                    context, "Care Taker Name"),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _careTakerNumberController,
-                keyboardType: TextInputType.phone,
-                decoration: _buildInputDecoration(
-                    context, "Care Taker Number"),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  ElevatedButton(
-                    onPressed: _pickImage,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      padding: EdgeInsets.zero,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ),
-                    child: _imageFile != null
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.file(
-                        _imageFile!,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
-                      ),
-                    )
-                        : _networkImageUrl != null &&
-                        _networkImageUrl!.isNotEmpty
-                        ? ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Image.network(
-                        _networkImageUrl!,
-                        height: 100,
-                        width: 100,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _placeholder(),
-                      ),
-                    )
-                        : _placeholder(),
-                  ),
-                ],
-              ),
-
-
-              // ElevatedButton(
-              //   onPressed: pickMultipleImages,
-              //   child: Text("Choose Multiple Images"),
-              // ),
-              const SizedBox(height: 16),
-
-
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme
-                          .of(context)
-                          .brightness == Brightness.dark
-                          ? Colors.white10
-                          : Colors.white,
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(10),
-                        topRight: Radius.circular(10),
-                      ),
-                      border: Border.all(
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.white10
-                            : Color(0xFFE2E8F0),
-                        width: 1.5,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
-                              ? Colors.black26
-                              : Color(0xFFEDF2F7),
-                          blurRadius: 4,
-                          offset: Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: TextField(
-                      controller: _Google_Location,
-                      style: TextStyle(
-                        fontFamily: 'Poppins',
-                        color: Theme
-                            .of(context)
-                            .brightness == Brightness.dark
-                            ? Colors.white
-                            : Color(0xFF2D3748),
-                      ),
-                      decoration: InputDecoration(
-                        contentPadding: EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 14),
-                        hintText: 'Enter your address',
-                        hintStyle: TextStyle(
-                          fontFamily: 'Poppins',
-                          fontSize: 12,
-                          color: Theme
-                              .of(context)
-                              .brightness == Brightness.dark
-                              ? Colors.white
-                              : Colors.grey.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        prefixIcon: Icon(
-                          Icons.location_on_rounded,
-                          color: Colors.blue.shade300,
-                        ),
-                        border: InputBorder.none,
-                      ),
-                    ),
-                  ),
-                  GestureDetector(
-
-                    onTap: () async {
-                      final status = await Permission.location.request();
-                      if (!status.isGranted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Location permission is required')),
-                        );
-                        return;
-                      }
-
-                      try {
-                        // Step 1: Get current GPS location
-                        Position position =
-                        await Geolocator.getCurrentPosition(
-                            desiredAccuracy: LocationAccuracy.high);
-
-                        double latitude = position.latitude;
-                        double longitude = position.longitude;
-
-                        // Step 2: Save to SharedPreferences
-                        final prefs =
-                        await SharedPreferences.getInstance();
-                        await prefs.setDouble('latitude', latitude);
-                        await prefs.setDouble('longitude', longitude);
-
-                        // Step 3: Convert to address
-                        List<Placemark> placemarks =
-                        await placemarkFromCoordinates(
-                            latitude, longitude);
-
-                        String output = 'Unable to fetch location';
-                        if (placemarks.isNotEmpty) {
-                          Placemark place = placemarks.first;
-                          output =
-                          '${place.street}, ${place.subLocality}, ${place
-                              .locality}, '
-                              '${place.subAdministrativeArea}, ${place
-                              .administrativeArea}, '
-                              '${place.country}, ${place.postalCode}';
-                        }
-
-                        // Step 4: Update controller and variable
-                        setState(() {
-                          full_address = output;
-                          _Google_Location.text = full_address;
-                        });
-
-                        print('Address: $full_address');
-                      } catch (e) {
-                        print('Error: ${e.toString()}');
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                              content: Text(
-                                  'Failed to get address: ${e.toString()}')),
-                        );
-                      }
-                    },
-                    child: Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(vertical: 14),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.shade200,
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(10),
-                          bottomRight: Radius.circular(10),
-                        ),
-                        border: Border.all(
-                          color: Colors.blue.shade200,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Get Current Location',
-                          style: TextStyle(
-                            fontFamily: 'PoppinsBold',
-                            color: Colors.white,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              // Submit Button
-              ElevatedButton(
-                onPressed: _isSubmitting ? null : _submitForm,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  backgroundColor: Colors.blueAccent,
-                ),
-                child: const Text(
-                  "Continue",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontFamily: "Poppins",
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white, // White text for good visibility
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
+              child,
             ],
           ),
         ),
@@ -2355,35 +740,1095 @@ class _DuplicatePropertyState extends State<DuplicateProperty> {
     );
   }
 
-  Widget _placeholder() {
-    return const SizedBox(
-      height: 100,
-      width: 100,
-      child: Center(
-        child: Text(
-          'Tap to select image',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.black),
+
+  String? _furnished;
+
+  TextStyle _sectionTitleStyle() {
+    return const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,  fontFamily: 'Poppins');
+  }
+  List<File> _multipleImages = [];
+
+  Future<void> pickMultipleImages() async {
+    final picker = ImagePicker();
+    final pickedFiles = await picker.pickMultiImage();
+
+    if (pickedFiles.isNotEmpty) {
+      List<File> temp = [];
+      for (var xfile in pickedFiles) {
+        final tempDir = await getTemporaryDirectory();
+        final targetPath = '${tempDir.path}/img_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+        var compressed = await FlutterImageCompress.compressAndGetFile(
+          xfile.path,
+          targetPath,
+          quality: 80,
+        );
+        if (compressed != null) temp.add(File(compressed.path));
+      }
+      setState(() {
+        _multipleImages = temp;
+      });
+    }
+  }
+  Future<void> _refreshPage() async {
+    await autofillFormFields(); // re-fetch API
+  }
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          centerTitle: true,
+          backgroundColor: Colors.black,
+          surfaceTintColor: Colors.black,
+          title: Image.asset(AppImages.verify, height: 75),
+          leading: InkWell(
+            onTap: () {
+              Navigator.pop(context);
+            },
+            child: const Row(
+              children: [
+                SizedBox(
+                  width: 10,
+                ),
+                Icon(
+                  PhosphorIcons.caret_left_bold,
+                  color: Colors.white,
+                  size: 30,
+                ),
+              ],
+            ),
+          ),
+
+        ),
+        body: RefreshIndicator(
+          color: Colors.blue,
+          backgroundColor: Colors.white,
+          onRefresh: _refreshPage,
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: <Widget>[
+
+                    Container(
+                      margin: EdgeInsets.only(left: 20),
+                      child: Row(
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade600),
+                            onPressed: () async {
+                              XFile? pickedImage = await pickAndCompressImage(); // XFile returned
+                              if (pickedImage != null) {
+                                setState(() {
+                                  _imageFile = File(pickedImage.path);
+                                });
+                              }
+                            },
+                            child: Text('Pick Image',style: TextStyle(color: Colors.white),),
+                          ),
+
+                          SizedBox(
+                            width: 80,
+                          ),
+
+                          Container(
+                            width: 100,
+                            height: 100,
+                            child: _imageFile != null
+                                ? Image.file(_imageFile!)
+                                : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
+                                ? ClipRRect(
+                              borderRadius: BorderRadius.circular(4),
+                              child: Image.network(
+                                _networkImageUrl!,
+                                height: 100,
+                                width: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                                : Center(child: Text('No image selected.',style: TextStyle(color: Colors.black),)),
+
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    if (_apiMultipleImages.isNotEmpty)
+                      SizedBox(
+                        height: 110,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: _apiMultipleImages.length,
+                          itemBuilder: (context, index) {
+                            final img = _apiMultipleImages[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.network(
+                                  img,
+                                  width: 110,
+                                  height: 110,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (c, w, p) =>
+                                  p == null ? w : const Center(),
+                                  errorBuilder: (c, e, s) =>
+                                  const Icon(Icons.broken_image, size: 40),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    SizedBox(height: 20),
+
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                Futureproipoerty_FileUploadPage(idd: widget.id),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.photo_library_outlined, color: Colors.white),
+                      label: const Text(
+                        "Update Images",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade600,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+
+
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 10,),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildDropdownRow(
+                                    'Type of property',
+                                    _typeofproperty,
+                                    selectedPropertyType,
+                                        (val) => setState(() => selectedPropertyType = val),
+                                    validator: (val) => val == null || val.isEmpty
+                                        ? 'Please select a property type'
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildDropdownRow(
+                                    'Buy/Rent',
+                                    buy_rent,
+                                    _selectedItem1,
+                                        (val) => setState(() => _selectedItem1 = val),
+                                    validator: (val) => val == null || val.isEmpty
+                                        ? 'Please select Buy/Rent'
+                                        : null,
+                                  ),
+                                ),
+                              ],
+                            ),
+
+                            // 👇 Show extra dropdowns when Sell is selected
+                            if (_selectedItem1 == "Buy") ...[
+                              const SizedBox(width: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _buildDropdownRegister(
+                                      'Register',
+                                      registryOptions,
+                                      _registry,
+                                          (val) => setState(() => _registry = val),
+                                      validator: (val) =>
+                                      val == null || val.isEmpty
+                                          ? 'Please select Register'
+                                          : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: _buildDropdownRegister(
+                                      'Loan',
+                                      yesNoOptions,
+                                      _loan,
+                                          (val) => setState(() => _loan = val),
+                                      validator: (val) =>
+                                      val == null || val.isEmpty
+                                          ? 'Please select Loan'
+                                          : null,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ],
+                        ),
+
+
+
+
+                        _buildSectionCard(
+                          child: DropdownButtonFormField<String>(
+                            value: _furnished,
+                            decoration: InputDecoration(
+                              labelText: "",
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            ),
+                            items: furnishingOptions.map((option) {
+                              return DropdownMenuItem(
+                                value: option,
+                                child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (val) {
+                              setState(() {
+                                _furnished = val;
+                                // Clear previously selected furniture if not furnished
+                                if (val == 'Unfurnished') {
+                                  _selectedFurniture.clear();
+                                }
+                              });
+                            },
+
+                            validator: (val) =>
+                            val == null || val.isEmpty ? 'Please select furnishing' : null,
+                          ), title: 'Furnishing',
+                        ),
+                        if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+                          _blueSectionCard(
+                            child: GestureDetector(
+                              onTap: () => _showFurnitureBottomSheet(context),
+                              child: AbsorbPointer(
+                                child: Padding(
+                                  padding:  EdgeInsets.only(top: 16.0),
+                                  child:
+                                  TextFormField(
+                                    decoration: InputDecoration(
+                                      labelText: "Select Furniture Items",
+                                      labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      filled: true, // ✅ enable background color
+                                      fillColor: Theme.of(context).brightness==Brightness.dark?Colors.grey.shade800:Colors.white,
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                                    ),
+                                    controller: TextEditingController(
+                                      text: _selectedFurniture.isEmpty
+                                          ? ''
+                                          : _selectedFurniture.entries
+                                          .map((e) => '${e.key} (${e.value})')
+                                          .join(', '),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ), title: 'Furniture Items',
+                          ),
+                        const SizedBox(height: 10,),
+                        _buildDropdownRow(
+                          'Parking',
+                          _Parking_items,
+                          parking,
+                              (val) => setState(() => parking = val),
+                          validator: (val) => val == null || val.isEmpty ? 'Please select parking type' : null,
+                        ),
+                        const SizedBox(height: 10,),
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildDropdownRow('Bathroom', _bathroom_items, bathroom, (val) => setState(() => bathroom = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a Bathroom type' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Kitchen', _kitchen_items, kitchen, (val) => setState(() => kitchen = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a Kitchen type' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10,),
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
+
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
+                            ),
+                          ],
+                        ),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildDropdownRow('Balcony', _balcony_items, balcony, (val) => setState(() => balcony = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a balcony type' : null,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildDropdownRow('Select  BHK',bhkOptions, selectedBHK, (val) => setState(() => selectedBHK = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a BHK' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10,),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              child:
+                              _buildSectionCard(
+                                title: 'Available Date',
+                                child: GestureDetector(
+                                  onTap: () async {
+                                    final DateTime? picked = await showDatePicker(
+                                      context: context,
+                                      initialDate: DateTime.now(),
+                                      firstDate: DateTime(2020),
+                                      lastDate: DateTime(2100),
+                                    );
+                                    if (picked != null) {
+                                      setState(() {
+                                        _availableDate = picked;
+                                      });
+                                    }
+                                  },
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade600,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      _availableDate != null
+                                          ? DateFormat('dd MMMM yyyy').format(_availableDate!)
+                                          : '', // 👈 empty string if null
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child:              _buildDropdownRow('Floor no.',_items_floor1, _floor1, (val) => setState(() => _floor1 = val),
+                                validator: (val) => val == null || val.isEmpty ? 'Please select a floor number' : null,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        TextFormField(
+                          controller: _showPrice,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText:"Show Price (₹)",
+                            floatingLabelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+
+                            suffix: _formattedPrice.isNotEmpty
+                                ? Padding(
+                              padding: EdgeInsets.only(right: 8),
+                              child: Text(
+                                _formattedPrice,
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                              ),
+                            )
+                                : null,
+
+                            labelStyle: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey.shade300
+                                  : Colors.black54,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey.shade700
+                                      : Colors.grey.shade300),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: BorderSide(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.blue.shade200
+                                      : Colors.blue.shade300,
+                                  width: 2),
+                            ),
+                            contentPadding:
+                            const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                            filled: true,
+                            fillColor: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.grey.shade900
+                                : Colors.white,
+                          ),
+                          validator: (val) => val == null || val.isEmpty ? "Enter price" : null,
+                        ),
+                        const SizedBox(height: 10,),
+                        TextFormField(
+                          controller: _lastPrice,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                          decoration: _buildInputDecoration(
+                            context,
+                            "Last Price (₹) by owner",
+                          ).copyWith(
+                            suffix: Text(
+                              _formattedLastPrice,
+                              style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+                        TextFormField(
+                          controller: _askingPrice,
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                          decoration: _buildInputDecoration(
+                            context,
+                            "Asking Price (₹) by owner",
+                          ).copyWith(
+                            suffix: Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: Text(
+                                _formattedAskingPrice ?? '',  // This should be a String variable updated by your listener
+                                style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10,),
+
+                        Row(
+                          children: [
+                            /// Maintenance dropdown field
+                            Expanded(
+                              child: _buildReadOnlyField(
+                                label: "Maintenance",
+                                controller: _maintenanceController,
+                                onTap: () => _showBottomSheet(
+                                  options: ['Included', 'Custom'],
+                                  onSelected: (val) {
+                                    setState(() {
+                                      _maintenance = val;
+                                      _maintenanceController.text = val;
+                                      if (val != 'Custom') _customMaintenance = null;
+                                    });
+                                  },
+                                ),
+                                validator: (val) =>
+                                val == null || val.isEmpty ? "Select maintenance" : null,
+                              ),
+                            ),
+
+                            if (_maintenance == 'Custom')
+
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(left: 16.0),
+                                  child: TextFormField(
+                                    controller: _customMaintenanceController, // ✅ attach controller
+                                    decoration: InputDecoration(
+                                        labelText: "Enter Maintenance Fee",
+                                        labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade700
+                                                : Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        // ✅ Error text style
+                                        errorStyle: const TextStyle(
+                                          color: Colors.redAccent, // deep red text
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+
+                                        // ✅ Error border (deep red)
+                                        errorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: const BorderSide(
+                                            color: Colors.redAccent,
+                                            width: 2,
+                                          ),
+                                        ),
+
+                                        // ✅ Focused border when error
+                                        focusedErrorBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: const BorderSide(
+                                            color: Colors.red,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.grey.shade700
+                                                : Colors.grey.shade300,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(10),
+                                          borderSide: BorderSide(
+                                            color: Theme.of(context).brightness == Brightness.dark
+                                                ? Colors.blue
+                                                : Colors.blue.shade300,
+                                            width: 2,
+                                          ),
+                                        ),
+
+                                        contentPadding:
+                                        const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
+                                        filled: true,
+                                        fillColor:Colors.blue
+                                    ),
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.white
+                                          : Colors.black,
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    onChanged: (val) => _customMaintenance = val,
+                                    validator: (val) => _maintenance == 'Custom' &&
+                                        (val == null || val.isEmpty)
+                                        ? "Enter maintenance fee"
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+
+
+                        const SizedBox(height: 16,),
+
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            DropdownButtonFormField<String>(
+                              value: (_houseMeter != null && _houseMeter != 'Custom')
+                                  ? _houseMeter
+                                  : (_meter.text.isNotEmpty ? 'Custom' : null),
+                              decoration: _buildInputDecoration(context, "House Meter Type"),
+                              items: ['Commercial', 'Govt', 'Custom'].map((option) {
+                                return DropdownMenuItem<String>(
+                                  value: option,
+                                  child: Text(option),
+                                );
+                              }).toList(),
+                              onChanged: (val) {
+                                setState(() {
+                                  _houseMeter = val;
+                                  if (val != 'Custom') {
+                                    _meter.text = val!;
+                                    print("DEBUG: Selected predefined meter = $val");
+                                  } else {
+                                    _meter.clear();
+                                    print("DEBUG: Cleared for custom input");
+                                  }
+                                });
+                              },
+                              validator: (val) => (val == null || val.isEmpty)
+                                  ? "Select house meter type"
+                                  : null,
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            if (_houseMeter == 'Custom')
+                              _blueTextInput(
+                                'Enter Custom Meter Type',
+                                _meter,
+                                keyboardType: TextInputType.text,
+                              ),
+                          ],
+                        ),
+
+
+                        buildTextInput('Video Link', _videoLink),
+                        buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
+                        buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
+                        buildTextInput('Owner Name (Optional)', _Ownername),
+                        buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
+
+                      ],
+                    ),
+                    SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: _isLoading
+                          ? null
+                          : () async {
+                        // ✅ Validate form before starting countdown
+                        if (!_formKey.currentState!.validate()) {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text(
+                                "Form Incomplete",
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              content: const Text(
+                                "Please fill all the required fields before submitting.",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text("OK"),
+                                )
+                              ],
+                            ),
+                          );
+                          return; // Stop here if any field is empty
+                        }
+
+                        setState(() {
+                          _isLoading = true;
+                        });
+
+                        int countdown = 3;
+
+                        // Show countdown dialog
+                        await showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) {
+                            return StatefulBuilder(
+                              builder: (context, setStateDialog) {
+                                // Countdown logic
+                                Future.delayed(const Duration(seconds: 1), () async {
+                                  if (!mounted) return;
+
+                                  if (countdown > 1) {
+                                    setStateDialog(() {
+                                      countdown--;
+                                    });
+                                  } else {
+                                    setStateDialog(() {
+                                      countdown = 0;
+                                    });
+
+                                    await Future.delayed(const Duration(seconds: 1));
+                                    if (!mounted) return;
+
+                                    Navigator.of(context).pop(); // close dialog safely
+
+                                    await _handleUpload();
+
+                                    if (!mounted) return;
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("✅ Submitted Successfully!"),
+                                        backgroundColor: Colors.green,
+                                      ),
+                                    );
+                                  }
+                                });
+
+                                return AlertDialog(
+                                  backgroundColor:
+                                  Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey[900]
+                                      : Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  title: const Text(
+                                    "Submitting...",
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      AnimatedSwitcher(
+                                        duration: const Duration(milliseconds: 500),
+                                        transitionBuilder: (child, animation) =>
+                                            ScaleTransition(scale: animation, child: child),
+                                        child: countdown > 0
+                                            ? Text(
+                                          "$countdown",
+                                          key: ValueKey<int>(countdown),
+                                          style: TextStyle(
+                                            fontSize: 40,
+                                            fontWeight: FontWeight.bold,
+                                            color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                                ? Colors.red[300]
+                                                : Colors.red,
+                                          ),
+                                        )
+                                            : const Icon(
+                                          Icons.verified_rounded,
+                                          key: ValueKey<String>("verified"),
+                                          color: Colors.green,
+                                          size: 60,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        countdown > 0 ? "Please wait..." : "Verified!",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w500,
+                                          color: Theme.of(context).brightness ==
+                                              Brightness.dark
+                                              ? Colors.white
+                                              : Colors.black,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      },
+                      child: Center(
+                        child: Container(
+                          height: 50,
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(40),
+                            color: Colors.red,
+                          ),
+                          child: _isLoading
+                              ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              SizedBox(
+                                width: 18,
+                                height: 30,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Text(
+                                "Processing...",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                              : const Center(
+                            child: Text(
+                              "Submit",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Poppins',
+                                letterSpacing: 0.8,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ));
+  }
+
+  Widget _buildDropdownRegister(
+      String label,
+      List<String> items,
+      String? selectedValue,
+      Function(String?) onChanged, {
+        String? Function(String?)? validator,
+      }) {
+    return _blueSectionCard(
+      title: label,
+
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+        validator: validator,
+        // dropdownColor: Colors.blue,
+        decoration: InputDecoration(
+          filled: true,
+          //fillColor: Colors.blue,
+
+          border: OutlineInputBorder
+            (borderRadius: BorderRadius.circular(10)),
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+        ),
+        icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
+        onChanged: onChanged,
+        items: items
+            .map((item) => DropdownMenuItem<String>(
+          value: item,
+          child: Text(item, style:  TextStyle(/*color: Colors.grey.shade800*/)),
+        ))
+            .toList(),
+      ),
+    );
+  }
+  Widget _buildDropdownRow(
+      String label,
+      List<String> items,
+      String? selectedValue,
+      Function(String?) onChanged, {
+        String? Function(String?)? validator,
+      }) {
+    return _buildSectionCard(
+      title: label,
+
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        validator: validator,
+        // dropdownColor: Colors.grey.shade100,
+        decoration: InputDecoration(
+          filled: true,
+          // fillColor: Colors.grey.shade200,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+        ),
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+        icon: const Icon(Icons.arrow_drop_down, /*color: Colors.black*/),
+        onChanged: onChanged,
+        items: items
+            .map((item) => DropdownMenuItem<String>(
+          value: item,
+          child: Text(item, style:  TextStyle(fontSize: 10)),
+        ))
+            .toList(),
+      ),
+    );
+  }
+  Widget _blueSectionCard({required String title, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      child: Card(
+        elevation: 6,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        color: Colors.blue.shade600,
+        margin: const EdgeInsets.only(bottom: 20),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: _sectionTitleStyle()),
+              const SizedBox(height: 10),
+              child,
+            ],
+          ),
         ),
       ),
     );
   }
 
+  Widget _blueTextInput(
+      String label,
+      TextEditingController controller, {
+        IconData? icon,
+        TextInputType? keyboardType, // optional keyboard type
+      }) {
+    return _blueSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,  // set keyboard type here
+        style: TextStyle(),
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+          hintStyle: const TextStyle(color: Colors.grey),
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          filled: true,
+          // fillColor: Colors.grey.shade100,
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+  Widget _blueDropdownRow(
+      String label,
+      List<String> items,
+      String? selectedValue,
+      Function(String?) onChanged, {
+        String? Function(String?)? validator,
+      }) {
+    return _blueSectionCard(
+      title: label,
+      child: DropdownButtonFormField<String>(
+        value: selectedValue,
+        validator: validator,
+        // dropdownColor: Colors.grey.shade100,
+        decoration: InputDecoration(
+          filled: true,
+          // fillColor: Colors.grey.shade200,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+        ),
+        style: const TextStyle(color: Colors.grey),
+        icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
+        onChanged: onChanged,
+        items: items
+            .map((item) => DropdownMenuItem<String>(
+          value: item,
+          child: Text(item, style:  TextStyle()),
+        ))
+            .toList(),
+      ),
+    );
+  }
   InputDecoration _buildInputDecoration(BuildContext context, String label) {
     final isDark = Theme
         .of(context)
         .brightness == Brightness.dark;
     return InputDecoration(
       labelText: label,
-      labelStyle: TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 15,
-        color: isDark ? Colors.grey.shade300 : Colors.black54,
-      ),
+      labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+        // borderSide: BorderSide(
+        //     color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+      ),
+      // ✅ Error text style
+      errorStyle: const TextStyle(
+        color: Colors.redAccent, // deep red text
+        fontSize: 13,
+        fontWeight: FontWeight.bold,
+      ),
+
+      // ✅ Error border (deep red)
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+          width: 2,
+        ),
+      ),
+
+      // ✅ Focused border when error
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(
+          color: Colors.redAccent,
+          width: 2,
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
@@ -2392,16 +1837,172 @@ class _DuplicatePropertyState extends State<DuplicateProperty> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
-        borderSide: BorderSide(
-            color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
-            width: 2),
+        // borderSide: BorderSide(
+        //     color: isDark ? Colors.blue.shade200 : Colors.blue.shade300,
+        //     width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
       filled: true,
-      fillColor: isDark ? Colors.grey.shade900 : Colors.white,
+      // fillColor: isDark ? Colors.grey.shade900 : Colors.white,
     );
   }
 
+
+  Widget buildTextInput(
+      String label,
+      TextEditingController controller, {
+        IconData? icon,
+        TextInputType? keyboardType,
+        bool validateLength = false, // keep if you still want digit-only & length limiter
+      }) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          filled: true,
+        ),
+        inputFormatters: validateLength
+            ? [
+          FilteringTextInputFormatter.digitsOnly, // only digits
+          LengthLimitingTextInputFormatter(10),   // max 10 digits
+        ]
+            : [],
+      ),
+    );
+  }
+
+  Widget _buildTextInput(
+      String label,
+      TextEditingController controller, {
+        IconData? icon,
+        TextInputType? keyboardType, // optional keyboard type
+      }) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,  // set keyboard type here
+        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+        decoration: InputDecoration(
+          hintText: 'Enter $label',
+          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+          // ✅ Error text style
+          errorStyle: const TextStyle(
+            color: Colors.redAccent, // deep red text
+            fontSize: 13,
+            fontWeight: FontWeight.bold,
+          ),
+
+          // ✅ Error border (deep red)
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+
+          // ✅ Focused border when error
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: const BorderSide(
+              color: Colors.redAccent,
+              width: 2,
+            ),
+          ),
+          filled: true,
+          // fillColor: Colors.grey.shade100,
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Please enter $label';
+          }
+          return null;
+        },
+      ),
+    );
+  }  void _showFacilitySelectionDialog() async {
+    final result = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _FacilityBottomSheet(
+        options: allFacilities,
+        selected: selectedFacilities,
+      ),
+    );
+    if (result != null) {
+      setState(() {
+        selectedFacilities = result;
+        _facilityController.text = selectedFacilities.join(', ');
+      });
+    }
+  }
+  void _showBottomSheet({
+    required List<String> options,
+    required Function(String) onSelected,
+  }) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) =>
+          DraggableScrollableSheet(
+            expand: false,
+            minChildSize: 0.3,
+            maxChildSize: 0.7,
+            initialChildSize: options.length <= 5 ? 0.4 : 0.6,
+            builder: (context, scrollController) =>
+                ListView.builder(
+                  controller: scrollController,
+                  shrinkWrap: true,
+                  itemCount: options.length,
+                  itemBuilder: (context, index) {
+                    final option = options[index];
+                    return ListTile(
+                      title: Text(
+                        option,
+                        style: const TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w500,
+                            fontFamily: "Poppins"
+                        ),
+                      ),
+                      onTap: () => Navigator.pop(context, option),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 8),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(8)),
+                      ),
+                      hoverColor: Colors.blue.shade50,
+                    );
+                  },
+                ),
+          ),
+    );
+
+    if (selected != null) {
+      // Delay to ensure bottom sheet closes before updating state
+      Future.delayed(const Duration(milliseconds: 50), () {
+        onSelected(selected);
+      });
+    }
+  }
   Widget _buildReadOnlyField({
     required String label,
     required TextEditingController controller,
@@ -2415,15 +2016,7 @@ class _DuplicatePropertyState extends State<DuplicateProperty> {
           controller: controller,
           decoration: InputDecoration(
             labelText: label,
-            labelStyle: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 15,
-              color: Theme
-                  .of(context)
-                  .brightness == Brightness.dark
-                  ? Colors.grey.shade300
-                  : Colors.black54,
-            ),
+            labelStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(10),
               borderSide: BorderSide(
@@ -2480,381 +2073,25 @@ class _DuplicatePropertyState extends State<DuplicateProperty> {
       ),
     );
   }
-
-  void _showBottomSheet({
-    required List<String> options,
-    required Function(String) onSelected,
-  }) async {
-    final selected = await showModalBottomSheet<String>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+  void _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _name = prefs.getString('name') ?? '';
+      _number = prefs.getString('number') ?? '';
+    });
+  }
+  void showSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(color: Colors.white)),
+        backgroundColor: Colors.grey,
+        duration: const Duration(seconds: 2),
       ),
-      isScrollControlled: true,
-      builder: (context) =>
-          DraggableScrollableSheet(
-            expand: false,
-            minChildSize: 0.3,
-            maxChildSize: 0.7,
-            initialChildSize: options.length <= 5 ? 0.4 : 0.6,
-            builder: (context, scrollController) =>
-                ListView.builder(
-                  controller: scrollController,
-                  shrinkWrap: true,
-                  itemCount: options.length,
-                  itemBuilder: (context, index) {
-                    final option = options[index];
-                    return ListTile(
-                      title: Text(
-                        option,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500,
-                            fontFamily: "Poppins"
-                        ),
-                      ),
-                      onTap: () => Navigator.pop(context, option),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 8),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.vertical(
-                            bottom: Radius.circular(8)),
-                      ),
-                      hoverColor: Colors.blue.shade50,
-                    );
-                  },
-                ),
-          ),
-    );
-
-    if (selected != null) {
-      // Delay to ensure bottom sheet closes before updating state
-      Future.delayed(const Duration(milliseconds: 50), () {
-        onSelected(selected);
-      });
-    }
-  }
-  String getFurnishingStringForApi() {
-    if (_furnishing == 'Unfurnished' || _selectedFurniture.isEmpty) {
-      return 'Unfurnished';
-    } else {
-      final furnitureList = _selectedFurniture.entries
-          .map((e) => '${e.key} (${e.value})')
-          .join(', ');
-      return '$_furnishing ($furnitureList)';
-    }
-  }
-
-  bool _isSubmitting = false;
-
-  void _submitForm() async {
-    if (_isSubmitting) return;
-
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
-
-      setState(() {
-        _isSubmitting = true;
-      });
-
-      final prefs = await SharedPreferences.getInstance();
-
-      final provider = Provider.of<PropertyIdProvider>(context, listen: false);
-      await provider.fetchLatestPropertyId();
-      final propertyId = provider.latestPropertyId;
-      String? name = prefs.getString('name');
-      String? number = prefs.getString('number');
-      final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/add_flat_in_future_property/add_flat.php");
-      var request = http.MultipartRequest('POST', uri);
-
-      request.fields['P_id'] = widget.propertyId.toString();
-      request.fields['locations'] = _locationController.text ?? '';
-      request.fields['Flat_number'] = _flatNumberController.text;
-      request.fields['Buy_Rent'] = _buyOrRent ?? '';
-      request.fields['Residence_Commercial'] = _resOrComm ?? '';
-      request.fields['Apartment_name'] = _apartmentNameController.text;
-      request.fields['Apartment_Address'] = _apartmentAddressController.text;
-      request.fields['Typeofproperty'] = _propertyType ?? '';
-      request.fields['Bhk'] =
-          (_bhk == "Custom" ? _customBhk ?? '' : _bhk) ?? '';
-      request.fields['show_Price'] = _priceController.text;
-      request.fields['Last_Price'] = _lastPriceController.text;
-      request.fields['asking_price'] = _askingPriceController.text;
-      request.fields['Floor_'] = _floor ?? '';
-      request.fields['Total_floor'] = _totalFloorController.text;
-      request.fields['Balcony'] = _balcony ?? '';
-      request.fields['squarefit'] = _squareFeetController.text;
-      request.fields['maintance'] = (_maintenance == "Custom"
-          ? _customMaintenance ?? ''
-          : _maintenanceController.text) ?? '';
-      request.fields['parking'] = _parking ?? '';
-      request.fields['age_of_property'] = _propertyAge ?? '';
-      request.fields['fieldworkar_address'] =
-          _fieldWorkerAddressController.text;
-      request.fields['Road_Size'] = _roadSizeController.text;
-      request.fields['metro_distance'] = _nearMetroController.text;
-      request.fields['highway_distance'] = _highwayController.text;
-      request.fields['main_market_distance'] = _mainMarketController.text;
-      request.fields['meter'] =
-      (_houseMeter == "Custom" ? _houseMeterController.text : (_houseMeter ??
-          ''));
-      request.fields['owner_name'] = _ownerNameController.text;
-      request.fields['owner_number'] = _ownerNumberController.text;
-      request.fields['current_dates'] =
-          DateFormat('yyyy-MM-dd').format(DateTime.now());
-      request.fields['available_date'] =
-          _flatAvailableDate?.toIso8601String() ?? '';
-      request.fields['kitchen'] = _kitchenType ?? '';
-      request.fields['bathroom'] = _bathroom ?? '';
-      request.fields['lift'] = _lift ?? '';
-      request.fields['Facility'] = _facilityController.text;
-      request.fields['field_warkar_name'] = name!;
-      request.fields['field_workar_number'] = number!;
-      request.fields['care_taker_name'] = _careTakerNameController.text;
-      request.fields['care_taker_number'] = _careTakerNumberController.text;
-      request.fields['registry_and_gpa'] = _registryAndGpa ?? '';
-      request.fields['loan'] = _loan ?? '';
-      request.fields['field_worker_current_location'] =
-          _Google_Location.text ?? '';
-      request.fields['furnished_unfurnished'] = getFurnishingStringForApi();
-
-
-      final lat = prefs.getDouble('latitude');
-      final long = prefs.getDouble('longitude');
-      request.fields['Latitude'] = lat?.toString() ?? '';
-      request.fields['Longitude'] = long?.toString() ?? '';
-      // Add single main image
-      if (_imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath(
-          'property_photo',
-          _imageFile!.path,
-        ));
-      }
-
-      for (int i = 0; i < _images.length; i++) {
-        File imageFile = File(_images[i].path);
-        request.files.add(await http.MultipartFile.fromPath(
-          'images[]', // Must match your PHP input name
-          imageFile.path,
-        ));
-      }
-      try {
-        final streamedResponse = await request.send();
-        final response = await http.Response.fromStream(streamedResponse);
-
-        print('Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          int propertyId = 0;
-          if (data['status'] == 'success' && data['P_id'] != null) {
-            propertyId = data['P_id'];
-          }
-
-          if (mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.clearSnackBars();
-              Fluttertoast.showToast(
-                msg: "Successfully Registered, Property ID: $propertyId",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.SNACKBAR,
-                backgroundColor: Colors.green,
-                textColor: Colors.white,
-                fontSize: 16.0,
-              );
-            });
-          }
-        } else {
-          throw Exception("Failed to upload data.");
-        }
-      } catch (e) {
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final messenger = ScaffoldMessenger.of(context);
-            messenger.clearSnackBars();
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(
-                    "Successfully Registered, Property ID: $propertyId"),
-                backgroundColor: Colors.green,
-              ),
-
-            );
-            // Future.delayed(const Duration(seconds: 2), () {
-            //   Navigator.pop(context);
-            // });
-          });
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
-      }
-    }
-  }
-
-  void _showFacilitySelectionDialog() async {
-    final result = await showModalBottomSheet<List<String>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) =>
-          _FacilityBottomSheet(
-            options: allFacilities,
-            selected: selectedFacilities,
-          ),
-    );
-
-    if (result != null) {
-      setState(() {
-        selectedFacilities = result;
-        _facilityController.text = selectedFacilities.join(', ');
-      });
-    }
-  }
-
-  void _showFurnitureBottomSheet(BuildContext context) {
-    final List<String> furnitureItems = [
-      'Fan', 'Light', 'Wardrobe', 'AC', 'Modular Kitchen', 'Chimney',
-      'Single Bed', 'Double Bed', 'Geyser', 'Led Tv', 'Sofa Set',
-      'Dining Table', 'Induction', 'Gas Stove',
-    ];
-
-    Map<String, int> tempSelection = Map.from(_selectedFurniture);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: MediaQuery
-              .of(ctx)
-              .viewInsets,
-          child: StatefulBuilder(
-            builder: (context, setModalState) {
-              return Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Select Furniture',
-                      style: TextStyle(
-                          fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    SizedBox(
-                      height: MediaQuery
-                          .of(context)
-                          .size
-                          .height * 0.5,
-                      child: SingleChildScrollView(
-                        child: Column(
-                          children: furnitureItems.map((item) {
-                            final isSelected = tempSelection.containsKey(item);
-
-                            return InkWell(
-                              onTap: () {
-                                setModalState(() {
-                                  if (isSelected) {
-                                    tempSelection.remove(item);
-                                  } else {
-                                    tempSelection[item] = 1;
-                                  }
-                                });
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 8),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment
-                                      .spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Checkbox(
-                                          activeColor: Colors.blue,
-                                          value: isSelected,
-                                          onChanged: (checked) {
-                                            setModalState(() {
-                                              if (checked == true) {
-                                                tempSelection[item] = 1;
-                                              } else {
-                                                tempSelection.remove(item);
-                                              }
-                                            });
-                                          },
-                                        ),
-                                        Text(item, style: const TextStyle(
-                                            fontSize: 16)),
-                                      ],
-                                    ),
-                                    if (isSelected)
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(
-                                                Icons.remove_circle_outline),
-                                            onPressed: () {
-                                              setModalState(() {
-                                                if (tempSelection[item]! > 1) {
-                                                  tempSelection[item] =
-                                                      tempSelection[item]! - 1;
-                                                }
-                                              });
-                                            },
-                                          ),
-                                          Text('${tempSelection[item]}'),
-                                          IconButton(
-                                            icon: const Icon(
-                                                Icons.add_circle_outline),
-                                            onPressed: () {
-                                              setModalState(() {
-                                                tempSelection[item] =
-                                                    tempSelection[item]! + 1;
-                                              });
-                                            },
-                                          ),
-                                        ],
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _selectedFurniture = Map.fromEntries(
-                            tempSelection.entries.where((e) => e.value > 0),
-                          );
-                          furnitureController.text = _selectedFurniture.entries
-                              .map((e) => '${e.key} (${e.value})')
-                              .join(', ');
-                        });
-                        Navigator.pop(ctx);
-                      },
-                      child: const Text("Save Selection"),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        );
-      },
     );
   }
 }
+
+
 
 class _FacilityBottomSheet extends StatefulWidget {
   final List<String> options;
@@ -2875,50 +2112,63 @@ class _FacilityBottomSheetState extends State<_FacilityBottomSheet> {
   @override
   void initState() {
     super.initState();
+
     _tempSelected = List.from(widget.selected);
   }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding:
-        EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                "Select Facilities",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+      child: Container(
+        color: Colors.white,
+        child: Padding(
+          padding:
+          EdgeInsets.only(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "Select Facilities",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold,color: Colors.black),
+                ),
               ),
-            ),
-            ...widget.options.map((option) {
-              final isSelected = _tempSelected.contains(option);
-              return CheckboxListTile(
-                title: Text(option),
-                value: isSelected,
-                onChanged: (val) {
-                  setState(() {
-                    if (val == true) {
-                      _tempSelected.add(option);
-                    } else {
-                      _tempSelected.remove(option);
-                    }
-                  });
-                },
-              );
-            }).toList(),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, _tempSelected),
-              child: const Text("Done"),
-            ),
-            SizedBox(height: 10,)
-          ],
+              ...widget.options.map((option) {
+                final isSelected = _tempSelected.contains(option);
+                return CheckboxListTile(
+                  title: Text(option,style: TextStyle(color: Colors.grey.shade900),),
+                  value: isSelected,
+                  onChanged: (val) {
+                    setState(() {
+                      if (val == true) {
+                        _tempSelected.add(option);
+                      } else {
+                        _tempSelected.remove(option);
+                      }
+                    });
+                  },
+                );
+              }).toList(),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.white, // Button background
+                  foregroundColor: Colors.black, // Text/icon color
+                  side: const BorderSide(color: Colors.black), // Optional border
+                  elevation: 3,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                ),
+                onPressed: () => Navigator.pop(context, _tempSelected),
+                child: const Text("Done"),
+              ),
+              SizedBox(height: 10,)
+            ],
+          ),
         ),
       ),
     );
-
   }
 }

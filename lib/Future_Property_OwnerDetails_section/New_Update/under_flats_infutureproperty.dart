@@ -1045,65 +1045,132 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     );
   }
 
-  List<Widget> getPropertyDetailsRows(
-      Property prop) {
+  List<Widget> getPropertyDetailsRows(Property prop) {
     List<Widget> rows = [];
 
-    if (prop.metroDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.train, Colors.orange,
-          "Metro Station", prop.metroDistance));
+    // Helper to safely return value or "Not Available"
+    String safeValue(String? value, [String suffix = ""]) {
+      if (value == null || value.trim().isEmpty || value.trim().toLowerCase() == "null" || value.trim() == "0") {
+        return "Not Available";
+      }
+      return value.trim() + suffix;
     }
 
-    if (prop.mainMarketDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.store, Colors.purple,
-          "Market Distance", prop.mainMarketDistance));
-    }
+    // 1. Metro Station (highwayDistance → actually metro_distance in this model)
+    rows.add(buildInfoRow(
+      Icons.train,
+      Colors.orange,
+      "Metro Distance",
+      safeValue(prop.metroDistance),
+    ));
 
-    if (prop.registryAndGpa.isNotEmpty) {
-      rows.add(buildInfoRow(
-          Icons.document_scanner,
-          Colors.purple,
-          "Registry & GPA",
-          prop.registryAndGpa));
-    }
+    // 2. Market Distance
+    rows.add(buildInfoRow(
+      Icons.store_mall_directory,
+      Colors.purple,
+      "Market Distance",
+      safeValue(prop.mainMarketDistance),
+    ));
 
-    if (prop.typeofProperty.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.category,
-          Colors.deepOrange, "Type of Property", prop.typeofProperty));
+    // 3. Floor (Floor / Total Floor)
+    String floorText = "Not Available";
+    if (prop.floor.isNotEmpty && prop.floor.trim() != "null") {
+      floorText = prop.floor.trim();
     }
-    if (prop.availableDate.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.calendar_today,
-          Colors.blue, "Available From", prop.availableDate));
+    if (prop.totalFloor.isNotEmpty && prop.totalFloor.trim() != "null") {
+      floorText += (floorText != "Not Available" ? " / ${prop.totalFloor.trim()}" : prop.totalFloor.trim());
     }
+    rows.add(buildInfoRow(
+      Icons.layers,
+      Colors.green,
+      "Floor",
+      floorText,
+    ));
+// 4. Type of Property
+    rows.add(buildInfoRow(
+      Icons.home_work,
+      Colors.orange,
+      "Type of Property",
+      safeValue(prop.typeofProperty),
+    ));
 
-    if (prop.highwayDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.directions_car, Colors.red,
-          "Highway Distance", prop.highwayDistance));
-    }
+// 5. Square Feet
+    rows.add(buildInfoRow(
+      Icons.square_foot,
+      Colors.teal,
+      "Sq. Ft.",
+      safeValue(prop.squarefit),
+    ));
 
-    if (prop.roadSize.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.straighten, Colors.teal,
-          "Road Size", "${prop.roadSize} Feet"));
-    }
 
-    if (prop.loan.isNotEmpty) {
-      rows.add(buildInfoRow(
-          Icons.balance, Colors.purple, "Loan", prop.loan));
-    }
+    // 6. Registry & GPA
+    rows.add(buildInfoRow(
+      Icons.description,
+      Colors.blue,
+      "Registry & GPA",
+      safeValue(prop.registryAndGpa),
+    ));
 
-    if (prop.flatNumber.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.format_list_numbered,
-          Colors.green, "Flat Number", prop.flatNumber));
-    }
+    // 7. Furnishing
+    rows.add(buildInfoRow(
+      Icons.chair,
+      Colors.pink,
+      "Furnishing",
+      safeValue(prop.furnishedUnfurnished),
+    ));
 
-    if (prop.apartmentAddress.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.location_on, Colors.pink,
-          "Apartment Address", prop.apartmentAddress));
-    }
+    // 9. Road Size
+    String roadSize = safeValue(prop.roadSize, " Feet");
+    if (roadSize == "Not Available Feet") roadSize = "Not Available";
+    rows.add(buildInfoRow(
+      Icons.straighten,
+      Colors.teal,
+      "Road Size",
+      roadSize,
+    ));
+
+    // 10. Flat Number
+    rows.add(buildInfoRow(
+      Icons.format_list_numbered,
+      Colors.green,
+      "Flat Number",
+      safeValue(prop.flatNumber),
+    ));
+
+    // 11. Age of Property
+    rows.add(buildInfoRow(
+      Icons.history,
+      Colors.brown,
+      "Age of Property",
+      safeValue(prop.ageOfProperty),
+    ));
+
+    // 12. Residence / Commercial
+    rows.add(buildInfoRow(
+      Icons.domain,
+      Colors.amber,
+      "Residence / Commercial",
+      safeValue(prop.residenceCommercial),
+    ));
+
+    // 13. Loan
+    rows.add(buildInfoRow(
+      Icons.account_balance,
+      Colors.blue,
+      "Loan",
+      safeValue(prop.loan),
+    ));
+
+    // 14. Highway Distance (extra in first code)
+    rows.add(buildInfoRow(
+      Icons.directions_car,
+      Colors.red,
+      "Highway Distance",
+      safeValue(prop.highwayDistance),
+    ));
 
     return rows;
   }
-
   List<Widget> getAdditionalInfoRows(
       Property prop) {
     List<Widget> rows = [];
@@ -1149,13 +1216,51 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
     if (prop.videoLink.isNotEmpty) {
       rows.add(
-        GestureDetector(
+        InkWell(
           onTap: () => launchVideo(prop.videoLink),
-          child: buildSimpleInfoCard("Video Link", prop.videoLink,
-              Icons.video_library, Colors.red),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.video_library,
+                  color: Colors.red,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Video Link",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        prop.videoLink,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       );
     }
+
 
     rows.add(buildFieldworkerInfoCard(prop));
 
@@ -1176,7 +1281,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   }
 
   Widget buildChip(
-      IconData icon, String text, Color color) {
+      IconData icon, String text, Color color, BuildContext context) {
     if (text.isEmpty) return const SizedBox.shrink();
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
@@ -1578,8 +1683,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                       ? 4.0
                                       : 8.0),
                               right: horizontalPadding,
-                              child: PopupMenuButton<
-                                  String>(
+                              child: PopupMenuButton<String>(
                                 onSelected: (value) =>
                                     handleMenuItemClick(
                                         value),
@@ -1684,7 +1788,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                   ),
                                   child: Center(
                                     child: Text(
-                                      prop.showPrice,
+                                      '₹ ${prop.showPrice}',
                                       style: TextStyle(
                                         fontSize: (isSmallScreen
                                             ? 14.0
@@ -1782,97 +1886,44 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                   height:
                                   verticalPadding *
                                       1.2),
-                              LayoutBuilder(
-                                builder: (context,
-                                    constraints) {
-                                  final available =
-                                      constraints
-                                          .maxWidth;
-                                  final spacing =
-                                      chipSpacing *
-                                          1.5;
-                                  final int
-                                  itemsPerRow =
-                                  available >= 800
-                                      ? 4
-                                      : available >=
-                                      520
-                                      ? 3
-                                      : 2;
-                                  final chipWidth =
-                                      (available -
-                                          spacing *
-                                              (itemsPerRow -
-                                                  1)) /
-                                          itemsPerRow;
+                              LayoutBuilder(builder: (context, constraints) {
+                                final available = constraints.maxWidth;
+                                final spacing = chipSpacing * 1.5;
+                                final int itemsPerRow = available >= 800 ? 4 : available >= 520 ? 3 : 2;
+                                final rawWidth = (available - spacing * (itemsPerRow - 1)) / itemsPerRow;
+                                final chipWidth = rawWidth.clamp(64.0, available).toDouble();
 
-                                  final chipsData = [
-                                    {
-                                      'icon': Icons
-                                          .bedroom_parent,
-                                      'text': prop.bhk,
-                                      'color':
-                                      Colors.blue
-                                    },
-                                    {
-                                      'icon':
-                                      Icons.kitchen,
-                                      'text':
-                                      prop.kitchen,
-                                      'color':
-                                      Colors.green
-                                    },
-                                    {
-                                      'icon':
-                                      Icons.chair,
-                                      'text': prop
-                                          .furnishedUnfurnished,
-                                      'color':
-                                      Colors.purple
-                                    },
-                                    {
-                                      'icon': Icons
-                                          .apartment,
-                                      'text': prop
-                                          .residenceCommercial,
-                                      'color':
-                                      Colors.amber
-                                    },
-                                  ]
-                                      .where((e) =>
-                                  (e['text']
-                                  as String)
-                                      .isNotEmpty)
-                                      .toList();
+                                final chipsData = <Map<String, dynamic>>[
 
-                                  return Wrap(
-                                    spacing: spacing,
-                                    runSpacing:
-                                    verticalPadding *
-                                        1.2,
-                                    children:
-                                    chipsData.map(
-                                          (e) {
-                                        return SizedBox(
-                                          width:
-                                          chipWidth,
-                                          child: buildChip(
-                                            e['icon']
-                                            as IconData,
-                                            "${e['text']}",
-                                            e['color']
-                                            as Color,
-                                          ),
-                                        );
-                                      },
-                                    ).toList(),
-                                  );
-                                },
-                              ),
-                              SizedBox(
-                                  height:
-                                  verticalPadding *
-                                      2),
+                                  {'icon': Icons.install_desktop_sharp, 'text': 'Property Id: ${prop.pId}', 'color': Colors.lightGreen},
+                                  {'icon': Icons.bedroom_parent, 'text': prop.bhk ?? '', 'color': Colors.purple},
+                                  if ((prop.subid ?? '').isNotEmpty && prop.subid != 'null')
+                                    {'icon': Icons.file_open, 'text': 'Building Id: ${prop.subid}', 'color': Colors.deepOrange},
+
+                                ].where((e) {
+
+                                  final t = (e['text'] as String?)?.trim() ?? '';
+                                  return t.isNotEmpty && t != 'null';
+
+                                }).toList();
+
+                                return Wrap(
+                                  spacing: spacing,
+                                  runSpacing: verticalPadding * 1.2,
+                                  children: chipsData.map((e) {
+                                    return SizedBox(
+                                      width: chipWidth,
+                                      child: buildChip(
+                                        e['icon'] as IconData,
+                                        e['text'] as String,
+                                        e['color'] as Color,
+                                        context,
+                                      ),
+                                    );
+                                  }).toList(),
+                                );
+                              }),
+                              SizedBox(height: verticalPadding * 2),
                             ],
                           ),
                         ),

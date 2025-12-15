@@ -1649,61 +1649,54 @@ class _View_DetailsState extends State<View_Details> {
       }
       return value.trim() + suffix;
     }
-
-<<<<<<< HEAD
-    if ((prop.highwayDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.vaccines, Colors.red, "Metro Distance", prop.highwayDistance, isSmallScreen, isDarkMode));
-    if ((prop.roadSize ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize} Feet", isSmallScreen, isDarkMode));
-    final floorText = (prop.floor ?? '').isNotEmpty && (prop.totalFloor ?? '').isNotEmpty
-        ? "${prop.floor}/${prop.totalFloor}"
-        : (prop.floor ?? '').isNotEmpty
-        ? prop.floor
-        : (prop.totalFloor ?? '').isNotEmpty
-        ? prop.totalFloor
-        : '';
-=======
-    // Helper for date fields
+    // Helper for date fields (LOCAL)
     String safeDate(String? dateStr) {
-      if (dateStr == null || dateStr.trim().isEmpty || dateStr.trim().toLowerCase() == "null") {
+      if (dateStr == null ||
+          dateStr.trim().isEmpty ||
+          dateStr.trim().toLowerCase() == "null") {
         return "Not Available";
       }
       try {
-        final date = DateTime.parse(dateStr.trim());
-        return formatDate(dateStr.trim()); // your existing formatDate function
+        DateTime.parse(dateStr.trim());
+        return formatDate(dateStr.trim());
       } catch (e) {
         return "Not Available";
       }
     }
->>>>>>> origin/dev
 
-    // 15. Metro Station (highwayDistance)
-    rows.add(_buildInfoRow(
-      Icons.directions_car,
-      Colors.red,
-      "Metro Station",
-      safeValue(prop.highwayDistance),
-      isSmallScreen,
-      isDarkMode,
-    ));
-
-    // 13. Market Distance
-    rows.add(_buildInfoRow(
-      Icons.store_mall_directory,
-      Colors.purple,
-      "Market Distance",
-      safeValue(prop.mainMarketDistance),
-      isSmallScreen,
-      isDarkMode,
-    ));
-
-    // 2. Floor (Floor / Total Floor)
-    String floorText = "Not Available";
-    if (prop.floor != null && prop.floor.trim().isNotEmpty && prop.floor.trim() != "null") {
-      floorText = prop.floor.trim();
+// Metro Station (from highwayDistance)
+    if ((prop.highwayDistance ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.directions_car,
+        Colors.red,
+        "Metro Station",
+        prop.highwayDistance,
+        isSmallScreen,
+        isDarkMode,
+      ));
     }
-    if (prop.totalFloor != null && prop.totalFloor.trim().isNotEmpty && prop.totalFloor.trim() != "null") {
-      floorText += (floorText != "Not Available" ? " / ${prop.totalFloor.trim()}" : prop.totalFloor.trim());
+
+// Market Distance
+    if ((prop.mainMarketDistance ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.store_mall_directory,
+        Colors.purple,
+        "Market Distance",
+        prop.mainMarketDistance,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
+
+// Floor (Floor / Total Floor)
+    String floorText = "Not Available";
+    if ((prop.floor ?? '').isNotEmpty && prop.floor != "null") {
+      floorText = prop.floor!;
+    }
+    if ((prop.totalFloor ?? '').isNotEmpty && prop.totalFloor != "null") {
+      floorText = floorText != "Not Available"
+          ? "$floorText / ${prop.totalFloor}"
+          : prop.totalFloor!;
     }
     rows.add(_buildInfoRow(
       Icons.layers,
@@ -1714,109 +1707,128 @@ class _View_DetailsState extends State<View_Details> {
       isDarkMode,
     ));
 
-    // 6. Type of Property
-    rows.add(_buildInfoRow(
-      Icons.home_work,
-      Colors.orange,
-      "Type of Property",
-      safeValue(prop.typeofProperty),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Type of Property
+    if ((prop.typeofProperty ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.home_work,
+        Colors.orange,
+        "Type of Property",
+        prop.typeofProperty,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 7. Square Feet
-    rows.add(_buildInfoRow(
-      Icons.square_foot,
-      Colors.teal,
-      "Sq. Ft.",
-      safeValue(prop.squarefit),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Square Feet
+    if ((prop.squarefit ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.square_foot,
+        Colors.teal,
+        "Sq. Ft.",
+        prop.squarefit,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 19. Registry & GPA
-    rows.add(_buildInfoRow(
-      Icons.description,
-      Colors.blue,
-      "Registry & GPA",
-      safeDate(prop.registryAndGpa),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Registry & GPA
+    if ((prop.registryAndGpa ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.description,
+        Colors.blue,
+        "Registry & GPA",
+        safeDate(prop.registryAndGpa),
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 12. Furnishing
-    rows.add(_buildInfoRow(
-      Icons.chair,
-      Colors.pink,
-      "Furnishing",
-      safeValue(prop.furnishing),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Furnishing
+    if ((prop.furnishing ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.chair,
+        Colors.pink,
+        "Furnishing",
+        prop.furnishing,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 14. Metro Distance
-    rows.add(_buildInfoRow(
-      Icons.train,
-      Colors.orange,
-      "Metro Distance",
-      safeValue(prop.metroDistance),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Metro Distance
+    if ((prop.metroDistance ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.train,
+        Colors.orange,
+        "Metro Distance",
+        prop.metroDistance,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 18. Road Size
-    String roadSize = safeValue(prop.roadSize, " Feet");
-    if (roadSize == "Not Available Feet") roadSize = "Not Available";
-    rows.add(_buildInfoRow(
-      Icons.straighten,
-      Colors.teal,
-      "Road Size",
-      roadSize,
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Road Size
+    if ((prop.roadSize ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.straighten,
+        Colors.teal,
+        "Road Size",
+        "${prop.roadSize} Feet",
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 16. Flat Number
-    rows.add(_buildInfoRow(
-      Icons.format_list_numbered,
-      Colors.green,
-      "Flat Number",
-      safeValue(prop.flatNumber),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Flat Number
+    if ((prop.flatNumber ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.format_list_numbered,
+        Colors.green,
+        "Flat Number",
+        prop.flatNumber,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 17. Age of Property
-    rows.add(_buildInfoRow(
-      Icons.history,
-      Colors.brown,
-      "Age of Property",
-      safeValue(prop.ageOfProperty),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Age of Property
+    if ((prop.ageOfProperty ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.history,
+        Colors.brown,
+        "Age of Property",
+        prop.ageOfProperty,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 21. Residence / Commercial
-    rows.add(_buildInfoRow(
-      Icons.domain,
-      Colors.amber,
-      "Residence / Commercial",
-      safeValue(prop.residenceCommercial),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Residence / Commercial
+    if ((prop.residenceCommercial ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.domain,
+        Colors.amber,
+        "Residence / Commercial",
+        prop.residenceCommercial,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
-    // 20. Loan
-    rows.add(_buildInfoRow(
-      Icons.account_balance,
-      Colors.blue,
-      "Loan",
-      safeDate(prop.loan),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Loan
+    if ((prop.loan ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.account_balance,
+        Colors.blue,
+        "Loan",
+        safeDate(prop.loan),
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
     return rows;
+
   }
 
   List<Widget> _getBuildingFacilityRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {

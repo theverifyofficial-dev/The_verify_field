@@ -26,7 +26,7 @@ import 'package:intl/intl.dart';
 // Updated Model - FutureProperty2
 class FutureProperty2 {
   final String id;
-  final String images; // single image for now
+  final String images;
   final String ownerName;
   final String ownerNumber;
   final String caretakerName;
@@ -97,11 +97,7 @@ class FutureProperty2 {
 
   factory FutureProperty2.fromJson(Map<String, dynamic> json) {
     return FutureProperty2(
-<<<<<<< HEAD
-      id: int.tryParse(json['id'].toString()) ?? 0, // ✅ FIX
-=======
       id: json['id']?.toString() ?? '',
->>>>>>> origin/dev
       images: json['images'] ?? '',
       ownerName: json['ownername'] ?? '',
       ownerNumber: json['ownernumber'] ?? '',
@@ -384,61 +380,41 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<FutureProperty2>> fetchData() async {
-<<<<<<< HEAD
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
     );
-=======
-    var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}");
->>>>>>> origin/dev
 
     final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-<<<<<<< HEAD
-      final decoded = json.decode(response.body);
-
-      List listResponse = [];
-
-      /// ✅ CASE 1: Direct List
-      if (decoded is List) {
-        listResponse = decoded;
-      }
-
-      /// ✅ CASE 2: Map with `data`
-      else if (decoded is Map<String, dynamic>) {
-        if (decoded['data'] != null && decoded['data'] is List) {
-          listResponse = decoded['data'];
-        }
-        else if (decoded['Table'] != null && decoded['Table'] is List) {
-          listResponse = decoded['Table'];
-        }
-        else {
-          throw Exception("No list data found in response");
-        }
-      }
-
-      listResponse.sort((a, b) => b['id'].compareTo(a['id']));
-
-      return listResponse
-          .map((e) => FutureProperty2.fromJson(e))
-          .toList();
-    } else {
+    if (response.statusCode != 200) {
       throw Exception('API Error: ${response.statusCode}');
-=======
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
-
-      if (jsonResponse['status'] == 'success') {
-        final List<dynamic> dataList = jsonResponse['data'];
-        return dataList.map((data) => FutureProperty2.fromJson(data)).toList();
-      } else {
-        throw Exception('API returned failure status');
-      }
-    } else {
-      throw Exception('Failed to load data: ${response.statusCode}');
->>>>>>> origin/dev
     }
+
+    final decoded = json.decode(response.body);
+    List listResponse = [];
+
+    if (decoded is List) {
+      listResponse = decoded;
+    }
+    else if (decoded is Map<String, dynamic>) {
+      if (decoded['data'] is List) {
+        listResponse = decoded['data'];
+      }
+      else if (decoded['Table'] is List) {
+        listResponse = decoded['Table'];
+      }
+      else {
+        throw Exception("No list found in API response");
+      }
+    }
+
+    listResponse.sort(
+          (a, b) => (b['id'] ?? '').toString().compareTo((a['id'] ?? '').toString()),
+    );
+
+    return listResponse
+        .map((e) => FutureProperty2.fromJson(e))
+        .toList();
   }
 
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {

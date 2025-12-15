@@ -1086,29 +1086,22 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       "Floor",
       floorText,
     ));
-
-<<<<<<< HEAD
-    if (prop.highwayDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.directions_car, Colors.red,
-          "Metro Distance", prop.highwayDistance));
-    }
-=======
-    // 4. Type of Property
+// 4. Type of Property
     rows.add(buildInfoRow(
       Icons.home_work,
       Colors.orange,
       "Type of Property",
       safeValue(prop.typeofProperty),
     ));
->>>>>>> origin/dev
 
-    // 5. Square Feet
+// 5. Square Feet
     rows.add(buildInfoRow(
       Icons.square_foot,
       Colors.teal,
       "Sq. Ft.",
       safeValue(prop.squarefit),
     ));
+
 
     // 6. Registry & GPA
     rows.add(buildInfoRow(

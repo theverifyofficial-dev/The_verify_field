@@ -934,18 +934,8 @@ class _View_DetailsState extends State<AllViewDetails> {
       Color titleTextColor, Color valueTextColor,
       Color cardBgColor, Color cardBorderColor) {
     List<Widget> rows = [];
-<<<<<<< HEAD
-    if ((prop.metroDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.train, Colors.orange, "Metro Name", prop.metroDistance, isSmallScreen, isDarkMode));
-    if ((prop.mainMarketDistance ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.store, Colors.purple, "Market Distance", prop.mainMarketDistance, isSmallScreen, isDarkMode));
-    if ((prop.registryAndGpa ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.document_scanner, Colors.purple, "Registry & GPA", prop.registryAndGpa, isSmallScreen, isDarkMode));
-    if ((prop.typeofProperty ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.category, Colors.deepOrange, "Type of Property", prop.typeofProperty, isSmallScreen, isDarkMode));
-    if ((prop.availableDate ?? '').isNotEmpty)
-      rows.add(_buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", _formatDate(prop.availableDate), isSmallScreen, isDarkMode));
-=======
+
+
     // Metro Distance
     if (
     prop.highwayDistance.isNotEmpty) {
@@ -1004,9 +994,7 @@ class _View_DetailsState extends State<AllViewDetails> {
     if (prop.loan.isNotEmpty) {
       rows.add(_buildInfoRow(Icons.account_balance_sharp, Colors.blue, "Loan", _formatDate(prop.loan), isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
     }
->>>>>>> origin/dev
 
-    // Other fields (BHK, Floor, etc.) can be added here if needed, but keeping to match image
     return rows;
   }
   // Updated _getBuildingFacilityRows with new params

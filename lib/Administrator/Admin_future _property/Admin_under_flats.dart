@@ -1013,11 +1013,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       rows.add(buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", prop.availableDate));
     }
 
-<<<<<<< HEAD
 
-
-=======
->>>>>>> origin/dev
     if (prop.roadSize.isNotEmpty) {
       rows.add(buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize}"));
     }

@@ -933,10 +933,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
-<<<<<<< HEAD
-=======
+
                 _buildTwoFieldRow(
->>>>>>> origin/dev
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -985,9 +983,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           : null,
                     ),
                   ),
-<<<<<<< HEAD
 
-=======
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -996,7 +992,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                     child:
                     DropdownButtonFormField<String>(
-                      value: _typeofproperty,
+                      // value: _typeofproperty,
                       decoration: InputDecoration(
                         labelText: 'Type of Property',
                         labelStyle:
@@ -1028,7 +1024,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           .toList(),
                       onChanged: (String? newValue) {
                         setState(() {
-                          _typeofproperty = newValue;
+                          // _typeofproperty = newValue;
                         });
                       },
                       validator: (value) =>
@@ -1038,7 +1034,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     ),
                   ),
                 ),
->>>>>>> origin/dev
               ],
             ),
           ),
@@ -1156,11 +1151,12 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       : null,
                 ),
                 const SizedBox(height: 12),
-<<<<<<< HEAD
                 // TextFormField(
                 //   controller: _Building_information,
                 //   style: TextStyle(
-                //       color: textColor, fontWeight: FontWeight.w500),
+                //     color: textColor,
+                //     fontWeight: FontWeight.w500,
+                //   ),
                 //   decoration: _buildInputDecoration(
                 //     label: 'Building Information',
                 //     icon: Icons.info_outline_rounded,
@@ -1174,25 +1170,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 //       ? 'Please enter building information'
                 //       : null,
                 // ),
-=======
-                TextFormField(
-                  controller: _Building_information,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'Building Information',
-                    icon: Icons.info_outline_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                  maxLines: 3,
-                  validator: (value) =>
-                  (value == null || value.trim().isEmpty)
-                      ? 'Please enter building information'
-                      : null,
-                ),
->>>>>>> origin/dev
+
                 const SizedBox(height: 12),
                 _buildFacilityField(
                     isDarkMode, textColor, secondaryTextColor),
@@ -1335,26 +1313,21 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       showMetroLocalityPicker(context, (metro, localities) {
                         setState(() {
                           metroController.text = metro;
-<<<<<<< HEAD
-
                           final existing = localityController.text
-                              .split(',')
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
+                          .split(',')
+                          .map((e) => e.trim())
+                          .where((e) => e.isNotEmpty)
+                          .toList();
 
-                          for (final loc in localities) {
-                            if (!existing.any(
-                                    (e) => e.toLowerCase() == loc.toLowerCase())) {
-                              existing.add(loc);
-                            }
-                          }
+                      for (final loc in localities) {
+                      if (!existing.any(
+                      (e) => e.toLowerCase() == loc.toLowerCase())) {
+                      existing.add(loc);
+                      }
+                      }
 
-                          localityController.text = existing.join(', ');
-=======
-                          localityController.text =
-                              localities.join(", ");
->>>>>>> origin/dev
+                      localityController.text = existing.join(', ');
+
                         });
                       });
                     },
@@ -1578,15 +1551,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   controller: localityController,
                   maxLines: 2,
                   decoration: InputDecoration(
-<<<<<<< HEAD
-                    hintText: "Type or select localities",
-                    hintStyle: TextStyle(color: secondaryTextColor),
-=======
-                    hintText: "Selected Localities",
-                    hintStyle:
-                    TextStyle(color: secondaryTextColor),
->>>>>>> origin/dev
-                    border: OutlineInputBorder(
+    hintText: "Type or select localities",
+    hintStyle: TextStyle(color: secondaryTextColor),
+
+    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
@@ -1619,13 +1587,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                         label: Text(
                           loc,
                           style: TextStyle(
-<<<<<<< HEAD
                             color: Theme.of(context).brightness == Brightness.dark
-=======
-                            color: Theme.of(context)
-                                .brightness ==
-                                Brightness.dark
->>>>>>> origin/dev
+
                                 ? Colors.white
                                 : Colors.black,
                             fontSize: 12,
@@ -2883,7 +2846,6 @@ class _MetroLocalitySheetState
             setState(() => filteredNearby = nearbyList);
             return;
           }
-<<<<<<< HEAD
 
           setState(() {
             filteredNearby = nearbyList
@@ -2914,18 +2876,6 @@ class _MetroLocalitySheetState
       localityCtrl.text = selectedLocalities.join(", ");
       filteredNearby = nearbyList;
     });
-=======
-
-          setState(() {
-            filteredNearby = nearbyList
-                .where((e) => e["name"]
-                .toString()
-                .toLowerCase()
-                .contains(q.toLowerCase()))
-                .toList();
-          });
-        });
->>>>>>> origin/dev
   }
 
   @override
@@ -3021,38 +2971,27 @@ class _MetroLocalitySheetState
               ),
             ),
           const SizedBox(height: 20),
-          TextField(
-            controller: localityCtrl,
-            enabled: nearbyList.isNotEmpty,
-            style: TextStyle(color: textCol),
-            decoration: InputDecoration(
-              labelText: nearbyList.isEmpty
-                  ? "Select Metro First"
-<<<<<<< HEAD
-                  : "Search or type locality",
-              labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
-              hintText: "Type & press enter or comma",
-              filled: true,
-              fillColor: cardBg,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(14),
-              ),
-=======
-                  : "Search Locality",
-              labelStyle:
-              TextStyle(color: textCol.withOpacity(0.8)),
-              filled: true,
-              fillColor: cardBg,
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14)),
->>>>>>> origin/dev
-            ),
-            onChanged: searchLocality,
-            onSubmitted: (value) {
-              _addManualLocality(value);
-            },
-          ),
-          if (loadingNearby)
+    TextField(
+    controller: localityCtrl,
+    enabled: nearbyList.isNotEmpty,
+    style: TextStyle(color: textCol),
+    decoration: InputDecoration(
+    labelText: nearbyList.isEmpty
+    ? "Select Metro First"
+        : "Search or type locality",
+    labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
+    hintText: "Type & press enter or comma",
+    filled: true,
+    fillColor: cardBg,
+    border: OutlineInputBorder(
+    borderRadius: BorderRadius.circular(14),
+    ),
+    ),
+    onChanged: searchLocality,
+    onSubmitted: _addManualLocality,
+    ),
+
+    if (loadingNearby)
             const Padding(
               padding: EdgeInsets.all(10),
               child: CircularProgressIndicator(),
@@ -3061,42 +3000,28 @@ class _MetroLocalitySheetState
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Wrap(
-                spacing: 6,
-                children: selectedLocalities
-                    .map(
-                      (loc) => Chip(
-                    label: Text(
-                      loc,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    backgroundColor: isDark
-                        ? Colors.white12
-                        : Colors.grey.shade300,
-                    deleteIcon: const Icon(Icons.close,
-                        size: 18),
-<<<<<<< HEAD
-                        onDeleted: () {
-                          setState(() {
-                            selectedLocalities.remove(loc);
-
-                            // 🔥 UPDATE TEXTFIELD
-                            localityCtrl.text = selectedLocalities.join(", ");
-                          });
-                        },
-
-                      ),
-=======
-                    onDeleted: () {
-                      setState(() {
-                        selectedLocalities.remove(loc);
-                      });
-                    },
-                  ),
->>>>>>> origin/dev
-                )
-                    .toList(),
+              spacing: 6,
+              children: selectedLocalities.map((loc) {
+              return Chip(
+              label: Text(
+              loc,
+              overflow: TextOverflow.ellipsis,
               ),
-            ),
+              backgroundColor:
+              isDark ? Colors.white12 : Colors.grey.shade300,
+              deleteIcon: const Icon(Icons.close, size: 18),
+              onDeleted: () {
+              setState(() {
+              selectedLocalities.remove(loc);
+              localityCtrl.text = selectedLocalities.join(", ");
+              });
+              },
+              );
+              }).toList(),
+              ),
+
+    ),
+
           const SizedBox(height: 10),
           if (filteredNearby.isNotEmpty)
             Expanded(
@@ -3138,13 +3063,8 @@ class _MetroLocalitySheetState
 
                         setState(() {
                           if (!selectedLocalities
-<<<<<<< HEAD
                               .any((e) => e.toLowerCase() == name.toLowerCase())) {
                             selectedLocalities.add(name);
-=======
-                              .contains(loc["name"])) {
-                            selectedLocalities.add(loc["name"]);
->>>>>>> origin/dev
                           }
 
                           // 🔥 SHOW SELECTED LOCALITIES
@@ -3158,25 +3078,21 @@ class _MetroLocalitySheetState
             ),
           const SizedBox(height: 12),
           ElevatedButton(
-            onPressed: () {
-              if (selectedMetro != null) {
-<<<<<<< HEAD
-                final finalLocalities = localityCtrl.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .where((e) => e.isNotEmpty)
-                    .toList();
+    onPressed: () {
+    if (selectedMetro != null) {
+    final finalLocalities = localityCtrl.text
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
 
-                widget.onSelected(selectedMetro!, finalLocalities);
-=======
-                widget.onSelected(
-                    selectedMetro!, selectedLocalities);
->>>>>>> origin/dev
-              }
-              Navigator.pop(context);
-            },
+    widget.onSelected(selectedMetro!, finalLocalities);
+    }
+    Navigator.pop(context);
+    },
 
-            style: ElevatedButton.styleFrom(
+
+    style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade700,
               padding: const EdgeInsets.symmetric(
                   vertical: 14, horizontal: 40),
@@ -3189,7 +3105,7 @@ class _MetroLocalitySheetState
             ),
           ),
         ],
-      ),
+      )
     );
   }
 }

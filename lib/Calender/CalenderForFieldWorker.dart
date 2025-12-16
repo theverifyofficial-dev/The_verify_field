@@ -281,7 +281,7 @@ class FutureProperty {
   final String facility;
   final String residenceType;
   final String? image;
-
+  final String date;
   FutureProperty({
     required this.id,
     required this.caretakerName,
@@ -296,6 +296,8 @@ class FutureProperty {
     required this.facility,
     required this.residenceType,
     this.image,
+    required this.date,
+
   });
 
   factory FutureProperty.fromJson(Map<String, dynamic> json) {
@@ -313,6 +315,8 @@ class FutureProperty {
       facility: json['facility'] ?? '',
       residenceType: json['Residence_commercial'] ?? '',
       image: json['images'],
+      date: json['current_date_'] ?? json['date'] ?? '',
+
     );
   }
 }

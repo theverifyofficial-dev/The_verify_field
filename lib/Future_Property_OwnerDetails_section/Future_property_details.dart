@@ -179,6 +179,7 @@ class Ground {
   final String fieldWorkerLocation;
   final String careTakerName;
   final String careTakerNumber;
+  final String liveUnlive; // 👈 NEW
   final String subid;
   Ground({
     required this.id,
@@ -227,6 +228,7 @@ class Ground {
     required this.careTakerName,
     required this.careTakerNumber,
     required this.subid,
+    required this.liveUnlive, // 👈 NEW
   });
   factory Ground.fromJson(Map<String, dynamic> json) {
     return Ground(
@@ -276,6 +278,7 @@ class Ground {
       careTakerName: json['care_taker_name'] ?? '',
       careTakerNumber: json['care_taker_number'] ?? '',
       subid: json['subid'] ?? '',
+      liveUnlive: json['live_unlive'] ?? '', // 👈 NEW
     );
   }
 }
@@ -924,30 +927,60 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                     topLeft: Radius.circular(12),
                     topRight: Radius.circular(12),
                   ),
-                  child: CachedNetworkImage(
-                    key: ValueKey('${flat.id}_${flat.propertyPhoto}'), // Unique key using flat ID + photo to prevent caching issues across flats
-                    imageUrl: flat.propertyPhoto.isNotEmpty
-                        ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
-                        : "", // Empty URL if no photo to avoid invalid requests
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[200],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, error, stackTrace) => Container(
-                      color: Colors.grey[200],
-                      child:  Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.home_outlined, size: 40, color: Colors.grey), // Changed to outlined for less "same image" feel
-                          SizedBox(height: 4),
-                          Text("No Image", style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                        ],
+                  child: Stack(
+                    children: [
+                      // IMAGE
+                      Positioned.fill(
+                        child: CachedNetworkImage(
+                          key: ValueKey('${flat.id}_${flat.propertyPhoto}'),
+                          imageUrl: flat.propertyPhoto.isNotEmpty
+                              ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
+                              : "",
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey[200],
+                            child: const Center(child: CircularProgressIndicator()),
+                          ),
+                          errorWidget: (context, error, stackTrace) => Container(
+                            color: Colors.grey[200],
+                            child: const Icon(Icons.home_outlined, size: 40),
+                          ),
+                        ),
                       ),
-                    ),
+
+                      if (flat.liveUnlive.isNotEmpty)
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: flat.liveUnlive.toLowerCase() == "live"
+                                  ? Colors.green
+                                  : Colors.red,
+                              borderRadius: BorderRadius.circular(6),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.3),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                            child: Text(
+                              flat.liveUnlive, // Live / Book / Unlive
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               ),
+
               // Flat Details - Expanded flex
               Expanded(
                 flex: 2,

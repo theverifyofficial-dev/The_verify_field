@@ -345,482 +345,482 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       });
     }
   }
-
-  Widget _todayCard(bool isDark) {
-    final today = DateTime.now();
-    final tomorrow = today.add(const Duration(days: 1));
-
-    final monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    final weekNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
-
-    if (todayLoading || todayCounts == null) {
-      return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [Colors.grey.shade900, Colors.black87]
-                : [Colors.blueGrey.shade50, Colors.white],
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isDark ? Colors.blueAccent : Colors.blue.shade800,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Loading today\'s data...',
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    int totalToday = todayCounts!.agreements +
-        todayCounts!.futureProperties +
-        todayCounts!.websiteVisits;
-
-    return GestureDetector(
-      onTap: (){
-        Navigator.push(
-            context, MaterialPageRoute(
-            builder: (_) => const CalendarTaskPage()));
-
-      },
-      child: Container(
-        margin:  EdgeInsets.symmetric(horizontal: 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: isDark
-                ? [
-              Colors.grey.shade900,
-              Colors.black87,
-              Colors.grey.shade900,
-            ]
-                : [
-              Colors.white,
-              Colors.white,
-
-            ],
-          ),
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
-              blurRadius: 25,
-              spreadRadius: 1,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            // Decorative background elements
-            Positioned(
-              top: -20,
-              right: -20,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      Colors.blueAccent.withOpacity(0.1),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// ---------------- HEADER ----------------
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // DATE SECTION
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blueAccent,
-                              Colors.purpleAccent,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              weekNames[today.weekday - 1],
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              today.day.toString(),
-                              style: const TextStyle(
-                                fontSize: 36,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                height: 0.9,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              monthNames[today.month - 1],
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      Container(
-                        width: 90,
-                        height: 90,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white,
-                              Colors.blueGrey.shade100,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                          border: Border.all(
-                            color: Colors.blueGrey.shade200,
-                            width: 1.5,
-                          ),
-                        ),
-                        child: ClipOval(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: AnimatedAnalogClock(
-                              size: 90,
-                              hourHandColor: Colors.black,
-                              minuteHandColor: Colors.black87,
-                              secondHandColor: Colors.redAccent,
-                            ),
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-
-                  const SizedBox(height: 4),
-
-                  Row(
-                    children: [
-                      Container(
-                        width: 4,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [Colors.redAccent, Colors.orangeAccent],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        totalToday == 0 ? "No Events Today" : "Today's Events",
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const Spacer(),
-                      if (totalToday > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.greenAccent.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.greenAccent.withOpacity(0.3),
-                            ),
-                          ),
-                          child: Text(
-                            "$totalToday total",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color:
-                              Theme.of(context).brightness==Brightness.dark?
-                              Colors.greenAccent.shade200:Colors.black87,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-
-                  if (totalToday > 0) ...[
-                    const SizedBox(height: 6),
-
-                    // ENHANCED COUNT BOXES
-                    Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          _enhancedCountBox(
-                            "Agreements",
-                            todayCounts!.agreements,
-                            LinearGradient(
-                              colors: [Colors.redAccent, Colors.orangeAccent],
-                            ),
-                            Icons.handshake,
-                            isDark,
-                          ),
-                          _enhancedCountBox(
-                            "Future",
-                            todayCounts!.futureProperties,
-                            LinearGradient(
-                              colors: [Colors.blueAccent, Colors.indigoAccent],
-                            ),
-                            Icons.fitbit_outlined,
-                            isDark,
-                          ),
-                          _enhancedCountBox(
-                            "Web Visit",
-                            todayCounts!.websiteVisits,
-                            LinearGradient(
-                              colors: [Colors.greenAccent, Colors.tealAccent],
-                            ),
-                            Icons.travel_explore,
-                            isDark,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-
-                  const SizedBox(height: 8),
-
-                  // ---------------- TOMORROW SECTION ----------------
-
-
-                  Row(
-                    children: [
-                      Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
-                      const SizedBox(width: 8),
-                      Text(
-                        "Tomorrow",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const Spacer(),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          "${weekNames[tomorrow.weekday - 1]}, ${tomorrow.day} ${monthNames[tomorrow.month - 1]}",
-                          style: TextStyle(
-                            color: Colors.blueAccent.shade200,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  if (tomorrowEvents.isNotEmpty) ...[
-
-                    // Event CARD BOX
-                    Column(
-                      children: tomorrowEvents.take(3).map((event) =>
-                          Container(
-                            // margin: const EdgeInsets.only(bottom: 0),
-                            padding: const EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: isDark ? Colors.grey.shade900 : Colors.white.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.blueAccent.withOpacity(0.15),
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                )
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                // Time Box
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blueAccent.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    event.time,
-                                    style: TextStyle(
-                                      color: Colors.blueAccent.shade200,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-
-                                const SizedBox(width: 12),
-
-                                // Event TITLE
-                                Expanded(
-                                  child: Text(
-                                    event.title,
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-
-                                // Type Dot
-                                Container(
-                                  width: 10,
-                                  height: 10,
-                                  decoration: BoxDecoration(
-                                    color: _getEventColor(event.type),
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ).toList(),
-                    ),
-
-                    if (tomorrowEvents.length > 3)
-                      Center(
-                        child: Text(
-                          "View ${tomorrowEvents.length - 3} more →",
-                          style: TextStyle(
-                            color: Colors.blueAccent.shade200,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-
-                  ] else ...[
-                    // NO EVENT UI
-                    Text(
-                      "No events scheduled",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ]
-
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getEventColor(String eventType) {
-    switch (eventType.toLowerCase()) {
-      case 'agreement':
-        return Colors.redAccent;
-      case 'future':
-        return Colors.blueAccent;
-      case 'website':
-        return Colors.greenAccent;
-      default:
-        return Colors.blueGrey;
-    }
-  }
+  //
+  // Widget _todayCard(bool isDark) {
+  //   final today = DateTime.now();
+  //   final tomorrow = today.add(const Duration(days: 1));
+  //
+  //   final monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  //   final weekNames = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
+  //
+  //   if (todayLoading || todayCounts == null) {
+  //     return Container(
+  //       margin: const EdgeInsets.symmetric(horizontal: 16),
+  //       padding: const EdgeInsets.all(32),
+  //       decoration: BoxDecoration(
+  //         gradient: LinearGradient(
+  //           begin: Alignment.topLeft,
+  //           end: Alignment.bottomRight,
+  //           colors: isDark
+  //               ? [Colors.grey.shade900, Colors.black87]
+  //               : [Colors.blueGrey.shade50, Colors.white],
+  //         ),
+  //         borderRadius: BorderRadius.circular(24),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.black.withOpacity(isDark ? 0.3 : 0.1),
+  //             blurRadius: 20,
+  //             offset: const Offset(0, 8),
+  //           ),
+  //         ],
+  //       ),
+  //       child: Center(
+  //         child: Column(
+  //           mainAxisSize: MainAxisSize.min,
+  //           children: [
+  //             CircularProgressIndicator(
+  //               strokeWidth: 2,
+  //               valueColor: AlwaysStoppedAnimation<Color>(
+  //                 isDark ? Colors.blueAccent : Colors.blue.shade800,
+  //               ),
+  //             ),
+  //             const SizedBox(height: 8),
+  //             Text(
+  //               'Loading today\'s data...',
+  //               style: TextStyle(
+  //                 color: isDark ? Colors.white70 : Colors.grey,
+  //                 fontSize: 12,
+  //               ),
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     );
+  //   }
+  //
+  //   int totalToday = todayCounts!.agreements +
+  //       todayCounts!.futureProperties +
+  //       todayCounts!.websiteVisits;
+  //
+  //   return GestureDetector(
+  //     onTap: (){
+  //       Navigator.push(
+  //           context, MaterialPageRoute(
+  //           builder: (_) => const CalendarTaskPage()));
+  //
+  //     },
+  //     child: Container(
+  //       margin:  EdgeInsets.symmetric(horizontal: 16),
+  //       decoration: BoxDecoration(
+  //         gradient: LinearGradient(
+  //           begin: Alignment.topCenter,
+  //           end: Alignment.bottomCenter,
+  //           colors: isDark
+  //               ? [
+  //             Colors.grey.shade900,
+  //             Colors.black87,
+  //             Colors.grey.shade900,
+  //           ]
+  //               : [
+  //             Colors.white,
+  //             Colors.white,
+  //
+  //           ],
+  //         ),
+  //         borderRadius: BorderRadius.circular(24),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.black.withOpacity(isDark ? 0.4 : 0.15),
+  //             blurRadius: 25,
+  //             spreadRadius: 1,
+  //             offset: const Offset(0, 12),
+  //           ),
+  //         ],
+  //       ),
+  //       child: Stack(
+  //         children: [
+  //           // Decorative background elements
+  //           Positioned(
+  //             top: -20,
+  //             right: -20,
+  //             child: Container(
+  //               width: 100,
+  //               height: 100,
+  //               decoration: BoxDecoration(
+  //                 shape: BoxShape.circle,
+  //                 gradient: RadialGradient(
+  //                   colors: [
+  //                     Colors.blueAccent.withOpacity(0.1),
+  //                     Colors.transparent,
+  //                   ],
+  //                 ),
+  //               ),
+  //             ),
+  //           ),
+  //
+  //           Padding(
+  //             padding: const EdgeInsets.all(20),
+  //             child: Column(
+  //               crossAxisAlignment: CrossAxisAlignment.start,
+  //               children: [
+  //                 /// ---------------- HEADER ----------------
+  //                 Row(
+  //                   crossAxisAlignment: CrossAxisAlignment.start,
+  //                   children: [
+  //                     // DATE SECTION
+  //                     Container(
+  //                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+  //                       decoration: BoxDecoration(
+  //                         gradient: LinearGradient(
+  //                           colors: [
+  //                             Colors.blueAccent,
+  //                             Colors.purpleAccent,
+  //                           ],
+  //                           begin: Alignment.topLeft,
+  //                           end: Alignment.bottomRight,
+  //                         ),
+  //                         borderRadius: BorderRadius.circular(16),
+  //                         boxShadow: [
+  //                           BoxShadow(
+  //                             color: Colors.blueAccent.withOpacity(0.3),
+  //                             blurRadius: 10,
+  //                             offset: const Offset(0, 4),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                       child: Column(
+  //                         mainAxisAlignment: MainAxisAlignment.center,
+  //                         children: [
+  //                           Text(
+  //                             weekNames[today.weekday - 1],
+  //                             style: const TextStyle(
+  //                               color: Colors.white,
+  //                               fontSize: 12,
+  //                               fontWeight: FontWeight.w700,
+  //                               letterSpacing: 1.2,
+  //                             ),
+  //                           ),
+  //                           const SizedBox(height: 4),
+  //                           Text(
+  //                             today.day.toString(),
+  //                             style: const TextStyle(
+  //                               fontSize: 36,
+  //                               fontWeight: FontWeight.bold,
+  //                               color: Colors.white,
+  //                               height: 0.9,
+  //                             ),
+  //                           ),
+  //                           const SizedBox(height: 2),
+  //                           Text(
+  //                             monthNames[today.month - 1],
+  //                             style: TextStyle(
+  //                               color: Colors.white.withOpacity(0.9),
+  //                               fontSize: 12,
+  //                               fontWeight: FontWeight.w600,
+  //                             ),
+  //                           ),
+  //                         ],
+  //                       ),
+  //                     ),
+  //
+  //                     const Spacer(),
+  //
+  //                     Container(
+  //                       width: 90,
+  //                       height: 90,
+  //                       decoration: BoxDecoration(
+  //                         shape: BoxShape.circle,
+  //                         gradient: LinearGradient(
+  //                           colors: [
+  //                             Colors.white,
+  //                             Colors.blueGrey.shade100,
+  //                           ],
+  //                           begin: Alignment.topLeft,
+  //                           end: Alignment.bottomRight,
+  //                         ),
+  //                         boxShadow: [
+  //                           BoxShadow(
+  //                             color: Colors.black.withOpacity(0.15),
+  //                             blurRadius: 10,
+  //                             offset: const Offset(0, 4),
+  //                           ),
+  //                         ],
+  //                         border: Border.all(
+  //                           color: Colors.blueGrey.shade200,
+  //                           width: 1.5,
+  //                         ),
+  //                       ),
+  //                       child: ClipOval(
+  //                         child: Padding(
+  //                           padding: const EdgeInsets.all(8.0),
+  //                           child: AnimatedAnalogClock(
+  //                             size: 90,
+  //                             hourHandColor: Colors.black,
+  //                             minuteHandColor: Colors.black87,
+  //                             secondHandColor: Colors.redAccent,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                     )
+  //                   ],
+  //                 ),
+  //
+  //                 const SizedBox(height: 4),
+  //
+  //                 Row(
+  //                   children: [
+  //                     Container(
+  //                       width: 4,
+  //                       height: 20,
+  //                       decoration: BoxDecoration(
+  //                         gradient: LinearGradient(
+  //                           colors: [Colors.redAccent, Colors.orangeAccent],
+  //                           begin: Alignment.topCenter,
+  //                           end: Alignment.bottomCenter,
+  //                         ),
+  //                         borderRadius: BorderRadius.circular(2),
+  //                       ),
+  //                     ),
+  //                     const SizedBox(width: 10),
+  //                     Text(
+  //                       totalToday == 0 ? "No Events Today" : "Today's Events",
+  //                       style: const TextStyle(
+  //                         fontSize: 16,
+  //                         fontWeight: FontWeight.w700,
+  //                         letterSpacing: 0.5,
+  //                       ),
+  //                     ),
+  //                     const Spacer(),
+  //                     if (totalToday > 0)
+  //                       Container(
+  //                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+  //                         decoration: BoxDecoration(
+  //                           color: Colors.greenAccent.withOpacity(0.15),
+  //                           borderRadius: BorderRadius.circular(20),
+  //                           border: Border.all(
+  //                             color: Colors.greenAccent.withOpacity(0.3),
+  //                           ),
+  //                         ),
+  //                         child: Text(
+  //                           "$totalToday total",
+  //                           style: TextStyle(
+  //                             fontSize: 13,
+  //                             color:
+  //                             Theme.of(context).brightness==Brightness.dark?
+  //                             Colors.greenAccent.shade200:Colors.black87,
+  //                             fontWeight: FontWeight.w600,
+  //                           ),
+  //                         ),
+  //                       ),
+  //                   ],
+  //                 ),
+  //
+  //                 if (totalToday > 0) ...[
+  //                   const SizedBox(height: 6),
+  //
+  //                   // ENHANCED COUNT BOXES
+  //                   Container(
+  //                     padding: const EdgeInsets.all(5),
+  //                     decoration: BoxDecoration(
+  //                       color: isDark ? Colors.black.withOpacity(0.3) : Colors.white,
+  //                       borderRadius: BorderRadius.circular(16),
+  //                       border: Border.all(
+  //                         color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.shade200,
+  //                       ),
+  //                       boxShadow: [
+  //                         BoxShadow(
+  //                           color: Colors.black.withOpacity(isDark ? 0.2 : 0.05),
+  //                           blurRadius: 8,
+  //                           offset: const Offset(0, 4),
+  //                         ),
+  //                       ],
+  //                     ),
+  //                     child: Row(
+  //                       children: [
+  //                         _enhancedCountBox(
+  //                           "Agreements",
+  //                           todayCounts!.agreements,
+  //                           LinearGradient(
+  //                             colors: [Colors.redAccent, Colors.orangeAccent],
+  //                           ),
+  //                           Icons.handshake,
+  //                           isDark,
+  //                         ),
+  //                         _enhancedCountBox(
+  //                           "Future",
+  //                           todayCounts!.futureProperties,
+  //                           LinearGradient(
+  //                             colors: [Colors.blueAccent, Colors.indigoAccent],
+  //                           ),
+  //                           Icons.fitbit_outlined,
+  //                           isDark,
+  //                         ),
+  //                         _enhancedCountBox(
+  //                           "Web Visit",
+  //                           todayCounts!.websiteVisits,
+  //                           LinearGradient(
+  //                             colors: [Colors.greenAccent, Colors.tealAccent],
+  //                           ),
+  //                           Icons.travel_explore,
+  //                           isDark,
+  //                         ),
+  //                       ],
+  //                     ),
+  //                   ),
+  //                 ],
+  //
+  //                 const SizedBox(height: 8),
+  //
+  //                 // ---------------- TOMORROW SECTION ----------------
+  //
+  //
+  //                 Row(
+  //                   children: [
+  //                     Icon(Icons.calendar_today, color: Colors.blueAccent, size: 16),
+  //                     const SizedBox(width: 8),
+  //                     Text(
+  //                       "Tomorrow",
+  //                       style: const TextStyle(
+  //                         fontSize: 15,
+  //                         fontWeight: FontWeight.w700,
+  //                       ),
+  //                     ),
+  //                     const Spacer(),
+  //                     Container(
+  //                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+  //                       decoration: BoxDecoration(
+  //                         color: Colors.blueAccent.withOpacity(0.15),
+  //                         borderRadius: BorderRadius.circular(20),
+  //                       ),
+  //                       child: Text(
+  //                         "${weekNames[tomorrow.weekday - 1]}, ${tomorrow.day} ${monthNames[tomorrow.month - 1]}",
+  //                         style: TextStyle(
+  //                           color: Colors.blueAccent.shade200,
+  //                           fontSize: 11,
+  //                           fontWeight: FontWeight.w600,
+  //                         ),
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 ),
+  //
+  //                 const SizedBox(height: 12),
+  //
+  //                 if (tomorrowEvents.isNotEmpty) ...[
+  //
+  //                   // Event CARD BOX
+  //                   Column(
+  //                     children: tomorrowEvents.take(3).map((event) =>
+  //                         Container(
+  //                           // margin: const EdgeInsets.only(bottom: 0),
+  //                           padding: const EdgeInsets.all(5),
+  //                           decoration: BoxDecoration(
+  //                             color: isDark ? Colors.grey.shade900 : Colors.white.withOpacity(0.08),
+  //                             borderRadius: BorderRadius.circular(16),
+  //                             border: Border.all(
+  //                               color: Colors.blueAccent.withOpacity(0.15),
+  //                             ),
+  //                             boxShadow: [
+  //                               BoxShadow(
+  //                                 color: Colors.black.withOpacity(0.15),
+  //                                 blurRadius: 10,
+  //                                 offset: const Offset(0, 4),
+  //                               )
+  //                             ],
+  //                           ),
+  //                           child: Row(
+  //                             children: [
+  //                               // Time Box
+  //                               Container(
+  //                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //                                 decoration: BoxDecoration(
+  //                                   color: Colors.blueAccent.withOpacity(0.15),
+  //                                   borderRadius: BorderRadius.circular(10),
+  //                                 ),
+  //                                 child: Text(
+  //                                   event.time,
+  //                                   style: TextStyle(
+  //                                     color: Colors.blueAccent.shade200,
+  //                                     fontSize: 12,
+  //                                     fontWeight: FontWeight.bold,
+  //                                   ),
+  //                                 ),
+  //                               ),
+  //
+  //                               const SizedBox(width: 12),
+  //
+  //                               // Event TITLE
+  //                               Expanded(
+  //                                 child: Text(
+  //                                   event.title,
+  //                                   style: TextStyle(
+  //                                     fontSize: 14,
+  //                                     fontWeight: FontWeight.w600,
+  //                                   ),
+  //                                   maxLines: 1,
+  //                                   overflow: TextOverflow.ellipsis,
+  //                                 ),
+  //                               ),
+  //
+  //                               // Type Dot
+  //                               Container(
+  //                                 width: 10,
+  //                                 height: 10,
+  //                                 decoration: BoxDecoration(
+  //                                   color: _getEventColor(event.type),
+  //                                   shape: BoxShape.circle,
+  //                                 ),
+  //                               ),
+  //                             ],
+  //                           ),
+  //                         ),
+  //                     ).toList(),
+  //                   ),
+  //
+  //                   if (tomorrowEvents.length > 3)
+  //                     Center(
+  //                       child: Text(
+  //                         "View ${tomorrowEvents.length - 3} more →",
+  //                         style: TextStyle(
+  //                           color: Colors.blueAccent.shade200,
+  //                           fontSize: 12,
+  //                           fontWeight: FontWeight.w600,
+  //                         ),
+  //                       ),
+  //                     ),
+  //
+  //                 ] else ...[
+  //                   // NO EVENT UI
+  //                   Text(
+  //                     "No events scheduled",
+  //                     style: TextStyle(
+  //                       fontSize: 13,
+  //                       fontWeight: FontWeight.w600,
+  //                     ),
+  //                   ),
+  //                 ]
+  //
+  //               ],
+  //             ),
+  //           ),
+  //         ],
+  //       ),
+  //     ),
+  //   );
+  // }
+  //
+  // Color _getEventColor(String eventType) {
+  //   switch (eventType.toLowerCase()) {
+  //     case 'agreement':
+  //       return Colors.redAccent;
+  //     case 'future':
+  //       return Colors.blueAccent;
+  //     case 'website':
+  //       return Colors.greenAccent;
+  //     default:
+  //       return Colors.blueGrey;
+  //   }
+  // }
 
   Widget _enhancedCountBox(String title, int count, Gradient gradient, IconData icon, bool isDark) {
     return Expanded(
@@ -1267,17 +1267,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       //   },
       //   "gradient": cardGradients[8],
       // },
-      {
-        "image": AppImages.demand_2,
-        "title": "Costumer Demands 2.O",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const CostumerDemand()));
-        },
-        "gradient": cardGradients[9],
-      },
+      // {
+      //   "image": AppImages.demand_2,
+      //   "title": "Costumer Demands 2.O",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const CostumerDemand()));
+      //   },
+      //   "gradient": cardGradients[9],
+      // },
     ];
 
     return Scaffold(
@@ -1347,7 +1347,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           ],
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.02),
+                      SizedBox(height: screenHeight * 0.01),
                       // Dual Target Progress Indicators - Use Wrap for responsiveness
                       Expanded(
                         child: Wrap(
@@ -1389,7 +1389,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
             ),
           ),
 
-          // Dashboard Grid Section
+         // Dashboard Grid Section
           SliverToBoxAdapter(
             child: Padding(
               padding: EdgeInsets.all(screenWidth * 0.05),
@@ -1397,8 +1397,8 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Today's Card (replacing welcome back)
-                  _todayCard(isDark),
-                  const SizedBox(height: 16),
+                 // _todayCard(isDark),
+                  const SizedBox(height: 10),
                   // Feature Grid
                   GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),

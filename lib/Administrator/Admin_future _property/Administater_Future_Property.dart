@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import '../Administrator_HomeScreen.dart';
 import 'Future_Property_Details.dart';
 import 'See_All_Futureproperty.dart';
-import 'package:intl/intl.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 
 class Catid {
   final int id;
@@ -44,40 +43,42 @@ class Catid {
   final String? totalFloor;
   final String? residenceCommercial;
   final String? facility;
+
   Catid({
     required this.id,
-    required this.images,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.caretakerName,
-    required this.caretakerNumber,
-    required this.place,
-    required this.buyRent,
-    required this.typeOfProperty,
-    required this.selectBhk,
-    required this.floorNumber,
-    required this.squareFeet,
-    required this.propertyNameAddress,
-    required this.buildingInformationFacilities,
-    required this.propertyAddressForFieldworker,
-    required this.ownerVehicleNumber,
-    required this.yourAddress,
-    required this.fieldWorkerName,
-    required this.fieldWorkerNumber,
-    required this.currentDate,
-    required this.longitude,
-    required this.latitude,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.metroName,
-    required this.mainMarketDistance,
-    required this.ageOfProperty,
-    required this.lift,
-    required this.parking,
-    required this.totalFloor,
-    required this.residenceCommercial,
-    required this.facility,
+    this.images,
+    this.ownerName,
+    this.ownerNumber,
+    this.caretakerName,
+    this.caretakerNumber,
+    this.place,
+    this.buyRent,
+    this.typeOfProperty,
+    this.selectBhk,
+    this.floorNumber,
+    this.squareFeet,
+    this.propertyNameAddress,
+    this.buildingInformationFacilities,
+    this.propertyAddressForFieldworker,
+    this.ownerVehicleNumber,
+    this.yourAddress,
+    this.fieldWorkerName,
+    this.fieldWorkerNumber,
+    this.currentDate,
+    this.longitude,
+    this.latitude,
+    this.roadSize,
+    this.metroDistance,
+    this.metroName,
+    this.mainMarketDistance,
+    this.ageOfProperty,
+    this.lift,
+    this.parking,
+    this.totalFloor,
+    this.residenceCommercial,
+    this.facility,
   });
+
   factory Catid.fromJson(Map<String, dynamic> json) {
     return Catid(
       id: json['id'] ?? 0,
@@ -115,7 +116,7 @@ class Catid {
     );
   }
 }
-// Reusable DetailRow - Same as in SeeAll_FutureProperty
+
 class _DetailRow extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -125,6 +126,7 @@ class _DetailRow extends StatelessWidget {
   final int maxLines;
   final double? fontSize;
   final FontWeight? fontWeight;
+
   const _DetailRow({
     required this.icon,
     required this.label,
@@ -135,6 +137,7 @@ class _DetailRow extends StatelessWidget {
     this.fontSize,
     this.fontWeight,
   });
+
   @override
   Widget build(BuildContext context) {
     final cs = theme.colorScheme;
@@ -143,11 +146,7 @@ class _DetailRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: getIconColor(icon, theme),
-          ),
+          Icon(icon, size: 16, color: getIconColor(icon, theme)),
           const SizedBox(width: 6),
           Expanded(
             child: RichText(
@@ -185,17 +184,21 @@ class _DetailRow extends StatelessWidget {
     );
   }
 }
+
 class ADministaterShow_FutureProperty extends StatefulWidget {
   final bool fromNotification;
   final String? buildingId;
+
   const ADministaterShow_FutureProperty({
     super.key,
     this.fromNotification = false,
     this.buildingId,
   });
+
   @override
   State<ADministaterShow_FutureProperty> createState() => _ADministaterShow_FuturePropertyState();
 }
+
 class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_FutureProperty> {
   final Map<String, GlobalKey> _cardKeys = {};
   final Map<String, ScrollController> _horizontalControllers = {};
@@ -204,6 +207,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
   String _number = '';
   String _location = '';
   String _post = '';
+
   List<Map<String, String>> fieldWorkers = [
     {"name": "Sumit Kasaniya", "id": "9711775300"},
     {"name": "Ravi Kumar", "id": "9711275300"},
@@ -211,35 +215,53 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     {"name": "Manish", "id": "8130209217"},
     {"name": "Abhay", "id": "9675383184"},
   ];
-  Map<String, List<Catid>> _groupedData = {};
+
   final Map<int, int> _liveCountMap = {};
   final Map<int, String> _totalFlatsMap = {};
+
+
+  Map<String, List<Catid>> _groupedData = {};
+
+
   @override
   void initState() {
     super.initState();
-    for (var fw in fieldWorkers) {
-      _groupedData[fw['name']!] = [];
+
+    // Controllers init
+    for (final fw in fieldWorkers) {
       _horizontalControllers[fw['id']!] = ScrollController();
+      _groupedData[fw['id']!] = [];
     }
-    _initializeData();
-    if (widget.buildingId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _handleNotification(widget.buildingId!);
-      });
-    }
-  }
-  Future<void> _initializeData() async {
-    await _loadUserData();
-    await _fetchAndUpdateData();
-  }
-  Future<void> _loadUserData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _number = prefs.getString('number') ?? '';
-      _location = prefs.getString('location') ?? '';
-      _post = prefs.getString('post') ?? '';
+
+    // Starting mein loading true (UI mein spinner dikhega fresh run pe)
+    _isLoading = true;
+
+    // Post frame callback mein load
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeData();
     });
   }
+
+
+  Future<void> _initializeData() async {
+    await _loadUserData();  // Pehle location aur post load hone do
+
+    if (!mounted) return;
+
+    // Ab location/post guaranteed filled hain
+    await _fetchAndUpdateData();
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    _location = prefs.getString('location') ?? '';
+    _post = prefs.getString('post') ?? '';
+  }
+
   Future<List<Catid>> _fetchDataByNumber(String number) async {
     final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
@@ -252,44 +274,66 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         return listData.map((e) => Catid.fromJson(e)).toList();
       }
     } catch (e) {
-      debugPrint("Fetch error: $e");
+      debugPrint("Fetch error for $number: $e");
     }
     return [];
   }
+
   Future<void> _fetchAndUpdateData() async {
+    if (_location.isEmpty || _post.isEmpty) return;
+
     setState(() => _isLoading = true);
-    final loc = _location.trim().toLowerCase();
-    final post = _post.trim().toLowerCase();
-    bool isAdmin = post == "administrator";
-    List<Map<String, String>> visibleWorkers = fieldWorkers.where((fw) {
-      if (isAdmin) return true;
-      final name = fw['name']!.toLowerCase();
-      if (loc.contains("sultanpur")) return ["sumit", "ravi", "faizan"].contains(name);
-      if (loc.contains("rajpur") || loc.contains("chhattar")) return ["manish", "abhay"].contains(name);
-      return false;
-    }).toList();
-    final workerFutures = visibleWorkers.map((fw) => _fetchDataByNumber(fw['id']!).then((data) => MapEntry(fw['name']!, data)));
-    final groupedEntries = await Future.wait(workerFutures);
-    final Map<String, List<Catid>> grouped = Map.fromEntries(groupedEntries);
-    for (var fw in fieldWorkers) {
-      grouped[fw['name']!] ??= [];
+
+    final loc = _location.toLowerCase();
+    final isAdmin = _post.toLowerCase() == "administrator";
+
+    List<Map<String, String>> allowedWorkers = [];
+
+    if (isAdmin) {
+      allowedWorkers = fieldWorkers;
+    } else if (loc.contains("sultanpur")) {
+      allowedWorkers = fieldWorkers.where((fw) =>
+      fw['name']!.toLowerCase().contains("sumit") ||
+          fw['name']!.toLowerCase().contains("ravi") ||
+          fw['name']!.toLowerCase().contains("faizan")
+      ).toList();
+    } else if (loc.contains("rajpur") ||
+        loc.contains("chhattarpur") ||
+        loc.contains("chattar") ||
+        loc.contains("chhattar")) {
+      allowedWorkers = fieldWorkers.where((fw) =>
+      fw['name']!.toLowerCase().contains("manish") ||
+          fw['name']!.toLowerCase().contains("abhay")
+      ).toList();
     }
-    setState(() {
-      _groupedData = grouped;
-      _isLoading = false;
-    });
-    _prefetchAllPropertyData();
+
+    for (final fw in allowedWorkers) {
+      final data = await _fetchDataByNumber(fw['id']!);
+      _groupedData[fw['id']!] = data;
+    }
+
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
+
+
+
+
   Future<void> _prefetchAllPropertyData() async {
     final allProperties = _groupedData.values.expand((list) => list).toList();
     if (allProperties.isEmpty) return;
+
     final futures = allProperties.map((p) async {
       try {
         final resp1 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=${p.id}'));
         if (resp1.statusCode == 200) {
           final body = jsonDecode(resp1.body);
-          if (body is List && body.isNotEmpty) _totalFlatsMap[p.id] = body[0]['logg'].toString();
+          if (body is List && body.isNotEmpty) {
+            _totalFlatsMap[p.id] = body[0]['logg'].toString();
+          }
         }
+
         final resp2 = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=${p.id}'));
         if (resp2.statusCode == 200) {
           final body = jsonDecode(resp2.body);
@@ -304,21 +348,28 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         }
       } catch (_) {}
     });
+
     await Future.wait(futures);
     if (mounted) setState(() {});
   }
+
   Future<void> _handleNotification(String buildingId) async {
     setState(() => _highlightedBuildingId = buildingId);
     await _fetchAndUpdateData();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlighted());
   }
+
   Future<void> _scrollToHighlighted() async {
     if (_highlightedBuildingId == null) return;
     final key = _cardKeys[_highlightedBuildingId!];
     if (key?.currentContext != null) {
-      await Scrollable.ensureVisible(key!.currentContext!, duration: const Duration(milliseconds: 800), curve: Curves.easeInOut);
+      await Scrollable.ensureVisible(
+        key!.currentContext!,
+        duration: const Duration(milliseconds: 800),
+        curve: Curves.easeInOut,
+      );
     }
   }
+
   String formatDate(String s) {
     if (s.isEmpty) return '-';
     try {
@@ -332,22 +383,35 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       }
     }
   }
+
   Color _getIconColor(IconData icon, ThemeData theme) {
     final cs = theme.colorScheme;
     switch (icon) {
-      case Icons.location_on: return Colors.red;
-      case Icons.square_foot: return Colors.orange;
-      case Icons.handshake_outlined: return Colors.orangeAccent;
-      case Icons.apartment: return Colors.blue;
-      case Icons.layers: return Colors.teal;
-      case Icons.format_list_numbered: return Colors.indigo;
-      case Icons.date_range: return Colors.purple;
-      case Icons.home: return Colors.brown;
-      case Icons.numbers: return Colors.cyan;
-      case Icons.real_estate_agent_outlined: return Colors.brown;
-      default: return cs.primary;
+      case Icons.location_on:
+        return Colors.red;
+      case Icons.square_foot:
+        return Colors.orange;
+      case Icons.handshake_outlined:
+        return Colors.orangeAccent;
+      case Icons.apartment:
+        return Colors.blue;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.format_list_numbered:
+        return Colors.indigo;
+      case Icons.date_range:
+        return Colors.purple;
+      case Icons.home:
+        return Colors.brown;
+      case Icons.numbers:
+        return Colors.cyan;
+      case Icons.real_estate_agent_outlined:
+        return Colors.brown;
+      default:
+        return cs.primary;
     }
   }
+
   List<String> _buildMultipleImages(Catid p) {
     final List<String> imgs = [];
     if (p.images != null && p.images!.trim().isNotEmpty) {
@@ -356,7 +420,9 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     }
     return imgs;
   }
+
   bool _blank(String? s) => s == null || s.trim().isEmpty;
+
   List<String> _missingFieldsFor(Catid i) {
     final m = <String>[];
     final checks = <String, String?>{
@@ -392,9 +458,12 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       "Residence/Commercial": i.residenceCommercial,
       "Facility": i.facility,
     };
-    checks.forEach((k, v) { if (_blank(v)) m.add(k); });
+    checks.forEach((k, v) {
+      if (_blank(v)) m.add(k);
+    });
     return m;
   }
+
   Widget _buildImageSection({
     required List<String> images,
     required ColorScheme cs,
@@ -406,6 +475,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     final int liveCount = status['liveCount'] ?? 0;
     final Color liveColor = liveCount > 0 ? Colors.green : Colors.red;
     final String liveLabel = liveCount > 0 ? "Live: $liveCount" : "Unlive: 0";
+
     Widget imageWidget;
     if (images.isEmpty) {
       imageWidget = Container(
@@ -487,6 +557,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         ],
       );
     }
+
     return Stack(
       children: [
         imageWidget,
@@ -502,27 +573,29 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       ],
     );
   }
+
   Widget _buildCard(Catid property, int displayIndex) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
-    final screenHeight = size.height;
-    final screenWidth = size.width;
+
     final status = {
       "liveCount": _liveCountMap[property.id] ?? 0,
       "loggValue2": _totalFlatsMap[property.id] ?? '0',
     };
+
     final images = _buildMultipleImages(property);
-    final double cardPadding = (screenWidth * 0.03).clamp(8.0, 20.0);
+    final double cardPadding = (size.width * 0.03).clamp(8.0, 20.0);
     final double titleFontSize = isTablet ? 20 : 16;
     final double detailFontSize = isTablet ? 14 : 13;
-    final double imageH = (screenHeight * 0.29).clamp(150.0, 250.0);
+    final double imageH = (size.height * 0.29).clamp(150.0, 250.0);
     final double multiH = imageH * 0.8;
+
     final missingFields = _missingFieldsFor(property);
     final hasMissingFields = missingFields.isNotEmpty;
-// Image section - ab badge nahi hai yahan
+
     final Widget imageSection = _buildImageSection(
       images: images,
       cs: cs,
@@ -531,7 +604,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       imageHeight: imageH,
       multiImgHeight: multiH,
     );
-// Detail rows banaye
+
     final List<Widget> detailRows = [];
     if ((property.place ?? '').isNotEmpty) {
       detailRows.add(_DetailRow(
@@ -544,54 +617,24 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         fontWeight: FontWeight.bold,
       ));
     }
-    detailRows.add(_DetailRow(
-      icon: Icons.handshake_outlined,
-      label: '',
-      value: property.buyRent ?? 'N/A',
-      theme: theme,
-      getIconColor: _getIconColor,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    ));
-    detailRows.add(_DetailRow(
-      icon: Icons.apartment,
-      label: '',
-      value: property.residenceCommercial ?? 'N/A',
-      theme: theme,
-      getIconColor: _getIconColor,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    ));
-    detailRows.add(_DetailRow(
-      icon: Icons.real_estate_agent_outlined,
-      label: 'Age',
-      value: property.ageOfProperty ?? 'N/A',
-      theme: theme,
-      getIconColor: _getIconColor,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    ));
-    detailRows.add(_DetailRow(
-      icon: Icons.date_range,
-      label: 'Date',
-      value: formatDate(property.currentDate ?? ''),
-      theme: theme,
-      getIconColor: _getIconColor,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    ));
+    detailRows.addAll([
+      _DetailRow(icon: Icons.handshake_outlined, label: '', value: property.buyRent ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold),
+      _DetailRow(icon: Icons.apartment, label: '', value: property.residenceCommercial ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold),
+      _DetailRow(icon: Icons.real_estate_agent_outlined, label: 'Age', value: property.ageOfProperty ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold),
+      _DetailRow(icon: Icons.date_range, label: 'Date', value: formatDate(property.currentDate ?? ''), theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold),
+    ]);
+
     return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => Administater_Future_Property_details(
-              buildingId: property.id.toString(),
-            ),
+            builder: (_) => Administater_Future_Property_details(buildingId: property.id.toString()),
           ),
         );
       },
       child: Card(
+        key: _cardKeys[property.id.toString()] ??= GlobalKey(),
         margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         elevation: isDark ? 0 : 6,
         color: theme.cardColor,
@@ -607,7 +650,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-// Left: Image + Total Flats
                     Expanded(
                       flex: 3,
                       child: Column(
@@ -628,7 +670,6 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                       ),
                     ),
                     const SizedBox(width: 12),
-// Right: Title, Details + Count Badge at top-right
                     Expanded(
                       flex: 4,
                       child: Stack(
@@ -636,16 +677,10 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(height: 22,),
+                              const SizedBox(height: 22),
                               Text(
-                                property.propertyAddressForFieldworker ??
-                                    property.propertyNameAddress ??
-                                    property.place ??
-                                    'No Title',
-                                style: theme.textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: titleFontSize,
-                                ),
+                                property.propertyAddressForFieldworker ?? property.propertyNameAddress ?? property.place ?? 'No Title',
+                                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: titleFontSize),
                                 maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -666,32 +701,17 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                               ),
                             ],
                           ),
-// Count Badge - Top Right mein
                           Positioned(
                             top: 0,
                             right: 0,
                             child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 4, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                               decoration: BoxDecoration(
                                 color: cs.primary.withOpacity(0.95),
                                 borderRadius: BorderRadius.circular(14),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.4),
-                                    blurRadius: 6,
-                                    offset: const Offset(0, 3),
-                                  ),
-                                ],
+                                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 6, offset: const Offset(0, 3))],
                               ),
-                              child: Text(
-                                '$displayIndex',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              ),
+                              child: Text('$displayIndex', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12)),
                             ),
                           ),
                         ],
@@ -700,26 +720,17 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                   ],
                 ),
               ),
-// Missing fields warning
               if (hasMissingFields)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: cs.errorContainer,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: cs.error),
-                    ),
+                    decoration: BoxDecoration(color: cs.errorContainer, borderRadius: BorderRadius.circular(8), border: Border.all(color: cs.error)),
                     child: Text(
                       "⚠ Missing: ${missingFields.join(', ')}",
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: cs.error,
-                        fontWeight: FontWeight.w600,
-                        fontSize: detailFontSize,
-                      ),
+                      style: theme.textTheme.bodySmall?.copyWith(color: cs.error, fontWeight: FontWeight.w600, fontSize: detailFontSize),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -731,13 +742,31 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       ),
     );
   }
+
   Widget _buildSection(String name, String id, List<Catid> properties) {
-    if (properties.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(20),
-        child: Center(child: Text('No Properties Found', style: TextStyle(color: Colors.grey, fontSize: 16))),
+    final sortedProperties = List<Catid>.from(properties)..sort((a, b) => b.id.compareTo(a.id));
+
+    if (sortedProperties.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 30),
+              child: Center(
+                child: Text(
+                  "No future properties found for this field worker.",
+                  style: TextStyle(color: Colors.grey, fontSize: 15),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -755,21 +784,18 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
           ),
         ),
         SizedBox(
-          height: 400,
+          height: 420,
           child: ListView.builder(
             controller: _horizontalControllers[id],
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: properties.length,
+            itemCount: sortedProperties.length,
             itemBuilder: (context, i) {
-              final property = properties[i];
-              _cardKeys[property.id.toString()] = GlobalKey();
+              final property = sortedProperties[i];
+              _cardKeys[property.id.toString()] ??= GlobalKey();
               return SizedBox(
-                width: 330,
-                child: Container(
-                  key: _cardKeys[property.id.toString()],
-                  child: _buildCard(property, properties.length - i),
-                ),
+                width: 340,
+                child: _buildCard(property, sortedProperties.length - i),
               );
             },
           ),
@@ -777,8 +803,33 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       ],
     );
   }
+
   @override
   Widget build(BuildContext context) {
+    final loc = _location.toLowerCase();
+    final post = _post.toLowerCase();
+    final isAdmin = post == "administrator";
+
+    final List<Map<String, String>> workersToShow = isAdmin
+        ? fieldWorkers
+        : fieldWorkers.where((fw) {
+      final nameLower = fw['name']!.toLowerCase();
+      if (loc.contains("sultanpur")) {
+        return nameLower.contains("sumit") ||
+            nameLower.contains("ravi") ||
+            nameLower.contains("faizan");
+      }
+      if (loc.contains("rajpur") ||
+          loc.contains("chhattarpur") ||
+          loc.contains("chattar")) {
+        return nameLower.contains("manish") ||   // <-- Yahan "return" add kar do
+            nameLower.contains("abhay");
+      }
+      return false;
+    }).toList();
+
+    final bool hasAccess = workersToShow.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
@@ -786,26 +837,50 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
         elevation: 0,
         centerTitle: true,
         title: Image.asset(AppImages.transparent, height: 40),
-        leading: IconButton(icon: const Icon(PhosphorIcons.caret_left_bold), onPressed: () => Navigator.pop(context)),
+        leading: IconButton(
+          icon: const Icon(PhosphorIcons.caret_left_bold),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.blue))
           : RefreshIndicator(
         onRefresh: _fetchAndUpdateData,
-        child: ListView(
-          children: fieldWorkers.map((fw) {
-            final props = _groupedData[fw['name']] ?? [];
-            final loc = _location.toLowerCase();
-            final post = _post.toLowerCase();
-            bool show = post == "administrator" ||
-                (loc.contains("sultanpur") && ["sumit", "ravi", "faizan"].contains(fw['name']!.toLowerCase())) ||
-                ((loc.contains("rajpur") || loc.contains("chhattar")) && ["manish", "abhay"].contains(fw['name']!.toLowerCase()));
-            return show ? _buildSection(fw['name']!, fw['id']!, props) : const SizedBox.shrink();
+        child: hasAccess
+            ? ListView(
+          children: workersToShow.map((fw) {
+            final props = _groupedData[fw['id']] ?? [];
+            return _buildSection(fw['name']!, fw['id']!, props);
+
           }).toList(),
+        )
+            : ListView(
+          children: [
+            const SizedBox(height: 200),
+            Center(
+              child: Column(
+                children: [
+                  const Icon(Icons.warning, size: 60, color: Colors.orange),
+                  const SizedBox(height: 20),
+                  Text(
+                    "No access to any field worker data.",
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  Text(
+                    "Location: $_location\nPost: $_post\n\nContact Administrator.",
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+
   @override
   void dispose() {
     _horizontalControllers.values.forEach((c) => c.dispose());

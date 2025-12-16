@@ -72,7 +72,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
         item.showPrice?.toString(),
       ];
 
-      // Check if ANY field contains search text
       return values.any((v) => v != null && v.toLowerCase().contains(query));
     }).toList();
 
@@ -81,7 +80,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       propertyCount = filtered.length;
     });
   }
-
 
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
     final url = Uri.parse(
@@ -96,10 +94,8 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
     final decoded = json.decode(response.body);
 
-    // Most backends wrap results like { success: true, data: [...] }
     final raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
 
-    // Normalize to a List<Map<String,dynamic>>
     final List<Map<String, dynamic>> listResponse;
     if (raw is List) {
       listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
@@ -109,7 +105,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       listResponse = const [];
     }
 
-    // Sort by P_id desc, even if P_id comes as String sometimes
     int _asInt(dynamic v) =>
         v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
 
@@ -126,10 +121,10 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // fetch _number from SharedPreferences
+    _loaduserdata();
 
     _loaduserdata().then((_) {
-      _fetchInitialData(); // Call your API after loading user data
+      _fetchInitialData();
     });
   }
 
@@ -154,14 +149,11 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     }
   }
 
-
   Future<void> _fetchInitialData() async {
     setState(() => _isLoading = true);
     try {
-      final data = await fetchData(""); // Call your API
+      final data = await fetchData("");
       setState(() {
-        // _originalData = data;
-        // _filteredData = data;
         _isLoading = false;
       });
     } catch (e) {
@@ -170,34 +162,27 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     }
   }
 
-
-
-
   void _setSearchText(String label, String text) {
     setState(() {
       selectedLabel = label;
       _searchController.text = text;
       _searchController.selection = TextSelection.fromPosition(
         TextPosition(offset: _searchController.text.length),
-
       );
-      // propertyCount = _getMockPropertyCount(text); // Mock or real count
-
     });
 
     print("Search for: $text");
   }
-  bool get _isSearchActive {
-    return _searchController.text.trim().isNotEmpty || selectedLabel!="";
-  }
 
+  bool get _isSearchActive {
+    return _searchController.text.trim().isNotEmpty || selectedLabel != null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body:
-      _isLoading
-          ? Center(child: Image.asset(AppImages.loader,height: 50,))
+      body: _isLoading
+          ? Center(child: Image.asset(AppImages.loader, height: 50,))
           : Column(
         children: [
           Padding(
@@ -257,7 +242,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
-
                   Icon(Icons.check_circle_outline, color: Colors.green, size: 20),
                   const SizedBox(width: 6),
                   Text(
@@ -268,7 +252,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                       color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
-
                 ],
               ),
             ),
@@ -307,111 +290,49 @@ class _AllLiveProperty extends State<AllLiveProperty> {
                 itemCount: _filteredProperties.length,
                 itemBuilder: (context, index) {
                   final property = _filteredProperties[index];
-                  return StreamBuilder<http.Response>(
-                    stream: Stream.periodic(const Duration(seconds: 5))
-                        .asyncMap((_) => http.get(Uri.parse(
-                      "https://verifyserve.social/WebService4.asmx/Count_api_flat_under_future_property_by_cctv?CCTV=${_filteredProperties[index].pId??0}",
-                    ))),
-                    builder: (context, snapshot) {
-                      int cctvCount = 0;
-                      if (snapshot.hasData) {
-                        try {
-                          final body = jsonDecode(snapshot.data!.body);
-                          cctvCount = body is List && body.isNotEmpty ? (body[0]['logg'] as num?)?.toInt() ?? 0 : 0;
-                        } catch (_) {}
-                      }
 
-                      final Map<String, String?> fields = {
-                        "Images": property.propertyPhoto,
-                        "Owner Name": property.ownerName,
-                        "Owner Number": property.ownerNumber,
-                        "Caretaker Name": property.careTakerName,
-                        "Caretaker Number": property.careTakerNumber,
-                        "Place": property.locations,
-                        "Buy/Rent": property.buyRent,
-                        "Property Name/Address": property.apartmentAddress,
-                        "Property Address (Fieldworker)": property.fieldWorkerAddress,
-                        "Field Worker Name": property.fieldWorkerName,
-                        "Field Worker Number": property.fieldWorkerNumber,
-                        "Current Date": property.currentDates,
-                        "Longitude": property.longitude,
-                        "Latitude": property.latitude,
-                        "Road Size": property.roadSize,
-                        "Metro Distance": property.metroDistance,
-                        "Metro Name": property.highwayDistance,
-                        "Main Market Distance": property.mainMarketDistance,
-                        "Age of Property": property.ageOfProperty,
-                        "Lift": property.lift,
-                        "Parking": property.parking,
-                        "Total Floor": property.totalFloor,
-                        "Residence/Commercial": property.typeOfProperty,
-                        "Facility": property.facility,
-                        "Video": property.video,
-                      };
+                  final Map<String, String?> fields = {
+                    "Images": property.propertyPhoto,
+                    "Owner Name": property.ownerName,
+                    "Owner Number": property.ownerNumber,
+                    "Caretaker Name": property.careTakerName,
+                    "Caretaker Number": property.careTakerNumber,
+                    "Place": property.locations,
+                    "Buy/Rent": property.buyRent,
+                    "Property Name/Address": property.apartmentAddress,
+                    "Property Address (Fieldworker)": property.fieldWorkerAddress,
+                    "Field Worker Name": property.fieldWorkerName,
+                    "Field Worker Number": property.fieldWorkerNumber,
+                    "Current Date": property.currentDates,
+                    "Longitude": property.longitude,
+                    "Latitude": property.latitude,
+                    "Road Size": property.roadSize,
+                    "Metro Distance": property.metroDistance,
+                    "Metro Name": property.highwayDistance,
+                    "Main Market Distance": property.mainMarketDistance,
+                    "Age of Property": property.ageOfProperty,
+                    "Lift": property.lift,
+                    "Parking": property.parking,
+                    "Total Floor": property.totalFloor,
+                    "Residence/Commercial": property.typeOfProperty,
+                    "Facility": property.facility,
+                    "Video": property.video,
+                  };
 
-                      final missingFields = fields.entries
-                          .where((entry) => _blank(entry.value))
-                          .map((entry) => entry.key)
-                          .toList();
+                  final missingFields = fields.entries
+                      .where((entry) => _blank(entry.value))
+                      .map((entry) => entry.key)
+                      .toList();
 
-                      final hasMissingFields = missingFields.isNotEmpty;
+                  final hasMissingFields = missingFields.isNotEmpty;
 
-                      return _buildCard(property, cctvCount, missingFields, hasMissingFields, context);
-                    },
-                  );
+                  return _buildCard(property, missingFields, hasMissingFields, context);
                 },
               ),
             ),
           ),
         ],
       ),
-
-      // bottomNavigationBar: Padding(
-      //   padding: const EdgeInsets.only(bottom: 30,left: 8,right: 8),
-      //   child: Container(
-      //     decoration: BoxDecoration(
-      //       borderRadius: BorderRadius.circular(6),
-      //       boxShadow: [
-      //         BoxShadow(
-      //           color: Colors.black.withOpacity(0.2),
-      //           blurRadius: 10,
-      //           offset: const Offset(0, 5),
-      //         ),
-      //       ],
-      //       gradient: LinearGradient(
-      //         colors: [Colors.blueAccent, Colors.lightBlueAccent],
-      //         begin: Alignment.centerLeft,
-      //         end: Alignment.centerRight,
-      //       ),
-      //     ),
-      //     child: ElevatedButton.icon(
-      //       onPressed: () {
-      //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterProperty()));
-      //         // Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddPropertiesFirstPage()));
-      //       },
-      //       icon: const Icon(Icons.add, color: Colors.white),
-      //       label: const Text(
-      //         'Add Property',
-      //         style: TextStyle(
-      //           fontSize: 17,
-      //           fontFamily: "PoppinsBold",
-      //           fontWeight: FontWeight.w600,
-      //           letterSpacing: 0.5,
-      //           color: Colors.white,
-      //         ),
-      //       ),
-      //       style: ElevatedButton.styleFrom(
-      //         elevation: 0, // Shadow handled by container
-      //         backgroundColor: Colors.transparent,
-      //         shadowColor: Colors.transparent,
-      //         shape: RoundedRectangleBorder(
-      //           borderRadius: BorderRadius.circular(16),
-      //         ),
-      //         padding: const EdgeInsets.symmetric(vertical: 16),
-      //       ),
-      //     ),
-      //   ),
-      // ),
     );
   }
 
@@ -457,12 +378,35 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     required String? imageUrl,
     required ColorScheme cs,
     required ThemeData theme,
-    required int cctvCount,
+    required String? buyRent,
     required double imageHeight,
     required bool isTablet,
   }) {
-    final Color cctvColor = cctvCount > 0 ? Colors.green : Colors.red;
-    final String cctvLabel = cctvCount > 0 ? "CCTV: $cctvCount" : "CCTV: 0";
+    // Compute badge text and color
+    String badgeText = '';
+    Color badgeColor = Colors.grey;
+
+    if (buyRent != null && buyRent.trim().isNotEmpty) {
+      final lower = buyRent.toLowerCase().trim();
+      switch (lower) {
+        case 'rent':
+          badgeText = 'Rent';
+          badgeColor = Colors.green;
+          break;
+        case 'buy':
+        case 'sale':
+          badgeText = 'Buy';
+          badgeColor = Colors.blueAccent;
+          break;
+        case 'lease':
+          badgeText = 'Lease';
+          badgeColor = Colors.purple;
+          break;
+        default:
+          badgeText = buyRent.toUpperCase();
+          badgeColor = _getPropertyTypeColor(buyRent);
+      }
+    }
 
     Widget imageWidget;
     if (imageUrl == null || imageUrl.isEmpty) {
@@ -501,23 +445,28 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       );
     }
 
+    if (badgeText.isEmpty) {
+      return imageWidget;
+    }
+
     return Stack(
       children: [
         imageWidget,
         Positioned(
-          top: 4,
-          right: 4,
+          top: 8,
+          right: 8,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: cctvColor.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(10),
+              color: badgeColor.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              cctvLabel,
-              style: theme.textTheme.labelSmall?.copyWith(
+              badgeText,
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
           ),
@@ -526,7 +475,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     );
   }
 
-  Widget _buildCard(NewRealEstateShowDateModel property, int cctvCount, List<String> missingFields, bool hasMissingFields, BuildContext context) {
+  Widget _buildCard(NewRealEstateShowDateModel property, List<String> missingFields, bool hasMissingFields, BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final screenHeight = MediaQuery.of(context).size.height;
@@ -538,18 +487,17 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     final double cardPadding = (screenWidth * 0.02).clamp(6.0, 16.0);
     final double titleFontSize = isTablet ? 18 : 14;
     final double detailFontSize = isTablet ? 13 : 12;
-    final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0); // Increased image height
+    final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0);
 
     final Widget imageSection = _buildImageSection(
       imageUrl: property.propertyPhoto,
       cs: cs,
       theme: theme,
-      cctvCount: cctvCount,
+      buyRent: property.buyRent,
       imageHeight: imageH,
       isTablet: isTablet,
     );
 
-    // Live Property ID row to place below image
     final Widget livePropertyIdRow = _DetailRow(
       icon: Icons.numbers,
       label: 'Live Property ID',
@@ -560,12 +508,8 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontWeight: FontWeight.bold,
     );
 
-
-
-    // Other priority detail rows (excluding Live Property ID)
     final List<Widget> detailRows = [];
 
-    // Locations
     if ((property.locations ?? '').isNotEmpty) {
       detailRows.add(_DetailRow(
         icon: Icons.location_on,
@@ -577,7 +521,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
         fontWeight: FontWeight.bold,
       ));
     }
-    // Price
+
     detailRows.add(_DetailRow(
       icon: Icons.currency_rupee,
       label: '',
@@ -587,7 +531,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // BHK
+
     detailRows.add(_DetailRow(
       icon: Icons.king_bed,
       label: '',
@@ -597,7 +541,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // // Floor
+
     detailRows.add(_DetailRow(
       icon: Icons.layers,
       label: '',
@@ -607,7 +551,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // Flat (assuming typeOfProperty as flat type)
+
     detailRows.add(_DetailRow(
       icon: Icons.apartment,
       label: '',
@@ -617,7 +561,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // Flat No
+
     detailRows.add(_DetailRow(
       icon: Icons.format_list_numbered,
       label: 'Flat No',
@@ -627,7 +571,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // Building ID
+
     detailRows.add(_DetailRow(
       icon: Icons.numbers,
       label: 'Building ID',
@@ -637,7 +581,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // Building Flat ID
+
     detailRows.add(_DetailRow(
       icon: Icons.numbers,
       label: 'Building Flat ID',
@@ -647,7 +591,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     ));
-    // Added by Name
+
     detailRows.add(_DetailRow(
       icon: Icons.person,
       label: 'Added By',
@@ -662,8 +606,8 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         imageSection,
-        SizedBox(height: isTablet ? 8 : 6), // Reduced spacing for ID below image
-        livePropertyIdRow, // Live Property ID below image
+        SizedBox(height: isTablet ? 8 : 6),
+        livePropertyIdRow,
         SizedBox(height: isTablet ? 12 : 8),
       ],
     );
@@ -683,7 +627,6 @@ class _AllLiveProperty extends State<AllLiveProperty> {
             overflow: TextOverflow.ellipsis,
           ),
           SizedBox(height: isTablet ? 12 : 8),
-          // Render other detail rows
           ...detailRows,
           const Spacer(),
         ],
@@ -860,14 +803,13 @@ Widget _buildFeatureItem({
   required BuildContext context,
   required String text,
   required Color borderColor,
-  IconData? icon, // 👈 optional now
+  IconData? icon,
   Color? backgroundColor,
   Color? textColor,
   Color? shadowColor,
 }) {
   final width = MediaQuery.of(context).size.width;
 
-  // Scale text, padding, and icon size relative to screen width
   double fontSize = width < 350 ? 10 : (width < 500 ? 12 : 14);
   double horizontalPadding = width < 350 ? 8 : (width < 500 ? 12 : 14);
   double verticalPadding = width < 350 ? 6 : (width < 500 ? 8 : 12);
@@ -895,7 +837,7 @@ Widget _buildFeatureItem({
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (icon != null) ...[ // 👈 only shows if passed
+        if (icon != null) ...[
           Icon(
             icon,
             size: iconSize,

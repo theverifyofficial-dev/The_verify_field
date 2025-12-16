@@ -933,7 +933,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildTwoFieldRow(
+               // _buildTwoFieldRow(
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -982,56 +982,56 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           : null,
                     ),
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child:
-                    DropdownButtonFormField<String>(
-                      value: _typeofproperty,
-                      decoration: InputDecoration(
-                        labelText: 'Type of Property',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.home_work_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: name
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _typeofproperty = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Please select type of property'
-                          : null,
-                    ),
-                  ),
-                ),
+                  // Container(
+                  //   decoration: BoxDecoration(
+                  //     borderRadius: BorderRadius.circular(12),
+                  //     border: Border.all(
+                  //         color: Colors.grey.withOpacity(0.2)),
+                  //   ),
+                  //   child:
+                  //   DropdownButtonFormField<String>(
+                  //     value: _typeofproperty,
+                  //     decoration: InputDecoration(
+                  //       labelText: 'Type of Property',
+                  //       labelStyle:
+                  //       TextStyle(color: secondaryTextColor),
+                  //       border: InputBorder.none,
+                  //       contentPadding:
+                  //       const EdgeInsets.symmetric(
+                  //           horizontal: 16, vertical: 16),
+                  //       prefixIcon: Icon(Icons.home_work_rounded,
+                  //           color: primaryColor),
+                  //       filled: true,
+                  //       fillColor: isDarkMode
+                  //           ? Colors.grey[850]
+                  //           : Colors.white,
+                  //     ),
+                  //     dropdownColor: isDarkMode
+                  //         ? Colors.grey[850]
+                  //         : Colors.white,
+                  //     style: TextStyle(
+                  //         color: textColor,
+                  //         fontWeight: FontWeight.w500),
+                  //     items: name
+                  //         .map((String value) =>
+                  //         DropdownMenuItem<String>(
+                  //             value: value,
+                  //             child: Text(value,
+                  //                 style: TextStyle(
+                  //                     color: textColor))))
+                  //         .toList(),
+                  //     onChanged: (String? newValue) {
+                  //       setState(() {
+                  //         _typeofproperty = newValue;
+                  //       });
+                  //     },
+                  //     validator: (value) =>
+                  //     (value == null || value.isEmpty)
+                  //         ? 'Please select type of property'
+                  //         : null,
+                  //   ),
+                  // ),
+               // ),
               ],
             ),
           ),
@@ -1149,23 +1149,23 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       : null,
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _Building_information,
-                  style: TextStyle(
-                      color: textColor, fontWeight: FontWeight.w500),
-                  decoration: _buildInputDecoration(
-                    label: 'Building Information',
-                    icon: Icons.info_outline_rounded,
-                    textColor: textColor,
-                    secondaryTextColor: secondaryTextColor,
-                    isDarkMode: isDarkMode,
-                  ),
-                  maxLines: 3,
-                  validator: (value) =>
-                  (value == null || value.trim().isEmpty)
-                      ? 'Please enter building information'
-                      : null,
-                ),
+                // TextFormField(
+                //   controller: _Building_information,
+                //   style: TextStyle(
+                //       color: textColor, fontWeight: FontWeight.w500),
+                //   decoration: _buildInputDecoration(
+                //     label: 'Building Information',
+                //     icon: Icons.info_outline_rounded,
+                //     textColor: textColor,
+                //     secondaryTextColor: secondaryTextColor,
+                //     isDarkMode: isDarkMode,
+                //   ),
+                //   maxLines: 3,
+                //   validator: (value) =>
+                //   (value == null || value.trim().isEmpty)
+                //       ? 'Please enter building information'
+                //       : null,
+                // ),
                 const SizedBox(height: 12),
                 _buildFacilityField(
                     isDarkMode, textColor, secondaryTextColor),

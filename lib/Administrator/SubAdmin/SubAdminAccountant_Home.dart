@@ -174,35 +174,39 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
         leadingWidth: 80,
         // Fixed width for consistent spacing
         actions:  [
-          IconButton(
-            icon: Icon(
-                ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
-                    ? Icons.light_mode
-                    : Icons.dark_mode,
-                color: Colors.yellow
-
-            ),
-            onPressed: () {
-              ThemeSwitcher.of(context)?.toggleTheme();
-            },
-          ),
-          SizedBox(width: 5,),
+          // IconButton(
+          //   icon: Icon(
+          //       ThemeSwitcher.of(context)?.themeMode == ThemeMode.dark
+          //           ? Icons.light_mode
+          //           : Icons.dark_mode,
+          //       color: Colors.yellow
+          //
+          //   ),
+          //   onPressed: () {
+          //     ThemeSwitcher.of(context)?.toggleTheme();
+          //   },
+          // ),
+         //SizedBox(width: 5,),
           GestureDetector(
             onTap: () {
-              Navigator.of(context).push(MaterialPageRoute(builder: (context)=> LinksPage()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => LinksPage()),
+              );
             },
             child: Column(
-              children: [
-                SizedBox(height: 10,),
-                Row(
-                  children: [
-                    const Text('🌐'),
-                  ],
-                ),
-                const Text('Web'),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
+                Text('🌐'),
+                Text('Web',
+                    style:
+                    TextStyle(
+                        color: Colors.white,
+                        fontSize: 12)),
               ],
             ),
           ),
+          //const SizedBox(width: 12),
           const SizedBox(
             width: 10,
           ),
@@ -359,7 +363,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: 4,
+                            itemCount: 3,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -403,14 +407,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   },
                                 },
 
-                                {
-                                  'image': AppImages.demand_2,
-                                  'title': "Costumer Demands 2.O",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (
-                                              context) =>  ShowTenantDemandPage())),
-                                },
+                                // {
+                                //   'image': AppImages.demand_2,
+                                //   'title': "Costumer Demands 2.O",
+                                //   'onTap': () =>
+                                //       Navigator.push(context, MaterialPageRoute(
+                                //           builder: (
+                                //               context) =>  ShowTenantDemandPage())),
+                                // },
                                 {
                                   "image": AppImages.realestatefeild,
                                   "title": "Upcoming\n Property",

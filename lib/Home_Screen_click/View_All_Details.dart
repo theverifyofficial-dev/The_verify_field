@@ -1714,8 +1714,8 @@ class _View_DetailsState extends State<View_Details> {
     rows.add(_buildInfoRow(
       Icons.square_foot,
       Colors.teal,
-      "Sq. Ft.",
-      safeValue(prop.squarefit),
+      "Square Feet",
+      safeValue(prop.squarefit,),
       isSmallScreen,
       isDarkMode,
     ));
@@ -1786,7 +1786,7 @@ class _View_DetailsState extends State<View_Details> {
     rows.add(_buildInfoRow(
       Icons.domain,
       Colors.amber,
-      "Residence / Commercial",
+      "Resi /Comm",
       safeValue(prop.residenceCommercial),
       isSmallScreen,
       isDarkMode,

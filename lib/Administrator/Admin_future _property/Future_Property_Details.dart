@@ -1342,6 +1342,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       {"icon": Icons.shopping_cart, "label": "Market Distance", "value": property.mainMarketDistance},
       {"icon": Icons.elevator, "label": "Lift", "value": property.lift},
       {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
+      {"icon": Icons.local_parking, "label": "", "value": property.localityList},
     ].where((spec) => (spec["value"] as String).isNotEmpty).toList();
     if (specifications.isEmpty) {
       return Container(

@@ -135,8 +135,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   DateTime uploadDate = DateTime.now();
   final dateFormatter = DateFormat('yyyy-MM-dd');
 
-
-
   Future<XFile?> pickAndCompressImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -156,6 +154,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
 
     return result;
   }
+
   String getFurnishingStringForApi() {
     if (_furnishing == null || _furnishing == 'Unfurnished') {
       return 'Unfurnished';
@@ -327,8 +326,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
         .join(', ');
   }
 
-
-
   Map<String, int> _selectedFurniture = {};
   final List<String> furnishingOptions = [
     'Fully Furnished',
@@ -343,7 +340,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
       'Sofa Set', 'Dining Table', 'Induction', 'Gas Stove','',
     ];
 
-    // 👇 clone current selection so it shows already selected items ticked
     Map<String, int> tempSelection = Map.from(_selectedFurniture);
 
     showModalBottomSheet(
@@ -715,7 +711,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   final TextEditingController _Longitude = TextEditingController();
   final TextEditingController _Latitude = TextEditingController();
   final TextEditingController full_address = TextEditingController();
-  String? _houseMeter; // selected dropdown value
+  String? _houseMeter;
 
   Widget _buildSectionCard({required String title, required Widget child}) {
     return Container(
@@ -739,7 +735,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
       ),
     );
   }
-
 
   String? _furnished;
 
@@ -770,6 +765,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
       });
     }
   }
+
   Future<void> _refreshPage() async {
     await autofillFormFields(); // re-fetch API
   }
@@ -801,7 +797,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
               ],
             ),
           ),
-
         ),
         body: RefreshIndicator(
           color: Colors.blue,
@@ -913,7 +908,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                         ),
                       ),
                     ),
-
 
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1406,6 +1400,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                       ],
                     ),
                     SizedBox(height: 10),
+
                     GestureDetector(
                       onTap: _isLoading
                           ? null

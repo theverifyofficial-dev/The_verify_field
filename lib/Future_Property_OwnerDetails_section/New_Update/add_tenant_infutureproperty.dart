@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
-import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import 'package:http/http.dart' as http;
 import '../../ui_decoration_tools/app_images.dart';
+import 'under_flats_infutureproperty.dart';
 
 class AddTenantUnderFutureProperty extends StatefulWidget {
   final String id;
@@ -24,6 +24,10 @@ class AddTenantUnderFutureProperty extends StatefulWidget {
 class _AddTenantUnderFuturePropertyState
     extends State<AddTenantUnderFutureProperty> {
   bool _isLoading = false;
+  String? _selectedPaymentMode;
+  String? _selectedPropertyType;
+
+  final _formKey = GlobalKey<FormState>();
 
   final TextEditingController _tenantName = TextEditingController();
   final TextEditingController _tenantPhone = TextEditingController();
@@ -34,7 +38,9 @@ class _AddTenantUnderFuturePropertyState
   final TextEditingController _tenantVehicle = TextEditingController();
   final TextEditingController _workProfile = TextEditingController();
 
-  final _formKey = GlobalKey<FormState>();
+  // 🔥 NEW API FIELDS
+  final TextEditingController _bhk = TextEditingController();
+
 
   Future<void> uploadTenant() async {
     setState(() => _isLoading = true);
@@ -44,9 +50,8 @@ class _AddTenantUnderFuturePropertyState
     );
 
     try {
-      var request = http.MultipartRequest('POST', url);
+      final request = http.MultipartRequest('POST', url);
 
-      // ✅ Fields
       request.fields.addAll({
         "tenant_name": _tenantName.text.trim(),
         "tenant_phone_number": _tenantPhone.text.trim(),
@@ -56,21 +61,21 @@ class _AddTenantUnderFuturePropertyState
         "email": _email.text.trim(),
         "tenant_vichal_details": _tenantVehicle.text.trim(),
         "work_profile": _workProfile.text.trim(),
-        "bhk": "",
-        "type_of_property": "",
+        "bhk": _bhk.text.trim(),
+        "type_of_property": _selectedPropertyType ?? "",
+        "payment_mode": _selectedPaymentMode ?? "",
         "sub_id": widget.id,
       });
 
-      // 🔥 Send request
-      final streamedResponse = await request.send();
-      final response = await http.Response.fromStream(streamedResponse);
+      final streamed = await request.send();
+      final response = await http.Response.fromStream(streamed);
 
       if (response.statusCode == 200) {
         if (!mounted) return;
 
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => underflat_futureproperty(
+            builder: (_) => underflat_futureproperty(
               Subid: widget.subId,
               id: widget.id,
             ),
@@ -78,37 +83,30 @@ class _AddTenantUnderFuturePropertyState
               (route) => route.isFirst,
         );
 
-
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload successful')),
+          const SnackBar(content: Text("Tenant added successfully")),
         );
       } else {
-        print(response.body);
+        debugPrint(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Upload failed (${response.statusCode})',
-            ),
-          ),
+          SnackBar(content: Text("Upload failed (${response.statusCode})")),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred: $e')),
+        SnackBar(content: Text("Error: $e")),
       );
     }
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-    }
+    if (mounted) setState(() => _isLoading = false);
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
-        surfaceTintColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: IconButton(
           icon: const Icon(PhosphorIcons.caret_left_bold,
@@ -122,111 +120,62 @@ class _AddTenantUnderFuturePropertyState
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                Text("Add Tenant",style: TextStyle(color: Colors.white,fontSize: 25,fontFamily: "Poppins",fontWeight: FontWeight.bold),)
-                ],
-              ),
-              SizedBox(height: 5,),
-              _buildTextInput('Tenant Name', _tenantName,),
-
-              _buildSectionCard(
-                title: "Phone Number",
-                child: TextFormField(
-                  controller: _tenantPhone,
-                  keyboardType: TextInputType.number,
-                  maxLength: 10, // ✅ Limit to 10 digits
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  decoration: InputDecoration(
-                    hintText: "Enter Phone Number",
-                    counterText: "", // ✅ hides length counter
-                    border: const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                    filled: true,
-                    errorStyle: const TextStyle(
-                        color: Colors.redAccent,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Please enter Phone Number';
-                    }
-                    if (value.length != 10) {
-                      return 'Phone number must be 10 digits';
-                    }
-                    return null;
-                  },
+              const Text(
+                "Add Tenant",
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: "Poppins",
+                  color: Colors.white,
                 ),
               ),
+              const SizedBox(height: 10),
 
+              _buildTextInput("Tenant Name", _tenantName),
 
+              _buildPhoneInput(),
 
               Row(
                 children: [
-                  Expanded(child: _buildTextInput('Rent Amount', _flatRent,),),
+                  Expanded(child: _buildTextInput("Rent Amount", _flatRent)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildDatePicker()),
+                ],
+              ),
+
+              Row(
+                children: [
+                  Expanded(child: _buildTextInput("Family Members", _members)),
+                  const SizedBox(width: 12),
+                  Expanded(child: _buildTextInput("Email", _email)),
+                ],
+              ),
+
+              Row(
+                children: [
+                  Expanded(
+                      child:
+                      _buildTextInput("Vehicle Details", _tenantVehicle)),
                   const SizedBox(width: 12),
                   Expanded(
-                      child:    _buildSectionCard(
-                        title: "Shifting Date",
-                        child: TextFormField(
-                          controller: _shiftingDate,
-                          readOnly: true,
-                          decoration: InputDecoration(
-                            hintText: "Pick a date",
-                            border: const OutlineInputBorder(
-                              borderRadius: BorderRadius.all(Radius.circular(10)),
-                            ),
-                            filled: true,
-                            errorStyle: const TextStyle(
-                                color: Colors.redAccent,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Please select Shifting Date';
-                            }
-                            return null;
-                          },
-                          onTap: () async {
-                            DateTime? picked = await showDatePicker(
-                              context: context,
-                              initialDate: DateTime.now(),
-                              firstDate: DateTime(2010),
-                              lastDate: DateTime(2101),
-                            );
-                            if (picked != null) {
-                              setState(() {
-                                _shiftingDate.text = DateFormat('dd/MM/yyyy').format(picked);
-                              });
-                            }
-                          },
-                        ),
-                      ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(child: _buildTextInput('Family Members', _members,),),
-                  const SizedBox(width: 12),
-                  Expanded(child: _buildTextInput('Email', _email,),),
+                      child: _buildTextInput("Work Profile", _workProfile)),
                 ],
               ),
 
               Row(
                 children: [
-                  Expanded(child: _buildTextInput('Vehicle Details', _tenantVehicle,)),
+                  Expanded(child: _buildPropertyTypeDropdown()),
                   const SizedBox(width: 12),
-                  Expanded(child: _buildTextInput('Work Profile', _workProfile,)),
+                  Expanded(child: _buildPaymentModeDropdown()),
                 ],
               ),
+
+            _buildTextInput("BHK", _bhk),
+
 
 
               const SizedBox(height: 20),
+
               SizedBox(
                 width: double.infinity,
                 height: 50,
@@ -238,7 +187,6 @@ class _AddTenantUnderFuturePropertyState
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
-                      setState(() => _isLoading = true);
                       uploadTenant();
                     }
                   },
@@ -260,78 +208,159 @@ class _AddTenantUnderFuturePropertyState
     );
   }
 
-  Widget _buildSectionCard({required String title, required Widget child}) {
-    return Container(
-      width: double.infinity, // 🔥 Forces full width
-      child: Card(
-        elevation: 6,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        margin: const EdgeInsets.only(bottom: 20),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: _sectionTitleStyle()),
-              const SizedBox(height: 10),
-              child,
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-
-  Widget _buildTextInput(String label, TextEditingController controller, {IconData? icon, TextInputType? keyboardType}) {
+  Widget _buildPhoneInput() {
     return _buildSectionCard(
-      title: label,
+      title: "Phone Number",
       child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType, // <--- Add this line
-        // style: const TextStyle(color: Colors.black),
-        decoration: InputDecoration(
-          hintText: 'Enter $label',
-          hintStyle: const TextStyle(color: Colors.grey),
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-          border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(10))),
+        controller: _tenantPhone,
+        keyboardType: TextInputType.number,
+        maxLength: 10,
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: const InputDecoration(
+          hintText: "Enter Phone Number",
+          counterText: "",
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
           filled: true,
-          // ✅ Error text style (deep red)
-          errorStyle: const TextStyle(
-            color: Colors.redAccent, // deeper red text
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-          ),
-
-          // ✅ Error border (deep red)
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent, // deep red border
-              width: 2,
-            ),
-          ),
-
-          // ✅ Focused border when still error
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent, // deep red border when focused
-              width: 2,
-            ),
-            // fillColor: Colors.grey.shade100,
-          ),
         ),
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Please enter $label';
-          }
+        validator: (v) {
+          if (v == null || v.isEmpty) return "Enter phone number";
+          if (v.length != 10) return "Phone must be 10 digits";
           return null;
         },
       ),
     );
   }
-  TextStyle _sectionTitleStyle() {
-    return const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, fontFamily: 'Poppins');
+
+  Widget _buildDatePicker() {
+    return _buildSectionCard(
+      title: "Shifting Date",
+      child: TextFormField(
+        controller: _shiftingDate,
+        readOnly: true,
+        decoration: const InputDecoration(
+          hintText: "Pick a date",
+          border: OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          filled: true,
+        ),
+        validator: (v) =>
+        v == null || v.isEmpty ? "Select shifting date" : null,
+        onTap: () async {
+          final picked = await showDatePicker(
+            context: context,
+            initialDate: DateTime.now(),
+            firstDate: DateTime(2010),
+            lastDate: DateTime(2101),
+          );
+          if (picked != null) {
+            _shiftingDate.text = DateFormat('dd/MM/yyyy').format(picked);
+          }
+        },
+      ),
+    );
   }
+
+  Widget _buildTextInput(String label, TextEditingController controller) {
+    return _buildSectionCard(
+      title: label,
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          hintText: "Enter $label",
+          border: const OutlineInputBorder(
+              borderRadius: BorderRadius.all(Radius.circular(10))),
+          filled: true,
+        ),
+        validator: (v) =>
+        v == null || v.trim().isEmpty ? "Enter $label" : null,
+      ),
+    );
+  }
+
+  Widget _buildSectionCard({required String title, required Widget child}) {
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 20),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title,
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontFamily: "Poppins")),
+            const SizedBox(height: 10),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPropertyTypeDropdown() {
+    return _buildSectionCard(
+      title: "Type of Property",
+      child: DropdownButtonFormField<String>(
+        value: _selectedPropertyType,
+        isExpanded: true, // ✅ FIX 1
+        isDense: true,    // ✅ FIX 2
+        items: const [
+          DropdownMenuItem(value: "Residential", child: Text("Residential")),
+          DropdownMenuItem(value: "Commercial", child: Text("Commercial")),
+        ],
+        decoration: const InputDecoration(
+          filled: true,
+          contentPadding: EdgeInsets.symmetric( // ✅ FIX 3
+            horizontal: 12,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+        ),
+        onChanged: (value) {
+          setState(() => _selectedPropertyType = value);
+        },
+        validator: (value) =>
+        value == null ? "Select property type" : null,
+      ),
+    );
+  }
+
+
+  Widget _buildPaymentModeDropdown() {
+    return _buildSectionCard(
+      title: "Payment Mode",
+      child: DropdownButtonFormField<String>(
+        value: _selectedPaymentMode,
+        isExpanded: true, // ✅ FIX 1
+        isDense: true,    // ✅ FIX 2
+        items: const [
+          DropdownMenuItem(value: "Cash", child: Text("Cash")),
+          DropdownMenuItem(value: "UPI", child: Text("UPI")),
+          DropdownMenuItem(value: "Bank Transfer", child: Text("Bank Transfer")),
+          DropdownMenuItem(value: "Cheque", child: Text("Cheque")),
+        ],
+        decoration: const InputDecoration(
+          filled: true,
+          contentPadding: EdgeInsets.symmetric( // ✅ FIX 3
+            horizontal: 12,
+            vertical: 14,
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
+          ),
+        ),
+        onChanged: (value) {
+          setState(() => _selectedPaymentMode = value);
+        },
+        validator: (value) =>
+        value == null ? "Select payment mode" : null,
+      ),
+    );
+  }
+
 }

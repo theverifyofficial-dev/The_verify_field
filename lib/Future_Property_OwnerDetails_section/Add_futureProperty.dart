@@ -23,6 +23,7 @@ import 'metro_api.dart';
 class Add_FutureProperty extends StatefulWidget {
   const Add_FutureProperty({super.key});
 
+
   @override
   State<Add_FutureProperty> createState() => _Add_FuturePropertyState();
 }
@@ -260,10 +261,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
-     // MapEntry("typeofproperty", _typeofproperty ?? ''),
+      // MapEntry("typeofproperty", _typeofproperty ?? ''),
       // MapEntry("typeofproperty", _typeofproperty ?? ''),
       MapEntry("propertyname_address", _address.text),
-     // MapEntry("building_information_facilitys", _Building_information.text),
+      // MapEntry("building_information_facilitys", _Building_information.text),
       // MapEntry("building_information_facilitys", _Building_information.text),
       MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
       MapEntry("owner_vehical_number", _vehicleno.text),
@@ -939,156 +940,156 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
-               // _buildTwoFieldRow(
-                  Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: Colors.grey.withOpacity(0.2)),
-                    ),
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedPropertyType,
-                      decoration: InputDecoration(
-                        labelText: 'Property Type',
-                        labelStyle:
-                        TextStyle(color: secondaryTextColor),
-                        border: InputBorder.none,
-                        contentPadding:
-                        const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 16),
-                        prefixIcon: Icon(Icons.category_rounded,
-                            color: primaryColor),
-                        filled: true,
-                        fillColor: isDarkMode
-                            ? Colors.grey[850]
-                            : Colors.white,
-                      ),
-                      dropdownColor: isDarkMode
+                // _buildTwoFieldRow(
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: Colors.grey.withOpacity(0.2)),
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: _selectedPropertyType,
+                    decoration: InputDecoration(
+                      labelText: 'Property Type',
+                      labelStyle:
+                      TextStyle(color: secondaryTextColor),
+                      border: InputBorder.none,
+                      contentPadding:
+                      const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 16),
+                      prefixIcon: Icon(Icons.category_rounded,
+                          color: primaryColor),
+                      filled: true,
+                      fillColor: isDarkMode
                           ? Colors.grey[850]
                           : Colors.white,
-                      style: TextStyle(
-                          color: textColor,
-                          fontWeight: FontWeight.w500),
-                      items: propertyTypes
-                          .map((String value) =>
-                          DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value,
-                                  style: TextStyle(
-                                      color: textColor))))
-                          .toList(),
-                      onChanged: (String? newValue) {
-                        setState(() {
-                          _selectedPropertyType = newValue;
-                        });
-                      },
-                      validator: (value) =>
-                      (value == null || value.isEmpty)
-                          ? 'Select Property Type'
-                          : null,
                     ),
+                    dropdownColor: isDarkMode
+                        ? Colors.grey[850]
+                        : Colors.white,
+                    style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.w500),
+                    items: propertyTypes
+                        .map((String value) =>
+                        DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value,
+                                style: TextStyle(
+                                    color: textColor))))
+                        .toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedPropertyType = newValue;
+                      });
+                    },
+                    validator: (value) =>
+                    (value == null || value.isEmpty)
+                        ? 'Select Property Type'
+                        : null,
                   ),
+                ),
 
-                  // Container(
-                  //   decoration: BoxDecoration(
-                  //     borderRadius: BorderRadius.circular(12),
-                  //     border: Border.all(
-                  //         color: Colors.grey.withOpacity(0.2)),
-                  //   ),
-                  //   child:
-                  //   DropdownButtonFormField<String>(
-                  //     // value: _typeofproperty,
-                  //     decoration: InputDecoration(
-                  //       labelText: 'Type of Property',
-                  //       labelStyle:
-                  //       TextStyle(color: secondaryTextColor),
-                  //       border: InputBorder.none,
-                  //       contentPadding:
-                  //       const EdgeInsets.symmetric(
-                  //           horizontal: 16, vertical: 16),
-                  //       prefixIcon: Icon(Icons.home_work_rounded,
-                  //           color: primaryColor),
-                  //       filled: true,
-                  //       fillColor: isDarkMode
-                  //           ? Colors.grey[850]
-                  //           : Colors.white,
-                  //     ),
-                  //     dropdownColor: isDarkMode
-                  //         ? Colors.grey[850]
-                  //         : Colors.white,
-                  //     style: TextStyle(
-                  //         color: textColor,
-                  //         fontWeight: FontWeight.w500),
-                  //     items: name
-                  //         .map((String value) =>
-                  //         DropdownMenuItem<String>(
-                  //             value: value,
-                  //             child: Text(value,
-                  //                 style: TextStyle(
-                  //                     color: textColor))))
-                  //         .toList(),
-                  //     onChanged: (String? newValue) {
-                  //       setState(() {
-                  //         // _typeofproperty = newValue;
-                  //       });
-                  //     },
-                  //     validator: (value) =>
-                  //     (value == null || value.isEmpty)
-                  //         ? 'Please select type of property'
-                  //         : null,
-                  //   ),
-                  // ),
+                // Container(
+                //   decoration: BoxDecoration(
+                //     borderRadius: BorderRadius.circular(12),
+                //     border: Border.all(
+                //         color: Colors.grey.withOpacity(0.2)),
+                //   ),
+                //   child:
+                //   DropdownButtonFormField<String>(
+                //     // value: _typeofproperty,
+                //     decoration: InputDecoration(
+                //       labelText: 'Type of Property',
+                //       labelStyle:
+                //       TextStyle(color: secondaryTextColor),
+                //       border: InputBorder.none,
+                //       contentPadding:
+                //       const EdgeInsets.symmetric(
+                //           horizontal: 16, vertical: 16),
+                //       prefixIcon: Icon(Icons.home_work_rounded,
+                //           color: primaryColor),
+                //       filled: true,
+                //       fillColor: isDarkMode
+                //           ? Colors.grey[850]
+                //           : Colors.white,
+                //     ),
+                //     dropdownColor: isDarkMode
+                //         ? Colors.grey[850]
+                //         : Colors.white,
+                //     style: TextStyle(
+                //         color: textColor,
+                //         fontWeight: FontWeight.w500),
+                //     items: name
+                //         .map((String value) =>
+                //         DropdownMenuItem<String>(
+                //             value: value,
+                //             child: Text(value,
+                //                 style: TextStyle(
+                //                     color: textColor))))
+                //         .toList(),
+                //     onChanged: (String? newValue) {
+                //       setState(() {
+                //         // _typeofproperty = newValue;
+                //       });
+                //     },
+                //     validator: (value) =>
+                //     (value == null || value.isEmpty)
+                //         ? 'Please select type of property'
+                //         : null,
+                //   ),
+                // ),
                 //),
-                  // Container(
-                  //   decoration: BoxDecoration(
-                  //     borderRadius: BorderRadius.circular(12),
-                  //     border: Border.all(
-                  //         color: Colors.grey.withOpacity(0.2)),
-                  //   ),
-                  //   child:
-                  //   DropdownButtonFormField<String>(
-                  //     value: _typeofproperty,
-                  //     decoration: InputDecoration(
-                  //       labelText: 'Type of Property',
-                  //       labelStyle:
-                  //       TextStyle(color: secondaryTextColor),
-                  //       border: InputBorder.none,
-                  //       contentPadding:
-                  //       const EdgeInsets.symmetric(
-                  //           horizontal: 16, vertical: 16),
-                  //       prefixIcon: Icon(Icons.home_work_rounded,
-                  //           color: primaryColor),
-                  //       filled: true,
-                  //       fillColor: isDarkMode
-                  //           ? Colors.grey[850]
-                  //           : Colors.white,
-                  //     ),
-                  //     dropdownColor: isDarkMode
-                  //         ? Colors.grey[850]
-                  //         : Colors.white,
-                  //     style: TextStyle(
-                  //         color: textColor,
-                  //         fontWeight: FontWeight.w500),
-                  //     items: name
-                  //         .map((String value) =>
-                  //         DropdownMenuItem<String>(
-                  //             value: value,
-                  //             child: Text(value,
-                  //                 style: TextStyle(
-                  //                     color: textColor))))
-                  //         .toList(),
-                  //     onChanged: (String? newValue) {
-                  //       setState(() {
-                  //         _typeofproperty = newValue;
-                  //       });
-                  //     },
-                  //     validator: (value) =>
-                  //     (value == null || value.isEmpty)
-                  //         ? 'Please select type of property'
-                  //         : null,
-                  //   ),
-                  // ),
-               // ),
+                // Container(
+                //   decoration: BoxDecoration(
+                //     borderRadius: BorderRadius.circular(12),
+                //     border: Border.all(
+                //         color: Colors.grey.withOpacity(0.2)),
+                //   ),
+                //   child:
+                //   DropdownButtonFormField<String>(
+                //     value: _typeofproperty,
+                //     decoration: InputDecoration(
+                //       labelText: 'Type of Property',
+                //       labelStyle:
+                //       TextStyle(color: secondaryTextColor),
+                //       border: InputBorder.none,
+                //       contentPadding:
+                //       const EdgeInsets.symmetric(
+                //           horizontal: 16, vertical: 16),
+                //       prefixIcon: Icon(Icons.home_work_rounded,
+                //           color: primaryColor),
+                //       filled: true,
+                //       fillColor: isDarkMode
+                //           ? Colors.grey[850]
+                //           : Colors.white,
+                //     ),
+                //     dropdownColor: isDarkMode
+                //         ? Colors.grey[850]
+                //         : Colors.white,
+                //     style: TextStyle(
+                //         color: textColor,
+                //         fontWeight: FontWeight.w500),
+                //     items: name
+                //         .map((String value) =>
+                //         DropdownMenuItem<String>(
+                //             value: value,
+                //             child: Text(value,
+                //                 style: TextStyle(
+                //                     color: textColor))))
+                //         .toList(),
+                //     onChanged: (String? newValue) {
+                //       setState(() {
+                //         _typeofproperty = newValue;
+                //       });
+                //     },
+                //     validator: (value) =>
+                //     (value == null || value.isEmpty)
+                //         ? 'Please select type of property'
+                //         : null,
+                //   ),
+                // ),
+                // ),
               ],
             ),
           ),
@@ -1137,6 +1138,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     isDarkMode: isDarkMode,
                   ),
                   keyboardType: TextInputType.phone,
+                  maxLength: 10,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -1164,6 +1166,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     isDarkMode: isDarkMode,
                   ),
                   keyboardType: TextInputType.phone,
+                  maxLength: 10,
                 ),
               ],
             ),
@@ -1368,21 +1371,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                       showMetroLocalityPicker(context, (metro, localities) {
                         setState(() {
                           metroController.text = metro;
-                          final existing = localityController.text
-                          .split(',')
-                          .map((e) => e.trim())
-                          .where((e) => e.isNotEmpty)
-                          .toList();
-
-                      for (final loc in localities) {
-                      if (!existing.any(
-                      (e) => e.toLowerCase() == loc.toLowerCase())) {
-                      existing.add(loc);
-                      }
-                      }
-
-                      localityController.text = existing.join(', ');
-
+                          localityController.text =
+                              localities.join(", ");
                         });
                       });
                     },
@@ -1604,12 +1594,13 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: localityController,
+                  readOnly: true,
                   maxLines: 2,
                   decoration: InputDecoration(
-    hintText: "Type or select localities",
-    hintStyle: TextStyle(color: secondaryTextColor),
-
-    border: OutlineInputBorder(
+                    hintText: "Selected Localities",
+                    hintStyle:
+                    TextStyle(color: secondaryTextColor),
+                    border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     filled: true,
@@ -1618,15 +1609,6 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                         : Colors.white,
                   ),
                   style: TextStyle(color: textColor),
-                  onChanged: (_) {
-                    setState(() {}); // 🔥 refresh chips live
-                  },
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return "Please enter at least one locality";
-                    }
-                    return null;
-                  },
                 ),
                 const SizedBox(height: 8),
                 if (localityController.text.trim().isNotEmpty)
@@ -1635,41 +1617,25 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     runSpacing: 6,
                     children: localityController.text
                         .split(",")
-                        .map((loc) => loc.trim())
-                        .where((loc) => loc.isNotEmpty)
                         .map(
                           (loc) => Chip(
                         label: Text(
-                          loc,
+                          loc.trim(),
                           style: TextStyle(
-                            color: Theme.of(context).brightness == Brightness.dark
-
+                            color: Theme.of(context)
+                                .brightness ==
+                                Brightness.dark
                                 ? Colors.white
                                 : Colors.black,
                             fontSize: 12,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                         backgroundColor: Colors.grey.shade600,
-                        deleteIcon: const Icon(Icons.close, size: 16),
-                        onDeleted: () {
-                          final list = localityController.text
-                              .split(",")
-                              .map((e) => e.trim())
-                              .where((e) => e.isNotEmpty)
-                              .toList();
-
-                          list.removeWhere(
-                                  (e) => e.toLowerCase() == loc.toLowerCase());
-
-                          setState(() {
-                            localityController.text = list.join(", ");
-                          });
-                        },
                       ),
                     )
                         .toList(),
                   ),
-
               ],
             ),
           ),
@@ -2566,9 +2532,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       height: 60,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight),
+          colors: [primaryColor, secondaryColor],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -2582,22 +2549,30 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(15),
-          onTap: () async {
+          onTap: _isCounting
+              ? null
+              : () {
             if (_formKey.currentState!.validate()) {
-              await _handleUpload();
+              _startCountdown();
             }
           },
           child: Center(
             child: Row(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.rocket_launch_rounded,
-                    color: Colors.white, size: 20),
-                SizedBox(width: 10),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _isCounting ? Icons.timer : Icons.touch_app,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
                 Text(
-                  'SUBMIT PROPERTY',
-                  style: TextStyle(
+                  _isCounting
+                      ? (_countdown == 0
+                      ? "Submitting..."
+                      : "Submitting in $_countdown")
+                      : 'SUBMIT PROPERTY',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -2610,6 +2585,26 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         ),
       ),
     );
+  }
+  void _startCountdown() async {
+    setState(() {
+      _isCounting = true;
+      _countdown = 3;
+    });
+
+    for (int i = 3; i > 0; i--) {
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() {
+        _countdown = i - 1;
+      });
+    }
+
+    setState(() {
+      _isCounting = false;
+    });
+
+    // ✅ Finally submit
+    await _handleUpload();
   }
 
   void _showFacilitySelectionDialog() async {
@@ -2642,7 +2637,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     _vehicleno.dispose();
     _Google_Location.dispose();
     _address.dispose();
-    // _Building_information.dispose();
+    //_Building_information.dispose();
     _facilityController.dispose();
     metroController.dispose();
     localityController.dispose();
@@ -2912,26 +2907,6 @@ class _MetroLocalitySheetState
           });
         });
   }
-  void _addManualLocality(String value) {
-    final text = value.trim();
-    if (text.isEmpty) return;
-
-    final parts = text.split(',');
-
-    setState(() {
-      for (final part in parts) {
-        final loc = part.trim();
-        if (loc.isNotEmpty &&
-            !selectedLocalities.any(
-                    (e) => e.toLowerCase() == loc.toLowerCase())) {
-          selectedLocalities.add(loc);
-        }
-      }
-
-      localityCtrl.text = selectedLocalities.join(", ");
-      filteredNearby = nearbyList;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -3026,27 +3001,24 @@ class _MetroLocalitySheetState
               ),
             ),
           const SizedBox(height: 20),
-    TextField(
-    controller: localityCtrl,
-    enabled: nearbyList.isNotEmpty,
-    style: TextStyle(color: textCol),
-    decoration: InputDecoration(
-    labelText: nearbyList.isEmpty
-    ? "Select Metro First"
-        : "Search or type locality",
-    labelStyle: TextStyle(color: textCol.withOpacity(0.8)),
-    hintText: "Type & press enter or comma",
-    filled: true,
-    fillColor: cardBg,
-    border: OutlineInputBorder(
-    borderRadius: BorderRadius.circular(14),
-    ),
-    ),
-    onChanged: searchLocality,
-    onSubmitted: _addManualLocality,
-    ),
-
-    if (loadingNearby)
+          TextField(
+            controller: localityCtrl,
+            onChanged: searchLocality,
+            enabled: nearbyList.isNotEmpty,
+            style: TextStyle(color: textCol),
+            decoration: InputDecoration(
+              labelText: nearbyList.isEmpty
+                  ? "Select Metro First"
+                  : "Search Locality",
+              labelStyle:
+              TextStyle(color: textCol.withOpacity(0.8)),
+              filled: true,
+              fillColor: cardBg,
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14)),
+            ),
+          ),
+          if (loadingNearby)
             const Padding(
               padding: EdgeInsets.all(10),
               child: CircularProgressIndicator(),
@@ -3055,28 +3027,29 @@ class _MetroLocalitySheetState
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Wrap(
-              spacing: 6,
-              children: selectedLocalities.map((loc) {
-              return Chip(
-              label: Text(
-              loc,
-              overflow: TextOverflow.ellipsis,
+                spacing: 6,
+                children: selectedLocalities
+                    .map(
+                      (loc) => Chip(
+                    label: Text(
+                      loc,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    backgroundColor: isDark
+                        ? Colors.white12
+                        : Colors.grey.shade300,
+                    deleteIcon: const Icon(Icons.close,
+                        size: 18),
+                    onDeleted: () {
+                      setState(() {
+                        selectedLocalities.remove(loc);
+                      });
+                    },
+                  ),
+                )
+                    .toList(),
               ),
-              backgroundColor:
-              isDark ? Colors.white12 : Colors.grey.shade300,
-              deleteIcon: const Icon(Icons.close, size: 18),
-              onDeleted: () {
-              setState(() {
-              selectedLocalities.remove(loc);
-              localityCtrl.text = selectedLocalities.join(", ");
-              });
-              },
-              );
-              }).toList(),
-              ),
-
-    ),
-
+            ),
           const SizedBox(height: 10),
           if (filteredNearby.isNotEmpty)
             Expanded(
@@ -3114,16 +3087,11 @@ class _MetroLocalitySheetState
                         color: Colors.redAccent,
                       ),
                       onTap: () {
-                        final name = loc["name"].toString();
-
                         setState(() {
                           if (!selectedLocalities
-                              .any((e) => e.toLowerCase() == name.toLowerCase())) {
-                            selectedLocalities.add(name);
+                              .contains(loc["name"])) {
+                            selectedLocalities.add(loc["name"]);
                           }
-
-                          // 🔥 SHOW SELECTED LOCALITIES
-                          localityCtrl.text = selectedLocalities.join(", ");
                         });
                       },
                     ),
@@ -3133,21 +3101,14 @@ class _MetroLocalitySheetState
             ),
           const SizedBox(height: 12),
           ElevatedButton(
-    onPressed: () {
-    if (selectedMetro != null) {
-    final finalLocalities = localityCtrl.text
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
-    widget.onSelected(selectedMetro!, finalLocalities);
-    }
-    Navigator.pop(context);
-    },
-
-
-    style: ElevatedButton.styleFrom(
+            onPressed: () {
+              if (selectedMetro != null) {
+                widget.onSelected(
+                    selectedMetro!, selectedLocalities);
+              }
+              Navigator.pop(context);
+            },
+            style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red.shade700,
               padding: const EdgeInsets.symmetric(
                   vertical: 14, horizontal: 40),
@@ -3160,7 +3121,7 @@ class _MetroLocalitySheetState
             ),
           ),
         ],
-      )
+      ),
     );
   }
 }

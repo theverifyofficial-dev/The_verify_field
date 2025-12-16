@@ -170,7 +170,7 @@ class Property {
 }
 
 class Catid1 {
-  final int id;
+  final String id;
   final String tenant_name;
   final String tenant_phone_number;
   final String flat_rent;
@@ -181,8 +181,9 @@ class Catid1 {
   final String work_profile;
   final String bhk;
   final String type_of_property;
-  final int sub_id;
-  final int video_link;
+  final String payment_mode;
+  final String status;
+  final String sub_id;
 
   Catid1({
     required this.id,
@@ -196,25 +197,31 @@ class Catid1 {
     required this.work_profile,
     required this.bhk,
     required this.type_of_property,
+    required this.payment_mode,
+    required this.status,
     required this.sub_id,
-    required this.video_link,
   });
 
   factory Catid1.fromJson(Map<String, dynamic> json) {
     return Catid1(
-      id: json['id'] ?? 0,
-      tenant_name: json['tenant_name'] ?? '',
-      tenant_phone_number: json['tenant_phone_number'] ?? '',
-      flat_rent: json['flat_rent'] ?? '',
-      shifting_date: json['shifting_date'] ?? '',
-      members: json['members'] ?? '',
-      email: json['email'] ?? '',
-      tenant_vichal_details: json['tenant_vichal_details'] ?? '',
-      work_profile: json['work_profile'] ?? '',
-      bhk: json['bhk'] ?? '',
-      type_of_property: json['type_of_property'] ?? '',
-      sub_id: json['sub_id'] ?? 0,
-      video_link: json['video_link'] ?? 0,
+      id: json['id'].toString(),
+      tenant_name: json['tenant_name']?.toString() ?? '',
+      tenant_phone_number:
+      json['tenant_phone_number']?.toString() ?? '',
+      flat_rent: json['flat_rent']?.toString() ?? '',
+      shifting_date: json['shifting_date']?.toString() ?? '',
+      members: json['members']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      tenant_vichal_details:
+      json['tenant_vichal_details']?.toString() ?? '',
+      work_profile: json['work_profile']?.toString() ?? '',
+      bhk: json['bhk']?.toString() ?? '',
+      type_of_property:
+      json['type_of_property']?.toString() ?? '',
+      payment_mode:
+      json['payment_mode']?.toString() ?? '',
+      status: json['status']?.toString() ?? '',
+      sub_id: json['sub_id'].toString(),
     );
   }
 }
@@ -269,7 +276,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       throw Exception('Failed to load data');
     }
 
-    }
+  }
 
   Future<List<Property>> fetchData() async {
     var url = Uri.parse(
@@ -292,18 +299,30 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
   }
 
   Future<List<Catid1>> fetchData1() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_tenant_in_future_property?sub_id=${widget.Subid}");
-    final response = await http.get(url).timeout(const Duration(seconds: 30));
+    final url = Uri.parse(
+      "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/show_api_add_tenant.php?sub_id=${widget.Subid}",
+    );
 
-    if (response.statusCode == 200) {
-      // Fix: Explicit cast to List<dynamic>
-      final List<dynamic> listresponce = json.decode(response.body);
-      return listresponce.map((data) => Catid1.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occured!');
+    final response =
+    await http.get(url).timeout(const Duration(seconds: 30));
+
+    if (response.statusCode != 200) {
+      throw Exception("Server error");
     }
+
+    final decoded = json.decode(response.body);
+
+    // ✅ STRICT MATCH WITH API
+    if (decoded is Map &&
+        decoded['status'] == 'success' &&
+        decoded['data'] is List) {
+      final List list = decoded['data'];
+      return list.map((e) => Catid1.fromJson(e)).toList();
+    }
+
+    return [];
   }
+
 
   Future<void> fetchData1Status() async {
     try {
@@ -788,7 +807,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     }
     if (prop.meter.isNotEmpty) {
       row2Cards.add(buildSimpleInfoCard(
-          "Meter", prop.meter, Icons.electric_meter, Colors.blue));
+          "Meter Type", prop.meter, Icons.electric_meter, Colors.blue));
     }
     if (row2Cards.isNotEmpty) {
       rows.add(Padding(
@@ -1061,7 +1080,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       Icons.train,
       Colors.orange,
       "Metro Station",
-      safeValue(prop.highwayDistance),
+      safeValue(prop.metroDistance),
     ));
 
     // 2. Market Distance
@@ -1125,7 +1144,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       Icons.directions_car,
       Colors.red,
       "Metro Distance",
-      safeValue(prop.metroDistance),
+      safeValue(prop.highwayDistance),
     ));
 
     // 9. Road Size
@@ -1655,73 +1674,50 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                               ),
                             ),
                             // Back
+// Back Button
                             Positioned(
-                              top: MediaQuery.of(context)
-                                  .padding
-                                  .top +
-                                  (isSmallScreen
-                                      ? 4.0
-                                      : 8.0),
+                              top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
                               left: horizontalPadding,
-                              child: IconButton(
-                                onPressed: () =>
-                                    Navigator.pop(
-                                        context),
-                                icon: Icon(
-                                  PhosphorIcons
-                                      .caret_left_bold,
-                                  color: Colors.white,
-                                  size: isSmallScreen
-                                      ? 24.0
-                                      : 28.0,
+                              child: CircleAvatar(
+                                radius: isSmallScreen ? 20 : 22,
+                                backgroundColor: Colors.black.withOpacity(0.6),
+                                child: IconButton(
+                                  splashRadius: 22,
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => Navigator.pop(context),
+                                  icon: Icon(
+                                    PhosphorIcons.caret_left_bold,
+                                    color: Colors.white,
+                                    size: isSmallScreen ? 22 : 26,
+                                  ),
                                 ),
                               ),
                             ),
-                            // Menu
+
+// Menu Button
                             Positioned(
-                              top: MediaQuery.of(context)
-                                  .padding
-                                  .top +
-                                  (isSmallScreen
-                                      ? 4.0
-                                      : 8.0),
+                              top: MediaQuery.of(context).padding.top + (isSmallScreen ? 4.0 : 8.0),
                               right: horizontalPadding,
-                              child: PopupMenuButton<String>(
-                                onSelected: (value) =>
-                                    handleMenuItemClick(
-                                        value),
-                                itemBuilder:
-                                    (BuildContext
-                                context) {
-                                  return {
-                                    'Edit Flat',
-                                    'Add Flat Images'
-                                  }
-                                      .map((String choice) {
-                                    return PopupMenuItem<
-                                        String>(
-                                      value: choice,
-                                      child: Text(
-                                        choice,
-                                        style: TextStyle(
-                                            color: isDarkMode
-                                                ? Colors
-                                                .white
-                                                : Colors
-                                                .black),
-                                      ),
-                                    );
-                                  }).toList();
-                                },
-                                icon: Icon(
-                                  Icons.more_vert,
-                                  color: Colors.white,
-                                  size: isSmallScreen
-                                      ? 24.0
-                                      : 28.0,
+                              child: CircleAvatar(
+                                radius: isSmallScreen ? 20 : 22,
+                                backgroundColor: Colors.black.withOpacity(0.6),
+                                child: PopupMenuButton<String>(
+                                  splashRadius: 22,
+                                  offset: const Offset(0, 45),
+                                  onSelected: handleMenuItemClick,
+                                  itemBuilder: (context) => const [
+                                    PopupMenuItem(value: 'Edit Flat', child: Text('Edit Flat')),
+                                    PopupMenuItem(value: 'Add Flat Images', child: Text('Add Flat Images')),
+                                  ],
+                                  icon: Icon(
+                                    Icons.more_vert,
+                                    color: Colors.white,
+                                    size: isSmallScreen ? 22 : 26,
+                                  ),
                                 ),
                               ),
                             ),
+
                             // Status Chip
                             Positioned(
                               bottom: isSmallScreen
@@ -2312,107 +2308,54 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                         ),
                         // Tenant Info - Fix: Use .value, loop for multiple tenants if needed
                         FutureBuilder<List<Catid1>>(
-                          future:
-                          catidFuture,
-                          builder: (context,
-                              tenantSnapshot) {
-                            if (tenantSnapshot
-                                .connectionState ==
-                                ConnectionState
-                                    .waiting) {
+                          future: catidFuture,
+                          builder: (context, snapshot) {
+
+                            if (snapshot.connectionState == ConnectionState.waiting) {
                               return Padding(
-                                padding:
-                                EdgeInsets.all(
-                                    horizontalPadding),
-                                child: const Center(
-                                    child:
-                                    CircularProgressIndicator()),
+                                padding: EdgeInsets.all(horizontalPadding),
+                                child: const Center(child: CircularProgressIndicator()),
                               );
-                            } else if (tenantSnapshot
-                                .hasError ||
-                                tenantSnapshot
-                                    .data ==
-                                    null ||
-                                tenantSnapshot
-                                    .data!
-                                    .isEmpty) {
-                              return const SizedBox();
-                            } else {
-                              final tenants =
-                              tenantSnapshot
-                                  .data!;
-                              return Container(
-                                margin:
-                                EdgeInsets.all(
-                                    horizontalPadding),
-                                child: Column(
-                                  crossAxisAlignment:
-                                  CrossAxisAlignment
-                                      .start,
-                                  children: [
-                                    Padding(
-                                      padding: EdgeInsets
-                                          .symmetric(
-                                          horizontal:
-                                          horizontalPadding /
-                                              2),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons
-                                                .people,
-                                            color: Colors
-                                                .blue,
-                                            size: (isSmallScreen
-                                                ? 16.0
-                                                : 18.0) *
-                                                fontScale,
-                                          ),
-                                          SizedBox(
-                                              width:
-                                              horizontalPadding),
-                                          Text(
-                                            "Tenant Information",
-                                            style:
-                                            TextStyle(
-                                              fontSize: (isSmallScreen
-                                                  ? 15.0
-                                                  : 16.0) *
-                                                  fontScale,
-                                              fontWeight:
-                                              FontWeight
-                                                  .bold,
-                                              color: isDarkMode
-                                                  ? Colors
-                                                  .white
-                                                  : Colors
-                                                  .black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(
-                                        height:
-                                        verticalPadding *
-                                            2),
-                                    // Fix: Loop for multiple tenants
-                                    ...tenants.map((tenant) => Padding(
-                                      padding: const EdgeInsets.only(bottom: 8.0),
-                                      child: buildContactCard(
-                                        "TENANT",
-                                        tenant
-                                            .tenant_name,
-                                        tenant
-                                            .tenant_phone_number,
-                                        bgColor:
-                                        Colors.green,
-                                      ),
-                                    )),
-                                  ],
+                            }
+
+                            if (snapshot.hasError) {
+                              return Padding(
+                                padding: EdgeInsets.all(horizontalPadding),
+                                child: Text(
+                                  "Failed to load tenant data",
+                                  style: TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 14 * fontScale,
+                                  ),
                                 ),
                               );
                             }
+
+                            final tenants = snapshot.data ?? [];
+
+                            if (tenants.isEmpty) {
+                              return Padding(
+                                padding: EdgeInsets.all(horizontalPadding),
+                                child: Text(
+                                  "No tenant added yet",
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.white70 : Colors.black54,
+                                    fontSize: 14 * fontScale,
+                                  ),
+                                ),
+                              );
+                            }
+
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: tenants.map((tenant) {
+                                return buildTenantFullCard(
+                                  tenant,
+                                  isDarkMode: isDarkMode,
+                                );
+                              }).toList(),
+                            );
+
                           },
                         ),
 
@@ -2616,4 +2559,128 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       ),
     );
   }
+  Widget buildTenantFullCard(
+      Catid1 tenant, {
+        required bool isDarkMode,
+      }) {
+    final Color bg = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
+    final Color labelColor = isDarkMode ? Colors.white70 : Colors.grey.shade700;
+    final Color valueColor = isDarkMode ? Colors.white : Colors.black;
+    final Color accent = Colors.green;
+
+    Widget infoRow(IconData icon, String label, String value) {
+      if (value.isEmpty) return const SizedBox.shrink();
+
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: accent),
+            const SizedBox(width: 10),
+            SizedBox(
+              width: 110,
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: labelColor,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value,
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w500,
+                  color: valueColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Card(
+      elevation: 6,
+      margin: const EdgeInsets.only(bottom: 14),
+      color: bg,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ================= HEADER =================
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person, color: Colors.green),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    tenant.tenant_name.isEmpty
+                        ? "Unnamed Tenant"
+                        : tenant.tenant_name,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: valueColor,
+                    ),
+                  ),
+                ),
+                // Status badge
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    tenant.status.isEmpty ? "ACTIVE" : tenant.status,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 12),
+            const Divider(height: 1),
+            const SizedBox(height: 12),
+
+            // ================= DETAILS =================
+            infoRow(Icons.phone, "Phone", tenant.tenant_phone_number),
+            infoRow(Icons.currency_rupee, "Rent", tenant.flat_rent),
+            infoRow(Icons.calendar_today, "Shifting Date", tenant.shifting_date),
+            infoRow(Icons.group, "Members", tenant.members),
+            infoRow(Icons.email, "Email", tenant.email),
+
+            const SizedBox(height: 8),
+
+            infoRow(Icons.directions_car, "Vehicle", tenant.tenant_vichal_details),
+            infoRow(Icons.work, "Work Profile", tenant.work_profile),
+            infoRow(Icons.home, "BHK", tenant.bhk),
+            infoRow(Icons.apartment, "Property Type", tenant.type_of_property),
+            infoRow(Icons.payments, "Payment Mode", tenant.payment_mode),
+          ],
+        ),
+      ),
+    );
+  }
+
+
 }

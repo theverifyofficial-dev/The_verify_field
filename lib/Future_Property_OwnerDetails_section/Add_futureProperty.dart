@@ -33,7 +33,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   String? _selectedItem;
   String? _selectedItem1;
-  String? _typeofproperty;
+  // String? _typeofproperty;
   String? _selectedPropertyType;
   String? _selectedLift;
   String? _selectedParking;
@@ -52,7 +52,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   final TextEditingController _vehicleno = TextEditingController();
   final TextEditingController _Google_Location = TextEditingController();
   final TextEditingController _address = TextEditingController();
-  final TextEditingController _Building_information = TextEditingController();
+  // final TextEditingController _Building_information = TextEditingController();
   final TextEditingController _facilityController = TextEditingController();
   final TextEditingController metroController = TextEditingController();
   final TextEditingController localityController = TextEditingController();
@@ -982,6 +982,57 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           : null,
                     ),
                   ),
+
+                  // Container(
+                  //   decoration: BoxDecoration(
+                  //     borderRadius: BorderRadius.circular(12),
+                  //     border: Border.all(
+                  //         color: Colors.grey.withOpacity(0.2)),
+                  //   ),
+                  //   child:
+                  //   DropdownButtonFormField<String>(
+                  //     // value: _typeofproperty,
+                  //     decoration: InputDecoration(
+                  //       labelText: 'Type of Property',
+                  //       labelStyle:
+                  //       TextStyle(color: secondaryTextColor),
+                  //       border: InputBorder.none,
+                  //       contentPadding:
+                  //       const EdgeInsets.symmetric(
+                  //           horizontal: 16, vertical: 16),
+                  //       prefixIcon: Icon(Icons.home_work_rounded,
+                  //           color: primaryColor),
+                  //       filled: true,
+                  //       fillColor: isDarkMode
+                  //           ? Colors.grey[850]
+                  //           : Colors.white,
+                  //     ),
+                  //     dropdownColor: isDarkMode
+                  //         ? Colors.grey[850]
+                  //         : Colors.white,
+                  //     style: TextStyle(
+                  //         color: textColor,
+                  //         fontWeight: FontWeight.w500),
+                  //     items: name
+                  //         .map((String value) =>
+                  //         DropdownMenuItem<String>(
+                  //             value: value,
+                  //             child: Text(value,
+                  //                 style: TextStyle(
+                  //                     color: textColor))))
+                  //         .toList(),
+                  //     onChanged: (String? newValue) {
+                  //       setState(() {
+                  //         // _typeofproperty = newValue;
+                  //       });
+                  //     },
+                  //     validator: (value) =>
+                  //     (value == null || value.isEmpty)
+                  //         ? 'Please select type of property'
+                  //         : null,
+                  //   ),
+                  // ),
+                ),
                   // Container(
                   //   decoration: BoxDecoration(
                   //     borderRadius: BorderRadius.circular(12),
@@ -1152,7 +1203,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 // TextFormField(
                 //   controller: _Building_information,
                 //   style: TextStyle(
-                //       color: textColor, fontWeight: FontWeight.w500),
+                //     color: textColor,
+                //     fontWeight: FontWeight.w500,
+                //   ),
                 //   decoration: _buildInputDecoration(
                 //     label: 'Building Information',
                 //     icon: Icons.info_outline_rounded,
@@ -1166,6 +1219,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                 //       ? 'Please enter building information'
                 //       : null,
                 // ),
+
                 const SizedBox(height: 12),
                 _buildFacilityField(
                     isDarkMode, textColor, secondaryTextColor),

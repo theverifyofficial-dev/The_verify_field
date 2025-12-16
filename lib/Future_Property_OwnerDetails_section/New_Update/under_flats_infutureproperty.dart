@@ -1086,8 +1086,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       "Floor",
       floorText,
     ));
-
-    // 4. Type of Property
+// 4. Type of Property
     rows.add(buildInfoRow(
       Icons.home_work,
       Colors.orange,
@@ -1095,13 +1094,14 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       safeValue(prop.typeofProperty),
     ));
 
-    // 5. Square Feet
+// 5. Square Feet
     rows.add(buildInfoRow(
       Icons.square_foot,
       Colors.teal,
       "Sq. Ft.",
       safeValue(prop.squarefit),
     ));
+
 
     // 6. Registry & GPA
     rows.add(buildInfoRow(
@@ -1686,8 +1686,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                                       ? 4.0
                                       : 8.0),
                               right: horizontalPadding,
-                              child: PopupMenuButton<
-                                  String>(
+                              child: PopupMenuButton<String>(
                                 onSelected: (value) =>
                                     handleMenuItemClick(
                                         value),

@@ -357,6 +357,9 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     return result;
   }
 
+  final TextEditingController localityCtrl = TextEditingController();
+
+
 
   Future<void> updateImageWithTitle(File? imageFile) async {
     String uploadUrl =
@@ -449,6 +452,26 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message, style: const TextStyle(color: Colors.white)), backgroundColor: Colors.grey, duration: const Duration(seconds: 2)),
     );
+  }
+  void _addManualLocalityFromMain(String value) {
+    final text = value.trim();
+    if (text.isEmpty) return;
+
+    final parts = text.split(',');
+
+    setState(() {
+      for (final part in parts) {
+        final loc = part.trim();
+        if (loc.isNotEmpty &&
+            !selectedLocalities
+                .any((e) => e.toLowerCase() == loc.toLowerCase())) {
+          selectedLocalities.add(loc);
+        }
+      }
+
+      // update text field
+      localityController.text = selectedLocalities.join(", ");
+    });
   }
 
   @override
@@ -597,11 +620,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   onTap: () {
                     showMetroLocalityPicker(context, (metro, localities) {
                       setState(() {
-                        // metro name (single)
                         metroController.text = metro;
 
-                        // localities (multiple)
                         selectedLocalities = List.from(localities);
+
+                        // 🔥 THIS IS THE KEY LINE
                         localityController.text = selectedLocalities.join(", ");
                       });
                     });
@@ -619,24 +642,29 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
                   children: [
                     TextFormField(
                       controller: localityController,
-                      readOnly: true,
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                        maxLines: 2,
-                      decoration: const InputDecoration(
-                        hintText: "Selected Localities",
-                        border: OutlineInputBorder(),
+                      readOnly: false,
+                      maxLines: 2,
+                      style: const TextStyle(
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold,
                       ),
-                        onTap: () {
-                          showMetroLocalityPicker(context, (metro, localities) {
-                            if (localities.isNotEmpty) {
-                              setState(() {
-                                selectedLocalities = List.from(localities);
-                                localityController.text = selectedLocalities.join(", ");
-                              });
-                            }
-                          });
-                        }
 
+                      // ⏎ Enter key support
+                      onFieldSubmitted: (value) {
+                        _addManualLocalityFromMain(value);
+                      },
+
+                      // , comma support
+                      onChanged: (value) {
+                        if (value.endsWith(',')) {
+                          _addManualLocalityFromMain(value);
+                        }
+                      },
+
+                      decoration: InputDecoration(
+                        hintText: "Type locality or select from list",
+                        border: const OutlineInputBorder(),
+                      ),
                     ),
                     const SizedBox(height: 8),
 
@@ -1127,6 +1155,26 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
       });
     });
   }
+  void _addManualLocality(String value) {
+    final text = value.trim();
+    if (text.isEmpty) return;
+
+    final parts = text.split(',');
+
+    setState(() {
+      for (final part in parts) {
+        final loc = part.trim();
+        if (loc.isNotEmpty &&
+            !selectedLocalities
+                .any((e) => e.toLowerCase() == loc.toLowerCase())) {
+          selectedLocalities.add(loc);
+        }
+      }
+
+      // 🔥 clear input after adding
+      localityCtrl.clear();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1163,7 +1211,37 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
               }),
             ),
           const SizedBox(height: 20),
-          TextField(controller: localityCtrl, onChanged: searchLocality, enabled: nearbyList.isNotEmpty, style: TextStyle(color: textCol), decoration: InputDecoration(labelText: nearbyList.isEmpty ? "Select Metro First" : "Search Locality", labelStyle: TextStyle(color: textCol.withOpacity(0.8)), filled: true, fillColor: cardBg, border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)))),
+          TextField(
+            controller: localityCtrl,
+            enabled: nearbyList.isNotEmpty,
+            style: TextStyle(color: textCol),
+            decoration: InputDecoration(
+              labelText: nearbyList.isEmpty
+                  ? "Select Metro First"
+                  : "Search or type locality",
+              hintText: "Type & press enter or comma",
+              filled: true,
+              fillColor: cardBg,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+
+            // 🔍 API search
+            onChanged: (value) {
+              searchLocality(value);
+
+              // 👇 comma se manual add
+              if (value.contains(',')) {
+                _addManualLocality(value);
+              }
+            },
+
+            // ⏎ enter se manual add
+            onSubmitted: (value) {
+              _addManualLocality(value); // ✅ manual add
+            },
+          ),
           if (loadingNearby) const Padding(padding: EdgeInsets.all(10), child: CircularProgressIndicator()),
           if (selectedLocalities.isNotEmpty)
             Wrap(spacing: 6, children: selectedLocalities.map((loc) => Chip(label: Text(loc), backgroundColor: isDark ? Colors.white12 : Colors.grey.shade300, deleteIcon: const Icon(Icons.close, size: 18), onDeleted: () { setState(() { selectedLocalities.remove(loc); }); })).toList()),
@@ -1181,8 +1259,13 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
                     subtitle: Text(loc["type"] ?? "", style: TextStyle(color: textCol.withOpacity(0.6), fontSize: 12)),
                     trailing: Icon(selectedLocalities.contains(loc["name"]) ? Icons.check_circle : Icons.add_circle_outline, color: Colors.redAccent),
                     onTap: () {
+                      final name = loc["name"].toString();
+
                       setState(() {
-                        if (!selectedLocalities.contains(loc["name"])) selectedLocalities.add(loc["name"]);
+                        if (!selectedLocalities
+                            .any((e) => e.toLowerCase() == name.toLowerCase())) {
+                          selectedLocalities.add(name);
+                        }
                       });
                     },
                   ),
@@ -1192,15 +1275,21 @@ class _MetroLocalitySheetState extends State<MetroLocalitySheet> {
           const SizedBox(height: 12),
           ElevatedButton(
             onPressed: () {
-              if (selectedMetro != null) {
-                widget.onSelected(selectedMetro!, selectedLocalities);
-              } else {
-                // if no metro selected from list, but metroCtrl has a text, use it:
-                final m = metroCtrl.text.trim();
-                widget.onSelected(m, selectedLocalities);
+              // 🔥 LAST typed locality bhi add karo
+              if (localityCtrl.text.trim().isNotEmpty) {
+                _addManualLocality(localityCtrl.text);
               }
+
+              final metroName = selectedMetro ?? metroCtrl.text.trim();
+
+              widget.onSelected(
+                metroName,
+                List<String>.from(selectedLocalities),
+              );
+
               Navigator.pop(context);
             },
+
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade700, padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
             child: const Text("Done", style: TextStyle(color: Colors.white, fontSize: 16)),
           ),

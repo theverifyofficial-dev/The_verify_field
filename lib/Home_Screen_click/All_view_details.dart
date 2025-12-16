@@ -934,6 +934,8 @@ class _View_DetailsState extends State<AllViewDetails> {
       Color titleTextColor, Color valueTextColor,
       Color cardBgColor, Color cardBorderColor) {
     List<Widget> rows = [];
+
+
     // Metro Distance
     if (
     prop.metroDistance.isNotEmpty) {
@@ -993,7 +995,6 @@ class _View_DetailsState extends State<AllViewDetails> {
       rows.add(_buildInfoRow(Icons.account_balance_sharp, Colors.blue, "Loan", _formatDate(prop.loan), isSmallScreen, isDarkMode, titleTextColor, valueTextColor, cardBgColor, cardBorderColor));
     }
 
-    // Other fields (BHK, Floor, etc.) can be added here if needed, but keeping to match image
     return rows;
   }
   // Updated _getBuildingFacilityRows with new params

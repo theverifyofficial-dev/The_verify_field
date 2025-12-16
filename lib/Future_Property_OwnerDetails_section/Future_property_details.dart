@@ -26,7 +26,7 @@ import 'package:intl/intl.dart';
 // Updated Model - FutureProperty2
 class FutureProperty2 {
   final String id;
-  final String images; // single image for now
+  final String images;
   final String ownerName;
   final String ownerNumber;
   final String caretakerName;
@@ -383,23 +383,41 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
 
   Future<List<FutureProperty2>> fetchData() async {
-    var url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}");
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
+    );
 
     final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> jsonResponse = json.decode(response.body);
-
-      if (jsonResponse['status'] == 'success') {
-        final List<dynamic> dataList = jsonResponse['data'];
-        return dataList.map((data) => FutureProperty2.fromJson(data)).toList();
-      } else {
-        throw Exception('API returned failure status');
-      }
-    } else {
-      throw Exception('Failed to load data: ${response.statusCode}');
+    if (response.statusCode != 200) {
+      throw Exception('API Error: ${response.statusCode}');
     }
+
+    final decoded = json.decode(response.body);
+    List listResponse = [];
+
+    if (decoded is List) {
+      listResponse = decoded;
+    }
+    else if (decoded is Map<String, dynamic>) {
+      if (decoded['data'] is List) {
+        listResponse = decoded['data'];
+      }
+      else if (decoded['Table'] is List) {
+        listResponse = decoded['Table'];
+      }
+      else {
+        throw Exception("No list found in API response");
+      }
+    }
+
+    listResponse.sort(
+          (a, b) => (b['id'] ?? '').toString().compareTo((a['id'] ?? '').toString()),
+    );
+
+    return listResponse
+        .map((e) => FutureProperty2.fromJson(e))
+        .toList();
   }
 
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
@@ -552,7 +570,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
-          color: isDarkMode ? Colors.black : Colors.blue,
+          color:  Colors.black ,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
@@ -576,7 +594,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 onPressed: () => Navigator.pop(context),
                 icon: Icon(
                   PhosphorIcons.caret_left_bold,
-                  color: isDarkMode ? Colors.white : Colors.black87,
+                  color: Colors.white ,
                   size: 30,weight: 50,
                 ),
                 padding: const EdgeInsets.all(8),
@@ -608,7 +626,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                 },
                 icon: Icon(
                   Icons.more_vert,
-                  color: isDarkMode ? Colors.white : Colors.black87,size: 30,
+                  color: Colors.white ,size: 30,
                 ),
                 padding: const EdgeInsets.all(8),
                 constraints: const BoxConstraints(),
@@ -976,107 +994,176 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                             ),
                           ),
                         ),
-                    ],
-                  ),
-                ),
-              ),
 
-              // Flat Details - Expanded flex
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child:
-                            Text(
-                              "${flat.bhk} • ${flat.typeOfProperty}",
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          if (flat.flatNumber.isNotEmpty)
-                            Text(
-                              "Flat ${flat.flatNumber}",
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                        ],
+
+                Expanded(
+                  flex: 2,
+                  child:
+               Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        topRight: Radius.circular(12),
                       ),
-                      Text(
-                        flat.locations.isNotEmpty ? flat.locations : "No location",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
+                      child: CachedNetworkImage(
+                        key: ValueKey('${flat.id}_${flat.propertyPhoto}'),
+                        imageUrl: flat.propertyPhoto.isNotEmpty
+                            ? "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${flat.propertyPhoto}"
+                            : "",
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        placeholder: (context, url) => Container(
+                          color: Colors.grey[200],
+                          child: const Center(child: CircularProgressIndicator()),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.blue[50],
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: Colors.blue[100]!),
-                            ),
-                            child: Text(
-                              flat.buyRent.isNotEmpty ? flat.buyRent : "N/A",
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.blue[700],
-                                fontWeight: FontWeight.w500,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        errorWidget: (context, error, stackTrace) => Container(
+                          color: Colors.grey[200],
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: const [
+                              Icon(Icons.home_outlined, size: 40, color: Colors.grey),
+                              SizedBox(height: 4),
+                              Text("No Image",
+                                  style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            ],
                           ),
+                        ),
+                      ),
+                    ),
 
-                          Text(
-                           " ${flat.id}",
-                            style: const TextStyle(
+                    // 🔥 DUPLICATE BUTTON
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: GestureDetector(
+                        onTap: () {
+                          Navigator.push(context, MaterialPageRoute(builder: (context){
+                            return DuplicateFutureProperty(id: flat.id.toString(),);
+                          }));
+                          // 👉 Duplicate logic here
+                          print("Duplicate flat id: ${flat.id}");
+                        },
+                        child: Container(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: Colors.black.withOpacity(0.65),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.white)
+                          ),
+                          child: const Text(
+                            "Duplicate",
+                            style: TextStyle(
+                              color: Colors.white,
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.black,
                             ),
                           ),
-
-
-                          Text(
-                            "₹${flat.showPrice.isNotEmpty ? flat.showPrice : "0"}",
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.green,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
+                ),
+
+
+            // Flat Details - Expanded flex
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child:
+                          Text(
+                            "${flat.bhk} • ${flat.typeOfProperty}",
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (flat.flatNumber.isNotEmpty)
+                          Text(
+                            "Flat ${flat.flatNumber}",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                      ],
+                    ),
+                    Text(
+                      flat.locations.isNotEmpty ? flat.locations : "No location",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[50],
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: Colors.blue[100]!),
+                          ),
+                          child: Text(
+                            flat.buyRent.isNotEmpty ? flat.buyRent : "N/A",
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blue[700],
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        Text(
+                          " ${flat.id}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                        ),
+
+
+                        Text(
+                          "₹${flat.showPrice.isNotEmpty ? flat.showPrice : "0"}",
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
+            ),
             ],
           ),
         ),
       ),
-    );
+        ]),
   }
   // Building Details Section
   SliverToBoxAdapter _buildBuildingDetailsSection(bool isDarkMode) {

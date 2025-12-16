@@ -1347,7 +1347,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                           ],
                         ),
                       ),
-                      SizedBox(height: screenHeight * 0.01),
+                      SizedBox(height: screenHeight * 0.02),
                       // Dual Target Progress Indicators - Use Wrap for responsiveness
                       Expanded(
                         child: Wrap(
@@ -1398,7 +1398,9 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                 children: [
                   // Today's Card (replacing welcome back)
                  // _todayCard(isDark),
-                  const SizedBox(height: 10),
+                //  const SizedBox(height: 10),
+                  /*_todayCard(isDark),
+                  const SizedBox(height: 16),*/
                   // Feature Grid
                   GridView.builder(
                     physics: const NeverScrollableScrollPhysics(),

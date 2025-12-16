@@ -328,11 +328,10 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
     list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
     return list.map((e) => Catid.fromJson(e)).toList();
-
   }
 
   List<Map<String, String>> fieldWorkers = [
-    {"name": "Sumit", "id": "9711775300"}, // Updated number
+    {"name": "Sumit", "id": "9711775300"},
     {"name": "Ravi", "id": "9711275300"},
     {"name": "Faizan", "id": "9971172204"},
     {"name": "Manish", "id": "8130209217"},
@@ -1029,12 +1028,10 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
             return name == "manish" || name == "abhey";
           }
           return false;
-        })
-            .map((fw) {
+        }).map((fw) {
           final props = _groupedData[fw['name']] ?? [];
           return _buildFieldWorkerSection(props, fw['id']!, fw['name']!);
-        })
-            .toList(),
+        }).toList(),
       ),
     );
     return Scaffold(

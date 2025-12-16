@@ -1663,33 +1663,39 @@ class _View_DetailsState extends State<View_Details> {
       }
     }
 
-    // 15. Metro Station (highwayDistance)
-    rows.add(_buildInfoRow(
-      Icons.directions_car,
-      Colors.red,
-      "Metro Station",
-      safeValue(prop.highwayDistance),
-      isSmallScreen,
-      isDarkMode,
-    ));
-
-    // 13. Market Distance
-    rows.add(_buildInfoRow(
-      Icons.store_mall_directory,
-      Colors.purple,
-      "Market Distance",
-      safeValue(prop.mainMarketDistance),
-      isSmallScreen,
-      isDarkMode,
-    ));
-
-    // 2. Floor (Floor / Total Floor)
-    String floorText = "Not Available";
-    if (prop.floor != null && prop.floor.trim().isNotEmpty && prop.floor.trim() != "null") {
-      floorText = prop.floor.trim();
+// Metro Station (from highwayDistance)
+    if ((prop.highwayDistance ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.directions_car,
+        Colors.red,
+        "Metro Station",
+        prop.highwayDistance,
+        isSmallScreen,
+        isDarkMode,
+      ));
     }
-    if (prop.totalFloor != null && prop.totalFloor.trim().isNotEmpty && prop.totalFloor.trim() != "null") {
-      floorText += (floorText != "Not Available" ? " / ${prop.totalFloor.trim()}" : prop.totalFloor.trim());
+
+// Market Distance
+    if ((prop.mainMarketDistance ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.store_mall_directory,
+        Colors.purple,
+        "Market Distance",
+        prop.mainMarketDistance,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
+
+// Floor (Floor / Total Floor)
+    String floorText = "Not Available";
+    if ((prop.floor ?? '').isNotEmpty && prop.floor != "null") {
+      floorText = prop.floor!;
+    }
+    if ((prop.totalFloor ?? '').isNotEmpty && prop.totalFloor != "null") {
+      floorText = floorText != "Not Available"
+          ? "$floorText / ${prop.totalFloor}"
+          : prop.totalFloor!;
     }
     rows.add(_buildInfoRow(
       Icons.layers,
@@ -1700,15 +1706,17 @@ class _View_DetailsState extends State<View_Details> {
       isDarkMode,
     ));
 
-    // 6. Type of Property
-    rows.add(_buildInfoRow(
-      Icons.home_work,
-      Colors.orange,
-      "Type of Property",
-      safeValue(prop.typeofProperty),
-      isSmallScreen,
-      isDarkMode,
-    ));
+// Type of Property
+    if ((prop.typeofProperty ?? '').isNotEmpty) {
+      rows.add(_buildInfoRow(
+        Icons.home_work,
+        Colors.orange,
+        "Type of Property",
+        prop.typeofProperty,
+        isSmallScreen,
+        isDarkMode,
+      ));
+    }
 
     // 7. Square Feet
     rows.add(_buildInfoRow(
@@ -1803,6 +1811,7 @@ class _View_DetailsState extends State<View_Details> {
     ));
 
     return rows;
+
   }
 
   List<Widget> _getBuildingFacilityRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {

@@ -853,23 +853,23 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
               ],
             ),
           ),
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(56),
-            child: Container(
-              color: Colors.black,
-              child: TabBar(
-                controller: _tabController,
-                indicatorColor: Colors.white,
-                labelColor: Colors.white,
-                unselectedLabelColor: Colors.white70,
-                tabs: const [
-                  Tab(text: 'Buildings'),
-                  // Tab(text: 'Plots'),
-                  // Tab(text: 'Commercial'),
-                ],
-              ),
-            ),
-          ),
+          // bottom: PreferredSize(
+          //   preferredSize: const Size.fromHeight(56),
+          //   child: Container(
+          //     color: Colors.black,
+          //     child: TabBar(
+          //       controller: _tabController,
+          //       indicatorColor: Colors.white,
+          //       labelColor: Colors.white,
+          //       unselectedLabelColor: Colors.white70,
+          //       tabs: const [
+          //         Tab(text: 'Buildings'),
+          //         // Tab(text: 'Plots'),
+          //         // Tab(text: 'Commercial'),
+          //       ],
+          //     ),
+          //   ),
+          // ),
           // bottom: PreferredSize(
           //   preferredSize: const Size.fromHeight(56),
           //   child: Container(
@@ -1764,7 +1764,60 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                         //   },
                         //   isTablet: isTablet,
                         // ),
-                        SizedBox(height: isTablet ? 12 : 8),
+                        //SizedBox(height: isTablet ? 12 : 8),
+                        // _buildOptionTile(
+                        //   icon: Icons.storefront,
+                        //   title: 'Add Commercial',
+                        //   subtitle: 'Add a commercial property',
+                        //   onTap: () async {
+                        //     Navigator.of(context).pop();
+                        //     final result = await Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //           builder: (context) =>  CommercialPropertyForm()
+                        //       ),
+                        //     );
+                        //     if (result != null) {
+                        //       ScaffoldMessenger.of(context).showSnackBar(
+                        //         SnackBar(
+                        //             content: Text(
+                        //                 'Commercial added',
+                        //                 style: TextStyle(fontSize: isTablet ? 16 : 14)
+                        //             ),
+                        //             backgroundColor: Colors.green
+                        //         ),
+                        //       );
+                        //     }
+                        //   },
+                        //   isTablet: isTablet,
+                        // ),
+                        // _buildOptionTile(
+                        //   icon: Icons.landscape,
+                        //   title: 'Add Plot',
+                        //   subtitle: 'Add a new plot record',
+                        //   onTap: () async {
+                        //     Navigator.of(context).pop();
+                        //     final result = await Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //         builder: (context) =>  PropertyListingPage(),
+                        //       ),
+                        //     );
+                        //     if (result != null) {
+                        //       ScaffoldMessenger.of(context).showSnackBar(
+                        //         SnackBar(
+                        //             content: Text(
+                        //                 'Plot added',
+                        //                 style: TextStyle(fontSize: isTablet ? 16 : 14)
+                        //             ),
+                        //             backgroundColor: Colors.green
+                        //         ),
+                        //       );
+                        //     }
+                        //   },
+                        //   isTablet: isTablet,
+                        // ),
+                        // SizedBox(height: isTablet ? 12 : 8),
                         // _buildOptionTile(
                         //   icon: Icons.storefront,
                         //   title: 'Add Commercial',
@@ -1792,17 +1845,14 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                         //   isTablet: isTablet,
                         // ),
                         SizedBox(height: isTablet ? 16 : 12),
-                        Center(
-                          child: TextButton(
+                        ElevatedButton(
                             onPressed: () => Navigator.of(context).pop(),
                             child: Text(
                               'Cancel',
                               style: TextStyle(
                                 fontSize: isTablet ? 16 : 14,
                               ),
-                            ),
-                          ),
-                        ),
+                            ),)
                       ],
                     ),
                   ),

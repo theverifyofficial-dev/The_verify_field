@@ -938,20 +938,20 @@ class _View_DetailsState extends State<AllViewDetails> {
 
     // Metro Distance
     if (
-    prop.highwayDistance.isNotEmpty) {
+    prop.metroDistance.isNotEmpty) {
       rows.add(_buildInfoRow(Icons.train,
           Colors.orange, "Metro Station",
-          prop.highwayDistance, isSmallScreen,
+          prop.metroDistance, isSmallScreen,
           isDarkMode, titleTextColor,
           valueTextColor, cardBgColor,
           cardBorderColor));
     }
     // Highway Distance
     if (
-    prop.metroDistance.isNotEmpty) {
+    prop.highwayDistance.isNotEmpty) {
       rows.add(_buildInfoRow(Icons.directions_car,
           Colors.red, "Metro Distance",
-          prop.metroDistance, isSmallScreen,
+          prop.highwayDistance, isSmallScreen,
           isDarkMode, titleTextColor, valueTextColor,
           cardBgColor, cardBorderColor));
     }

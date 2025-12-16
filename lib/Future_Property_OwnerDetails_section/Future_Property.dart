@@ -1662,7 +1662,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
       backgroundColor: Colors.transparent,
       builder: (context) {
         final screenWidth = MediaQuery.of(context).size.width;
-        final isTablet = screenWidth > 400;
+        final isTablet = screenWidth > 600;
         return DraggableScrollableSheet(
           initialChildSize: isTablet ? 0.4 : 0.52,
           minChildSize: 0.25,
@@ -1738,6 +1738,59 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
                           isTablet: isTablet,
                         ),
                         SizedBox(height: isTablet ? 12 : 8),
+                        // _buildOptionTile(
+                        //   icon: Icons.landscape,
+                        //   title: 'Add Plot',
+                        //   subtitle: 'Add a new plot record',
+                        //   onTap: () async {
+                        //     Navigator.of(context).pop();
+                        //     final result = await Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //         builder: (context) =>  PropertyListingPage(),
+                        //       ),
+                        //     );
+                            // if (result != null) {
+                            //   ScaffoldMessenger.of(context).showSnackBar(
+                            //     SnackBar(
+                            //         content: Text(
+                            //             'Plot added',
+                            //             style: TextStyle(fontSize: isTablet ? 16 : 14)
+                            //         ),
+                            //         backgroundColor: Colors.green
+                            //     ),
+                            //   );
+                            // }
+                        //   },
+                        //   isTablet: isTablet,
+                        // ),
+                        //SizedBox(height: isTablet ? 12 : 8),
+                        // _buildOptionTile(
+                        //   icon: Icons.storefront,
+                        //   title: 'Add Commercial',
+                        //   subtitle: 'Add a commercial property',
+                        //   onTap: () async {
+                        //     Navigator.of(context).pop();
+                        //     final result = await Navigator.push(
+                        //       context,
+                        //       MaterialPageRoute(
+                        //           builder: (context) =>  CommercialPropertyForm()
+                        //       ),
+                        //     );
+                        //     if (result != null) {
+                        //       ScaffoldMessenger.of(context).showSnackBar(
+                        //         SnackBar(
+                        //             content: Text(
+                        //                 'Commercial added',
+                        //                 style: TextStyle(fontSize: isTablet ? 16 : 14)
+                        //             ),
+                        //             backgroundColor: Colors.green
+                        //         ),
+                        //       );
+                        //     }
+                        //   },
+                        //   isTablet: isTablet,
+                        // ),
                         // _buildOptionTile(
                         //   icon: Icons.landscape,
                         //   title: 'Add Plot',

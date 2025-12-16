@@ -1649,16 +1649,15 @@ class _View_DetailsState extends State<View_Details> {
       }
       return value.trim() + suffix;
     }
-    // Helper for date fields (LOCAL)
+
+    // Helper for date fields
     String safeDate(String? dateStr) {
-      if (dateStr == null ||
-          dateStr.trim().isEmpty ||
-          dateStr.trim().toLowerCase() == "null") {
+      if (dateStr == null || dateStr.trim().isEmpty || dateStr.trim().toLowerCase() == "null") {
         return "Not Available";
       }
       try {
-        DateTime.parse(dateStr.trim());
-        return formatDate(dateStr.trim());
+        final date = DateTime.parse(dateStr.trim());
+        return formatDate(dateStr.trim()); // your existing formatDate function
       } catch (e) {
         return "Not Available";
       }
@@ -1719,113 +1718,97 @@ class _View_DetailsState extends State<View_Details> {
       ));
     }
 
-// Square Feet
-    if ((prop.squarefit ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.square_foot,
-        Colors.teal,
-        "Sq. Ft.",
-        prop.squarefit,
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 7. Square Feet
+    rows.add(_buildInfoRow(
+      Icons.square_foot,
+      Colors.teal,
+      "Square Feet",
+      safeValue(prop.squarefit,),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Registry & GPA
-    if ((prop.registryAndGpa ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.description,
-        Colors.blue,
-        "Registry & GPA",
-        safeDate(prop.registryAndGpa),
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 19. Registry & GPA
+    rows.add(_buildInfoRow(
+      Icons.description,
+      Colors.blue,
+      "Registry & GPA",
+      safeDate(prop.registryAndGpa),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Furnishing
-    if ((prop.furnishing ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.chair,
-        Colors.pink,
-        "Furnishing",
-        prop.furnishing,
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 12. Furnishing
+    rows.add(_buildInfoRow(
+      Icons.chair,
+      Colors.pink,
+      "Furnishing",
+      safeValue(prop.furnishing),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Metro Distance
-    if ((prop.metroDistance ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.train,
-        Colors.orange,
-        "Metro Distance",
-        prop.metroDistance,
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 14. Metro Distance
+    rows.add(_buildInfoRow(
+      Icons.train,
+      Colors.orange,
+      "Metro Distance",
+      safeValue(prop.metroDistance),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Road Size
-    if ((prop.roadSize ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.straighten,
-        Colors.teal,
-        "Road Size",
-        "${prop.roadSize} Feet",
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 18. Road Size
+    String roadSize = safeValue(prop.roadSize, " Feet");
+    if (roadSize == "Not Available Feet") roadSize = "Not Available";
+    rows.add(_buildInfoRow(
+      Icons.straighten,
+      Colors.teal,
+      "Road Size",
+      roadSize,
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Flat Number
-    if ((prop.flatNumber ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.format_list_numbered,
-        Colors.green,
-        "Flat Number",
-        prop.flatNumber,
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 16. Flat Number
+    rows.add(_buildInfoRow(
+      Icons.format_list_numbered,
+      Colors.green,
+      "Flat Number",
+      safeValue(prop.flatNumber),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Age of Property
-    if ((prop.ageOfProperty ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.history,
-        Colors.brown,
-        "Age of Property",
-        prop.ageOfProperty,
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 17. Age of Property
+    rows.add(_buildInfoRow(
+      Icons.history,
+      Colors.brown,
+      "Age of Property",
+      safeValue(prop.ageOfProperty),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Residence / Commercial
-    if ((prop.residenceCommercial ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.domain,
-        Colors.amber,
-        "Residence / Commercial",
-        prop.residenceCommercial,
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 21. Residence / Commercial
+    rows.add(_buildInfoRow(
+      Icons.domain,
+      Colors.amber,
+      "Resi /Comm",
+      safeValue(prop.residenceCommercial),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
-// Loan
-    if ((prop.loan ?? '').isNotEmpty) {
-      rows.add(_buildInfoRow(
-        Icons.account_balance,
-        Colors.blue,
-        "Loan",
-        safeDate(prop.loan),
-        isSmallScreen,
-        isDarkMode,
-      ));
-    }
+    // 20. Loan
+    rows.add(_buildInfoRow(
+      Icons.account_balance,
+      Colors.blue,
+      "Loan",
+      safeDate(prop.loan),
+      isSmallScreen,
+      isDarkMode,
+    ));
 
     return rows;
 

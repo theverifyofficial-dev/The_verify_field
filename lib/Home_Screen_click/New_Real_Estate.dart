@@ -455,14 +455,22 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
   Color _getIconColor(IconData icon, ThemeData theme) {
     final cs = theme.colorScheme;
     switch (icon) {
-      case Icons.location_on: return Colors.red;
-      case Icons.currency_rupee: return Colors.green;
-      case Icons.king_bed: return Colors.pink;
-      case Icons.layers: return Colors.teal;
-      case Icons.apartment: return Colors.blue;
-      case Icons.format_list_numbered: return Colors.indigo;
-      case Icons.numbers: return Colors.cyan;
-      case Icons.person: return Colors.deepPurple;
+      case Icons.location_on:
+        return Colors.red;
+      case Icons.currency_rupee:
+        return Colors.green;
+      case Icons.king_bed:
+        return Colors.pink;
+      case Icons.layers:
+        return Colors.teal;
+      case Icons.apartment:
+        return Colors.blue;
+      case Icons.format_list_numbered:
+        return Colors.indigo;
+      case Icons.numbers:
+        return Colors.cyan;
+      case Icons.person:
+        return Colors.deepPurple;
       default: return cs.primary;
     }
   }
@@ -472,29 +480,79 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     required ColorScheme cs,
     required ThemeData theme,
     required double imageHeight,
+    required String? buyRent,
   }) {
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return Container(
-        height: imageHeight,
-        decoration: BoxDecoration(color: cs.surfaceVariant, borderRadius: BorderRadius.circular(12)),
-        child: const Icon(Icons.apartment, size: 90, color: Colors.grey),
-      );
+    Color badgeColor = Colors.grey;
+
+    final br = buyRent?.toLowerCase().trim() ?? "";
+
+    if (br.contains("rent")) {
+      badgeColor = Colors.green;
+    } else if (br.contains("buy")) {
+      badgeColor = Colors.blue;
+    }
+    else if (br.contains("commercial")) {
+      badgeColor = Colors.orange;
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        height: imageHeight,
-        width: double.infinity,
-        child: CachedNetworkImage(
-          imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
-          fit: BoxFit.cover,
-          placeholder: (_, __) => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          errorWidget: (_, __, ___) => Icon(Icons.broken_image, color: cs.error, size: 90),
-        ),
+      child: Stack(
+        children: [
+          // ================= IMAGE =================
+          SizedBox(
+            height: imageHeight,
+            width: double.infinity,
+            child: imageUrl == null || imageUrl.isEmpty
+                ? Container(
+              color: cs.surfaceVariant,
+              child: const Icon(Icons.apartment, size: 90, color: Colors.grey),
+            )
+                : CachedNetworkImage(
+              imageUrl:
+              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+              const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+              errorWidget: (_, __, ___) =>
+                  Icon(Icons.broken_image, color: cs.error, size: 90),
+            ),
+          ),
+
+          // ================= BUY / RENT BADGE =================
+          if (buyRent != null && buyRent.isNotEmpty)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.25),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    )
+                  ],
+                ),
+                child: Text(
+                  buyRent.toUpperCase(),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
+
 
   Widget _buildCard(NewRealEstateShowDateModel property, List<String> missingFields, bool hasMissingFields) {
     final theme = Theme.of(context);
@@ -515,6 +573,7 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       cs: cs,
       theme: theme,
       imageHeight: imageH,
+      buyRent: '${property.buyRent ?? 'N/A'}',
     );
 
     final Widget livePropertyIdRow = _DetailRow(
@@ -533,7 +592,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       detailRows.add(_DetailRow(icon: Icons.location_on, label: '', value: property.locations!, theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
     }
     detailRows.add(_DetailRow(icon: Icons.currency_rupee, label: '', value: '₹${property.showPrice ?? 'N/A'}', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
-    detailRows.add(_DetailRow(icon: Icons.currency_rupee, label: '', value: '${property.buyRent ?? 'N/A'}', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
     detailRows.add(_DetailRow(icon: Icons.king_bed, label: '', value: property.bhk ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
     detailRows.add(_DetailRow(icon: Icons.layers, label: '', value: property.floor ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
     detailRows.add(_DetailRow(icon: Icons.apartment, label: '', value: property.typeOfProperty ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));

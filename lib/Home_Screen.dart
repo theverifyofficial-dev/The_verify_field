@@ -63,6 +63,7 @@ class TomorrowEvent {
 }
 
 class Catid1122 {
+
   final int id;
   final String Building_Address;
   final String Building_Location;
@@ -139,41 +140,46 @@ class Catid {
 
 // Dummy classes for JSON parsing - replace with actual if available
 class AgreementTask {
-  final String? agreementType;
-  final String? ownerName;
+  final int id;
+  final String ownerName;
+  final String tenantName;
+  final String rentedAddress;
+  final String monthlyRent;
+  final String bhk;
+  final String floor;
+  final String agreementType;
+  final String status;
+  final String currentDate;
 
-  AgreementTask({this.agreementType, this.ownerName});
-}
+  AgreementTask({
+    required this.id,
+    required this.ownerName,
+    required this.tenantName,
+    required this.rentedAddress,
+    required this.monthlyRent,
+    required this.bhk,
+    required this.floor,
+    required this.agreementType,
+    required this.status,
+    required this.currentDate,
+  });
 
-class FutureProperty {
-  final String propertyName;
-  final String place;
-  final String buyRent;
-
-  FutureProperty({required this.propertyName, required this.place, required this.buyRent});
-}
-
-class WebsiteVisit {
-  final String? name;
-  final String? contactNo;
-
-  WebsiteVisit({this.name, this.contactNo});
-}
-
-class AgreementTaskResponse {
-  final List<AgreementTask> data;
-
-  AgreementTaskResponse({required this.data});
-
-  factory AgreementTaskResponse.fromRawJson(String str) {
-    final jsonData = json.decode(str);
-    List<AgreementTask> dataList = [];
-    if (jsonData is List) {
-      dataList = jsonData.map((i) => AgreementTask()).toList();
-    }
-    return AgreementTaskResponse(data: dataList);
+  factory AgreementTask.fromJson(Map<String, dynamic> json) {
+    return AgreementTask(
+      id: json['id'] ?? 0,
+      ownerName: json['owner_name'] ?? '',
+      tenantName: json['tenant_name'] ?? '',
+      rentedAddress: json['rented_address'] ?? '',
+      monthlyRent: json['monthly_rent'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      agreementType: json['agreement_type'] ?? '',
+      status: json['status'] ?? '',
+      currentDate: json['current_dates'] ?? '',
+    );
   }
 }
+
 
 class FuturePropertyResponse {
   final List<FutureProperty> data;
@@ -182,30 +188,106 @@ class FuturePropertyResponse {
 
   factory FuturePropertyResponse.fromRawJson(String str) {
     final jsonData = json.decode(str);
-    List<FutureProperty> dataList = [];
-    if (jsonData is List) {
-      dataList = jsonData.map((i) => FutureProperty(
-        propertyName: i['propertyName'] ?? '',
-        place: i['place'] ?? '',
-        buyRent: i['buyRent'] ?? '',
-      )).toList();
+
+    if (jsonData is! List) {
+      return FuturePropertyResponse(data: []);
     }
+
+    final dataList = jsonData
+        .map<FutureProperty>(
+            (e) => FutureProperty.fromJson(e as Map<String, dynamic>))
+        .toList();
+
     return FuturePropertyResponse(data: dataList);
   }
 }
 
+class WebsiteVisit {
+  final int id;
+  final String name;
+  final String email;
+  final String contactNo;
+  final String message;
+  final String date;
+  final String time;
+  final int subid;
+  final String fieldWorkerNumber;
+  final String fieldWorkerName;
+  final String? bhk;
+
+  WebsiteVisit({
+    required this.id,
+    required this.name,
+    required this.email,
+    required this.contactNo,
+    required this.message,
+    required this.date,
+    required this.time,
+    required this.subid,
+    required this.fieldWorkerNumber,
+    required this.fieldWorkerName,
+    this.bhk,
+  });
+
+  factory WebsiteVisit.fromJson(Map<String, dynamic> json) {
+    return WebsiteVisit(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      contactNo: json['contact_no'] ?? '',
+      message: json['message'] ?? '',
+      date: json['dates'] ?? '',
+      time: json['times'] ?? '',
+      subid: json['subid'] ?? 0,
+      fieldWorkerNumber: json['field_workar_number'] ?? '',
+      fieldWorkerName: json['field_workar_name'] ?? '',
+      bhk: json['bhk'],
+    );
+  }
+}
+
+class AgreementTaskResponse {
+  final String status;
+  final List<AgreementTask> data;
+
+  AgreementTaskResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory AgreementTaskResponse.fromRawJson(String str) {
+    final jsonData = json.decode(str);
+
+    return AgreementTaskResponse(
+      status: jsonData['status'] ?? 'error',
+      data: (jsonData['data'] as List<dynamic>?)
+          ?.map((e) => AgreementTask.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+
 class WebsiteVisitResponse {
+  final String status;
   final List<WebsiteVisit> data;
 
-  WebsiteVisitResponse({required this.data});
+  WebsiteVisitResponse({
+    required this.status,
+    required this.data,
+  });
 
   factory WebsiteVisitResponse.fromRawJson(String str) {
     final jsonData = json.decode(str);
-    List<WebsiteVisit> dataList = [];
-    if (jsonData is List) {
-      dataList = jsonData.map((i) => WebsiteVisit()).toList();
-    }
-    return WebsiteVisitResponse(data: dataList);
+
+    return WebsiteVisitResponse(
+      status: jsonData['status'] ?? 'error',
+      data: (jsonData['data'] as List<dynamic>?)
+          ?.map((e) => WebsiteVisit.fromJson(e))
+          .toList() ??
+          [],
+    );
   }
 }
 
@@ -289,60 +371,44 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 
   Future<void> _initializeData() async {
-    // Load critical data first
     await _loaduserdata();
     await loadUserName();
 
-    // Fire off non-critical loads in parallel without awaiting the whole chain
-    _requestLocationPermissionAndGetLocation();
-
-    if (number.isNotEmpty) {
-      // Use Future.wait with timeout for fetches
-      try {
-        await Future.wait([
-          _fetchMonthly().timeout(const Duration(seconds: 10), onTimeout: () => Future.value()),
-          _fetchYearly().timeout(const Duration(seconds: 10), onTimeout: () => Future.value()),
-          _loadStats().timeout(const Duration(seconds: 10), onTimeout: () => Future.value()),
-          fetchTodayCounts().timeout(const Duration(seconds: 10), onTimeout: () => TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0)),
-        ]).timeout(const Duration(seconds: 15), onTimeout: () {
-          throw TimeoutException('Data fetch timed out', const Duration(seconds: 15));
-        });
-
-        if (mounted) {
-          setState(() {
-            todayLoading = false;
-            todayCounts = TodayCounts(agreements: todayAgreements.length, futureProperties: todayFutureProperties.length, websiteVisits: todayWebsiteVisits.length);
-          });
-        }
-      } catch (e) {
-        debugPrint('Error in _initializeData: $e');
-        if (mounted) {
-          setState(() {
-            todayLoading = false;
-            todayCounts = TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0);
-          });
-        }
-        // Optional: Show toast
-        if (e is! TimeoutException) {
-          Fluttertoast.showToast(msg: 'Data load error: $e', toastLength: Toast.LENGTH_SHORT);
-        }
-      }
-    } else {
-      debugPrint('Number is empty, cannot fetch targets');
-      if (mounted) {
-        setState(() {
-          todayLoading = false;
-          todayCounts = TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0);
-        });
-      }
-    }
-
-    // Cancel timer and ensure no loading state
-    _loadingTimer?.cancel();
     if (mounted) {
       setState(() {
-        _isLoadingData = false;
+        todayLoading = true;
       });
+    }
+
+    try {
+      final results = await Future.wait([
+        _fetchMonthly(),
+        _fetchYearly(),
+        _loadStats(),
+        fetchTodayCounts(), // IMPORTANT
+      ]);
+
+      await fetchTomorrowData();
+      final TodayCounts counts = results.last as TodayCounts;
+
+      if (mounted) {
+        setState(() {
+          todayCounts = counts;
+          todayLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Init error: $e");
+      if (mounted) {
+        setState(() {
+          todayCounts = TodayCounts(
+            agreements: 0,
+            futureProperties: 0,
+            websiteVisits: 0,
+          );
+          todayLoading = false;
+        });
+      }
     }
   }
 
@@ -407,6 +473,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         Navigator.push(
             context, MaterialPageRoute(
             builder: (_) => const CalendarTaskPage()));
+
       },
       child: Container(
         margin:  EdgeInsets.symmetric(horizontal: 16),
@@ -423,6 +490,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                 : [
               Colors.white,
               Colors.white,
+
             ],
           ),
           borderRadius: BorderRadius.circular(24),
@@ -710,17 +778,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                     Column(
                       children: tomorrowEvents.take(3).map((event) =>
                           Container(
-                            // margin: const EdgeInsets.only(bottom: 0),
+                            margin: const EdgeInsets.only(bottom: 5),
                             padding: const EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              color: isDark ? Colors.grey.shade900 : Colors.white.withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(16),
+                              color: isDark ? Colors.grey.shade900 : Colors.white,
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: Colors.blueAccent.withOpacity(0.15),
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.15),
+                                  color:isDark? Colors.black.withOpacity(0.15):Colors.white10,
                                   blurRadius: 10,
                                   offset: const Offset(0, 4),
                                 )
@@ -728,22 +796,16 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             ),
                             child: Row(
                               children: [
-                                // Time Box
+                                // Type Dot
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                  width: 10,
+                                  height: 10,
                                   decoration: BoxDecoration(
-                                    color: Colors.blueAccent.withOpacity(0.15),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Text(
-                                    event.time,
-                                    style: TextStyle(
-                                      color: Colors.blueAccent.shade200,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                    color: _getEventColor(event.type),
+                                    shape: BoxShape.circle,
                                   ),
                                 ),
+
 
                                 const SizedBox(width: 12),
 
@@ -759,16 +821,23 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-
-                                // Type Dot
+                                // Time Box
                                 Container(
-                                  width: 10,
-                                  height: 10,
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: _getEventColor(event.type),
-                                    shape: BoxShape.circle,
+                                    color:Theme.of(context).brightness==Brightness.dark? Colors.blueAccent.withOpacity(0.15):Colors.grey.shade500,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Text(
+                                    event.time,
+                                    style: TextStyle(
+                                      color: Theme.of(context).brightness==Brightness.dark?Colors.blueAccent.shade200:Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
+
                               ],
                             ),
                           ),
@@ -875,6 +944,93 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     );
   }
 
+  String _tomorrowString() {
+    final t = DateTime.now().add(const Duration(days: 1));
+    return "${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}";
+  }
+
+
+  Future<void> fetchTomorrowData() async {
+    final tomorrow = _tomorrowString();
+    final fieldNo = number;
+
+    debugPrint("📅 Tomorrow date sent: $tomorrow");
+
+    try {
+      final res = await Future.wait([
+        // AGREEMENT
+        http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$tomorrow&Fieldwarkarnumber=$fieldNo",
+        )),
+
+        // FUTURE PROPERTY (same API, later filter)
+        http.get(Uri.parse(
+          "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?current_date_=$tomorrow&fieldworkarnumber=$fieldNo",
+        )),
+
+        // WEBSITE VISIT
+        http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$tomorrow&field_workar_number=$fieldNo",
+        )),
+      ]);
+
+      // ---------------- AGREEMENT ----------------
+      final tomorrowAgreements =
+          AgreementTaskResponse.fromRawJson(res[0].body).data;
+
+      // ---------------- FUTURE PROPERTY ----------------
+      final allFuture =
+          FuturePropertyResponse.fromRawJson(res[1].body).data;
+
+      final tomorrowFuture = allFuture.where((e) {
+        return e.date.substring(0, 10) == tomorrow;
+      }).toList();
+
+
+
+      // ---------------- WEBSITE VISIT ----------------
+      final tomorrowWebsite =
+          WebsiteVisitResponse.fromRawJson(res[2].body).data;
+
+      // 🔥 BUILD TOMORROW EVENTS
+      tomorrowEvents.clear();
+
+      for (final a in tomorrowAgreements) {
+        tomorrowEvents.add(
+          TomorrowEvent(
+            time: "Agreement",
+            title: a.ownerName,
+            type: "agreement",
+          ),
+        );
+      }
+
+      for (final f in tomorrowFuture) {
+        tomorrowEvents.add(
+          TomorrowEvent(
+            time: "Future",
+            title: f.place,
+            type: "future",
+          ),
+        );
+      }
+
+      for (final w in tomorrowWebsite) {
+        tomorrowEvents.add(
+          TomorrowEvent(
+            time: w.time,
+            title: w.name,
+            type: "website",
+          ),
+        );
+      }
+
+      debugPrint("📅 Tomorrow events FINAL count: ${tomorrowEvents.length}");
+    } catch (e) {
+      debugPrint("🔥 Error fetching tomorrow data: $e");
+    }
+  }
+
   Future<TodayCounts> fetchTodayCounts() async {
     final now = DateTime.now();
     final today =
@@ -882,36 +1038,60 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     final fieldNo = number;
 
+    debugPrint("📅 Today date sent: $today");
+    debugPrint("📞 Field worker number: $fieldNo");
+
     try {
       final res = await Future.wait([
+        // AGREEMENT (date based)
         http.get(Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo"))
-            .timeout(const Duration(seconds: 10)),
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo",
+        )).timeout(const Duration(seconds: 10)),
+
+        // ✅ CORRECT FUTURE PROPERTY API
         http.get(Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$today&fieldworkarnumber=$fieldNo"))
-            .timeout(const Duration(seconds: 10)),
+          "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?current_date_=$today&fieldworkarnumber=$fieldNo",
+        )).timeout(const Duration(seconds: 10)),
+
+        // WEBSITE VISIT
         http.get(Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo"))
-            .timeout(const Duration(seconds: 10)),
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo",
+        )).timeout(const Duration(seconds: 10)),
       ]);
 
-      try {
-        todayAgreements = AgreementTaskResponse.fromRawJson(res[0].body).data;
-      } catch (_) {
-        todayAgreements = [];
-      }
+      // ---------------- AGREEMENT ----------------
+      debugPrint("🟢 Agreement API STATUS: ${res[0].statusCode}");
+      debugPrint("🟢 Agreement API BODY: ${res[0].body}");
 
-      try {
-        todayFutureProperties = FuturePropertyResponse.fromRawJson(res[1].body).data;
-      } catch (_) {
-        todayFutureProperties = [];
-      }
+      todayAgreements =
+          AgreementTaskResponse.fromRawJson(res[0].body).data;
+      debugPrint("✅ Parsed agreements count: ${todayAgreements.length}");
 
-      try {
-        todayWebsiteVisits = WebsiteVisitResponse.fromRawJson(res[2].body).data;
-      } catch (_) {
-        todayWebsiteVisits = [];
-      }
+      // ---------------- FUTURE PROPERTY ----------------
+      debugPrint("🟡 Future Property API STATUS: ${res[1].statusCode}");
+      debugPrint("🟡 Future Property API BODY: ${res[1].body}");
+
+      final allFuture =
+          FuturePropertyResponse.fromRawJson(res[1].body).data;
+
+      // 🔥 FILTER ONLY TODAY
+      todayFutureProperties = allFuture.where((e) {
+        return e.date.startsWith(today);
+      }).toList();
+
+      debugPrint(
+          "✅ Parsed future properties (TODAY) count: ${todayFutureProperties.length}");
+
+      // ---------------- WEBSITE VISIT ----------------
+      debugPrint("🔵 Website Visit API STATUS: ${res[2].statusCode}");
+      debugPrint("🔵 Website Visit API BODY: ${res[2].body}");
+
+      todayWebsiteVisits =
+          WebsiteVisitResponse.fromRawJson(res[2].body).data;
+      debugPrint("✅ Parsed website visits count: ${todayWebsiteVisits.length}");
+
+      debugPrint(
+          "📊 FINAL COUNTS → Agreement: ${todayAgreements.length}, Future: ${todayFutureProperties.length}, Website: ${todayWebsiteVisits.length}");
 
       return TodayCounts(
         agreements: todayAgreements.length,
@@ -919,8 +1099,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         websiteVisits: todayWebsiteVisits.length,
       );
     } catch (e) {
-      debugPrint('Error in fetchTodayCounts: $e');
-      return TodayCounts(agreements: 0, futureProperties: 0, websiteVisits: 0);
+      debugPrint('🔥 Error in fetchTodayCounts(): $e');
+      return TodayCounts(
+        agreements: 0,
+        futureProperties: 0,
+        websiteVisits: 0,
+      );
     }
   }
 
@@ -1131,6 +1315,40 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       }
     }
   }
+  Future<void> _onRefresh() async {
+    if (mounted) {
+      setState(() {
+        todayLoading = true;
+      });
+    }
+
+    try {
+      await _loaduserdata();
+      await loadUserName();
+
+      final TodayCounts counts = await fetchTodayCounts();
+
+      await Future.wait([
+        _fetchMonthly(),
+        _fetchYearly(),
+        _loadStats(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          todayCounts = counts;
+          todayLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint("Refresh error: $e");
+      if (mounted) {
+        setState(() {
+          todayLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1280,161 +1498,169 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     return Scaffold(
       backgroundColor: scaffoldBackground,
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(),
-        slivers: [
-          // Curved Silver App Bar with Dual Target Indicators
-          SliverAppBar(
-            expandedHeight: expandedHeight,
-            collapsedHeight: (screenHeight * 0.1).clamp(60.0, 80.0),
-            floating: true,
-            pinned: true,
-            snap: false,
-            elevation: 10,
-            backgroundColor: Colors.transparent,
-            flexibleSpace: FlexibleSpaceBar(
-              collapseMode: CollapseMode.parallax,
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: primaryGradient,
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(40),
-                    bottomRight: Radius.circular(40),
-                  ),
-                ),
-                child: SafeArea(
-                  bottom: true,
-                  child: Column(
-                    children: [
-                      // App Bar Section
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenHeight * 0.010),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              onPressed: () {
-                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
-                              },
-                              icon: Image.asset(
-                                AppImages.man,
-                                height: (screenWidth * 0.1).clamp(28.0, 40.0),
-                              ),
-                            ),
-                            // App Logo
-                            Container(
-                              padding: EdgeInsets.all(screenWidth * 0.03),
-                              decoration: BoxDecoration(
-                              ),
-                              child: Image.asset(AppImages.transparent,
-                                  height: (screenWidth * 0.1).clamp(32.0, 45.0)),
-                            ),
-
-                            // Social Links
-                            IconButton(
-                              onPressed: (){
-                                Navigator.push(
-                                    context, MaterialPageRoute(
-                                    builder: (context) => LinksPage()));
-                              },
-                              icon: Image.asset(
-                                AppImages.browser,
-                                height: (screenWidth * 0.09).clamp(25.0, 35.0),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: screenHeight * 0.02),
-                      // Dual Target Progress Indicators - Use Wrap for responsiveness
-                      Expanded(
-                        child: Wrap(
-                          spacing: screenWidth * 0.15,
-                          runSpacing: screenHeight * 0.1,
-                          alignment: WrapAlignment.spaceEvenly,
-                          children: [
-                            _TargetProgressCircle(
-                              progress: monthlyProgress,
-                              percentage: '${(monthlyProgress * 100).toInt()}%',
-                              title: 'Monthly Target',
-                              icon: Icons.track_changes_rounded,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const Target_Monthly()),
-                                );
-                              },
-                            ),
-                            _TargetProgressCircle(
-                              progress: yearlyProgress,
-                              percentage: '${(yearlyProgress * 100).toInt()}%',
-                              title: 'Yearly Target',
-                              icon: Icons.calendar_today_rounded,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (_) => const Target_Yearly()),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // Dashboard Grid Section
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(screenWidth * 0.05),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Today's Card (replacing welcome back)
-                  /*_todayCard(isDark),
-                  const SizedBox(height: 16),*/
-                  // Feature Grid
-                  GridView.builder(
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: isTablet ? 3 : 2,
-                      crossAxisSpacing: screenWidth * 0.04,
-                      mainAxisSpacing: screenWidth * 0.04,
-                      childAspectRatio: isTablet ? 1.0 : 0.95, // Slightly adjust for smaller screens
+      body: RefreshIndicator(
+        color: Colors.blueAccent,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        displacement: 80,
+        onRefresh: _onRefresh,
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            // Curved Silver App Bar with Dual Target Indicators
+            SliverAppBar(
+              expandedHeight: expandedHeight,
+              collapsedHeight: (screenHeight * 0.1).clamp(60.0, 80.0),
+              floating: true,
+              pinned: true,
+              snap: false,
+              elevation: 10,
+              backgroundColor: Colors.transparent,
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.parallax,
+                background: Container(
+                  decoration: BoxDecoration(
+                    gradient: primaryGradient,
+                    borderRadius: const BorderRadius.only(
+                      bottomLeft: Radius.circular(40),
+                      bottomRight: Radius.circular(40),
                     ),
-                    itemCount: cardData.length,
-                    itemBuilder: (context, index) {
-                      final item = cardData[index];
+                  ),
+                  child: SafeArea(
+                    bottom: true,
+                    child: Column(
+                      children: [
+                        // App Bar Section
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05, vertical: screenHeight * 0.010),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ProfilePage()));
+                                },
+                                icon: Image.asset(
+                                  AppImages.man,
+                                  height: (screenWidth * 0.1).clamp(28.0, 40.0),
+                                ),
+                              ),
+                              // App Logo
+                              Container(
+                                padding: EdgeInsets.all(screenWidth * 0.03),
+                                decoration: BoxDecoration(
+                                ),
+                                child: Image.asset(AppImages.transparent,
+                                    height: (screenWidth * 0.1).clamp(32.0, 45.0)),
+                              ),
 
-                      return AnimationConfiguration.staggeredGrid(
-                        position: index,
-                        duration: const Duration(milliseconds: 600),
-                        columnCount: isTablet ? 3 : 2,
-                        child: ScaleAnimation(
-                          scale: 0.9,
-                          child: FadeInAnimation(
-                            child: _PremiumFeatureCard(
-                              title: item["title"],
-                              gradient: item["gradient"],
-                              imagePath: item["image"],
-                              onTap: item["onTap"],
-                              screenWidth: screenWidth, // Pass for dynamic sizing
-                            ),
+                              // Social Links
+                              IconButton(
+                                onPressed: (){
+                                  Navigator.push(
+                                      context, MaterialPageRoute(
+                                      builder: (context) => LinksPage()));
+                                },
+                                icon: Image.asset(
+                                  AppImages.browser,
+                                  height: (screenWidth * 0.09).clamp(25.0, 35.0),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      );
-                    },
+                        SizedBox(height: screenHeight * 0.02),
+                        // Dual Target Progress Indicators - Use Wrap for responsiveness
+                        Expanded(
+                          child: Wrap(
+                            spacing: screenWidth * 0.15,
+                            runSpacing: screenHeight * 0.1,
+                            alignment: WrapAlignment.spaceEvenly,
+                            children: [
+                              _TargetProgressCircle(
+                                progress: monthlyProgress,
+                                percentage: '${(monthlyProgress * 100).toInt()}%',
+                                title: 'Monthly Target',
+                                icon: Icons.track_changes_rounded,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const Target_Monthly()),
+                                  );
+                                },
+                              ),
+                              _TargetProgressCircle(
+                                progress: yearlyProgress,
+                                percentage: '${(yearlyProgress * 100).toInt()}%',
+                                title: 'Yearly Target',
+                                icon: Icons.calendar_today_rounded,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const Target_Yearly()),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ],
+
+           // Dashboard Grid Section
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(screenWidth * 0.05),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Today's Card (replacing welcome back)
+                   // _todayCard(isDark),
+                  //  const SizedBox(height: 10),
+                    _todayCard(isDark),
+                    const SizedBox(height: 16),
+                    // Feature Grid
+                    GridView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: isTablet ? 3 : 2,
+                        crossAxisSpacing: screenWidth * 0.04,
+                        mainAxisSpacing: screenWidth * 0.04,
+                        childAspectRatio: isTablet ? 1.0 : 0.95, // Slightly adjust for smaller screens
+                      ),
+                      itemCount: cardData.length,
+                      itemBuilder: (context, index) {
+                        final item = cardData[index];
+
+                        return AnimationConfiguration.staggeredGrid(
+                          position: index,
+                          duration: const Duration(milliseconds: 600),
+                          columnCount: isTablet ? 3 : 2,
+                          child: ScaleAnimation(
+                            scale: 0.9,
+                            child: FadeInAnimation(
+                              child: _PremiumFeatureCard(
+                                title: item["title"],
+                                gradient: item["gradient"],
+                                imagePath: item["image"],
+                                onTap: item["onTap"],
+                                screenWidth: screenWidth, // Pass for dynamic sizing
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1543,229 +1769,230 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
       stops: const [0.0, 0.5, 1.0],
     );
 
-    return GestureDetector(
-      onTap: widget.onTap,
-      child: AnimatedBuilder(
-        animation: _pulseAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _pulseAnimation.value,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  padding: EdgeInsets.all(baseSize * 0.08), // Added padding for premium spacing
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.1),
-                        Colors.transparent,
+    return
+       GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            return Transform.scale(
+              scale: _pulseAnimation.value,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(baseSize * 0.08), // Added padding for premium spacing
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.1),
+                          Colors.transparent,
+                        ],
+                        center: Alignment.center,
+                        radius: 1.2,
+                      ),
+                      boxShadow: [
+                        // Multi-layer shadows for depth
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.15),
+                          blurRadius: 12,
+                          spreadRadius: -2,
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.05),
+                          blurRadius: 20,
+                          spreadRadius: 2,
+                          offset: const Offset(0, -4),
+                        ),
                       ],
-                      center: Alignment.center,
-                      radius: 1.2,
                     ),
-                    boxShadow: [
-                      // Multi-layer shadows for depth
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
-                        blurRadius: 12,
-                        spreadRadius: -2,
-                        offset: const Offset(0, 4),
-                      ),
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.05),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                        offset: const Offset(0, -4),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Outer glow ring
-                      Container(
-                        width: baseSize + 10,
-                        height: baseSize + 10,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.cyan.shade100.withOpacity(0.3),
-                              Colors.purple.shade200.withOpacity(0.3),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: progressGradient.colors.first.withOpacity(0.4),
-                              blurRadius: baseSize * 0.2,
-                              spreadRadius: 2,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Outer glow ring
+                        Container(
+                          width: baseSize + 10,
+                          height: baseSize + 10,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.cyan.shade100.withOpacity(0.3),
+                                Colors.purple.shade200.withOpacity(0.3),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
                             ),
-                          ],
-                        ),
-                      ),
-                      // Main progress container
-                      Container(
-                        width: baseSize,
-                        height: baseSize,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.white.withOpacity(0.2),
-                              Colors.white.withOpacity(0.05),
+                            boxShadow: [
+                              BoxShadow(
+                                color: progressGradient.colors.first.withOpacity(0.4),
+                                blurRadius: baseSize * 0.2,
+                                spreadRadius: 2,
+                              ),
                             ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
                           ),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.25),
-                            width: 1.5,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
                         ),
-                        child: ClipOval(
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              // Background progress ring (thin)
-                              SizedBox(
-                                width: baseSize - 8,
-                                height: baseSize - 8,
-                                child: CircularProgressIndicator(
-                                  value: 1.0,
-                                  strokeWidth: baseSize * 0.05,
-                                  backgroundColor: Colors.white.withOpacity(0.15),
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white.withOpacity(0.2),
-                                  ),
-                                ),
+                        // Main progress container
+                        Container(
+                          width: baseSize,
+                          height: baseSize,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.2),
+                                Colors.white.withOpacity(0.05),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(0.25),
+                              width: 1.5,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
                               ),
-                              // Foreground progress ring with gradient sweep
-                              SizedBox(
-                                width: baseSize - 8,
-                                height: baseSize - 8,
-                                child: CustomPaint(
-                                  painter: _ProgressPainter(
-                                    progress: widget.progress,
-                                    strokeWidth: baseSize * 0.08,
-                                    gradient: progressGradient,
-                                  ),
-                                ),
-                              ),
-                              // Inner content with glassmorphism
-                              Container(
-                                width: baseSize * 0.75,
-                                height: baseSize * 0.75,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      Colors.white.withOpacity(0.1),
-                                      Colors.white.withOpacity(0.05),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.3),
-                                    width: 1,
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.05),
-                                      blurRadius: 4,
-                                      offset: const Offset(0, 1),
+                            ],
+                          ),
+                          child: ClipOval(
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                // Background progress ring (thin)
+                                SizedBox(
+                                  width: baseSize - 8,
+                                  height: baseSize - 8,
+                                  child: CircularProgressIndicator(
+                                    value: 1.0,
+                                    strokeWidth: baseSize * 0.05,
+                                    backgroundColor: Colors.white.withOpacity(0.15),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white.withOpacity(0.2),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      widget.icon,
-                                      color: Colors.white.withOpacity(0.9),
-                                      size: iconSize,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withOpacity(0.2),
-                                          blurRadius: 2,
-                                          offset: const Offset(0, 1),
-                                        ),
+                                // Foreground progress ring with gradient sweep
+                                SizedBox(
+                                  width: baseSize - 8,
+                                  height: baseSize - 8,
+                                  child: CustomPaint(
+                                    painter: _ProgressPainter(
+                                      progress: widget.progress,
+                                      strokeWidth: baseSize * 0.08,
+                                      gradient: progressGradient,
+                                    ),
+                                  ),
+                                ),
+                                // Inner content with glassmorphism
+                                Container(
+                                  width: baseSize * 0.75,
+                                  height: baseSize * 0.75,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.white.withOpacity(0.1),
+                                        Colors.white.withOpacity(0.05),
                                       ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
                                     ),
-                                    SizedBox(height: baseSize * 0.04),
-                                    FittedBox(
-                                      fit: BoxFit.scaleDown,
-                                      child: Text(
-                                        widget.percentage,
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: textSize,
-                                          fontWeight: FontWeight.bold,
-                                          shadows: [
-                                            Shadow(
-                                              color: Colors.black.withOpacity(0.3),
-                                              blurRadius: 2,
-                                              offset: const Offset(0, 1),
-                                            ),
-                                          ],
+                                    border: Border.all(
+                                      color: Colors.white.withOpacity(0.3),
+                                      width: 1,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.05),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        widget.icon,
+                                        color: Colors.white.withOpacity(0.9),
+                                        size: iconSize,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black.withOpacity(0.2),
+                                            blurRadius: 2,
+                                            offset: const Offset(0, 1),
+                                          ),
+                                        ],
+                                      ),
+                                      SizedBox(height: baseSize * 0.04),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          widget.percentage,
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: textSize,
+                                            fontWeight: FontWeight.bold,
+                                            shadows: [
+                                              Shadow(
+                                                color: Colors.black.withOpacity(0.3),
+                                                blurRadius: 2,
+                                                offset: const Offset(0, 1),
+                                              ),
+                                            ],
+                                          ),
                                         ),
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: screenHeight * 0.015),
-                // Enhanced title with gradient text effect
-                ShaderMask(
-                  shaderCallback: (bounds) => LinearGradient(
-                    colors: [Colors.white.withOpacity(0.95), Colors.white.withOpacity(0.8)],
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                  ).createShader(bounds),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      widget.title,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: titleSize,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                        shadows: [
-                          Shadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 2,
-                            offset: const Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      textAlign: TextAlign.center,
+                      ],
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+                  SizedBox(height: screenHeight * 0.015),
+                  // Enhanced title with gradient text effect
+                  ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: [Colors.white.withOpacity(0.95), Colors.white.withOpacity(0.8)],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ).createShader(bounds),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        widget.title,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: titleSize,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 2,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
     );
   }
 }

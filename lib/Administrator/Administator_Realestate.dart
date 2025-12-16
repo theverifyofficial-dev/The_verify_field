@@ -552,17 +552,60 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     }
   }
 
+  Color _getPropertyTypeColor(String? type) {
+    switch (type?.toLowerCase()) {
+      case 'rent':
+        return Colors.green;
+      case 'buy':
+        return Colors.blueAccent;
+      case 'lease':
+        return Colors.purple;
+      default:
+        return Colors.blue;
+    }
+  }
+
+
   Widget _buildImageSection({
-    required List<String> images,
+    required String? imageUrl,
     required ColorScheme cs,
     required ThemeData theme,
-    required Map<String, dynamic> status,
+    required String? buyRent,
     required double imageHeight,
-    required double multiImgHeight,
     required bool isTablet,
+    required double multiImgHeight,
+    required status,
+    required images,
+
   }) {
+    // Compute badge text and color
+    String badgeText = '';
+    Color badgeColor = Colors.grey;
+
+    if (buyRent != null && buyRent.trim().isNotEmpty) {
+      final lower = buyRent.toLowerCase().trim();
+      switch (lower) {
+        case 'rent':
+          badgeText = 'Rent';
+          badgeColor = Colors.green;
+          break;
+        case 'buy':
+        case 'sale':
+          badgeText = 'Buy';
+          badgeColor = Colors.blueAccent;
+          break;
+        case 'lease':
+          badgeText = 'Lease';
+          badgeColor = Colors.purple;
+          break;
+        default:
+          badgeText = buyRent.toUpperCase();
+          badgeColor = _getPropertyTypeColor(buyRent);
+      }
+    }
+
     Widget imageWidget;
-    if (images.isEmpty) {
+    if (imageUrl == null || imageUrl.isEmpty) {
       imageWidget = Container(
         height: imageHeight,
         decoration: BoxDecoration(
@@ -575,14 +618,14 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           color: Colors.grey,
         ),
       );
-    } else if (images.length == 1) {
+    } else {
       imageWidget = ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: SizedBox(
           height: imageHeight,
           width: double.infinity,
           child: CachedNetworkImage(
-            imageUrl: images.first,
+            imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$imageUrl",
             fit: BoxFit.cover,
             placeholder: (_, __) => const Center(
               child: SizedBox(
@@ -596,95 +639,40 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
           ),
         ),
       );
-    } else {
-      imageWidget = Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: multiImgHeight,
-            child: Row(
-              children: [
-                Expanded(
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: images[0],
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => const Center(
-                        child: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (_, __, ___) =>
-                          Icon(Icons.broken_image, color: cs.error, size: 50),
-                    ),
-                  ),
-                ),
-                if (images.length > 1) ...[
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          CachedNetworkImage(
-                            imageUrl: images[1],
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => const Center(
-                              child: SizedBox(
-                                height: 30,
-                                width: 30,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) =>
-                                Icon(Icons.broken_image, color: cs.error, size: 50),
-                          ),
-                          if (images.length > 2)
-                            Positioned(
-                              bottom: 4,
-                              right: 4,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black54,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Text(
-                                  '+${images.length - 2}',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(height: 4), // Reduced height for less space
-          Text(
-            '${images.length} ${images.length == 1 ? 'Image' : 'Images'}',
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: cs.primary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      );
     }
-    return imageWidget;
+
+    if (badgeText.isEmpty) {
+      return imageWidget;
+    }
+
+    return Stack(
+      children: [
+        imageWidget,
+        Positioned(
+          top: 8,
+          right: 8,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: badgeColor.withOpacity(0.9),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              badgeText,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  List<String> _buildMultipleImages(Catid p) {
+
+    List<String> _buildMultipleImages(Catid p) {
     final List<String> imgs = [];
     if (p.propertyPhoto != null && p.propertyPhoto.isNotEmpty) {
       imgs.add('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
@@ -710,9 +698,11 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     final double detailFontSize = isTablet ? 13 : 12; // Smaller for less space
     final double imageH = (screenHeight * 0.28).clamp(150.0, 250.0); // Increased height to make image taller
     final double multiH = imageH * 0.8;
+
     // Calculate missing fields
     // final missingFields = _missingFieldsFor(property);
     // final hasMissingFields = missingFields.isNotEmpty;
+
     final Object loggValue2 = status['loggValue2'] ?? 'N/A';
     final Widget flatIdDetail = _DetailRow(
       icon: Icons.format_list_numbered,
@@ -734,24 +724,17 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       fontSize: detailFontSize,
       fontWeight: FontWeight.bold,
     );
-    // final Widget flatIdDetail = _DetailRow(
-    // icon: Icons.numbers,
-    // label: 'Flat ID',
-    // value: property.id.toString(),
-    // theme: theme,
-    // getIconColor: _getIconColor,
-    // maxLines: 1,
-    // fontSize: detailFontSize,
-    // fontWeight: FontWeight.bold,
-    // );
+
     final Widget imageSection = _buildImageSection(
-      images: images,
+      images: property.propertyPhoto,
       cs: cs,
       theme: theme,
-      status: status,
       imageHeight: imageH,
       multiImgHeight: multiH,
       isTablet: isTablet,
+      imageUrl: '${property.propertyPhoto ?? ''}',
+      buyRent: property.buyRent,
+      status: status,
     );
     // Priority detail rows based on user request
     final List<Widget> detailRows = [];
@@ -779,15 +762,6 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
       icon: Icons.bedroom_parent,
       label: '',
       value: '${property.bhk ?? 'N/A'}',
-      theme: theme,
-      getIconColor: _getIconColor,
-      fontSize: detailFontSize,
-      fontWeight: FontWeight.bold,
-    ));
-    detailRows.add(_DetailRow(
-      icon: Icons.handshake_outlined,
-      label: '',
-      value: property.buyRent ?? 'N/A',
       theme: theme,
       getIconColor: _getIconColor,
       fontSize: detailFontSize,

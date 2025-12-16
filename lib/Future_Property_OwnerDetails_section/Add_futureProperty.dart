@@ -28,6 +28,10 @@ class Add_FutureProperty extends StatefulWidget {
 }
 
 class _Add_FuturePropertyState extends State<Add_FutureProperty> {
+
+  int _countdown = 0;
+  bool _isCounting = false;
+
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -96,7 +100,14 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     'Ghitorni'
   ];
   final List<String> _items1 = ['Buy', 'Rent'];
-
+  final List<String> name = [
+    '1 BHK',
+    '2 BHK',
+    '3 BHK',
+    '4 BHK',
+    '1 RK',
+    'Commercial SP'
+  ];
   final List<String> propertyTypes = ['Residential', 'Commercial'];
   final List<String> lift_options = ['Yes', 'No'];
   final List<String> parkingOptions = ['Yes', 'No'];
@@ -249,7 +260,11 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
+     // MapEntry("typeofproperty", _typeofproperty ?? ''),
+      // MapEntry("typeofproperty", _typeofproperty ?? ''),
       MapEntry("propertyname_address", _address.text),
+     // MapEntry("building_information_facilitys", _Building_information.text),
+      // MapEntry("building_information_facilitys", _Building_information.text),
       MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
       MapEntry("owner_vehical_number", _vehicleno.text),
       MapEntry("your_address", _Google_Location.text),
@@ -924,7 +939,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   ),
                 ),
                 const SizedBox(height: 16),
-
+               // _buildTwoFieldRow(
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
@@ -973,6 +988,107 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                           : null,
                     ),
                   ),
+
+                  // Container(
+                  //   decoration: BoxDecoration(
+                  //     borderRadius: BorderRadius.circular(12),
+                  //     border: Border.all(
+                  //         color: Colors.grey.withOpacity(0.2)),
+                  //   ),
+                  //   child:
+                  //   DropdownButtonFormField<String>(
+                  //     // value: _typeofproperty,
+                  //     decoration: InputDecoration(
+                  //       labelText: 'Type of Property',
+                  //       labelStyle:
+                  //       TextStyle(color: secondaryTextColor),
+                  //       border: InputBorder.none,
+                  //       contentPadding:
+                  //       const EdgeInsets.symmetric(
+                  //           horizontal: 16, vertical: 16),
+                  //       prefixIcon: Icon(Icons.home_work_rounded,
+                  //           color: primaryColor),
+                  //       filled: true,
+                  //       fillColor: isDarkMode
+                  //           ? Colors.grey[850]
+                  //           : Colors.white,
+                  //     ),
+                  //     dropdownColor: isDarkMode
+                  //         ? Colors.grey[850]
+                  //         : Colors.white,
+                  //     style: TextStyle(
+                  //         color: textColor,
+                  //         fontWeight: FontWeight.w500),
+                  //     items: name
+                  //         .map((String value) =>
+                  //         DropdownMenuItem<String>(
+                  //             value: value,
+                  //             child: Text(value,
+                  //                 style: TextStyle(
+                  //                     color: textColor))))
+                  //         .toList(),
+                  //     onChanged: (String? newValue) {
+                  //       setState(() {
+                  //         // _typeofproperty = newValue;
+                  //       });
+                  //     },
+                  //     validator: (value) =>
+                  //     (value == null || value.isEmpty)
+                  //         ? 'Please select type of property'
+                  //         : null,
+                  //   ),
+                  // ),
+                //),
+                  // Container(
+                  //   decoration: BoxDecoration(
+                  //     borderRadius: BorderRadius.circular(12),
+                  //     border: Border.all(
+                  //         color: Colors.grey.withOpacity(0.2)),
+                  //   ),
+                  //   child:
+                  //   DropdownButtonFormField<String>(
+                  //     value: _typeofproperty,
+                  //     decoration: InputDecoration(
+                  //       labelText: 'Type of Property',
+                  //       labelStyle:
+                  //       TextStyle(color: secondaryTextColor),
+                  //       border: InputBorder.none,
+                  //       contentPadding:
+                  //       const EdgeInsets.symmetric(
+                  //           horizontal: 16, vertical: 16),
+                  //       prefixIcon: Icon(Icons.home_work_rounded,
+                  //           color: primaryColor),
+                  //       filled: true,
+                  //       fillColor: isDarkMode
+                  //           ? Colors.grey[850]
+                  //           : Colors.white,
+                  //     ),
+                  //     dropdownColor: isDarkMode
+                  //         ? Colors.grey[850]
+                  //         : Colors.white,
+                  //     style: TextStyle(
+                  //         color: textColor,
+                  //         fontWeight: FontWeight.w500),
+                  //     items: name
+                  //         .map((String value) =>
+                  //         DropdownMenuItem<String>(
+                  //             value: value,
+                  //             child: Text(value,
+                  //                 style: TextStyle(
+                  //                     color: textColor))))
+                  //         .toList(),
+                  //     onChanged: (String? newValue) {
+                  //       setState(() {
+                  //         _typeofproperty = newValue;
+                  //       });
+                  //     },
+                  //     validator: (value) =>
+                  //     (value == null || value.isEmpty)
+                  //         ? 'Please select type of property'
+                  //         : null,
+                  //   ),
+                  // ),
+               // ),
               ],
             ),
           ),

@@ -485,7 +485,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
                   title,
                   style: TextStyle(
                     fontSize: isSmallScreen ? 10.0 : 11.0,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
                     color: titleColor,
                   ),
                 ),
@@ -1060,8 +1060,8 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     rows.add(buildInfoRow(
       Icons.train,
       Colors.orange,
-      "Metro Distance",
-      safeValue(prop.metroDistance),
+      "Metro Station",
+      safeValue(prop.highwayDistance),
     ));
 
     // 2. Market Distance
@@ -1119,8 +1119,17 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       safeValue(prop.furnishedUnfurnished),
     ));
 
+
+    // 14. Highway Distance (extra in first code)
+    rows.add(buildInfoRow(
+      Icons.directions_car,
+      Colors.red,
+      "Metro Distance",
+      safeValue(prop.metroDistance),
+    ));
+
     // 9. Road Size
-    String roadSize = safeValue(prop.roadSize, " Feet");
+    String roadSize = safeValue(prop.roadSize,);
     if (roadSize == "Not Available Feet") roadSize = "Not Available";
     rows.add(buildInfoRow(
       Icons.straighten,
@@ -1149,7 +1158,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     rows.add(buildInfoRow(
       Icons.domain,
       Colors.amber,
-      "Residence / Commercial",
+      "Resi/Comm",
       safeValue(prop.residenceCommercial),
     ));
 
@@ -1161,13 +1170,7 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
       safeValue(prop.loan),
     ));
 
-    // 14. Highway Distance (extra in first code)
-    rows.add(buildInfoRow(
-      Icons.directions_car,
-      Colors.red,
-      "Highway Distance",
-      safeValue(prop.highwayDistance),
-    ));
+
 
     return rows;
   }

@@ -18,6 +18,7 @@ import '../model/futureProperty_Slideer.dart';
 import 'Add_FutureProperty_Images.dart';
 import 'Duplicate_Property.dart';
 import 'Edit_futureproperty/Edit_Building.dart';
+import 'Owner_Call/All_contact.dart';
 import 'Update_future_building.dart';
 import 'add_flat_form.dart';
 import 'New_Update/under_flats_infutureproperty.dart';
@@ -937,7 +938,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Flat Image - Expanded flex
               Expanded(
                 flex: 3,
                 child: ClipRRect(
@@ -969,7 +969,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       if (flat.liveUnlive.isNotEmpty)
                         Positioned(
                           top: 8,
-                          right: 8,
+                          left: 8,
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
@@ -997,7 +997,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
 
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child:
                Stack(
                   children: [
@@ -1163,7 +1163,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           ),
         ),
       ),
-        ]),
+        ]
+          ),
+        ),
+      ),
+    );
   }
   // Building Details Section
   SliverToBoxAdapter _buildBuildingDetailsSection(bool isDarkMode) {
@@ -1347,6 +1351,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       {"icon": Icons.shopping_cart, "label": "Locality", "value": property.localityList},
       {"icon": Icons.elevator, "label": "Lift", "value": property.lift},
       {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
+      {"icon": Icons.date_range, "label": "Date & Time", "value": property.currentDate},
     ].where((spec) => (spec["value"] as String).isNotEmpty).toList();
     if (specifications.isEmpty) {
       return Container(
@@ -1560,12 +1565,13 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
 
           return Container(
             margin: const EdgeInsets.all(16),
+
             child: Row(
               children: [
-                // Call Button (Left side) - Ab sahi kaam karega: Phone call
                 Expanded(
                   flex: 3,
-                  child: ElevatedButton(
+                  child:
+                  ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green[600],
                       foregroundColor: Colors.white,
@@ -1575,16 +1581,18 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       ),
                       elevation: 2,
                     ),
-                    onPressed: fieldWorkerNumber.isEmpty
-                        ? null // Agar number nahi hai to button disable
-                        : () async {
-                      final Uri telUri = Uri(scheme: 'tel', path: fieldWorkerNumber);
-                      // Optional: Check if can launch (url_launcher package chahiye)
-                      // if (await canLaunchUrl(telUri)) {
-                      //   await launchUrl(telUri);
-                      // }
-                      launchUrl(telUri); // Direct launch (url_launcher add karna padega)
-                    },
+                    onPressed: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  AllContact(
+                                      buildingId: data.id,
+                                      ownerName: data.ownerName,
+                                      ownerNumber: data.ownerNumber),
+                          ),
+                      );
+                          },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: const [

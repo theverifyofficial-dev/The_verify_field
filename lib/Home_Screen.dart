@@ -1547,8 +1547,8 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
       stops: const [0.0, 0.5, 1.0],
     );
 
-    return Flexible(
-      child: GestureDetector(
+    return
+       GestureDetector(
         onTap: widget.onTap,
         child: AnimatedBuilder(
           animation: _pulseAnimation,
@@ -1771,7 +1771,6 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
             );
           },
         ),
-      ),
     );
   }
 }

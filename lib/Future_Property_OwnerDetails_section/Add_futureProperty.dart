@@ -23,11 +23,16 @@ import 'metro_api.dart';
 class Add_FutureProperty extends StatefulWidget {
   const Add_FutureProperty({super.key});
 
+
   @override
   State<Add_FutureProperty> createState() => _Add_FuturePropertyState();
 }
 
 class _Add_FuturePropertyState extends State<Add_FutureProperty> {
+
+  int _countdown = 0;
+  bool _isCounting = false;
+
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -256,9 +261,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
-      MapEntry("typeofproperty", _typeofproperty ?? ''),
+     // MapEntry("typeofproperty", _typeofproperty ?? ''),
       MapEntry("propertyname_address", _address.text),
-      MapEntry("building_information_facilitys", _Building_information.text),
+     // MapEntry("building_information_facilitys", _Building_information.text),
       MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
       MapEntry("owner_vehical_number", _vehicleno.text),
       MapEntry("your_address", _Google_Location.text),
@@ -1032,7 +1037,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   //         : null,
                   //   ),
                   // ),
-                ),
+                //),
                   // Container(
                   //   decoration: BoxDecoration(
                   //     borderRadius: BorderRadius.circular(12),
@@ -1131,6 +1136,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     isDarkMode: isDarkMode,
                   ),
                   keyboardType: TextInputType.phone,
+                  maxLength: 10,
                 ),
                 const SizedBox(height: 12),
                 TextFormField(
@@ -1158,6 +1164,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     isDarkMode: isDarkMode,
                   ),
                   keyboardType: TextInputType.phone,
+                  maxLength: 10,
                 ),
               ],
             ),
@@ -2523,9 +2530,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       height: 60,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight),
+          colors: [primaryColor, secondaryColor],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -2539,22 +2547,30 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(15),
-          onTap: () async {
+          onTap: _isCounting
+              ? null
+              : () {
             if (_formKey.currentState!.validate()) {
-              await _handleUpload();
+              _startCountdown();
             }
           },
           child: Center(
             child: Row(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
-              children: const [
-                Icon(Icons.rocket_launch_rounded,
-                    color: Colors.white, size: 20),
-                SizedBox(width: 10),
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _isCounting ? Icons.timer : Icons.touch_app,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
                 Text(
-                  'SUBMIT PROPERTY',
-                  style: TextStyle(
+                  _isCounting
+                      ? (_countdown == 0
+                      ? "Submitting..."
+                      : "Submitting in $_countdown")
+                      : 'SUBMIT PROPERTY',
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -2567,6 +2583,26 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         ),
       ),
     );
+  }
+  void _startCountdown() async {
+    setState(() {
+      _isCounting = true;
+      _countdown = 3;
+    });
+
+    for (int i = 3; i > 0; i--) {
+      await Future.delayed(const Duration(seconds: 1));
+      setState(() {
+        _countdown = i - 1;
+      });
+    }
+
+    setState(() {
+      _isCounting = false;
+    });
+
+    // ✅ Finally submit
+    await _handleUpload();
   }
 
   void _showFacilitySelectionDialog() async {
@@ -2599,7 +2635,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     _vehicleno.dispose();
     _Google_Location.dispose();
     _address.dispose();
-    _Building_information.dispose();
+    //_Building_information.dispose();
     _facilityController.dispose();
     metroController.dispose();
     localityController.dispose();

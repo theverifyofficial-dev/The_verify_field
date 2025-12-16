@@ -300,12 +300,12 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
 
   Future<List<Catid1>> fetchData1() async {
     final url = Uri.parse(
-      "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/show_api_add_tenant.php?sub_id=${widget.Subid}",
+      "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/show_api_add_tenant.php?sub_id=${widget.id}",
     );
 
     final response =
     await http.get(url).timeout(const Duration(seconds: 30));
-
+    print('tenant data : ${response.body}');
     if (response.statusCode != 200) {
       throw Exception("Server error");
     }

@@ -256,9 +256,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       MapEntry("caretakernumber", _CareTaker_number.text ?? ''),
       MapEntry("place", _selectedItem ?? ''),
       MapEntry("buy_rent", _selectedItem1 ?? ''),
-      MapEntry("typeofproperty", _typeofproperty ?? ''),
+      // MapEntry("typeofproperty", _typeofproperty ?? ''),
       MapEntry("propertyname_address", _address.text),
-      MapEntry("building_information_facilitys", _Building_information.text),
+      // MapEntry("building_information_facilitys", _Building_information.text),
       MapEntry("property_address_for_fieldworkar", _Address_apnehisaabka.text),
       MapEntry("owner_vehical_number", _vehicleno.text),
       MapEntry("your_address", _Google_Location.text),
@@ -1032,7 +1032,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                   //         : null,
                   //   ),
                   // ),
-                ),
+                // ),
                   // Container(
                   //   decoration: BoxDecoration(
                   //     borderRadius: BorderRadius.circular(12),
@@ -2599,7 +2599,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
     _vehicleno.dispose();
     _Google_Location.dispose();
     _address.dispose();
-    _Building_information.dispose();
+    // _Building_information.dispose();
     _facilityController.dispose();
     metroController.dispose();
     localityController.dispose();

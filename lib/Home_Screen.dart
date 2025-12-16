@@ -1543,230 +1543,228 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
       stops: const [0.0, 0.5, 1.0],
     );
 
-    return Flexible(
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            return Transform.scale(
-              scale: _pulseAnimation.value,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(baseSize * 0.08), // Added padding for premium spacing
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Colors.white.withOpacity(0.1),
-                          Colors.transparent,
-                        ],
-                        center: Alignment.center,
-                        radius: 1.2,
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _pulseAnimation,
+        builder: (context, child) {
+          return Transform.scale(
+            scale: _pulseAnimation.value,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(baseSize * 0.08), // Added padding for premium spacing
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.1),
+                        Colors.transparent,
+                      ],
+                      center: Alignment.center,
+                      radius: 1.2,
+                    ),
+                    boxShadow: [
+                      // Multi-layer shadows for depth
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 12,
+                        spreadRadius: -2,
+                        offset: const Offset(0, 4),
                       ),
-                      boxShadow: [
-                        // Multi-layer shadows for depth
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.15),
-                          blurRadius: 12,
-                          spreadRadius: -2,
-                          offset: const Offset(0, 4),
-                        ),
-                        BoxShadow(
-                          color: Colors.white.withOpacity(0.05),
-                          blurRadius: 20,
-                          spreadRadius: 2,
-                          offset: const Offset(0, -4),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Outer glow ring
-                        Container(
-                          width: baseSize + 10,
-                          height: baseSize + 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.cyan.shade100.withOpacity(0.3),
-                                Colors.purple.shade200.withOpacity(0.3),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: progressGradient.colors.first.withOpacity(0.4),
-                                blurRadius: baseSize * 0.2,
-                                spreadRadius: 2,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Main progress container
-                        Container(
-                          width: baseSize,
-                          height: baseSize,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.2),
-                                Colors.white.withOpacity(0.05),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.25),
-                              width: 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                // Background progress ring (thin)
-                                SizedBox(
-                                  width: baseSize - 8,
-                                  height: baseSize - 8,
-                                  child: CircularProgressIndicator(
-                                    value: 1.0,
-                                    strokeWidth: baseSize * 0.05,
-                                    backgroundColor: Colors.white.withOpacity(0.15),
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                      Colors.white.withOpacity(0.2),
-                                    ),
-                                  ),
-                                ),
-                                // Foreground progress ring with gradient sweep
-                                SizedBox(
-                                  width: baseSize - 8,
-                                  height: baseSize - 8,
-                                  child: CustomPaint(
-                                    painter: _ProgressPainter(
-                                      progress: widget.progress,
-                                      strokeWidth: baseSize * 0.08,
-                                      gradient: progressGradient,
-                                    ),
-                                  ),
-                                ),
-                                // Inner content with glassmorphism
-                                Container(
-                                  width: baseSize * 0.75,
-                                  height: baseSize * 0.75,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    gradient: LinearGradient(
-                                      colors: [
-                                        Colors.white.withOpacity(0.1),
-                                        Colors.white.withOpacity(0.05),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    ),
-                                    border: Border.all(
-                                      color: Colors.white.withOpacity(0.3),
-                                      width: 1,
-                                    ),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.05),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 1),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        widget.icon,
-                                        color: Colors.white.withOpacity(0.9),
-                                        size: iconSize,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black.withOpacity(0.2),
-                                            blurRadius: 2,
-                                            offset: const Offset(0, 1),
-                                          ),
-                                        ],
-                                      ),
-                                      SizedBox(height: baseSize * 0.04),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          widget.percentage,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: textSize,
-                                            fontWeight: FontWeight.bold,
-                                            shadows: [
-                                              Shadow(
-                                                color: Colors.black.withOpacity(0.3),
-                                                blurRadius: 2,
-                                                offset: const Offset(0, 1),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.05),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
                   ),
-                  SizedBox(height: screenHeight * 0.015),
-                  // Enhanced title with gradient text effect
-                  ShaderMask(
-                    shaderCallback: (bounds) => LinearGradient(
-                      colors: [Colors.white.withOpacity(0.95), Colors.white.withOpacity(0.8)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ).createShader(bounds),
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        widget.title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: titleSize,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0.5,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.2),
-                              blurRadius: 2,
-                              offset: const Offset(0, 1),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Outer glow ring
+                      Container(
+                        width: baseSize + 10,
+                        height: baseSize + 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.cyan.shade100.withOpacity(0.3),
+                              Colors.purple.shade200.withOpacity(0.3),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: progressGradient.colors.first.withOpacity(0.4),
+                              blurRadius: baseSize * 0.2,
+                              spreadRadius: 2,
                             ),
                           ],
                         ),
-                        textAlign: TextAlign.center,
                       ),
+                      // Main progress container
+                      Container(
+                        width: baseSize,
+                        height: baseSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.2),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.25),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              // Background progress ring (thin)
+                              SizedBox(
+                                width: baseSize - 8,
+                                height: baseSize - 8,
+                                child: CircularProgressIndicator(
+                                  value: 1.0,
+                                  strokeWidth: baseSize * 0.05,
+                                  backgroundColor: Colors.white.withOpacity(0.15),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white.withOpacity(0.2),
+                                  ),
+                                ),
+                              ),
+                              // Foreground progress ring with gradient sweep
+                              SizedBox(
+                                width: baseSize - 8,
+                                height: baseSize - 8,
+                                child: CustomPaint(
+                                  painter: _ProgressPainter(
+                                    progress: widget.progress,
+                                    strokeWidth: baseSize * 0.08,
+                                    gradient: progressGradient,
+                                  ),
+                                ),
+                              ),
+                              // Inner content with glassmorphism
+                              Container(
+                                width: baseSize * 0.75,
+                                height: baseSize * 0.75,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      Colors.white.withOpacity(0.1),
+                                      Colors.white.withOpacity(0.05),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.05),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ],
+                                ),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      widget.icon,
+                                      color: Colors.white.withOpacity(0.9),
+                                      size: iconSize,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black.withOpacity(0.2),
+                                          blurRadius: 2,
+                                          offset: const Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(height: baseSize * 0.04),
+                                    FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        widget.percentage,
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: textSize,
+                                          fontWeight: FontWeight.bold,
+                                          shadows: [
+                                            Shadow(
+                                              color: Colors.black.withOpacity(0.3),
+                                              blurRadius: 2,
+                                              offset: const Offset(0, 1),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: screenHeight * 0.015),
+                // Enhanced title with gradient text effect
+                ShaderMask(
+                  shaderCallback: (bounds) => LinearGradient(
+                    colors: [Colors.white.withOpacity(0.95), Colors.white.withOpacity(0.8)],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  ).createShader(bounds),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      widget.title,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: titleSize,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 2,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                      textAlign: TextAlign.center,
                     ),
                   ),
-                ],
-              ),
-            );
-          },
-        ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }

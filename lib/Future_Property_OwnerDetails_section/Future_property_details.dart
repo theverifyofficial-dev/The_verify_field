@@ -9,6 +9,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/All_Rented_Flat/Pending_Add%20_Property_Form.dart';
+import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
 import 'package:verify_feild_worker/Propert_verigication_Document/Add_Property_Veerification.dart';
 import 'package:verify_feild_worker/Upcoming/add_coming_flats.dart';
 import 'dart:io';
@@ -179,6 +180,7 @@ class Ground {
   final String fieldWorkerLocation;
   final String careTakerName;
   final String careTakerNumber;
+  final String live;
   final String subid;
   Ground({
     required this.id,
@@ -226,6 +228,7 @@ class Ground {
     required this.fieldWorkerLocation,
     required this.careTakerName,
     required this.careTakerNumber,
+    required this.live,
     required this.subid,
   });
   factory Ground.fromJson(Map<String, dynamic> json) {
@@ -275,6 +278,7 @@ class Ground {
       fieldWorkerLocation: json['field_worker_current_location'] ?? '',
       careTakerName: json['care_taker_name'] ?? '',
       careTakerNumber: json['care_taker_number'] ?? '',
+      live: json['live_unlive'] ?? '',
       subid: json['subid'] ?? '',
     );
   }
@@ -970,6 +974,31 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       ),
                     ),
 
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child:
+                      Container(
+                          padding:
+                          const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                              color: Colors.green,
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: Colors.green)
+                          ),
+                          child: Text(
+                            flat.live,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+
                     // 🔥 DUPLICATE BUTTON
                     Positioned(
                       top: 8,
@@ -977,7 +1006,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       child: GestureDetector(
                         onTap: () {
                           Navigator.push(context, MaterialPageRoute(builder: (context){
-                            return DuplicateFutureProperty(id: flat.id.toString(),);
+                            return DuplicateFutureProperty(id: flat.id.toString(), building_id: widget.idd,);
                           }));
                           // 👉 Duplicate logic here
                           print("Duplicate flat id: ${flat.id}");
@@ -1039,15 +1068,16 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                             ),
                         ],
                       ),
-                      Text(
-                        flat.locations.isNotEmpty ? flat.locations : "No location",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                          Text(
+                            flat.locations.isNotEmpty ? flat.locations : "No location",
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+
 
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1280,10 +1310,10 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       {"icon": Icons.train, "label": "Metro Station", "value": property.metroName},
       {"icon": Icons.place, "label": "Metro Distance", "value": property.metroDistance},
       {"icon": Icons.shopping_cart, "label": "Market Distance", "value": property.mainMarketDistance},
-      {"icon": Icons.shopping_cart, "label": "Locality", "value": property.localityList},
+      {"icon": Icons.calendar_month, "label": "Date & Time", "value": property.currentDate},
       {"icon": Icons.elevator, "label": "Lift", "value": property.lift},
-      {"icon": Icons.location_on_sharp, "label": "Localities", "value": property.localityList},
       {"icon": Icons.local_parking, "label": "Parking", "value": property.parking},
+      {"icon": Icons.shopping_cart, "label": "Locality", "value": property.localityList},
     ].where((spec) => (spec["value"] as String).isNotEmpty).toList();
     if (specifications.isEmpty) {
       return Container(
@@ -1492,8 +1522,6 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
           final catidList = snapshot.data!['catidList'] as List<FutureProperty2>;
           final data = catidList[0];
 
-          // Fieldworker number for calling
-          final String fieldWorkerNumber = data.fieldworkarNumber.trim();
 
           return Container(
             margin: const EdgeInsets.all(16),
@@ -1512,15 +1540,10 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
                       ),
                       elevation: 2,
                     ),
-                    onPressed: fieldWorkerNumber.isEmpty
-                        ? null // Agar number nahi hai to button disable
-                        : () async {
-                      final Uri telUri = Uri(scheme: 'tel', path: fieldWorkerNumber);
-                      // Optional: Check if can launch (url_launcher package chahiye)
-                      // if (await canLaunchUrl(telUri)) {
-                      //   await launchUrl(telUri);
-                      // }
-                      launchUrl(telUri); // Direct launch (url_launcher add karna padega)
+                    onPressed: ()  {
+                      Navigator.push(context, MaterialPageRoute(builder: (context)
+                      => AllContact(buildingId: data.id, ownerName: data.ownerName, ownerNumber: data.ownerNumber)
+                      ));
                     },
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,

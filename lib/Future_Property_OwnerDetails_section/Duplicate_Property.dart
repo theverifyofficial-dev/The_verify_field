@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:dio/dio.dart';
@@ -18,10 +19,12 @@ import 'New_Update/flat_edit_model.dart';
 
 class DuplicateFutureProperty extends StatefulWidget {
   String id;
+  String building_id;
 
   DuplicateFutureProperty({
     super.key,
     required this.id,
+    required this.building_id,
   });
 
   @override
@@ -43,7 +46,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   final TextEditingController _askingPrice = TextEditingController();
   final TextEditingController _meter = TextEditingController();
   final TextEditingController field_address = TextEditingController();
-  final TextEditingController _facilityController = TextEditingController();
   final TextEditingController _Apartment_Address = TextEditingController();
   final TextEditingController furnitureController = TextEditingController();
   TextEditingController _customMaintenanceController = TextEditingController();
@@ -51,6 +53,10 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   late TextEditingController _maintenanceController;
   String? _maintenance;
   String? _customMaintenance;
+  bool _isSubmitting = false;
+  int _countdown = 0;
+  Timer? _countdownTimer;
+
 
 
 
@@ -67,6 +73,9 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   DateTime? _availableDate;
 
   File? _imageFile;
+  List<File> _multipleImages = [];  // ALL extra images (API + new)
+
+
   String long = '';
   String lat = '';
   String _number = '';
@@ -76,6 +85,15 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   List<String> selectedFacilities=[];
 
   String? _furnishing;
+  String? _ageOfProperty;
+  String? _roadSize;
+  String? _metroDistance;
+  String? _highwayDistance;
+  String? _mainMarketDistance;
+  String? _facilityFromApi;
+
+  String? _apiLongitude;
+  String? _apiLatitude;
 
 
   DateTime now = DateTime.now();
@@ -170,101 +188,153 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     }
   }
 
-  Future<void> updateImageWithTitle(File? imageFile) async {
-    final uploadUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php';
 
-    final formData = FormData();
+  Future<void> duplicateFlatSubmit(File? imageFile) async {
+    print("🚀 duplicateFlatSubmit() CALLED");
+
+    final uploadUrl = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php',
+    );
+
+    print("🌍 API URL: $uploadUrl");
+
+    final request = http.MultipartRequest('POST', uploadUrl);
+
+
 
     if (imageFile != null) {
-      formData.files.add(
-        MapEntry(
-          "property_photo",
-          await MultipartFile.fromFile(
-            imageFile.path,
-            filename: imageFile.path.split('/').last,
-          ),
+      print("📸 Image selected: ${imageFile.path}");
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'property_photo',
+          imageFile.path,
+          filename: imageFile.path.split('/').last,
+        ),
+      );
+    } else {
+      print("⚠️ No image selected (imageFile == null)");
+    }
+
+    // 🖼️ MULTIPLE IMAGES
+    for (int i = 0; i < _multipleImages.length; i++) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'images[]',
+          _multipleImages[i].path,
+          filename: _multipleImages[i].path.split('/').last,
         ),
       );
     }
 
-    formData.fields.addAll([
-      MapEntry("P_id", widget.id),
-      MapEntry("owner_name", _Ownername.text.trim()),
-      MapEntry("owner_number", _Owner_number.text.trim()),
-      MapEntry("care_taker_name", _CareTaker_name.text.trim()),
-      MapEntry("care_taker_number", _CareTaker_number.text.trim()),
-      MapEntry("video_link", _videoLink.text.trim()),
+    // 🧾 Fields
+    final fields = {
+      // ---------------- BASIC ----------------
+      "owner_name": _Ownername.text.trim(),
+      "owner_number": _Owner_number.text.trim(),
+      "care_taker_name": _CareTaker_name.text.trim(),
+      "care_taker_number": _CareTaker_number.text.trim(),
+      "video_link": _videoLink.text.trim(),
 
-      MapEntry("locations", _selectedItem ?? ''),
-      MapEntry("Buy_Rent", _selectedItem1 ?? ''),
-      MapEntry("Residence_Commercial", _residenceCommercial ?? ''),
-      MapEntry("Typeofproperty", selectedPropertyType ?? ''),
-      MapEntry("Bhk", selectedBHK ?? ''),
-      MapEntry("Floor_", _floor1 ?? ''),
-      MapEntry("Total_floor", _totalFloor ?? ''),
-      MapEntry("squarefit", _sqft.text),
+      "locations": _selectedItem ?? '',
+      "Buy_Rent": _selectedItem1 ?? '',
+      "Residence_Commercial": _residenceCommercial ?? '',
+      "Typeofproperty": selectedPropertyType ?? '',
+      "Bhk": selectedBHK ?? '',
+      "Floor_": _floor1 ?? '',
+      "Total_floor": _totalFloor ?? '',
+      "squarefit": _sqft.text.trim(),
 
-      MapEntry("Balcony", balcony ?? ''),
-      MapEntry("parking", parking ?? ''),
-      MapEntry("kitchen", kitchen ?? ''),
-      MapEntry("bathroom", bathroom ?? ''),
-      MapEntry("lift", _lift ?? ''),
+      "Balcony": balcony ?? '',
+      "parking": parking ?? '',
+      "kitchen": kitchen ?? '',
+      "bathroom": bathroom ?? '',
+      "lift": _lift ?? '',
 
-      MapEntry("registry_and_gpa", _registry ?? ''),
-      MapEntry("loan", _loan ?? ''),
-      MapEntry("furnished_unfurnished", _furnished ?? ''),
+      "registry_and_gpa": _registry ?? '',
+      "loan": _loan ?? '',
+      "furnished_unfurnished": _furnished ?? '',
 
-      MapEntry("Apartment_name", _ApartmentName.text),
-      MapEntry("Apartment_Address", _Apartment_Address.text),
-      MapEntry("fieldworkar_address", field_address.text),
-      MapEntry("field_worker_current_location", _Google_Location.text),
+      "Apartment_name": _ApartmentName.text.trim(),
+      "Apartment_Address": _Apartment_Address.text.trim(),
+      "fieldworkar_address": field_address.text.trim(),
+      "field_worker_current_location": _Google_Location.text.trim(),
 
-      MapEntry("Longitude", _Longitude.text),
-      MapEntry("Latitude", _Latitude.text),
+      // ---------------- PRICE ----------------
+      "maintance": _maintenance == "Custom"
+          ? (_customMaintenance ?? '')
+          : (_maintenance ?? ''),
 
-      MapEntry(
-        "maintance",
-        _maintenance == "Custom"
-            ? (_customMaintenance ?? '')
-            : (_maintenance ?? ''),
-      ),
+      "show_Price": _showPrice.text.trim(),
+      "Last_Price": _lastPrice.text.trim(),
+      "asking_price": _askingPrice.text.trim(),
 
-      MapEntry("show_Price", _showPrice.text),       // 🔴 send RAW values
-      MapEntry("Last_Price", _lastPrice.text),
-      MapEntry("asking_price", _askingPrice.text),
 
-      MapEntry("meter", _meter.text),
-      MapEntry("current_dates", dateFormatter.format(uploadDate)),
-      MapEntry(
-        "available_date",
-        _availableDate != null
-            ? dateFormatter.format(_availableDate!)
-            : '',
-      ),
+      "meter": _meter.text.trim().isNotEmpty
+          ? _meter.text.trim()
+          : (_houseMeter ?? ''),
+      "current_dates": dateFormatter.format(uploadDate),
+      "available_date": _availableDate != null
+          ? dateFormatter.format(_availableDate!)
+          : '',
 
-      MapEntry("field_warkar_name", _name),
-      MapEntry("field_workar_number", _number),
-    ]);
+      "Flat_number": _FlatNumber.text.trim(),
+      "live_unlive": "Book", // <-- Static value sent to API
 
-    final dio = Dio();
+
+      // ---------------- 🔥 REQUIRED BUT HIDDEN ----------------
+      "age_of_property": _ageOfProperty ?? '',
+      "Road_Size": _roadSize ?? '',
+      "metro_distance": _metroDistance ?? '',
+      "highway_distance": _highwayDistance ?? '',
+      "main_market_distance": _mainMarketDistance ?? '',
+      "Facility": selectedFacilities.isNotEmpty
+          ? selectedFacilities.join(',')
+          : (_facilityFromApi ?? ''),
+
+      "Longitude": _Longitude.text.trim().isNotEmpty
+          ? _Longitude.text.trim()
+          : (_apiLongitude ?? ''),
+
+      "Latitude": _Latitude.text.trim().isNotEmpty
+          ? _Latitude.text.trim()
+          : (_apiLatitude ?? ''),
+
+      // ---------------- META ----------------
+      "field_warkar_name": _name,
+      "field_workar_number": _number,
+      "subid": widget.building_id,
+    };
+
+    request.fields.addAll(fields);
+
+    print("🧾 REQUEST FIELDS:");
+    fields.forEach((key, value) {
+      print("   🔹 $key = '$value'");
+    });
 
     try {
-      final response = await dio.post(uploadUrl, data: formData);
+      print("⏳ Sending request...");
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
 
-      debugPrint("✅ STATUS CODE: ${response.statusCode}");
-      debugPrint("✅ RESPONSE DATA: ${response.data}");
+      print("✅ STATUS CODE: ${response.statusCode}");
+      print("📩 RESPONSE BODY: ${response.body}");
 
       if (response.statusCode == 200) {
+        print("🎉 SUCCESS");
         showSnack("Property Updated Successfully");
+        Navigator.pop(context);
       } else {
+        print("❌ SERVER ERROR");
         showSnack("Unexpected server response");
       }
-
-    } on DioException catch (e) {
-
-      rethrow; // 👈 IMPORTANT: don’t swallow error
+    } catch (e, st) {
+      print("🔥 HTTP EXCEPTION OCCURRED");
+      print("❌ ERROR: $e");
+      print("📍 STACK TRACE:\n$st");
+      rethrow;
     } finally {
+      print("🔚 duplicateFlatSubmit() FINISHED");
       if (mounted) {
         setState(() => _isLoading = false);
       }
@@ -472,6 +542,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     _lastPrice.dispose();
     _askingPrice.dispose();
     _meter.dispose();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
@@ -498,7 +569,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     print("DEBUG: Unrecognized date format from API → $str");
     return null;
   }
-  List<String> _apiMultipleImages = [];
   static const String imageBaseUrl =
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/";
 
@@ -540,54 +610,74 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
     }
   }
 
+  Future<File?> downloadImageAsFile(String imageUrl) async {
+    try {
+      print("⬇️ Downloading API image: $imageUrl");
+
+      final response = await http.get(Uri.parse(imageUrl));
+      if (response.statusCode != 200) {
+        print("❌ Failed to download image");
+        return null;
+      }
+
+      final tempDir = await getTemporaryDirectory();
+      final filePath =
+          '${tempDir.path}/api_${DateTime.now().microsecondsSinceEpoch}_${imageUrl.hashCode}.jpg';
+
+
+      final file = File(filePath);
+      await file.writeAsBytes(response.bodyBytes);
+
+      print("✅ API image saved as File: $filePath");
+      return file;
+    } catch (e) {
+      print("🔥 Image download error: $e");
+      return null;
+    }
+  }
+
 
   Future autofillFormFields() async {
     try {
       final dataList = await fetchData();
-      if (dataList.isEmpty) return;
+      if (dataList.isEmpty || !mounted) return;
 
       final data = dataList.first;
 
-      setState(() {
-        /// IMAGE
-        _networkImageUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${data.propertyPhoto}";
-        apiImageUrl = data.propertyPhoto;
-        _apiMultipleImages = data.multipleImages;
+      // 1️⃣ Download everything FIRST
+      File? mainImage;
+      if (data.propertyPhoto.isNotEmpty) {
+        mainImage = await downloadImageAsFile(
+          "$imageBaseUrl${data.propertyPhoto}",
+        );
+      }
 
-        /// DROPDOWNS (MATCHED SAFELY)
+      final List<File> downloadedMultiple = [];
+      for (final url in data.multipleImages) {
+        final f = await downloadImageAsFile(url);
+        if (f != null) downloadedMultiple.add(f);
+      }
+
+      if (!mounted) return;
+
+      // 2️⃣ ONE clean setState (NO async)
+      setState(() {
+        _imageFile = mainImage;
+        _multipleImages = downloadedMultiple;
+
         selectedPropertyType =
             matchDropdown(data.typeOfProperty, _typeofproperty);
-
-        selectedBHK =
-            matchDropdown(data.bhk, bhkOptions);
-
-        _selectedItem1 =
-            matchDropdown(data.buyRent, buy_rent);
-
-        _registry =
-            matchDropdown(data.registryAndGpa, registryOptions);
-
-        _loan =
-            matchDropdown(data.loan, yesNoOptions);
-
-        balcony =
-            matchDropdown(data.balcony, _balcony_items);
-
-        parking =
-            matchDropdown(data.parking, _Parking_items);
-
-        kitchen =
-            matchDropdown(data.kitchen, _kitchen_items);
-
-        bathroom =
-            matchDropdown(data.bathroom, _bathroom_items);
-
-        _floor1 =
-            matchDropdown(data.floor, _items_floor1);
-
-        _lift =
-            matchDropdown(data.lift, yesNoOptions);
+        selectedBHK = matchDropdown(data.bhk, bhkOptions);
+        _selectedItem1 = matchDropdown(data.buyRent, buy_rent);
+        _registry = matchDropdown(data.registryAndGpa, registryOptions);
+        _loan = matchDropdown(data.loan, yesNoOptions);
+        balcony = matchDropdown(data.balcony, _balcony_items);
+        parking = matchDropdown(data.parking, _Parking_items);
+        kitchen = matchDropdown(data.kitchen, _kitchen_items);
+        bathroom = matchDropdown(data.bathroom, _bathroom_items);
+        _floor1 = matchDropdown(data.floor, _items_floor1);
+        _lift = matchDropdown(data.lift, yesNoOptions);
+        _houseMeter = matchDropdown(data.meter, meter_Options );
 
         _furnished =
             matchDropdown(data.furnishedUnfurnished, furnishingOptions);
@@ -595,95 +685,107 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
         _residenceCommercial = data.residenceCommercial;
         _selectedItem = data.locations;
         _totalFloor = data.totalFloor;
-
-        /// DATE
         _availableDate = _parseApiDate(data.availableDate);
 
-        /// METER
-        if (data.meter == 'Commercial' || data.meter == 'Govt') {
-          _houseMeter = data.meter;
-          _meter.text = data.meter;
-        } else {
-          _houseMeter = 'Custom';
-          _meter.text = data.meter;
-        }
-
-        /// MAINTENANCE
-        final apiMaintenance = data.maintenance?.toString() ?? '';
-        if (apiMaintenance.toLowerCase() == "included") {
-          _maintenance = "Included";
-          _maintenanceController.text = "Included";
-          _customMaintenance = null;
-          _customMaintenanceController.clear();
-        } else if (apiMaintenance.isNotEmpty) {
-          _maintenance = "Custom";
-          _maintenanceController.text = "Custom";
+        // Maintenance
+        final apiMaintenance = data.maintenance?.trim() ?? '';
+        if (apiMaintenance.isNotEmpty &&
+            apiMaintenance.toLowerCase() != 'included') {
+          _maintenance = 'Custom';
+          _maintenanceController.text = 'Custom';
           _customMaintenance = apiMaintenance;
           _customMaintenanceController.text = apiMaintenance;
+        } else {
+          _maintenance = 'Included';
+          _maintenanceController.text = 'Included';
+          _customMaintenance = null;
+          _customMaintenanceController.clear();
         }
-
-        /// FURNITURE
-        parseFurnishingFromApi(data.furnishedUnfurnished ?? '');
-        _selectedFurniture =
-            parseFurnitureString(data.apartmentName);
 
         _isLoading = false;
       });
 
-      /// TEXT CONTROLLERS (NO setState REQUIRED)
-      _facilityController.text = data.facility;
+      // 3️⃣ Controllers (outside setState)
       _FlatNumber.text = data.flatNumber;
-      _ApartmentName.text = data.apartmentName;
-      _Apartment_Address.text = data.apartmentAddress;
-      _lastPrice.text = data.lastPrice;
-      _askingPrice.text = data.askingPrice;
-      _showPrice.text = data.showPrice;
-      _CareTaker_name.text = data.careTakerName;
-      _CareTaker_number.text = data.careTakerNumber;
-      _Owner_number.text = data.ownerNumber;
-      _Ownername.text = data.ownerName;
-      field_address.text = data.fieldWorkerAddress;
-      _Google_Location.text = data.fieldWorkerCurrentLocation;
       _sqft.text = data.squareFit;
       _videoLink.text = data.videoLink;
+      _ApartmentName.text = data.apartmentName;
+      _Apartment_Address.text = data.apartmentAddress;
+      _showPrice.text = data.showPrice;
+      _lastPrice.text = data.lastPrice;
+      _askingPrice.text = data.askingPrice;
+      _Ownername.text = data.ownerName;
+      _Owner_number.text = data.ownerNumber;
+      _CareTaker_name.text = data.careTakerName;
+      _CareTaker_number.text = data.careTakerNumber;
+      field_address.text = data.fieldWorkerAddress;
+      // 🔥 REQUIRED HIDDEN FIELDS (BACKEND NEEDS THESE)
+      _ageOfProperty = data.ageOfProperty;
+      _roadSize = data.roadSize;
+      _metroDistance = data.metroDistance;
+      _highwayDistance = data.highwayDistance;
+      _mainMarketDistance = data.mainMarketDistance;
+      _facilityFromApi = data.facility;
 
-    } catch (e) {
-      print('❌ Error fetching data: $e');
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      _apiLongitude = data.longitude;
+      _apiLatitude = data.latitude;
+
+// meter fallback
+      _meter.text = data.meter;
+
+    } catch (e, st) {
+      print("❌ autofill error");
+      print(e);
+      print(st);
     }
+  }
+
+  void _startCountdown() {
+    if (_isSubmitting) return;
+
+    setState(() {
+      _countdown = 3;
+    });
+
+    _countdownTimer?.cancel();
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) async {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+
+      if (_countdown > 1) {
+        setState(() => _countdown--);
+      } else {
+        timer.cancel();
+        setState(() => _countdown = 0);
+
+        // 🚀 SUBMIT EXACTLY ONCE
+        await _handleUpload();
+      }
+    });
   }
 
 
   Future<void> _handleUpload() async {
+    if (_isSubmitting) {
+      print("🚫 Duplicate submit blocked");
+      return;
+    }
+
+    _isSubmitting = true;
+    print("🚦 _handleUpload() START");
+
     if (!_formKey.currentState!.validate()) {
+      _isSubmitting = false;
       Fluttertoast.showToast(msg: "Please fill all required fields.");
-      print("Please fill all required fields.");
       return;
     }
 
-    List<String> missingFields = [];
+    await duplicateFlatSubmit(_imageFile);
 
-    if (balcony == null) missingFields.add("Balcony");
-    if (kitchen == null) missingFields.add("Kitchen");
-    if (bathroom == null) missingFields.add("Bathroom");
-    if (_lift == null) missingFields.add("Lift");
-    if (_selectedItem1 == null) missingFields.add("Buy/Rent");
-    if (_residenceCommercial == null) missingFields.add("Residence/Commercial");
-
-    if (missingFields.isNotEmpty) {
-      Fluttertoast.showToast(
-        msg: "Please fill: ${missingFields.join(', ')}",
-        toastLength: Toast.LENGTH_LONG,
-      );
-      return;
-    }
-
-    // ✅ Always call updateImageWithTitle, even if no new image picked
-    await updateImageWithTitle(_imageFile);
+    print("🏁 _handleUpload() END");
   }
-
   final List<String> _typeofproperty = ['Flat','Office','Shop','Farms','Godown','Plots',''];
 
   List<String> name = ['Lift','Security CareTaker','GOVT Meter','CCTV','Gas Meter',''];
@@ -691,6 +793,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   String? _selectedItem1;
   final List<String> buy_rent = ['Buy', 'Rent',''];
   final List<String> yesNoOptions = ['Yes', 'No',''];
+  final List<String> meter_Options = ['Commercial', 'Govt', 'Custom'];
   final List<String> registryOptions = ['Registry', 'GPA'];
   String? _floor1;
   final List<String> _items_floor1 = ['G Floor','1 Floor','2 Floor','3 Floor','4 Floor','5 Floor','6 Floor','7 Floor','8 Floor','9 Floor','10 Floor',''];
@@ -746,7 +849,6 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   TextStyle _sectionTitleStyle() {
     return const TextStyle(fontSize: 16, fontWeight: FontWeight.bold,  fontFamily: 'Poppins');
   }
-  List<File> _multipleImages = [];
 
   Future<void> pickMultipleImages() async {
     final picker = ImagePicker();
@@ -766,8 +868,13 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
         if (compressed != null) temp.add(File(compressed.path));
       }
       setState(() {
-        _multipleImages = temp;
-      });
+        final existingPaths = _multipleImages.map((e) => e.path).toSet();
+
+        for (final f in temp) {
+          if (!existingPaths.contains(f.path)) {
+            _multipleImages.add(f);
+          }
+        }      });
     }
   }
   Future<void> _refreshPage() async {
@@ -858,61 +965,69 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                       ),
                     ),
                     SizedBox(height: 20),
-                    if (_apiMultipleImages.isNotEmpty)
+
+                    if (_multipleImages.isNotEmpty)
                       SizedBox(
                         height: 110,
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
-                          itemCount: _apiMultipleImages.length,
+                          itemCount: _multipleImages.length,
                           itemBuilder: (context, index) {
-                            final img = _apiMultipleImages[index];
+                            final file = _multipleImages[index];
+
                             return Padding(
                               padding: const EdgeInsets.only(right: 8),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.network(
-                                  img,
-                                  width: 110,
-                                  height: 110,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (c, w, p) =>
-                                  p == null ? w : const Center(),
-                                  errorBuilder: (c, e, s) =>
-                                  const Icon(Icons.broken_image, size: 40),
-                                ),
+                              child: Stack(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      file,
+                                      width: 110,
+                                      height: 110,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 4,
+                                    right: 4,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          _multipleImages.removeAt(index);
+                                        });
+                                      },
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.red,
+                                        size: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ],
                               ),
                             );
                           },
                         ),
                       ),
-                    SizedBox(height: 20),
+                    SizedBox(height: 10),
 
                     ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) =>
-                                Futureproipoerty_FileUploadPage(idd: widget.id),
-                          ),
-                        );
-                      },
-                      icon: const Icon(Icons.photo_library_outlined, color: Colors.white),
-                      label: const Text(
-                        "Update Images",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.white,
-                        ),
-                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue.shade600,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
+                      ),
+                      onPressed: () async {
+                        await pickMultipleImages(); // 👈 YOU ALREADY HAVE THIS
+                      },
+                      icon: const Icon(Icons.collections, color: Colors.white),
+                      label: const Text(
+                        'Add More Images',
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
+
+
+                SizedBox(height: 20),
 
 
                     Column(
@@ -1080,16 +1195,23 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                         Row(
                           children: [
                             Expanded(
-                              child:
-                              _buildTextInput('Flat Number', _FlatNumber,keyboardType: TextInputType.name),
-
+                              child: appTextInput(
+                                'Flat Number',
+                                _FlatNumber,
+                                keyboardType: TextInputType.text,
+                              ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: _buildTextInput('Sqft', _sqft,keyboardType: TextInputType.phone),
+                              child: appTextInput(
+                                'Sqft',
+                                _sqft,
+                                keyboardType: TextInputType.number,
+                              ),
                             ),
                           ],
                         ),
+
 
                         Row(
                           children: [
@@ -1362,7 +1484,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                                   ? _houseMeter
                                   : (_meter.text.isNotEmpty ? 'Custom' : null),
                               decoration: _buildInputDecoration(context, "House Meter Type"),
-                              items: ['Commercial', 'Govt', 'Custom'].map((option) {
+                              items: meter_Options.map((option) {
                                 return DropdownMenuItem<String>(
                                   value: option,
                                   child: Text(option),
@@ -1395,200 +1517,73 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                               ),
                           ],
                         ),
-
-
-                        buildTextInput('Video Link', _videoLink),
-                        buildTextInput('Caretaker Name (Optional)', _CareTaker_name),
-                        buildTextInput('Caretaker Mobile (Optional)', _CareTaker_number,keyboardType: TextInputType.phone),
-                        buildTextInput('Owner Name (Optional)', _Ownername),
-                        buildTextInput('Owner Mobile (Optional)', _Owner_number,keyboardType: TextInputType.phone),
+                        appTextInput('Video Link', _videoLink, required: false),
+                        appTextInput('Caretaker Name (Optional)', _CareTaker_name, required: false),
+                        appTextInput(
+                          'Caretaker Mobile (Optional)',
+                          _CareTaker_number,
+                          keyboardType: TextInputType.phone,
+                          required: false,
+                        ),
+                        appTextInput('Owner Name (Optional)', _Ownername, required: false),
+                        appTextInput(
+                          'Owner Mobile (Optional)',
+                          _Owner_number,
+                          keyboardType: TextInputType.phone,
+                          required: false,
+                        ),
 
                       ],
                     ),
                     SizedBox(height: 10),
                     GestureDetector(
-                      onTap: _isLoading
+                      onTap: (_isLoading || _countdown > 0)
                           ? null
-                          : () async {
-                        // ✅ Validate form before starting countdown
+                          : () {
                         if (!_formKey.currentState!.validate()) {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text(
-                                "Form Incomplete",
-                                style: TextStyle(fontWeight: FontWeight.bold),
-                              ),
-                              content: const Text(
-                                "Please fill all the required fields before submitting.",
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.of(context).pop(),
-                                  child: const Text("OK"),
-                                )
-                              ],
-                            ),
-                          );
-                          return; // Stop here if any field is empty
+                          Fluttertoast.showToast(msg: "Please fill all required fields");
+                          return;
                         }
-
-                        setState(() {
-                          _isLoading = true;
-                        });
-
-                        int countdown = 3;
-
-                        // Show countdown dialog
-                        await showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) {
-                            return StatefulBuilder(
-                              builder: (context, setStateDialog) {
-                                // Countdown logic
-                                Future.delayed(const Duration(seconds: 1), () async {
-                                  if (!mounted) return;
-
-                                  if (countdown > 1) {
-                                    setStateDialog(() {
-                                      countdown--;
-                                    });
-                                  } else {
-                                    setStateDialog(() {
-                                      countdown = 0;
-                                    });
-
-                                    await Future.delayed(const Duration(seconds: 1));
-                                    if (!mounted) return;
-
-                                    Navigator.of(context).pop(); // close dialog safely
-
-                                    await _handleUpload();
-
-                                    if (!mounted) return;
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("✅ Submitted Successfully!"),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-                                  }
-                                });
-
-                                return AlertDialog(
-                                  backgroundColor:
-                                  Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.grey[900]
-                                      : Colors.white,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  title: const Text(
-                                    "Submitting...",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  content: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      AnimatedSwitcher(
-                                        duration: const Duration(milliseconds: 500),
-                                        transitionBuilder: (child, animation) =>
-                                            ScaleTransition(scale: animation, child: child),
-                                        child: countdown > 0
-                                            ? Text(
-                                          "$countdown",
-                                          key: ValueKey<int>(countdown),
-                                          style: TextStyle(
-                                            fontSize: 40,
-                                            fontWeight: FontWeight.bold,
-                                            color: Theme.of(context).brightness ==
-                                                Brightness.dark
-                                                ? Colors.red[300]
-                                                : Colors.red,
-                                          ),
-                                        )
-                                            : const Icon(
-                                          Icons.verified_rounded,
-                                          key: ValueKey<String>("verified"),
-                                          color: Colors.green,
-                                          size: 60,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        countdown > 0 ? "Please wait..." : "Verified!",
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w500,
-                                          color: Theme.of(context).brightness ==
-                                              Brightness.dark
-                                              ? Colors.white
-                                              : Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        );
-
-                        setState(() {
-                          _isLoading = false;
-                        });
+                        _startCountdown();
                       },
-                      child: Center(
-                        child: Container(
-                          height: 50,
-                          padding: const EdgeInsets.symmetric(horizontal: 40),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(40),
-                            color: Colors.red,
-                          ),
-                          child: _isLoading
-                              ? Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
-                              SizedBox(
-                                width: 18,
-                                height: 30,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                "Processing...",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
+                      child: Container(
+                        height: 50,
+                        padding: const EdgeInsets.symmetric(horizontal: 40),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(40),
+                          color: Colors.red,
+                        ),
+                        child: Center(
+                          child: _countdown > 0
+                              ? Text(
+                            "Submitting in $_countdown",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           )
-                              : const Center(
-                            child: Text(
-                              "Submit",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontFamily: 'Poppins',
-                                letterSpacing: 0.8,
-                                fontSize: 18,
-                              ),
+                              : _isLoading
+                              ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                              : const Text(
+                            "Submit",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
                             ),
                           ),
                         ),
                       ),
-                    )
+                    ),
+
                   ],
                 ),
               ),
@@ -1848,109 +1843,45 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   }
 
 
-  Widget buildTextInput(
+  Widget appTextInput(
       String label,
       TextEditingController controller, {
         IconData? icon,
         TextInputType? keyboardType,
-        bool validateLength = false, // keep if you still want digit-only & length limiter
+        bool required = true,
       }) {
     return _buildSectionCard(
       title: label,
       child: TextFormField(
         controller: controller,
         keyboardType: keyboardType,
-        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.white
+              : Colors.black,
+        ),
         decoration: InputDecoration(
           hintText: 'Enter $label',
-          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-
           prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
           border: const OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(10)),
           ),
           filled: true,
         ),
-        inputFormatters: validateLength
-            ? [
-          FilteringTextInputFormatter.digitsOnly, // only digits
-          LengthLimitingTextInputFormatter(10),   // max 10 digits
-        ]
-            : [],
-      ),
-    );
-  }
-
-  Widget _buildTextInput(
-      String label,
-      TextEditingController controller, {
-        IconData? icon,
-        TextInputType? keyboardType, // optional keyboard type
-      }) {
-    return _buildSectionCard(
-      title: label,
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboardType,  // set keyboard type here
-        style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-        decoration: InputDecoration(
-          hintText: 'Enter $label',
-          hintStyle: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
-          prefixIcon: icon != null ? Icon(icon, color: Colors.redAccent) : null,
-          border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(10)),
-          ),
-          // ✅ Error text style
-          errorStyle: const TextStyle(
-            color: Colors.redAccent, // deep red text
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
-
-          // ✅ Error border (deep red)
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent,
-              width: 2,
-            ),
-          ),
-
-          // ✅ Focused border when error
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: const BorderSide(
-              color: Colors.redAccent,
-              width: 2,
-            ),
-          ),
-          filled: true,
-          // fillColor: Colors.grey.shade100,
-        ),
-        validator: (value) {
+        validator: required
+            ? (value) {
           if (value == null || value.trim().isEmpty) {
             return 'Please enter $label';
           }
           return null;
-        },
+        }
+            : null,
       ),
     );
-  }  void _showFacilitySelectionDialog() async {
-    final result = await showModalBottomSheet<List<String>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _FacilityBottomSheet(
-        options: allFacilities,
-        selected: selectedFacilities,
-      ),
-    );
-    if (result != null) {
-      setState(() {
-        selectedFacilities = result;
-        _facilityController.text = selectedFacilities.join(', ');
-      });
-    }
   }
+
+
   void _showBottomSheet({
     required List<String> options,
     required Function(String) onSelected,

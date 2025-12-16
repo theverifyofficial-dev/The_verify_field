@@ -1,10 +1,9 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
-
+import 'package:http/http.dart' as http;
 import '../../ui_decoration_tools/app_images.dart';
 
 class AddTenantUnderFutureProperty extends StatefulWidget {
@@ -38,43 +37,59 @@ class _AddTenantUnderFuturePropertyState
   final _formKey = GlobalKey<FormState>();
 
   Future<void> uploadTenant() async {
-    String uploadUrl =
-        'https://verifyserve.social/PHP_Files/add_tanant_in_future_property/insert.php';
+    setState(() => _isLoading = true);
 
-    FormData formData = FormData.fromMap({
-      "tenant_name": _tenantName.text.trim(),
-      "tenant_phone_number": _tenantPhone.text.trim(),
-      "flat_rent": _flatRent.text.trim(),
-      "shifting_date": _shiftingDate.text.trim(),
-      "members": _members.text.trim(),
-      "email": _email.text.trim(),
-      "tenant_vichal_details": _tenantVehicle.text.trim(),
-      "work_profile": _workProfile.text.trim(),
-      "bhk": '',
-      "type_of_property": '',
-      "sub_id": widget.id,
-    });
-
-    Dio dio = Dio();
+    final Uri url = Uri.parse(
+      'https://verifyserve.social/PHP_Files/add_tanant_in_future_property/insert.php',
+    );
 
     try {
-      Response response = await dio.post(uploadUrl, data: formData);
+      var request = http.MultipartRequest('POST', url);
+
+      // ✅ Fields
+      request.fields.addAll({
+        "tenant_name": _tenantName.text.trim(),
+        "tenant_phone_number": _tenantPhone.text.trim(),
+        "flat_rent": _flatRent.text.trim(),
+        "shifting_date": _shiftingDate.text.trim(),
+        "members": _members.text.trim(),
+        "email": _email.text.trim(),
+        "tenant_vichal_details": _tenantVehicle.text.trim(),
+        "work_profile": _workProfile.text.trim(),
+        "bhk": "",
+        "type_of_property": "",
+        "sub_id": widget.id,
+      });
+
+      // 🔥 Send request
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
       if (response.statusCode == 200) {
         if (!mounted) return;
+
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) =>
-                underflat_futureproperty(Subid: widget.subId, id: widget.id),
+            builder: (context) => underflat_futureproperty(
+              Subid: widget.subId,
+              id: widget.id,
+            ),
           ),
               (route) => route.isFirst,
         );
 
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload successful: ${response.data}')),
+          SnackBar(content: Text('Upload successful')),
         );
       } else {
+        print(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: ${response.statusCode}')),
+          SnackBar(
+            content: Text(
+              'Upload failed (${response.statusCode})',
+            ),
+          ),
         );
       }
     } catch (e) {
@@ -83,9 +98,10 @@ class _AddTenantUnderFuturePropertyState
       );
     }
 
-    setState(() => _isLoading = false);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(

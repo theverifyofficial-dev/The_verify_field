@@ -30,7 +30,6 @@ class Add_FutureProperty extends StatefulWidget {
 class _Add_FuturePropertyState extends State<Add_FutureProperty> {
   final _formKey = GlobalKey<FormState>();
   final ImagePicker _imagePicker = ImagePicker();
-  int _countdown = 0;
   bool _isCounting = false;
   Timer? _timer;
 
@@ -232,6 +231,8 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
     return result;
   }
+  bool _isSubmitting = false;
+  int _countdown = 3;
 
   Future<void> uploadImageWithTitle(XFile imageFile) async {
     String uploadUrl =
@@ -647,9 +648,9 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     hintStyle: TextStyle(color: secondaryTextColor),
                     suffixIcon: _isGettingLocation
                         ? Container(
-                      width: 20,
-                      height: 20,
-                      padding: const EdgeInsets.all(2),
+                      width: 10,
+                      height: 10,
+                      padding: const EdgeInsets.only(right: 2),
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
                         valueColor:
@@ -1022,7 +1023,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     textColor: textColor,
                     secondaryTextColor: secondaryTextColor,
                     isDarkMode: isDarkMode,
+                  ).copyWith(
+                    counterText: "", // 🔥 hides "0/10"
                   ),
+                  maxLength: 10,
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 12),
@@ -1049,7 +1053,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
                     textColor: textColor,
                     secondaryTextColor: secondaryTextColor,
                     isDarkMode: isDarkMode,
-                  ),
+                  ).copyWith(
+                  counterText: "", // 🔥 hides "0/10"
+                ),
+                  maxLength: 10,
                   keyboardType: TextInputType.phone,
                 ),
               ],
@@ -2453,9 +2460,10 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
       height: 60,
       decoration: BoxDecoration(
         gradient: LinearGradient(
-            colors: [primaryColor, secondaryColor],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight),
+          colors: [primaryColor, secondaryColor],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
@@ -2469,18 +2477,62 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         color: Colors.transparent,
         child: InkWell(
           borderRadius: BorderRadius.circular(15),
-          onTap: () async {
-            if (_formKey.currentState!.validate()) {
-              await _handleUpload();
+          onTap: _isSubmitting
+              ? null
+              : () async {
+            if (!_formKey.currentState!.validate()) return;
+
+            setState(() {
+              _isSubmitting = true;
+              _countdown = 3;
+            });
+
+            // ⏳ Countdown timer
+            for (int i = 3; i > 0; i--) {
+              await Future.delayed(const Duration(seconds: 1));
+              setState(() {
+                _countdown = i - 1;
+              });
             }
+
+            // 🚀 API Call
+            await _handleUpload();
+
+            setState(() {
+              _isSubmitting = false;
+            });
           },
           child: Center(
-            child: Row(
-              mainAxisAlignment:
-              MainAxisAlignment.center,
+            child: _isSubmitting
+                ? Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.timer,
+                  color: Colors.white,
+                  size: 20,
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  _countdown > 0
+                      ? "Submitting in $_countdown"
+                      : "Submitting...",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            )
+                : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: const [
-                Icon(Icons.rocket_launch_rounded,
-                    color: Colors.white, size: 20),
+                Icon(
+                  Icons.rocket_launch_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
                 SizedBox(width: 10),
                 Text(
                   'SUBMIT PROPERTY',

@@ -1449,17 +1449,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[5],
       },
-      // {
-      //   "image": AppImages.target,
-      //   "title": "Target",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const Target_MainPage()));
-      //   },
-      //   "gradient": cardGradients[6],
-      // },
+      {
+        "image": AppImages.target,
+        "title": "Target",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const Target_MainPage()));
+        },
+        "gradient": cardGradients[6],
+      },
       {
         "image": AppImages.realestatefeild,
         "title": "Upcoming Flats",

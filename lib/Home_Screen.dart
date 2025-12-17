@@ -362,7 +362,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           _isLoadingData = false;
           todayLoading = false;
         });
-        Fluttertoast.showToast(msg: 'App loaded with default data', toastLength: Toast.LENGTH_SHORT);
       }
     });
 

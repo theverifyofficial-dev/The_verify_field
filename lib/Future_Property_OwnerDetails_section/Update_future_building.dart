@@ -229,8 +229,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   ];
   final List<String> lift = ['Yes','No',''];
   List<String> parkingOptions = ['Yes','No',''];
-  final List<String> propertyTypes = ['Residential', 'Commercial',''];
-
+  final List<String> propertyTypes = ['Residential', 'Commercial'];
   final ImagePicker _picker = ImagePicker();
 
   @override
@@ -312,7 +311,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         _Google_Location.text = data.yourAddress;
         _selectedLift = data.lift;
         _selectedParking = data.parking;
-        _selectedPropertyType = data.residenceCommercial;
+        _selectedPropertyType = normalizePropertyType(data.residenceCommercial);
         lat = data.longitude;
         long = data.latitude;
         metroController.text = data.metroName;
@@ -360,6 +359,12 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
   final TextEditingController localityCtrl = TextEditingController();
 
 
+  String normalizePropertyType(String? val) {
+    if (val == null) return '';
+    if (val.toLowerCase().startsWith('res')) return 'Residential';
+    if (val.toLowerCase().startsWith('com')) return 'Commercial';
+    return val;
+  }
 
   Future<void> updateImageWithTitle(File? imageFile) async {
     String uploadUrl =
@@ -416,7 +421,7 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       "main_market_distance": selectedMarketDistance ?? '',
       "age_of_property": _ageOfProperty ?? '',
       "total_floor": _totalFloor ?? '',
-      "Residence_commercial": _selectedPropertyType.toString(),
+      "Residence_commercial": normalizePropertyType(_selectedPropertyType),
       "lift": _selectedLift.toString(),
       "parking": _selectedParking.toString(),
       "facility": _facilityController.text,
@@ -559,6 +564,20 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
               buildTextInput('CareTaker Name (Optional)', _CareTaker_name),
               buildTextInput('CareTaker No. (Optional)', _CareTaker_number, keyboardType: TextInputType.phone, validateLength: true),
               _buildTextInput('Property Name & Address', _address),
+              _buildDropdownRow(
+                'Property Type',
+                propertyTypes,
+                propertyTypes.contains(_selectedPropertyType)
+                    ? _selectedPropertyType
+                    : null,
+                    (val) {
+                  setState(() {
+                    _selectedPropertyType = val;
+                  });
+                },
+                validator: (val) =>
+                val == null ? 'Please select property type' : null,
+              ),
 
               _buildSectionCard(
                 child: TextFormField(

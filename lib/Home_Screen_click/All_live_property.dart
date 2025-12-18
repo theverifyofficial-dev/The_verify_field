@@ -50,7 +50,11 @@ class _AllLiveProperty extends State<AllLiveProperty> {
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase().trim();
 
-    final filtered = _allProperties.where((item) {
+    final baseList = _location.isNotEmpty
+        ? filterByLocationAndFieldWorker(_allProperties, _location)
+        : _allProperties;
+
+    final filtered = baseList.where((item) {
       final values = [
         item.pId?.toString(),
         item.locations,
@@ -72,8 +76,11 @@ class _AllLiveProperty extends State<AllLiveProperty> {
         item.showPrice?.toString(),
       ];
 
-      return values.any((v) => v != null && v.toLowerCase().contains(query));
+      return values.any(
+            (v) => v != null && v.toLowerCase().contains(query),
+      );
     }).toList();
+
 
     setState(() {
       _filteredProperties = filtered;
@@ -127,20 +134,48 @@ class _AllLiveProperty extends State<AllLiveProperty> {
       _fetchInitialData();
     });
   }
+  final Map<String, List<String>> fieldWorkersByLocation = {
+    "sultanpur": [
+      "ravi kumar",
+      "faizan khan",
+      "sumit",
+    ],
+    "chhattarpur_group": [
+      "abhay",
+      "manish",
+    ],
+  };
 
+  String _name = '';
+  String _location = '';
+  String _aadhar = '';
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
     _number = prefs.getString('number') ?? '';
+    _name = prefs.getString('name') ?? '';
+    _location = prefs.getString('location') ?? '';
+    _aadhar = prefs.getString('post') ?? '';
+    print("Loaded Name: $_name");
+    print("Loaded Number: $_number");
+    print("Loaded location: $_location");
+    print("Loaded Aadhar: $_aadhar");
     await _fetchProperties();
   }
 
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
+
     try {
       final data = await fetchData(_number);
+
+      final filtered = _location.isNotEmpty
+          ? filterByLocationAndFieldWorker(data, _location)
+          : data;
+
       setState(() {
         _allProperties = data;
-        _filteredProperties = data;
+        _filteredProperties = filtered;
+        propertyCount = filtered.length;
         _isLoading = false;
       });
     } catch (e) {
@@ -176,6 +211,48 @@ class _AllLiveProperty extends State<AllLiveProperty> {
 
   bool get _isSearchActive {
     return _searchController.text.trim().isNotEmpty || selectedLabel != null;
+  }
+   String LOC_SULTANPUR = "sultanpur";
+
+   List<String> GROUP_CHHATTARPUR = [
+    "chhattarpur",
+    "rajpur khurd",
+  ];
+  List<NewRealEstateShowDateModel> filterByLocationAndFieldWorker(
+      List<NewRealEstateShowDateModel> list,
+      String selectedLocation,
+      ) {
+    final loc = selectedLocation.toLowerCase().trim();
+
+    // 🔹 SULTANPUR → only Sultanpur fieldworkers
+    if (loc == "sultanpur") {
+      return list.where((p) {
+        final worker = (p.fieldWorkerName ?? '').toLowerCase();
+        final location = (p.locations ?? '').toLowerCase();
+
+        return location.contains("sultanpur") &&
+            fieldWorkersByLocation["sultanpur"]!.any(
+                  (name) => worker.contains(name),
+            );
+      }).toList();
+    }
+
+    // 🔹 CHHATTARPUR / RAJPUR KHURD → both together
+    if (loc == "chhattarpur" || loc == "rajpur khurd") {
+      return list.where((p) {
+        final worker = (p.fieldWorkerName ?? '').toLowerCase();
+        final location = (p.locations ?? '').toLowerCase();
+
+        return (location.contains("chhattarpur") ||
+            location.contains("rajpur khurd")) &&
+            fieldWorkersByLocation["chhattarpur_group"]!.any(
+                  (name) => worker.contains(name),
+            );
+      }).toList();
+    }
+
+    // 🔹 DEFAULT (no restriction)
+    return list;
   }
 
   @override
@@ -237,7 +314,7 @@ class _AllLiveProperty extends State<AllLiveProperty> {
               ),
             ),
           ),
-          if (propertyCount > 0 && _isSearchActive)
+          // if (propertyCount > 0 && _isSearchActive)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
@@ -734,6 +811,7 @@ class _DetailRow extends StatelessWidget {
     this.fontSize,
     this.fontWeight,
   });
+
 
   @override
   Widget build(BuildContext context) {

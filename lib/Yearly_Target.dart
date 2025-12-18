@@ -848,21 +848,17 @@ class _Target_YearlyState extends State<Target_Yearly> {
                     ),
                   _PieKpiCard(
                     title: 'Yearly Target 60',
-                    liveCount: _yrBuyAchieved,     // <-- from new BUY yearly API
+                    liveCount: _yrBuyAchieved,
                     target: _moreYearlyTarget,
                     colorLive: Colors.deepPurple,
                     colorRemain: Colors.grey.shade700,
                   ),
                 ],
 
-
-
               // ===================== BUY SECTION =====================
               const SizedBox(height: 16),
 
               const _HighlightBar(color: Colors.cyan, label: "Commercial"),
-
-
 
 // Commercial Monthly 5
 

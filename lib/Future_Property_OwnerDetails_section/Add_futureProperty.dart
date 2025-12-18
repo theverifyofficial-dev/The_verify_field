@@ -3076,32 +3076,17 @@ class _MetroLocalitySheetState
               ),
             const SizedBox(height: 12),
             ElevatedButton(
-              onPressed: _isCounting
-                  ? null
-                  : () {
+              onPressed: () {
                 if (selectedMetro == null) return;
 
-                setState(() {
-                  _countdown = 3;
-                  _isCounting = true;
-                });
+                final finalLocalities = localityCtrl.text
+                    .split(',')
+                    .map((e) => e.trim())
+                    .where((e) => e.isNotEmpty)
+                    .toList();
 
-                _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-                  if (_countdown == 1) {
-                    timer.cancel();
-
-                    final finalLocalities = localityCtrl.text
-                        .split(',')
-                        .map((e) => e.trim())
-                        .where((e) => e.isNotEmpty)
-                        .toList();
-
-                    widget.onSelected(selectedMetro!, finalLocalities);
-                    Navigator.pop(context);
-                  } else {
-                    setState(() => _countdown--);
-                  }
-                });
+                widget.onSelected(selectedMetro!, finalLocalities);
+                Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red.shade700,
@@ -3110,11 +3095,12 @@ class _MetroLocalitySheetState
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text(
-                _isCounting ? "Done ($_countdown)" : "Done",
-                style: const TextStyle(color: Colors.white, fontSize: 16),
+              child: const Text(
+                "Done",
+                style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             )
+
 
           ],
         )

@@ -7,10 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:gal/gal.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../constant.dart';
 import 'New_Update/add_image_under_futureproperty.dart';
@@ -880,7 +882,122 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
   Future<void> _refreshPage() async {
     await autofillFormFields(); // re-fetch API
   }
+  Future<void> saveImageToGallery({
+    File? file,
+    String? imageUrl,
+  }) async {
+    try {
+      // Android permission
+      if (Platform.isAndroid) {
+        final status = await Permission.photos.request();
+        if (!status.isGranted) {
+          Fluttertoast.showToast(msg: "Permission denied");
+          return;
+        }
+      }
 
+      if (file != null) {
+        await Gal.putImage(file.path);
+      }
+      else if (imageUrl != null && imageUrl.isNotEmpty) {
+        final response = await Dio().get(
+          imageUrl,
+          options: Options(responseType: ResponseType.bytes),
+        );
+
+        await Gal.putImageBytes(response.data);
+      }
+
+      Fluttertoast.showToast(msg: "Image saved to gallery");
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Failed to save image");
+      debugPrint("Save image error: $e");
+    }
+  }
+
+  void _showImageOptions(
+      BuildContext context, {
+        File? file,
+        String? imageUrl,
+      }) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.save_alt),
+                  title: const Text("Save image to gallery"),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await saveImageToGallery(
+                      file: file,
+                      imageUrl: imageUrl,
+                    );
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.close),
+                  title: const Text("Cancel"),
+                  onTap: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+  void _openImagePreview(File file) {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            InteractiveViewer(
+              child: Image.file(
+                file,
+                fit: BoxFit.contain,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: FloatingActionButton.extended(
+                backgroundColor: Colors.green.shade600,
+                icon: const Icon(Icons.download, color: Colors.white),
+                label: const Text(
+                  "Save",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () async {
+                  try {
+                    await Gal.putImage(file.path);
+                    Navigator.pop(context);
+                    Fluttertoast.showToast(
+                      msg: "Image saved to gallery",
+                    );
+                  } catch (e) {
+                    Fluttertoast.showToast(
+                      msg: "Failed to save image",
+                    );
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -942,25 +1059,47 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                           SizedBox(
                             width: 80,
                           ),
-
-                          Container(
-                            width: 100,
-                            height: 100,
-                            child: _imageFile != null
-                                ? Image.file(_imageFile!)
-                                : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
-                                ? ClipRRect(
-                              borderRadius: BorderRadius.circular(4),
-                              child: Image.network(
-                                _networkImageUrl!,
-                                height: 100,
-                                width: 100,
-                                fit: BoxFit.cover,
+                          GestureDetector(
+                            onTap: () {
+                              _showImageOptions(
+                                context,
+                                file: _imageFile,
+                                imageUrl: _networkImageUrl,
+                              );
+                            },
+                            child: Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(6),
+                                color: Colors.grey.shade300,
                               ),
-                            )
-                                : Center(child: Text('No image selected.',style: TextStyle(color: Colors.black),)),
-
+                              child: _imageFile != null
+                                  ? Image.file(_imageFile!, fit: BoxFit.cover)
+                                  : (_networkImageUrl != null && _networkImageUrl!.isNotEmpty)
+                                  ? Image.network(_networkImageUrl!, fit: BoxFit.cover)
+                                  : const Center(child: Text("No Image")),
+                            ),
                           ),
+
+                          // Container(
+                          //   width: 100,
+                          //   height: 100,
+                          //   child: _imageFile != null
+                          //       ? Image.file(_imageFile!)
+                          //       : _networkImageUrl != null && _networkImageUrl!.isNotEmpty
+                          //       ? ClipRRect(
+                          //     borderRadius: BorderRadius.circular(4),
+                          //     child: Image.network(
+                          //       _networkImageUrl!,
+                          //       height: 100,
+                          //       width: 100,
+                          //       fit: BoxFit.cover,
+                          //     ),
+                          //   )
+                          //       : Center(child: Text('No image selected.',style: TextStyle(color: Colors.black),)),
+                          //
+                          // ),
                         ],
                       ),
                     ),
@@ -979,13 +1118,16 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                               padding: const EdgeInsets.only(right: 8),
                               child: Stack(
                                 children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Image.file(
-                                      file,
-                                      width: 110,
-                                      height: 110,
-                                      fit: BoxFit.cover,
+                                  GestureDetector(
+                                    onTap: () => _openImagePreview(file), // 👈 TAP PREVIEW + SAVE
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        file,
+                                        width: 110,
+                                        height: 110,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                   Positioned(
@@ -1010,6 +1152,7 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
                           },
                         ),
                       ),
+
                     SizedBox(height: 10),
 
                     ElevatedButton.icon(

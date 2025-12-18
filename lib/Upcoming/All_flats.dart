@@ -33,10 +33,11 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
     _debounce?.cancel();
     super.dispose();
   }
+  List<Upcoming_model> _baseFilteredProperties = [];
 
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase();
-    final filtered = _allProperties.where((item) {
+    final filtered = _filteredProperties.where((item) {
       return (item.locations ?? '').toLowerCase().contains(query) ||
           (item.apartmentAddress ?? '').toLowerCase().contains(query) ||
           (item.pId ?? '').toString().toLowerCase().contains(query) ||
@@ -108,7 +109,60 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
     }
   }
 
+  String _location = '';
 
+  Future<void> _loaduserdata() async {
+    final prefs = await SharedPreferences.getInstance();
+    _number = prefs.getString('number') ?? '';
+    _location = (prefs.getString('location') ?? '').toLowerCase().trim();
+    await _fetchProperties();
+  }
+
+  final Map<String, List<String>> fieldWorkersByLocation = {
+    "sultanpur": [
+      "ravi kumar",
+      "faizan khan",
+      "sumit",
+    ],
+    "chhattarpur_group": [
+      "abhay",
+      "manish",
+    ],
+  };
+  List<Upcoming_model> filterUpcomingByLocationAndWorker(
+      List<Upcoming_model> list,
+      String selectedLocation,
+      ) {
+    final loc = selectedLocation.toLowerCase().trim();
+
+    // 🔹 SULTANPUR → only Sultanpur workers
+    if (loc == "sultanpur") {
+      return list.where((p) {
+        final worker = (p.fieldWorkerName ?? '').toLowerCase();
+        final location = (p.locations ?? '').toLowerCase();
+
+        return location.contains("sultanpur") &&
+            fieldWorkersByLocation["sultanpur"]!
+                .any((name) => worker.contains(name));
+      }).toList();
+    }
+
+    // 🔹 CHHATTARPUR / RAJPUR KHURD → group
+    if (loc == "chhattarpur" || loc == "rajpur khurd") {
+      return list.where((p) {
+        final worker = (p.fieldWorkerName ?? '').toLowerCase();
+        final location = (p.locations ?? '').toLowerCase();
+
+        return (location.contains("chhattarpur") ||
+            location.contains("rajpur khurd")) &&
+            fieldWorkersByLocation["chhattarpur_group"]!
+                .any((name) => worker.contains(name));
+      }).toList();
+    }
+
+    // 🔹 default → no restriction
+    return list;
+  }
 
   @override
   void initState() {
@@ -116,26 +170,24 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
 
     _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata(); // fetch _number from SharedPreferences
 
-    _loaduserdata().then((_) {
-      _fetchInitialData(); // Call your API after loading user data
-    });
-  }
-
-  Future<void> _loaduserdata() async {
-    final prefs = await SharedPreferences.getInstance();
-    _number = prefs.getString('number') ?? '';
-    await _fetchProperties();
+    _loaduserdata(); // ✅ only once
   }
 
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
     try {
       final data = await fetchData(_number);
+
+      final filtered = _location.isNotEmpty
+          ? filterUpcomingByLocationAndWorker(data, _location)
+          : data;
+
       setState(() {
         _allProperties = data;
-        _filteredProperties = data;
+        _baseFilteredProperties = filtered;
+        _filteredProperties = filtered;
+        propertyCount = filtered.length;
         _isLoading = false;
       });
     } catch (e) {
@@ -158,9 +210,9 @@ class _Show_New_Real_EstateState extends State<AllFlats> {
       setState(() => _isLoading = false);
     }
   }
-
   bool get _isSearchActive {
-    return _searchController.text.trim().isNotEmpty || selectedLabel!="";
+    return _searchController.text.trim().isNotEmpty ||
+        (selectedLabel?.isNotEmpty ?? false);
   }
 
 

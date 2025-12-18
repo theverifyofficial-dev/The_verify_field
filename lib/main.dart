@@ -1,11 +1,14 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bugfender/flutter_bugfender.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:verify_feild_worker/Bug_fender/Bugfender.dart' show BugLogger;
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
 import 'package:verify_feild_worker/provider/Theme_provider.dart';
 import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
@@ -20,7 +23,6 @@ import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
 
-// by lokesh
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -35,12 +37,27 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
-  await Firebase.initializeApp();
-  // await dotenv.load(fileName: ".env");
-  await FireBaseApi().initNotifications();
 
-  // register FCM background handler
+  await BugLogger.init(); // 🔥 ONE TIME ONLY
+
+  FlutterError.onError = (FlutterErrorDetails details) {
+    BugLogger.logError(
+      screen: "FLUTTER_GLOBAL",
+      error: details.exceptionAsString(),
+    );
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    BugLogger.logError(
+      screen: "DART_ISOLATE",
+      error: error.toString(),
+    );
+    return true;
+  };
+
+
+  await Firebase.initializeApp();
+  await FireBaseApi().initNotifications();
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   TenantBinding();
@@ -58,6 +75,7 @@ void main() async {
     ),
   );
 }
+
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});

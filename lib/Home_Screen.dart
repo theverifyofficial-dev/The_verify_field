@@ -38,6 +38,8 @@ import 'Yearly_Target.dart';
 import 'add_properties_firstpage.dart';
 import 'main.dart';
 
+
+
 class TodayCounts {
   final int agreements;
   final int futureProperties;
@@ -1349,6 +1351,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
@@ -1494,7 +1497,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "gradient": cardGradients[9],
       },
     ];
-
     return Scaffold(
       backgroundColor: scaffoldBackground,
       body: RefreshIndicator(

@@ -203,7 +203,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
     final bool isUrgent = (_redemand?["mark"]?.toString() ?? "0") == "1";
     final Color accent = isUrgent ? Colors.redAccent : theme.colorScheme.primary;
-
+    final status = _redemand?["Status"]?.toLowerCase();
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
       appBar: AppBar(
@@ -253,7 +253,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
             const SizedBox(height: 18),
 
             // Assigned / Disclosed ribbons and sections same as AdminDemandDetail
-            if (_redemand!["Status"] == "assign to subadmin") ...[
+            if (status == "assign to subadmin") ...[
               Container(
                 padding: const EdgeInsets.all(14),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -274,7 +274,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
               ),
             ],
 
-            if (_redemand!["Status"] == "assigned to fieldworker") ...[
+            if (status == "assigned to fieldworker") ...[
               Container(
                 padding: const EdgeInsets.all(14),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -295,7 +295,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
               ),
             ],
 
-            if (_redemand!["Status"] == "New") ...[
+            if (status == "New") ...[
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -306,7 +306,11 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
               ),
             ],
 
-            if (_redemand?["Status"]?.toString().toLowerCase() == "disclosed")
+            if (status == "progressing" || status == "disclosed")
+
+              _buildProgressDetailsCard(_redemand!, isDark, accent),
+
+            if (status == "disclosed")
               Container(
                 padding: const EdgeInsets.all(18),
                 margin: const EdgeInsets.only(top: 20),
@@ -325,6 +329,53 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
               ),
           ],
         ),
+      ),
+    );
+  }
+  Widget _buildProgressDetailsCard(
+      Map<String, dynamic> data,
+      bool isDark,
+      Color accent,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _infoRow("Parking", data["parking"]),
+          _infoRow("Lift", data["lift"]),
+          _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Family Structure", data["family_structur"]),
+          _infoRow("Family Members", data["family_member"]),
+          _infoRow("Religion", data["religion"]),
+          _infoRow("Visiting Date", data["visiting_dates"]),
+          _infoRow("Vehicle Type", data["vichle_type"]),
+          _infoRow("Vehicle No", data["vichle_no"]),
+          _infoRow("Floor", data["floor"]),
+          _infoRow("Shifting Date", data["shifting_date"]),
+        ],
       ),
     );
   }

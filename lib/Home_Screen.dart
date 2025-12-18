@@ -1386,7 +1386,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       LinearGradient(colors: [const Color(0xFF6366F1), const Color(0xFF4F46E5)]),
       LinearGradient(colors: [const Color(0xFF1D4ED8), const Color(0xFFDC2626)]),
       LinearGradient(colors: [const Color(0xFFDC2626), const Color(0xFF06B6D4)]),
-      LinearGradient(colors: [const Color(0xFF06B6D4), const Color(0xFFF59E0B)]),
+      LinearGradient(colors: [ Colors.blue,  Colors.purple]),
     ];
 
     final List<Map<String, dynamic>> cardData = [
@@ -1420,7 +1420,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         "gradient": cardGradients[2],
       },
       {
-        "image": AppImages.demand_2,
+        "image": AppImages.tenant,
         "title": "Tenant Demands",
         "onTap": () {
           Navigator.push(
@@ -1482,17 +1482,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       //   },
       //   "gradient": cardGradients[8],
       // },
-      // {
-      //   "image": AppImages.demand_2,
-      //   "title": "Costumer Demands 2.O",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const CostumerDemand()));
-      //   },
-      //   "gradient": cardGradients[9],
-      // },
+      {
+        "image": AppImages.demand_2,
+        "title": "Costumer Demands 2.O",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const CostumerDemand()));
+        },
+        "gradient": cardGradients[9],
+      },
     ];
 
     return Scaffold(

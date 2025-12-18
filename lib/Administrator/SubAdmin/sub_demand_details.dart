@@ -233,6 +233,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
   // ---------------------- MAIN UI BODY ---------------------- //
 
   Widget _buildMainBody(bool isDark, Color accent) {
+    final status = _demand?["Status"]?.toLowerCase();
     return SingleChildScrollView(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -270,9 +271,61 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
           if (_demand!["Status"] == "assign to subadmin")
             _buildAssignButton(accent, isDark),
 
+          if (status == "progressing" || status == "disclosed")
+
+            _buildProgressDetailsCard(_demand!, isDark, accent),
+
           // If disclosed — show final summary
           if (_demand!["Status"]?.toString().toLowerCase() == "disclosed")
             _buildFinalSummarySection(isDark, accent),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressDetailsCard(
+      Map<String, dynamic> data,
+      bool isDark,
+      Color accent,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _infoRow("Parking", data["parking"]),
+          _infoRow("Lift", data["lift"]),
+          _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Family Structure", data["family_structur"]),
+          _infoRow("Family Members", data["family_member"]),
+          _infoRow("Religion", data["religion"]),
+          _infoRow("Visiting Date", data["visiting_dates"]),
+          _infoRow("Vehicle Type", data["vichle_type"]),
+          _infoRow("Vehicle No", data["vichle_no"]),
+          _infoRow("Floor", data["floor"]),
+          _infoRow("Shifting Date", data["shifting_date"]),
         ],
       ),
     );
@@ -695,7 +748,8 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
     final bool isDark = theme.brightness == Brightness.dark;
     final bool isUrgent = d.mark == "1";
 
-    return GestureDetector(
+    return
+      GestureDetector(
       onTap: () {
         Navigator.push(
           context,

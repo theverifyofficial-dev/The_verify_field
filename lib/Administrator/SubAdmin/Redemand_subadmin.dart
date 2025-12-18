@@ -151,6 +151,54 @@ class _RedemandDetailPageState extends State<RedemandSubadmin> {
     );
   }
 
+  Widget _buildProgressDetailsCard(
+      Map<String, dynamic> data,
+      bool isDark,
+      Color accent,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _infoRow("Parking", data["parking"]),
+          _infoRow("Lift", data["lift"]),
+          _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Family Structure", data["family_structur"]),
+          _infoRow("Family Members", data["family_member"]),
+          _infoRow("Religion", data["religion"]),
+          _infoRow("Visiting Date", data["visiting_dates"]),
+          _infoRow("Vehicle Type", data["vichle_type"]),
+          _infoRow("Vehicle No", data["vichle_no"]),
+          _infoRow("Floor", data["floor"]),
+          _infoRow("Shifting Date", data["shifting_date"]),
+        ],
+      ),
+    );
+  }
+
   // ---------------------- ASSIGN BOTTOM SHEET ---------------------- //
   void _openAssignSheet(Color accent, bool isDark) {
     showModalBottomSheet(
@@ -278,6 +326,7 @@ class _RedemandDetailPageState extends State<RedemandSubadmin> {
   }
 
   Widget _buildPage(bool isDark, Color accent) {
+    final status = _redemand?["Status"]?.toLowerCase();
     return SingleChildScrollView(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -286,15 +335,19 @@ class _RedemandDetailPageState extends State<RedemandSubadmin> {
           const SizedBox(height: 20),
 
           // ✔ SubAdmin can assign ONLY when status == assign to subadmin
-          if (_redemand!["Status"] == "assign to subadmin")
+          if (status == "assign to subadmin")
             _buildAssignButton(accent, isDark),
 
           // ✔ Show FW summary after assigning
-          if (_redemand!["Status"] == "assigned to fieldworker")
+          if (status == "assigned to fieldworker")
             _buildFwSummary(),
 
+          if (status == "progressing" || status == "disclosed")
+
+            _buildProgressDetailsCard(_redemand!, isDark, accent),
+
           // ✔ Show disclosed summary same as admin
-          if (_redemand!["Status"]?.toString().toLowerCase() == "disclosed")
+          if (status == "disclosed")
             _buildDisclosed(isDark, accent),
         ],
       ),

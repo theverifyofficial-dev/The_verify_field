@@ -407,14 +407,14 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   },
                                 },
 
-                                // {
-                                //   'image': AppImages.demand_2,
-                                //   'title': "Costumer Demands 2.O",
-                                //   'onTap': () =>
-                                //       Navigator.push(context, MaterialPageRoute(
-                                //           builder: (
-                                //               context) =>  ShowTenantDemandPage())),
-                                // },
+                                {
+                                  'image': AppImages.demand_2,
+                                  'title': "Costumer Demands 2.O",
+                                  'onTap': () =>
+                                      Navigator.push(context, MaterialPageRoute(
+                                          builder: (
+                                              context) =>  ShowTenantDemandPage())),
+                                },
                                 {
                                   "image": AppImages.realestatefeild,
                                   "title": "Upcoming\n Property",

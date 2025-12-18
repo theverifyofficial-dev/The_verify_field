@@ -603,6 +603,54 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     );
   }
 
+  Widget _buildProgressDetailsCard(
+      Map<String, dynamic> data,
+      bool isDark,
+      Color accent,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _infoRow("Parking", data["parking"]),
+          _infoRow("Lift", data["lift"]),
+          _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Family Structure", data["family_structur"]),
+          _infoRow("Family Members", data["family_member"]),
+          _infoRow("Religion", data["religion"]),
+          _infoRow("Visiting Date", data["visiting_dates"]),
+          _infoRow("Vehicle Type", data["vichle_type"]),
+          _infoRow("Vehicle No", data["vichle_no"]),
+          _infoRow("Floor", data["floor"]),
+          _infoRow("Shifting Date", data["shifting_date"]),
+        ],
+      ),
+    );
+  }
+
   Widget _buildRibbon(String text, Color c1, Color c2) {
     return Positioned(
       top: 12,
@@ -778,6 +826,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     final bool isUrgent = _demand?["mark"]?.toString() == "1";
     final Color accent = isUrgent ? Colors.redAccent : theme.colorScheme.primary;
     final baseColor = accent;
+    final status = _demand?["Status"]?.toLowerCase();
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
@@ -826,7 +875,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
 
             const SizedBox(height: 24),
 
-            if (_demand!["Status"] == "assign to subadmin") ...[
+            if (status == "assign to subadmin") ...[
               Container(
                 padding: const EdgeInsets.all(14),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -851,7 +900,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
               ),
             ],
 
-            if (_demand!["Status"] == "assigned to fieldworker") ...[
+            if (status == "assigned to fieldworker") ...[
               Container(
                 padding: const EdgeInsets.all(14),
                 margin: const EdgeInsets.only(bottom: 20),
@@ -876,7 +925,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
               ),
             ],
 
-            if (_demand!["Status"] == "New") ...[
+            if (status == "New") ...[
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -892,7 +941,11 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
               ),
             ],
 
-            if (_demand?["Status"]?.toString().toLowerCase() == "disclosed")
+            if (status == "progressing" || status == "disclosed")
+
+              _buildProgressDetailsCard(_demand!, isDark, accent),
+
+            if (status == "disclosed")
               _buildFinalSummarySection(isDark, accent),
 
           ],

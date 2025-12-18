@@ -160,6 +160,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final Color accent =
     isUrgent ? Colors.redAccent : theme.colorScheme.primary;
     final bool isDisclosed = _demand?["Status"]?.toString().toLowerCase() == "disclosed";
+    final status = _demand?["Status"]?.toLowerCase();
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
@@ -225,10 +226,14 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             _buildTenantCard(isDark, accent),
             const SizedBox(height: 24),
 
-            if (_demand?["Status"]?.toString().toLowerCase() == "progressing")
+            if (status == "progressing" || status == "disclosed")
+
+              _buildProgressDetailsCard(_demand!, isDark, accent),
+
+            if (status == "progressing")
               _buildCompletionSection(isDark, accent),
 
-            if (_demand?["Status"]?.toString().toLowerCase() == "disclosed")
+            if (status == "disclosed")
               _buildFinalSummarySection(isDark, accent),
 
 
@@ -471,84 +476,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               ),
             ),
           ),
-        if (d.status.toLowerCase() == "assigned to fieldworker")
-          Positioned(
-            top: 12,
-            left: -30,
-            child: Transform.rotate(
-              angle: -0.785398, // -45 degrees in radians
-              child: Container(
-                width: 140,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.green.shade500,
-                      Colors.green.shade700,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.4),
-                      blurRadius: 6,
-                      offset: const Offset(2, 2),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  "ASSIGNED   ",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ),
-            ),
-          ),
-        if (d.status.toLowerCase() == "assign to subadmin")
-          Positioned(
-            top: 12,
-            left: -30,
-            child: Transform.rotate(
-              angle: -0.785398, // -45 degrees in radians
-              child: Container(
-                width: 140,
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.green.shade500,
-                      Colors.green.shade700,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.4),
-                      blurRadius: 6,
-                      offset: const Offset(2, 2),
-                    ),
-                  ],
-                ),
-                alignment: Alignment.center,
-                child: const Text(
-                  "ASSIGNED   ",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.2,
-                    fontSize: 11.5,
-                  ),
-                ),
-              ),
-            ),
-          ),
+
 
 
         GestureDetector(
@@ -706,13 +634,62 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         // ----- Existing ribbons -------
         if (d.status.toLowerCase() == "disclosed")
           _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
+        if (d.status.toLowerCase() == "progressing")
+          _buildRibbon("Progressing", Colors.green.shade500, Colors.green.shade700),
 
-        if (d.status.toLowerCase() == "assigned to fieldworker" ||
-            d.status.toLowerCase() == "assign to subadmin")
-          _buildRibbon("ASSIGNED", Colors.green.shade500, Colors.green.shade700),
       ],
     );
   }
+
+
+  Widget _buildProgressDetailsCard(
+      Map<String, dynamic> data,
+      bool isDark,
+      Color accent,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _infoRow("Parking", data["parking"]),
+          _infoRow("Lift", data["lift"]),
+          _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Family Structure", data["family_structur"]),
+          _infoRow("Family Members", data["family_member"]),
+          _infoRow("Religion", data["religion"]),
+          _infoRow("Visiting Date", data["visiting_dates"]),
+          _infoRow("Vehicle Type", data["vichle_type"]),
+          _infoRow("Vehicle No", data["vichle_no"]),
+          _infoRow("Floor", data["floor"]),
+          _infoRow("Shifting Date", data["shifting_date"]),
+        ],
+      ),
+    );
+  }
+
 
 
 

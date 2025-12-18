@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Future_Property.dart';
 import 'metro_api.dart';
@@ -236,7 +237,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   Future<void> uploadImageWithTitle(XFile imageFile) async {
     String uploadUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_images.php';
+        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_image.php';
 
     FormData formData = FormData();
 
@@ -301,6 +302,13 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         );
         print('Upload successful: ${response.data}');
       } else {
+        // 🔴 LOG BACKEND FAILURE
+        await BugLogger.log(
+          apiLink: uploadUrl,
+          error: response.data.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+
         setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload failed: ${response.statusCode}')),
@@ -308,10 +316,18 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
         print('Upload failed: ${response.statusCode}');
       }
     } catch (e) {
+      // 🔴 LOG EXCEPTION
+      await BugLogger.log(
+        apiLink: uploadUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
+
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error occurred: $e')),
+        SnackBar(content: Text('Something went wrong!! ')),
       );
+
       print('Error occurred: $e');
     }
   }

@@ -110,6 +110,8 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
     final bool isDisclosed =
         _redemand?["Status"]?.toString().toLowerCase() == "disclosed";
 
+    final status = _redemand?["Status"]?.toLowerCase();
+
     return Scaffold(
       backgroundColor:
       isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
@@ -140,9 +142,11 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
             _buildMainCard(isDark, accent),
             const SizedBox(height: 24),
 
-            if (_redemand?["Status"]
-                ?.toString()
-                .toLowerCase() ==
+            if (status == "progressing" || status == "disclosed")
+
+              _buildProgressDetailsCard(_redemand!, isDark, accent),
+
+            if (status ==
                 "progressing")
               _buildCompletionSection(isDark, accent),
 
@@ -336,14 +340,77 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
                         ? const Center(child: Text("No activity logs"))
                         : ListView.separated(
                       itemCount: logs.length,
-                      separatorBuilder: (_, __) =>
-                      const Divider(),
-                      itemBuilder: (_, i) {
+                      separatorBuilder: (_, __) => Divider(
+                          color: isDark
+                              ? Colors.white12
+                              : Colors.black12),
+                      itemBuilder: (context, i) {
                         final log = logs[i];
-                        return ListTile(
-                          title: Text(log["message"] ?? ""),
-                          subtitle:
-                          Text("${log["date"]} • ${log["time"]}"),
+                        final msg = log['message'] ?? "";
+                        final date = log['date'] ?? "";
+                        final time = log['time'] ?? "";
+
+                        final isCall =
+                        msg.toLowerCase().contains("call");
+                        final isWhatsapp =
+                        msg.toLowerCase().contains("whatsapp");
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isCall
+                                    ? Colors.blue.withOpacity(0.15)
+                                    : isWhatsapp
+                                    ? Colors.green.withOpacity(0.15)
+                                    : Colors.grey.withOpacity(0.15),
+                              ),
+                              child: Icon(
+                                isCall
+                                    ? Icons.call
+                                    : isWhatsapp
+                                    ? Icons.chat
+                                    : Icons.info_outline,
+                                color: isCall
+                                    ? Colors.blue
+                                    : isWhatsapp
+                                    ? Colors.green
+                                    : Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    msg,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    "$date • $time",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: isDark
+                                          ? Colors.white54
+                                          : Colors.grey.shade600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         );
                       },
                     ),
@@ -625,7 +692,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
               child: _isDisclosing
                   ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
                   : const Text(
-                "Disclose Demand",
+                "Disclose Redemand",
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -648,7 +715,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
           title: const Text("Confirm Action"),
           content: const Text(
-            "Are you sure you want to disclose this demand? "
+            "Are you sure you want to disclose this redemand? "
                 "This action cannot be undone.",
           ),
           actions: [
@@ -743,7 +810,7 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
     try {
       final response = await http.post(
         Uri.parse(
-            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php"),
+            "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php"),
         body: {
           "id": _redemand!["id"].toString(),
           "finishing_date":
@@ -751,6 +818,8 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
           "final_reason": finalReasonToSend,
         },
       );
+
+      print('final redemand submission: ${response.body}');
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -770,6 +839,54 @@ class _RedemandDetailPageState extends State<field_RedemandDetailPage> {
     }
 
     setState(() => _isSubmittingFinal = false);
+  }
+
+  Widget _buildProgressDetailsCard(
+      Map<String, dynamic> data,
+      bool isDark,
+      Color accent,
+      ) {
+    return Container(
+      margin: const EdgeInsets.only(top: 20),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        color: isDark ? Colors.white.withOpacity(0.06) : Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 16,
+            offset: const Offset(0, 5),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "Work Details",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: accent,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _infoRow("Parking", data["parking"]),
+          _infoRow("Lift", data["lift"]),
+          _infoRow("Furnished", data["furnished_unfurnished"]),
+          _infoRow("Family Structure", data["family_structur"]),
+          _infoRow("Family Members", data["family_member"]),
+          _infoRow("Religion", data["religion"]),
+          _infoRow("Visiting Date", data["visiting_dates"]),
+          _infoRow("Vehicle Type", data["vichle_type"]),
+          _infoRow("Vehicle No", data["vichle_no"]),
+          _infoRow("Floor", data["floor"]),
+          _infoRow("Shifting Date", data["shifting_date"]),
+        ],
+      ),
+    );
   }
 
 

@@ -18,6 +18,7 @@ import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_com
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
 import 'package:verify_feild_worker/Monthly_Target.dart';
 import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
+import 'package:verify_feild_worker/Target_details/Target_details.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
@@ -1528,17 +1529,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[5],
       },
-      // {
-      //   "image": AppImages.target,
-      //   "title": "Target",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const Target_MainPage()));
-      //   },
-      //   "gradient": cardGradients[6],
-      // },
+      {
+        "image": AppImages.target,
+        "title": "Target",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const TargetScreen()));
+        },
+        "gradient": cardGradients[6],
+      },
       {
         "image": AppImages.realestatefeild,
         "title": "Upcoming Flats",

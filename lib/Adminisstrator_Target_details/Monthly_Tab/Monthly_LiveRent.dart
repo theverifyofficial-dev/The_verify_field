@@ -1,0 +1,382 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/constant.dart';
+import 'Monthly_under_detail/Monthly_LiveRent_detail.dart';
+
+class MonthlyLiveRentModel {
+  final int id;
+  final String image;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String apartmentName;
+  final String apartmentAddress;
+  final String typeOfProperty;
+  final String bhk;
+  final String showPrice;
+  final String lastPrice;
+  final String askingPrice;
+  final String floor;
+  final String totalFloor;
+  final String balcony;
+  final String squareFit;
+  final String maintaince;
+  final String parking;
+  final String ageOfProperty;
+  final String fieldworkerAddress;
+  final String roadSize;
+  final String metroDistance;
+  final String highwayDistance;
+  final String mainMarketDistance;
+  final String meter;
+  final String ownerName;
+  final String ownerNumber;
+  final String currentDates;
+  final String availableDate;
+  final String kitchen;
+  final String bathroom;
+  final String lift;
+  final String facility;
+  final String furnishedUnfurnished;
+  final String fieldWorkerName;
+  final String liveUnlive;
+  final String fieldWorkerNumber;
+  final String registryAndGpa;
+  final String loan;
+  final String longitude;
+  final String latitude;
+  final String videoLink;
+  final String caretakerName;
+  final String caretakerNumber;
+  final String sourceId;
+  final String dateForTarget;
+  final String localityList;
+
+  MonthlyLiveRentModel({
+    required this.id,
+    required this.image,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.apartmentName,
+    required this.apartmentAddress,
+    required this.typeOfProperty,
+    required this.bhk,
+    required this.showPrice,
+    required this.lastPrice,
+    required this.askingPrice,
+    required this.floor,
+    required this.totalFloor,
+    required this.balcony,
+    required this.squareFit,
+    required this.maintaince,
+    required this.parking,
+    required this.ageOfProperty,
+    required this.fieldworkerAddress,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.highwayDistance,
+    required this.mainMarketDistance,
+    required this.meter,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.currentDates,
+    required this.availableDate,
+    required this.kitchen,
+    required this.bathroom,
+    required this.lift,
+    required this.facility,
+    required this.furnishedUnfurnished,
+    required this.fieldWorkerName,
+    required this.liveUnlive,
+    required this.fieldWorkerNumber,
+    required this.registryAndGpa,
+    required this.loan,
+    required this.longitude,
+    required this.latitude,
+    required this.videoLink,
+    required this.caretakerName,
+    required this.caretakerNumber,
+    required this.sourceId,
+    required this.dateForTarget,
+    required this.localityList,
+  });
+
+  factory MonthlyLiveRentModel.fromJson(Map<String, dynamic> json) {
+    return MonthlyLiveRentModel(
+      id: int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
+      image: json['property_photo']?.toString() ?? '',
+      locations: json['locations']?.toString() ?? '',
+      flatNumber: json['Flat_number']?.toString() ?? '',
+      buyRent: json['Buy_Rent']?.toString() ?? '',
+      residenceCommercial: json['Residence_Commercial']?.toString() ?? '',
+      apartmentName: json['Apartment_name']?.toString() ?? '',
+      apartmentAddress: json['Apartment_Address']?.toString() ?? '',
+      typeOfProperty: json['Typeofproperty']?.toString() ?? '',
+      bhk: json['Bhk']?.toString() ?? '',
+      showPrice: json['show_Price']?.toString() ?? '',
+      lastPrice: json['Last_Price']?.toString() ?? '',
+      askingPrice: json['asking_price']?.toString() ?? '',
+      floor: json['Floor_']?.toString() ?? '',
+      totalFloor: json['Total_floor']?.toString() ?? '',
+      balcony: json['Balcony']?.toString() ?? '',
+      squareFit: json['squarefit']?.toString() ?? '',
+      maintaince: json['maintance']?.toString() ?? '',
+      parking: json['parking']?.toString() ?? '',
+      ageOfProperty: json['age_of_property']?.toString() ?? '',
+      fieldworkerAddress: json['fieldworkar_address']?.toString() ?? '',
+      roadSize: json['Road_Size']?.toString() ?? '',
+      metroDistance: json['metro_distance']?.toString() ?? '',
+      highwayDistance: json['highway_distance']?.toString() ?? '',
+      mainMarketDistance: json['main_market_distance']?.toString() ?? '',
+      meter: json['meter']?.toString() ?? '',
+      ownerName: json['owner_name']?.toString() ?? '',
+      ownerNumber: json['owner_number']?.toString() ?? '',
+      currentDates: json['current_dates']?.toString() ?? '',
+      availableDate: json['available_date']?.toString() ?? '',
+      kitchen: json['kitchen']?.toString() ?? '',
+      bathroom: json['bathroom']?.toString() ?? '',
+      lift: json['lift']?.toString() ?? '',
+      facility: json['Facility']?.toString() ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished']?.toString() ?? '',
+      fieldWorkerName: json['field_warkar_name']?.toString() ?? '',
+      liveUnlive: json['live_unlive']?.toString() ?? '',
+      fieldWorkerNumber: json['field_workar_number']?.toString() ?? '',
+      registryAndGpa: json['registry_and_gpa']?.toString() ?? '',
+      loan: json['loan']?.toString() ?? '',
+      longitude: json['Longitude']?.toString() ?? '',
+      latitude: json['Latitude']?.toString() ?? '',
+      videoLink: json['video_link']?.toString() ?? '',
+      caretakerName: json['care_taker_name']?.toString() ?? '',
+      caretakerNumber: json['care_taker_number']?.toString() ?? '',
+      sourceId: json['source_id']?.toString() ?? '',
+      dateForTarget: json['date_for_target']?.toString() ?? '',
+      localityList: json['locality_list']?.toString() ?? '',
+    );
+  }
+}
+
+/// =======================
+/// API FETCH (RENT ONLY)
+/// =======================
+Future<List<MonthlyLiveRentModel>> fetchLiveMonthlyRent(String number) async {
+  final url = Uri.parse(
+    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/live_monthly_show.php?field_workar_number=$number",
+  );
+
+  final res = await http.get(url);
+
+  if (res.statusCode != 200) {
+    throw Exception("Live Monthly API Error");
+  }
+
+  final decoded = json.decode(res.body);
+  print(res.body);
+
+  final List list = decoded['data'] ?? [];
+
+  /// ✅ ONLY RENT
+  final rentOnly = list.where((e) => e['Buy_Rent'] == 'Rent').toList();
+
+  return rentOnly.map((e) => MonthlyLiveRentModel.fromJson(e)).toList();
+}
+
+/// =======================
+/// UI SCREEN
+/// =======================
+class MonthlyLiveRent extends StatefulWidget {
+  final String number;
+  const MonthlyLiveRent({super.key,required this.number});
+
+  @override
+  State<MonthlyLiveRent> createState() => _MonthlyLiveRentState();
+}
+
+class _MonthlyLiveRentState extends State<MonthlyLiveRent> {
+  late Future<List<MonthlyLiveRentModel>> futureData;
+
+  @override
+  void initState() {
+    super.initState();
+    futureData = fetchLiveMonthlyRent(widget.number);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Image.asset(AppImages.transparent, height: 40),
+        centerTitle: true,
+      ),
+      body: FutureBuilder<List<MonthlyLiveRentModel>>(
+        future: futureData,
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snap.hasError) {
+            return Center(child: Text("Error: ${snap.error}"));
+          }
+
+          final list = snap.data ?? [];
+
+          if (list.isEmpty) {
+            return const Center(child: Text("No Live Rent Found"));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(12),
+            itemCount: list.length,
+            itemBuilder: (context, i) {
+              final b = list[i];
+
+              return
+              GestureDetector(
+                onTap: (){
+                  Navigator.push(
+                      context, MaterialPageRoute(
+                      builder: (context) =>
+                          LiveMonthlyRentDetailScreen(b: b,)));
+                },
+                  child: 
+                Container(
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: theme.brightness == Brightness.dark
+                      ? []
+                      : [
+                    BoxShadow(
+                      blurRadius: 8,
+                      color: Colors.black.withOpacity(.08),
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+
+                    /// IMAGE
+                    ClipRRect(
+                      borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                      child: Image.network(
+                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${b.image}",
+                        height: 190,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          height: 190,
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.image_not_supported),
+                        ),
+                      ),
+                    ),
+
+                    Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+
+                          /// RENT TAG
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.withOpacity(.20),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              "Rent",
+                              style: TextStyle(
+                                color: Colors.blue,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          /// PLACE
+                          Text(
+                            b.locations,
+                            style: theme.textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          /// INFO ROW
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _InfoItem(Icons.home, b.bhk),
+                              _InfoItem(Icons.layers, b.floor),
+                              _InfoItem(Icons.local_parking, b.parking),
+                            ],
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          /// RENT
+                          Text(
+                            "Rent: ₹${b.buyRent}",
+                            style: theme.textTheme.bodySmall,
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          /// FIELD WORKER
+                          Text(
+                            "Field Worker: ${b.fieldWorkerName}",
+                            style: const TextStyle(
+                                fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// =======================
+/// SMALL INFO WIDGET
+/// =======================
+class _InfoItem extends StatelessWidget {
+  final IconData icon;
+  final String text;
+
+  const _InfoItem(this.icon, this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.iconTheme.color),
+        const SizedBox(width: 4),
+        Text(text, style: theme.textTheme.bodySmall),
+      ],
+    );
+  }
+}

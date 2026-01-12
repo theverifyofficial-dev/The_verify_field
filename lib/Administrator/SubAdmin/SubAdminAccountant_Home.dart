@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 
+import '../../Adminisstrator_Target_details/Targets.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Administrator/Administator_Realestate.dart';
 import '../../Administrator/New_TenandDemand/Tenant_demand.dart';
@@ -330,10 +331,10 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                       ),
 
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                    //   child: _TargetHeaderCard(context),
-                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
+                      child: _TargetHeaderCard(context),
+                    ),
                     const SizedBox(height: 10),
 
                     // Grid of Feature Cards
@@ -754,7 +755,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => AllFieldWorkersPage()),
+          MaterialPageRoute(builder: (_) => Target()),
         );
       },
       child: Container(

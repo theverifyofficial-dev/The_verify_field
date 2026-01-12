@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import 'package:verify_feild_worker/Login_page.dart';
+import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
@@ -475,7 +476,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => AllFieldWorkersPage()),
+          MaterialPageRoute(builder: (_) => Target()),
         );
       },
       child: Container(

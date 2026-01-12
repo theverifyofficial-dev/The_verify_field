@@ -3,10 +3,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Login_page.dart';
-import '../../Accountant/Company expense/Tabbar_control.dart';
-import '../../Accountant/Salaray expense/Tabbar_control.dart';
-import '../../Administrator/Administater_Parent_TenantDemand.dart';
-import '../../Administrator/Administator_Add_Rented_Flat_Tabbar.dart';
+
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Administrator/Administator_Realestate.dart';
 import '../../Administrator/New_TenandDemand/Tenant_demand.dart';
@@ -21,6 +18,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../Admin_future _property/Administater_Future_Property.dart';
 import '../Admin_upcoming.dart';
+import '../All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'ShowTenantDemant.dart';
 import 'SubAdmin_MainRealEstate_Tabbar.dart';
 import 'SubAdmin_tabbar.dart';
@@ -37,6 +35,8 @@ class SubAdminHomeScreen extends StatefulWidget {
 class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with TickerProviderStateMixin {
   int _currentIndex = 0;
   String? userName;
+  String? userNumber;
+
   late AnimationController _shineController;
   late Animation<double> _shineAnimation;
 
@@ -107,13 +107,17 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
-
+    final storedNumber = prefs.getString('number');
+    debugPrint("User Name: $storedName");
+    debugPrint("User Number: $storedNumber");
     if (mounted) {
       setState(() {
         userName = storedName;
+        userNumber = storedNumber;
       });
     }
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -364,7 +368,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: 3,
+                            itemCount: userNumber == "9711779003"? 4:3,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -387,13 +391,15 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 //           builder: (
                                 //               context) => const Administater_parent_TenandDemand())),
                                 // },
-                                // {
-                                //   'image': AppImages.police,
-                                //   'title': "All Rented \nFlat",
-                                //   'onTap': () =>
-                                //       Navigator.push(context, MaterialPageRoute(
-                                //           builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                                // },
+                                if (userNumber == "9711779003")
+
+                                  {
+                                  'image': AppImages.police,
+                                  'title': "All Rented \nFlat",
+                                  'onTap': () =>
+                                      Navigator.push(context, MaterialPageRoute(
+                                          builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                                },
                                 {
                                   'image': AppImages.propertysale,
                                   'title': "Future\n Inventory/Property",

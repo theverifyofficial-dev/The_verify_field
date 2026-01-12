@@ -227,14 +227,135 @@ class _Login_pageState extends State<Login_page> {
                   ),
               ],
               ),
-            )
-          ],
+            ),
+      // Column(
+      //   children: [
+      //
+      //     _loginButton(
+      //       title: "Login as Admin",
+      //       color: Colors.deepPurple,
+      //       onTap: () {
+      //         _loginWithRole(
+      //           number: "22",
+      //           password: "1234",
+      //         );
+      //       },
+      //     ),
+      //
+      //     const SizedBox(height: 12),
+      //
+      //     _loginButton(
+      //       title: "Login as Sub Admin",
+      //       color: Colors.blue,
+      //       onTap: () {
+      //         _loginWithRole(
+      //           number: "8743080855",
+      //           password: "080855",
+      //         );
+      //       },
+      //     ),
+      //
+      //     const SizedBox(height: 12),
+      //
+      //     _loginButton(
+      //       title: "Login as Field Worker",
+      //       color: Colors.green,
+      //       onTap: () {
+      //         _loginWithRole(
+      //           number: "11",
+      //           password: "1234",
+      //         );
+      //       },
+      //     ),
+      //   ],
+      // ),
+
+                ],
               ),
             )
        ]
         )
     ));
   }
+  Future<void> _loginWithRole({
+    required String number,
+    required String password,
+  }) async {
+    try {
+      FirebaseMessaging messaging = FirebaseMessaging.instance;
+      String? fcmToken = await messaging.getToken();
+
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin"
+              "?FNumber=$number&Password=$password&FCM=$fcmToken",
+        ),
+      );
+
+      final data = json.decode(response.body);
+
+      if (data is List && data.isNotEmpty && data[0]["status"] == "success") {
+        final user = data[0];
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("name", user["FName"]);
+        await prefs.setString("number", user["FNumber"]);
+        await prefs.setString("post", user["FAadharCard"]);
+
+        // Navigation based on role
+        switch (user["FAadharCard"]) {
+          case "Administrator":
+            Navigator.pushReplacementNamed(context, AdministratorHome_Screen.route);
+            break;
+
+          case "Sub Administrator":
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => SubAdminHomeScreen()));
+            break;
+
+          case "FieldWorkar":
+            Navigator.pushReplacementNamed(context, Home_Screen.route);
+            break;
+
+          default:
+            Fluttertoast.showToast(msg: "Unknown role");
+        }
+      } else {
+        Fluttertoast.showToast(msg: "Invalid credentials");
+      }
+    } catch (e) {
+      Fluttertoast.showToast(msg: "Error: $e");
+    }
+  }
+
+  Widget _loginButton({
+    required String title,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+        onPressed: onTap,
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> loginUser(BuildContext context, String number, String password) async {
     try {
       // Get FCM Token

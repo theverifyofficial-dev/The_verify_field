@@ -23,55 +23,53 @@ class _RentedPropertyPageState extends State<RentedPropertyPage> {
       _responseMessage = "";
     });
 
-    // --- build current IST date/time strings once, reuse everywhere ---
-    String _2(int n) => n < 10 ? '0$n' : '$n';
-    final nowUtc = DateTime.now().toUtc();
-    final ist = nowUtc.add(const Duration(hours: 5, minutes: 30)); // Asia/Kolkata
-    final bookingDate = '${ist.year}-${_2(ist.month)}-${_2(ist.day)}';       // YYYY-MM-DD
-    final bookingTime = '${_2(ist.hour)}:${_2(ist.minute)}:${_2(ist.second)}'; // HH:MM:SS
-
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php",
-    );
-
     try {
-      // 1. Copy (now with real date/time)
-      final copyResponse = await http.post(url, body: {
+      final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30));
+      final bookingDate =
+          "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      final bookingTime =
+          "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+
+      final url = Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php");
+
+      // Step 1
+      final copy = await http.post(url, body: {
         "action": "copy",
         "p_id": widget.id,
         "booking_date": bookingDate,
         "booking_time": bookingTime,
       });
 
-      _responseMessage += copyResponse.statusCode == 200
-          ? "✅ Copy Success: ${copyResponse.body}\n"
-          : "❌ Copy Failed: ${copyResponse.statusCode}\n";
-
-      // 2. Update
-      final updateResponse = await http.post(url, body: {
+      // Step 2
+      final update = await http.post(url, body: {
         "action": "update",
         "subid": widget.subid,
       });
 
-      _responseMessage += updateResponse.statusCode == 200
-          ? "✅ Update Success: ${updateResponse.body}\n"
-          : "❌ Update Failed: ${updateResponse.statusCode}\n";
-
-      // 3. Delete
-      final deleteResponse = await http.post(url, body: {
+      // Step 3
+      final delete = await http.post(url, body: {
         "action": "delete",
         "p_id": widget.id,
       });
 
-      _responseMessage += deleteResponse.statusCode == 200
-          ? "✅ Delete Success: ${deleteResponse.body}"
-          : "❌ Delete Failed: ${deleteResponse.statusCode}";
+      if (copy.statusCode == 200 &&
+          update.statusCode == 200 &&
+          delete.statusCode == 200) {
+        setState(() {
+          _responseMessage = "✅ Property booked successfully";
+        });
+      } else {
+        setState(() {
+          _responseMessage = "❌ Something went wrong while processing.";
+        });
+      }
     } catch (e) {
-      _responseMessage += "⚠ Exception: $e";
-    } finally {
       setState(() {
-        _loading = false;
+        _responseMessage = "❌ Error: ${e.toString()}";
       });
+    } finally {
+      setState(() => _loading = false);
     }
   }
 
@@ -110,10 +108,38 @@ class _RentedPropertyPageState extends State<RentedPropertyPage> {
 
               const SizedBox(height: 24),
 
-              if (_loading) const CircularProgressIndicator(),
               if (_responseMessage.isNotEmpty)
-                Text(_responseMessage,
-                    style: const TextStyle(fontSize: 14, height: 1.4)),
+                Builder(
+                  builder: (context) {
+                    final isDark = Theme.of(context).brightness == Brightness.dark;
+                    final isSuccess = _responseMessage.toLowerCase().contains("success");
+
+                    final Color bgColor = isSuccess
+                        ? (isDark ? Colors.green.shade900 : Colors.green.shade100)
+                        : (isDark ? Colors.red.shade900 : Colors.red.shade100);
+
+                    final Color borderColor = isSuccess
+                        ? (isDark ? Colors.greenAccent : Colors.green)
+                        : (isDark ? Colors.redAccent : Colors.red);
+
+                    final Color textColor = isSuccess
+                        ? (isDark ? Colors.white : Colors.green.shade800)
+                        : (isDark ? Colors.red.shade200 : Colors.red.shade800);
+
+
+                    return Expanded(
+                      child: Text(
+                        _responseMessage,
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: textColor,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
             ],
           ),
         ),

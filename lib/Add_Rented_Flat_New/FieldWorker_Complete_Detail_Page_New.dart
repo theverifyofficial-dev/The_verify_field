@@ -11,11 +11,6 @@ import '../constant.dart';
 import '../property_preview.dart';
 class PropertyDetail {
   final String id;
-  final String? sourceId;
-  final String? bookingDate;
-  final String? bookingTime;
-  final String? ownerSideCommission;
-
   final String propertyPhoto;
   final String locations;
   final String flatNumber;
@@ -111,19 +106,11 @@ class PropertyDetail {
     required this.careTakerName,
     required this.careTakerNumber,
     this.subid,
-    this.sourceId,
-    this.bookingDate,
-    this.bookingTime,
-    this.ownerSideCommission,
   });
 
   factory PropertyDetail.fromJson(Map<String, dynamic> json) {
     return PropertyDetail(
       id: json["P_id"].toString(),
-      sourceId: json["source_id"],
-      bookingDate: json["booking_date"],
-      bookingTime: json["booking_time"],
-      ownerSideCommission: json["owner_side_commition"],
       propertyPhoto: json["property_photo"] ?? "",
       locations: json["locations"] ?? "",
       flatNumber: json["Flat_number"] ?? "",
@@ -175,16 +162,16 @@ class PropertyDetail {
 }
 
 
-class PropertyDetailPage extends StatefulWidget {
+class PropertyCompleteDetailPageNew extends StatefulWidget {
   final String propertyId;
 
-  const PropertyDetailPage({super.key, required this.propertyId});
+  const PropertyCompleteDetailPageNew({super.key, required this.propertyId});
 
   @override
-  State<PropertyDetailPage> createState() => _PropertyDetailPageState();
+  State<PropertyCompleteDetailPageNew> createState() => _PropertyCompleteDetailPageNewState();
 }
 
-class _PropertyDetailPageState extends State<PropertyDetailPage> {
+class _PropertyCompleteDetailPageNewState extends State<PropertyCompleteDetailPageNew> {
   late Future<PropertyDetail> propertyDetail;
 
   @override
@@ -194,7 +181,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
   }
   Future<PropertyDetail> fetchPropertyDetail(String pId) async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_book_flat.php?P_id=$pId");
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_complete_payment.php?P_id=$pId");
 
     final response = await http.get(url);
 
@@ -209,8 +196,6 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
@@ -293,7 +278,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                                 child:
                                 CachedNetworkImage(
                                   imageUrl: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/" +
-                                     property.propertyPhoto,
+                                      property.propertyPhoto,
                                   fit: BoxFit.cover,
                                   placeholder:
                                       (context,
@@ -795,7 +780,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //SizedBox(width: 10,),
                             Text(
                               "" +
-                                 property
+                                  property
                                       .ownerName,
                               maxLines: 2,
                               /*+property.Building_Name.toUpperCase()*/
@@ -893,7 +878,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                               //SizedBox(width: 10,),
                               Text(
                                 "" +
-                                   property
+                                    property
                                         .ownerNumber /*+property.Building_Name.toUpperCase()*/,
                                 style: TextStyle(
                                     fontSize: 12,
@@ -960,7 +945,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         ),
                         child: Text(
                           "" +
-                             property
+                              property
                                   .careTakerName /*+property.Building_Name.toUpperCase()*/,
                           style: TextStyle(
                               fontSize: 14,
@@ -1051,7 +1036,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                               //SizedBox(width: 10,),
                               Text(
                                 "" +
-                                   property
+                                    property
                                         .careTakerNumber /*+property.Building_Name.toUpperCase()*/,
                                 style: TextStyle(
                                     fontSize: 14,
@@ -1104,7 +1089,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .apartmentAddress,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1157,10 +1142,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 180,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .floor +
                               "  |  " +
-                             property
+                              property
                                   .flatNumber,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1210,7 +1195,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .facility,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1263,10 +1248,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .furnishedUnfurnished +
                               "  |  " +
-                             property
+                              property
                                   .apartmentName,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1319,10 +1304,10 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .kitchen +
                               " Kitchen  |  " +
-                             property
+                              property
                                   .bathroom +
                               " Bathroom",
                           overflow: TextOverflow
@@ -1376,7 +1361,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                         width: 300,
                         child: Text(
                           "" +
-                             property
+                              property
                                   .fieldworkarAddress,
                           overflow: TextOverflow
                               .ellipsis,
@@ -1394,45 +1379,66 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                   SizedBox(
                     height: 20,
                   ),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                  children: [
-                    _buildInfoChip(
-                      label: "Transaction ID",
-                      value: property.id.toString(),
-                      bgColor: Colors.teal,
-                      isDark: isDarkMode,
-                    ),
-                    const SizedBox(width: 8),
-
-                    _buildInfoChip(
-                      label: "Building ID",
-                      value: property.subid ?? "-",
-                      bgColor: Colors.purple,
-                      isDark: isDarkMode,
-                    ),
-                    const SizedBox(width: 8),
-
-                    _buildInfoChip(
-                      label: "Building Flat ID",
-                      value: property.sourceId ?? "-",
-                      bgColor: Colors.green,
-                      isDark: isDarkMode,
-                    ),
-
-                    const SizedBox(width: 8),
-
-                    _buildInfoChip(
-                      label: "FlatNo",
-                      value: property.flatNumber ?? "-",
-                      bgColor: Colors.blue,
-                      isDark: isDarkMode,
-                    ),
-                  ],
-
-              ),
-              SizedBox(
+                  Row(
+                    crossAxisAlignment:
+                    CrossAxisAlignment.center,
+                    mainAxisAlignment:
+                    MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: EdgeInsets.only(
+                            left: 10,
+                            right: 10,
+                            top: 0,
+                            bottom: 0),
+                        decoration: BoxDecoration(
+                          borderRadius:
+                          BorderRadius
+                              .circular(5),
+                          border: Border.all(
+                              width: 1,
+                              color: Colors.red),
+                          boxShadow: [
+                            BoxShadow(
+                                color: Colors.red
+                                    .withOpacity(
+                                    0.5),
+                                blurRadius: 10,
+                                offset:
+                                Offset(0, 0),
+                                blurStyle:
+                                BlurStyle
+                                    .outer),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            // Icon(Iconsax.sort_copy,size: 15,),
+                            //w SizedBox(width: 10,),
+                            Text(
+                              "Property Id = " +
+                                  property
+                                      .id
+                                      .toString() /*+property.Building_Name.toUpperCase()*/,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors
+                                      .black,
+                                  fontWeight:
+                                  FontWeight
+                                      .w500,
+                                  letterSpacing:
+                                  0.5),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                    ],
+                  ),
+                  SizedBox(
                     height: 10,
                   ),
                   Center(
@@ -1488,7 +1494,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //SizedBox(width: 10,),
                             Text(
                               "" +
-                                 property
+                                  property
                                       .fieldWarkarName /*+property.Building_Name.toUpperCase()*/,
                               style: TextStyle(
                                   fontSize: 13,
@@ -1544,7 +1550,7 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
                             //SizedBox(width: 10,),
                             Text(
                               "" +
-                                 property
+                                  property
                                       .fieldWorkarNumber /*+property.Building_Name.toUpperCase()*/,
                               style: TextStyle(
                                   fontSize: 13,
@@ -1828,36 +1834,6 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
       child: Text(
         "$title: $value",
         style: TextStyle(color: color, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-  Widget _buildInfoChip({
-    required String label,
-    required String value,
-    required Color bgColor,
-    required bool isDark,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        color: Colors.white,
-        border: Border.all(color: bgColor, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: bgColor.withOpacity(0.4),
-            blurRadius: 6,
-            offset: const Offset(0, 0),
-          ),
-        ],
-      ),
-      child: Text(
-        "$label : $value",
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w600,
-          color:  Colors.black,
-        ),
       ),
     );
   }

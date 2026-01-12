@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import '../Administrator_HomeScreen.dart';
 import 'Future_Property_Details.dart';
@@ -262,22 +263,73 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
     _post = prefs.getString('post') ?? '';
   }
 
+  // Future<List<Catid>> _fetchDataByNumber(String number) async {
+  //   final url = Uri.parse(
+  //       "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
+  //   try {
+  //     final response = await http.get(url);
+  //     if (response.statusCode == 200) {
+  //       dynamic decoded = json.decode(response.body);
+  //       List listData = decoded is List ? decoded : (decoded['data'] ?? decoded['Table'] ?? []);
+  //       listData.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
+  //       return listData.map((e) => Catid.fromJson(e)).toList();
+  //     }
+  //   } catch (e) {
+  //     await BugLogger.log(
+  //         apiLink: "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number",
+  //         error: e.toString(),
+  //         statusCode: 500,
+  //     );
+  //     debugPrint("Fetch error for $number: $e");
+  //   }
+  //   return [];
+  // }
+
   Future<List<Catid>> _fetchDataByNumber(String number) async {
-    final url = Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$number");
+    final uri = Uri.parse(
+      "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number",
+    ).replace(queryParameters: {
+      'fieldworkarnumber': number.trim(),
+    });
+
     try {
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        dynamic decoded = json.decode(response.body);
-        List listData = decoded is List ? decoded : (decoded['data'] ?? decoded['Table'] ?? []);
-        listData.sort((a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0));
-        return listData.map((e) => Catid.fromJson(e)).toList();
+      final response = await http.get(uri);
+
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: "HTTP ${response.statusCode} | ${response.body}",
+          statusCode: response.statusCode,
+        );
+        return [];
       }
+
+      dynamic decoded = json.decode(response.body);
+      if (decoded is String) {
+        decoded = json.decode(decoded);
+      }
+
+      List listData = decoded is List
+          ? decoded
+          : decoded['data'] ?? decoded['Table'] ?? [];
+
+      listData.sort((a, b) {
+        final int aId = int.tryParse(a['id']?.toString() ?? '0') ?? 0;
+        final int bId = int.tryParse(b['id']?.toString() ?? '0') ?? 0;
+        return bId.compareTo(aId);
+      });
+
+      return listData.map((e) => Catid.fromJson(e)).toList();
     } catch (e) {
-      debugPrint("Fetch error for $number: $e");
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: "Exception: $e | Number: $number",
+        statusCode: 500,
+      );
+      return [];
     }
-    return [];
   }
+
 
   Future<void> _fetchAndUpdateData() async {
     if (_location.isEmpty || _post.isEmpty) return;

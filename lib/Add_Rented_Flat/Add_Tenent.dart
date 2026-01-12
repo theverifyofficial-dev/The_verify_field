@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
+import '../utilities/bug_founder_fuction.dart';
+
 class AddTenantPage extends StatefulWidget {
   final String id;
   const AddTenantPage({Key? key, required this.id}) : super(key: key);
@@ -43,6 +45,12 @@ class _AddTenantPageState extends State<AddTenantPage> {
       );
       Navigator.pop(context);
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/PHP_Files/add_tanant_in_future_property/insert.php',
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       print(response.body);
 
       ScaffoldMessenger.of(context).showSnackBar(

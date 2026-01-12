@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../constant.dart';
 import 'New_Update/add_image_under_futureproperty.dart';
 import 'New_Update/flat_edit_model.dart';
@@ -327,10 +328,20 @@ class DuplicateFuturePropertyState extends State<DuplicateFutureProperty> {
         showSnack("Property Updated Successfully");
         Navigator.pop(context);
       } else {
-        print("❌ SERVER ERROR");
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+             print("❌ SERVER ERROR");
         showSnack("Unexpected server response");
       }
     } catch (e, st) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("🔥 HTTP EXCEPTION OCCURRED");
       print("❌ ERROR: $e");
       print("📍 STACK TRACE:\n$st");

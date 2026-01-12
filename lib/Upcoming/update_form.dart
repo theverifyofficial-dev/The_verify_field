@@ -17,6 +17,7 @@ import 'package:verify_feild_worker/provider/Theme_provider.dart';
 import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
 import 'package:verify_feild_worker/provider/multile_image_upload_provider.dart';
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Administrator/Add_Assign_Tenant_Demand/Feild_Workers_Bylocation.dart';
 import '../constant.dart';
@@ -230,7 +231,6 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
   late TextEditingController _priceController;
   late TextEditingController _askingPriceController;
   late TextEditingController _lastPriceController;
-
   late TextEditingController _fieldWorkerAddressController;
   late TextEditingController _flatNumberController;
   late TextEditingController _apartmentAddressController;
@@ -560,6 +560,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
         throw Exception('Unexpected JSON format');
       }
     } else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -753,6 +758,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateForm> {
         print("❌ Upload failed: ${response.statusCode}");
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: uri.toString(),
+          error: e.toString(),
+          statusCode: 0,
+      );
       print("❌ Upload error: $e");
     }
   }

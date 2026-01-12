@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../model/upcoming_model.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Upcoming_details.dart';
@@ -104,6 +105,11 @@ class _Show_New_Real_EstateState extends State<UserFlat> {
         throw Exception("Invalid response structure: missing 'data' key");
       }
     } else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Unexpected server response: ${response.statusCode}');
     }
   }

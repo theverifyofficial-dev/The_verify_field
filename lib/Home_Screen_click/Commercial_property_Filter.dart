@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_image_under_property.dart';
 import 'Filter_All_Details.dart';
@@ -283,18 +284,22 @@ class Show_Commercial_Filter extends StatefulWidget {
 class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
 
   Future<List<Catid>> fetchData(by_rt,type,plc) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_commercial_api?Buy_Rent=$by_rt&Typeofproperty=$type&Place_=$plc&Looking_Property_=Flat");
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_commercial");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
 
       //print(floo);
-
 
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['PVR_id'].compareTo(a['PVR_id']));
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/filter_commercial_api?Buy_Rent=$by_rt&Typeofproperty=$type&Place_=$plc&Looking_Property_=Flat",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -673,10 +678,6 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
                                                       SizedBox(
                                                         height: 5,
                                                       ),
-
-
-
-
                                                     ],
                                                   ),
 
@@ -688,7 +689,6 @@ class _Show_Commercial_FilterState extends State<Show_Commercial_Filter> {
 
                                               Row(
                                                 children: [
-
                                                   Container(
                                                     padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
                                                     decoration: BoxDecoration(

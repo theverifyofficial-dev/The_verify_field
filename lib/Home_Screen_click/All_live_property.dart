@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../Propert_verigication_Document/Show_tenant.dart';
 import '../add_properties_firstpage.dart';
@@ -109,6 +110,11 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     } else if (raw is Map) {
       listResponse = [Map<String, dynamic>.from(raw)];
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_main_realestate_all_data.php?all=1",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       listResponse = const [];
     }
 

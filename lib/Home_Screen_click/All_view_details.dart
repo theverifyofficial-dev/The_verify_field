@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Model.dart';
 import 'package:verify_feild_worker/property_preview.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -193,7 +194,8 @@ class AllViewDetails extends StatefulWidget {
 }
 class _View_DetailsState extends State<AllViewDetails> {
   Future<List<RealEstateSlider>> fetchCarouselData(int subid) async {
-    final url = 'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid';
+    final url =
+        'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid';
     print('Fetching gallery for subid: $subid'); // Debug
     final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 30));
     print('Gallery Response status: ${response.statusCode}'); // Debug
@@ -208,37 +210,79 @@ class _View_DetailsState extends State<AllViewDetails> {
     } else if (response.statusCode == 404) {
       return [];
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }
 
   Future<List<Catid>> fetchData(int id) async {
-    final url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id");
-    print('Fetching property for id: $id'); // Debug
-    final response = await http.get(url).timeout(const Duration(seconds: 30));
-    print('Property Response status: ${response.statusCode}'); // Debug
-    print('Property Response body: ${response.body}'); // Debug
-    if (response.statusCode != 200) {
-      throw Exception("HTTP ${response.statusCode}: ${response.body}");
+    final apiLink =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id";
+
+    try {
+      print('Fetching property for id: $id');
+
+      final response = await http
+          .get(Uri.parse(apiLink))
+          .timeout(const Duration(seconds: 30));
+
+      print('Property Response status: ${response.statusCode}');
+      print('Property Response body: ${response.body}');
+
+      // 🔴 STATUS CODE ERROR LOG
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: apiLink,
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+        );
+
+        throw Exception("HTTP ${response.statusCode}");
+      }
+
+      // 🔴 JSON PARSE TRY
+      final decoded = json.decode(response.body);
+      final dynamic raw =
+      decoded is Map<String, dynamic> ? decoded['data'] : decoded;
+
+      final List<Map<String, dynamic>> listResponse;
+
+      if (raw is List) {
+        listResponse =
+            raw.map((e) => Map<String, dynamic>.from(e)).toList();
+      } else if (raw is Map) {
+        listResponse = [Map<String, dynamic>.from(raw)];
+      } else {
+        listResponse = const [];
+      }
+
+      final properties =
+      listResponse.map((e) => Catid.fromJson(e)).toList();
+
+      if (properties.isNotEmpty && mounted) {
+        setState(() {
+          firstProperty = properties.first;
+        });
+      }
+
+      return properties;
+    } catch (e) {
+      // 🔴 ANY EXCEPTION / TIMEOUT / FORMAT ERROR LOG
+      await BugLogger.log(
+        apiLink: apiLink,
+        error: e.toString(),
+        statusCode: 0,
+      );
+
+      rethrow;
     }
-    final decoded = json.decode(response.body);
-    final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
-    final List<Map<String, dynamic>> listResponse;
-    if (raw is List) {
-      listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
-    } else if (raw is Map) {
-      listResponse = [Map<String, dynamic>.from(raw)];
-    } else {
-      listResponse = const [];
-    }
-    final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
-    if (properties.isNotEmpty && mounted) {
-      setState(() {
-        firstProperty = properties.first;
-      });
-    }
-    return properties;
   }
+
+
   Future<List<Catid>>? _propertyFuture;
   Catid? firstProperty;
   @override

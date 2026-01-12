@@ -4,6 +4,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../model/demand_model.dart';
 import 'demand_Form.dart';
@@ -26,9 +27,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   bool _isDisclosing = false;
   List<Map<String, dynamic>> _redemands = [];
   bool _isRedemandLoading = true;
-
-
-
 
   @override
   void initState() {
@@ -53,12 +51,22 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             _isLoading = false;
           });
         } else {
+          await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+          error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+          );
           setState(() {
             _isLoading = false;
           });
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+        error: e.toString(),
+        statusCode: 500,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Error fetching details: $e")));
@@ -88,10 +96,20 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             _isRedemandLoading = false;
           });
         } else {
+          await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=${widget.demandId}",
+          error: res.body.toString(),
+          statusCode: res.statusCode ?? 0,
+          );
           _isRedemandLoading = false;
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=${widget.demandId}",
+        error: e.toString(),
+        statusCode: 500,
+      );
       _isRedemandLoading = false;
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -120,6 +138,11 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
       debugPrint("Log saved: ${response.body}");
     } catch (e) {
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       debugPrint("Error logging contact: $e");
     }
   }
@@ -965,6 +988,11 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
       Navigator.pop(context, true);
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.redAccent,
@@ -994,6 +1022,11 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("❌ Error fetching logs: $e");
     }
     return [];

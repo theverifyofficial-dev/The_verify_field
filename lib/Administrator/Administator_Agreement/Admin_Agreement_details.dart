@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import '../imagepreviewscreen.dart';
 import 'Admin_dashboard.dart';
@@ -25,32 +26,82 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     _fetchAgreementDetail();
   }
 
-
   Future<void> _fetchAgreementDetail() async {
+    final apiUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}";
 
     try {
-      final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}"));
-      print('Agreement ID: ${widget.agreementId}');
-      if (response.statusCode == 200) {
-        final decoded = json.decode(response.body);
-        if (decoded["status"] == "success" && decoded["count"] > 0) {
-          setState(() {
-            agreement = decoded["data"][0];
-            isLoading = false;
-          });
+      print("Agreement ID: ${widget.agreementId}");
 
-          fetchPropertyCard();
-        }
+      final response = await http
+          .get(Uri.parse(apiUrl))
+          .timeout(const Duration(seconds: 10));
+
+      /// 🔴 STATUS CODE HANDLE
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "HTTP Error",
+          statusCode: response.statusCode,
+        );
+
+        setState(() => isLoading = false);
+        return;
+      }
+
+      final decoded = json.decode(response.body);
+
+      /// 🔴 SAFE CHECKS
+      if (decoded is! Map ||
+          decoded["status"] != "success" ||
+          decoded["count"] == null ||
+          decoded["count"] == 0 ||
+          decoded["data"] == null ||
+          decoded["data"].isEmpty) {
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Invalid or empty response",
+          statusCode: response.statusCode,
+        );
+
+        setState(() => isLoading = false);
+        return;
+      }
+
+      /// ✅ SUCCESS
+      setState(() {
+        agreement = decoded["data"][0];
+        isLoading = false;
+      });
+
+      /// 🔴 SAFE CALL
+      try {
+        await fetchPropertyCard();
+      } catch (e) {
+        await BugLogger.log(
+          apiLink: "fetchPropertyCard()",
+          error: e.toString(),
+          statusCode: 0,
+        );
       }
     } catch (e) {
-      print("Error: $e");
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: e.toString(),
+        statusCode: 0,
+      );
+
+      print("Exception: $e");
       setState(() => isLoading = false);
     }
   }
 
+
   Widget _furnitureList(dynamic furnitureData) {
-    if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
+    if (furnitureData == null || furnitureData
+        .toString()
+        .trim()
+        .isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -66,7 +117,9 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     }
 
     if (furnitureMap.isEmpty) return const SizedBox.shrink();
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme
+        .of(context)
+        .brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.only(top: 8),
@@ -86,7 +139,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
             runSpacing: 6,
             children: furnitureMap.entries.map((e) {
               return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.green.shade100,
                   borderRadius: BorderRadius.circular(8),
@@ -107,14 +161,11 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-
-
   Future<void> _updateAgreementStatus(String action) async {
     print("Updating agreement status: $action"); // debug
     try {
       final url = Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/shift_agreement.php");
-
       print("Sending POST request to $url with id=${widget.agreementId}");
       final response = await http.post(
         url,

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../model/upcoming_model.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Upcoming_details.dart';
@@ -81,34 +82,71 @@ class _Show_New_Real_EstateState extends State<AddFlats> {
 
 
   Future<List<Upcoming_model>> fetchData(String number) async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_urgent_add_falt_by_feildworkar.php?field_workar_number=$number",
+    final Uri url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/"
+          "display_urgent_add_falt_by_feildworkar.php?field_workar_number=$number",
     );
+    try {
+      final response = await http.get(url);
 
-    final response = await http.get(url);
+      // ❌ Server error
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+        );
+        throw Exception("Server error: ${response.statusCode}");
+      }
 
-    if (response.statusCode == 200) {
+      // ✅ Decode JSON safely
       final decoded = json.decode(response.body);
 
-      if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
-        final List<dynamic> dataList = decoded['data'];
-
-        // Sort by P_id descending
-        dataList.sort((a, b) {
-          if (a['P_id'] != null && b['P_id'] != null) {
-            return b['P_id'].compareTo(a['P_id']);
-          }
-          return 0;
-        });
-
-        return dataList.map((e) => Upcoming_model.fromJson(e)).toList();
-      } else {
-        throw Exception("Invalid response structure: missing 'data' key");
+      // ❌ Backend returned error with 200
+      if (decoded is Map<String, dynamic> &&
+          decoded.containsKey('status') &&
+          decoded['status'] == 'error') {
+        await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception(decoded['message'] ?? "API returned error");
       }
-    } else {
-      throw Exception('Unexpected server response: ${response.statusCode}');
+
+      // ❌ Invalid response format
+      if (decoded is! Map<String, dynamic> || !decoded.containsKey('data')) {
+        await BugLogger.log(
+          apiLink: url.toString(),
+          error: "Invalid JSON structure: ${response.body}",
+          statusCode: 200,
+        );
+        throw Exception("Invalid response structure");
+      }
+
+      final List<dynamic> dataList = decoded['data'];
+
+      // 🔽 Sort by P_id (latest first)
+      dataList.sort((a, b) {
+        if (a['P_id'] != null && b['P_id'] != null) {
+          return b['P_id'].compareTo(a['P_id']);
+        }
+        return 0;
+      });
+
+      // ✅ Convert to model
+      return dataList.map((e) => Upcoming_model.fromJson(e)).toList();
+    } catch (e) {
+      // ❌ Network / parsing / unknown error
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: e.toString(),
+        statusCode: 0,
+      );
+      rethrow;
     }
   }
+
 
 
 

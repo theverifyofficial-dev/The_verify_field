@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../model/acceptAgreement.dart';
 import '../Admin_Agreement_details.dart';
 import 'dart:ui';
@@ -63,6 +64,11 @@ class _AdminPendingState extends State<AdminPending> {
           .reversed
           .toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_data_for_admin.php",
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load agreements');
     }
   }

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import '../../utilities/bug_founder_fuction.dart';
 import 'Add_salary.dart';
 
 class SalaryExpense {
@@ -75,6 +76,11 @@ class _SalaryHomeState extends State<SalaryHome> {
       final List data = jsonDecode(response.body);
       return data.map((e) => SalaryExpense.fromJson(e)).toList().reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Expanse/display_salary_expanse.php",
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Failed to load expenses');
     }
   }

@@ -4,13 +4,12 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Upcoming/update_form.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../Rent Agreement/update_images.dart';
 import '../constant.dart';
 import '../property_preview.dart';
 import 'package:shimmer/shimmer.dart';
-
-
 
 class UpcomingPropertyImage {
   final int id;
@@ -82,6 +81,11 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
         });
       }
     } else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception("Failed to load data");
     }
   }
@@ -107,6 +111,11 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
     } else if (response.statusCode == 404) {
       return [];
     } else {
+      await BugLogger.log(
+          apiLink: url,
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }
@@ -254,6 +263,11 @@ class _UpcomingDetailsPageState extends State<UpcomingDetailsPage> {
         );
       }
     } else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Server error. Try again."),

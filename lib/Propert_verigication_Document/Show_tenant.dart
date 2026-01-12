@@ -8,6 +8,7 @@ import 'package:lottie/lottie.dart';
 import 'dart:convert';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import '../Police_Verification/Owner_Details.dart';
 import '../Police_Verification/Property_Verify_Details.dart';
@@ -162,6 +163,11 @@ class _ShowPropertyState extends State<ShowProperty> {
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Show_Tenant_Table_by_Feildworker_Number_?fieldworkarnumber=$_number",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -178,6 +184,11 @@ class _ShowPropertyState extends State<ShowProperty> {
       return listresponce.map((data) => Catid_real.FromJson(data)).toList();
     }
     else{
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number",
+        error: responce.body.toString(),
+        statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
 
@@ -194,6 +205,11 @@ class _ShowPropertyState extends State<ShowProperty> {
       return listresponce.map((data) => Catid_real.FromJson(data)).toList();
     }
     else{
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }

@@ -11,6 +11,7 @@ import 'package:mime/mime.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../ui_decoration_tools/app_images.dart';
 
@@ -242,119 +243,126 @@ class _Add_Property_VerificationState extends State<Add_Property_Verification> {
 
   Future<void> _uploadData_two() async {
     if (_image == null) {
-      print('Image and name are required');
       Fluttertoast.showToast(
-          msg: "Image and name are required",
-          toastLength: Toast.LENGTH_LONG,
-          gravity: ToastGravity.BOTTOM,
-          timeInSecForIosWeb: 1,
-          backgroundColor: Colors.grey,
-          textColor: Colors.white,
-          fontSize: 16.0
+        msg: "Image is required",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
       );
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (_isLoading) return; // 🔒 prevent double click
 
-    formattedDate = "${now.year}-${now.month}-${now.day}";
+    setState(() => _isLoading = true);
 
+    final formattedDate =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
     try {
-      final mimeTypeData = lookupMimeType(_image!.path, headerBytes: [0xFF, 0xD8])?.split('/');
-      final imageUploadRequest = http.MultipartRequest(
+      final mimeType = lookupMimeType(_image!.path) ?? 'image/jpeg';
+      final mimeSplit = mimeType.split('/');
+
+      final request = http.MultipartRequest(
         'POST',
-        Uri.parse('https://verifyserve.social/insert.php'), // Replace with your API endpoint
+        Uri.parse('https://verifyserve.social/insert.php'),
       );
 
-      final file = await http.MultipartFile.fromPath(
-        'image',
-        _image!.path,
-        contentType: MediaType(mimeTypeData![0], mimeTypeData[1]),
+      // ---------- IMAGE ----------
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          _image!.path,
+          contentType: MediaType(mimeSplit[0], mimeSplit[1]),
+        ),
       );
-      // Text Feild
-      imageUploadRequest.fields['Property_Number'] = _propertyNumber.text;
-      imageUploadRequest.fields['Address_'] = _address.text;
-      imageUploadRequest.fields['City'] = _sqft.text;
-      imageUploadRequest.fields['Price'] = _price.text;
-      imageUploadRequest.fields['maintenance'] = _maintenance.text;
-      imageUploadRequest.fields['floor_'] = _floor.text;
-      imageUploadRequest.fields['flat_'] = _flat.text;
-      imageUploadRequest.fields['Details'] = _furnished_details.text;
-      imageUploadRequest.fields['Ownername'] = _Ownername.text;
-      imageUploadRequest.fields['Owner_number'] = _Owner_number.text;
-      imageUploadRequest.fields['Building_information'] = _Building_information.text;
-      imageUploadRequest.fields['Address_apnehisaabka'] = _Address_apnehisaabka.text;
-      imageUploadRequest.fields['CareTaker_number'] = _CareTaker_number.text;
-      // Dropdown
-      imageUploadRequest.fields['Place_'] = _selectedItem.toString();
-      imageUploadRequest.fields['Buy_Rent'] = _selectedItem1.toString();
-      imageUploadRequest.fields['Residence_Commercial'] = resident_commercial.toString();
-      imageUploadRequest.fields['Looking_Property_'] = "Book";
-      imageUploadRequest.fields['Typeofproperty'] = _typeofproperty.toString();
-      imageUploadRequest.fields['Bhk_Squarefit'] = _bhk.toString();
-      imageUploadRequest.fields['Furnished'] = furnished.toString();
-      imageUploadRequest.fields['Parking'] = _Parking.toString();
-      imageUploadRequest.fields['balcony'] = _Balcony.toString();
-      imageUploadRequest.fields['kitchen'] = _Kitchen.toString();
-      imageUploadRequest.fields['Baathroom'] = _Bathroom.toString();
-      // Auto Fill
-      imageUploadRequest.fields['date_'] = formattedDate;
-      imageUploadRequest.fields['fieldworkarname'] = _name;
-      imageUploadRequest.fields['fieldworkarnumber'] = _number;
-      imageUploadRequest.fields['Longtitude'] = _Longitude.text;
-      imageUploadRequest.fields['Latitude'] = _Latitude.text;
-      // Buttons
-      imageUploadRequest.fields['Lift'] = tempArray.toString();
-      imageUploadRequest.fields['Security_guard'] = " ";
-      imageUploadRequest.fields['Goverment_meter'] = " ";
-      imageUploadRequest.fields['CCTV'] = " ";
-      imageUploadRequest.fields['Powerbackup'] = " ";
-      imageUploadRequest.fields['Watertank'] = " ";
-      imageUploadRequest.fields['Rooftop'] = " ";
-      imageUploadRequest.fields['Wifi'] = _Google_Location.text;
-      imageUploadRequest.fields['Waterfilter'] = _Sell_price.text;
-      imageUploadRequest.fields['Gas_meter'] = _Verify_Price.text;
-      imageUploadRequest.fields['Water_geyser'] = _CareTaker_name.text;
 
-      imageUploadRequest.files.add(file);
+      // ---------- TEXT FIELDS ----------
+      request.fields.addAll({
+        'Property_Number': _propertyNumber.text.trim(),
+        'Address_': _address.text.trim(),
+        'City': _sqft.text.trim(),
+        'Price': _price.text.trim(),
+        'maintenance': _maintenance.text.trim(),
+        'floor_': _floor.text.trim(),
+        'flat_': _flat.text.trim(),
+        'Details': _furnished_details.text.trim(),
+        'Ownername': _Ownername.text.trim(),
+        'Owner_number': _Owner_number.text.trim(),
+        'Building_information': _Building_information.text.trim(),
+        'Address_apnehisaabka': _Address_apnehisaabka.text.trim(),
+        'CareTaker_number': _CareTaker_number.text.trim(),
 
-      final streamedResponse = await imageUploadRequest.send();
+        // Dropdowns
+        'Place_': _selectedItem.toString(),
+        'Buy_Rent': _selectedItem1.toString(),
+        'Residence_Commercial': resident_commercial.toString(),
+        'Looking_Property_': 'Book',
+        'Typeofproperty': _typeofproperty.toString(),
+        'Bhk_Squarefit': _bhk.toString(),
+        'Furnished': furnished.toString(),
+        'Parking': _Parking.toString(),
+        'balcony': _Balcony.toString(),
+        'kitchen': _Kitchen.toString(),
+        'Baathroom': _Bathroom.toString(),
+
+        // Auto
+        'date_': formattedDate,
+        'fieldworkarname': _name,
+        'fieldworkarnumber': _number,
+        'Longtitude': _Longitude.text.trim(),
+        'Latitude': _Latitude.text.trim(),
+
+        // Amenities
+        'Lift': tempArray.join(','),
+        'Security_guard': '',
+        'Goverment_meter': '',
+        'CCTV': '',
+        'Powerbackup': '',
+        'Watertank': '',
+        'Rooftop': '',
+        'Wifi': _Google_Location.text.trim(),
+        'Waterfilter': _Sell_price.text.trim(),
+        'Gas_meter': _Verify_Price.text.trim(),
+        'Water_geyser': _CareTaker_name.text.trim(),
+      });
+
+      final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
       if (response.statusCode == 200) {
-        print('Data uploaded successfully');
-        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Show_Real_Estate(),), (route) => route.isFirst);
-        setState(() {
-          _isLoading = false;
-        });
+        final body = response.body.toLowerCase();
+
+        if (body.contains('success')) {
+          Fluttertoast.showToast(msg: "Property uploaded successfully ✅");
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => Show_Real_Estate()),
+                (route) => false,
+          );
+        } else {
+          throw Exception("API Error: $body");
+        }
       } else {
-
-        setState(() {
-          _isLoading = true;
-        });
-
-        /*print('Data upload failed with status: ${response.statusCode}');
-
-        Fluttertoast.showToast(
-            msg: "Press Button Again...",
-            toastLength: Toast.LENGTH_LONG,
-            gravity: ToastGravity.BOTTOM,
-            timeInSecForIosWeb: 1,
-            backgroundColor: Colors.grey,
-            textColor: Colors.white,
-            fontSize: 16.0
-        );*/
-
-        _uploadData();
-
+        throw Exception("HTTP ${response.statusCode}");
       }
     } catch (e) {
-      print('Error uploading data: $e');
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/insert.php',
+        error: e.toString(),
+        statusCode: 0,
+      );
+
+      Fluttertoast.showToast(
+        msg: "Upload failed. Please try again.",
+        toastLength: Toast.LENGTH_LONG,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
+
 
   List<String> name = ['Lift','Security CareTaker','GOVT Meter','CCTV','Gas Meter'];
 

@@ -6,6 +6,7 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../constant.dart';
 import '../property_preview.dart';
@@ -191,6 +192,12 @@ class _PropertyCompleteDetailPageState extends State<PropertyCompleteDetailPage>
         return PropertyDetail.fromJson(decoded["data"][0]);
       }
     }
+    // 🔴 LOG BACKEND FAILURE
+    await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_complete_payment.php?P_id=$pId",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+    );
     throw Exception("Failed to load property detail");
   }
 

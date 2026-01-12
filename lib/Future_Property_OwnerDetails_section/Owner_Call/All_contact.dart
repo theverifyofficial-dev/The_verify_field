@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 
 class AllContact extends StatefulWidget {
@@ -51,7 +52,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   Future<void> _showLogsBottomSheet(BuildContext context, String flatId) async {
     final apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$flatId";
+        "https://verifyserve.social/Second%20PHP%20FIE/Lmain_realestate/show_api_for_calling_api_in_buidling.php?subid=$flatId";
 
     List<dynamic> logs = [];
 
@@ -63,7 +64,14 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           logs = jsonData["data"];
         }
       }
-    } catch (e) {
+    }
+    catch (e) {
+
+      await BugLogger.log(
+          apiLink: apiUrl,
+          error: e.toString(),
+          statusCode: 500,
+      );
       debugPrint("Error fetching logs: $e");
     }
 
@@ -251,6 +259,11 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: apiUrl,
+          error: e.toString(),
+          statusCode: 500,
+      );
       debugPrint("Error fetching flats: $e");
     } finally {
       setState(() {
@@ -279,6 +292,11 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       );
       debugPrint("Log response: ${response.body}");
     } catch (e) {
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       debugPrint("Error logging contact: $e");
     }
   }
@@ -326,6 +344,11 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: e.toString(),
+        statusCode:500,
+      );
       debugPrint("Error fetching latest log date: $e");
     }
     return null;

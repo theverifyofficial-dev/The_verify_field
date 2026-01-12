@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constant.dart';
+import '../utilities/bug_founder_fuction.dart';
 import 'Action_Form.dart';
 import 'Add_Tenent.dart';
 import 'FieldWorker_Booking_Page_Details.dart';
@@ -269,6 +270,11 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
         return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
       }
     }
+    await BugLogger.log(
+      apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=${userNumber}",
+      error: response.body.toString(),
+      statusCode: response.statusCode ?? 0,
+    );
     throw Exception("Failed to load data");
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
@@ -286,6 +292,11 @@ class _FieldWorkerBookingPageState extends State<FieldWorkerBookingPage> {
         throw Exception("API success = false");
       }
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception("Failed to load tenants");
     }
   }

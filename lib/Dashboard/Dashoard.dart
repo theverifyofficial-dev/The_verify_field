@@ -226,12 +226,15 @@ class _DashboardScreenState extends State<DashboardScreen>
           });
         }
       } else {
+
         setState(() {
           hasError = true;
           isLoading = false;
         });
       }
     } catch (e) {
+
+
       debugPrint('⚠️ Dashboard fetch error: $e');
       setState(() {
         hasError = true;

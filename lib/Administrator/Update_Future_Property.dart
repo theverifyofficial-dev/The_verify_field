@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../ui_decoration_tools/app_images.dart';
 import '../Future_Property_OwnerDetails_section/Future_Property.dart';
@@ -85,21 +86,86 @@ class _Update_FuturePropertyState extends State<Update_FutureProperty> {
   String? _bhk;
   final List<String> _bhk1 = ['1 BHK','2 BHK','3 BHK', '4 BHK','1 RK','Commercial SP'];
 
-  Future<void> fetchdata() async{
-    final responce = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/update_futureproperty_by_id_?id=${widget.id}&ownername=${_Ownername.text}&ownernumber=${_Owner_number.text}&caretakername=${_CareTaker_name.text}&caretakernumber=${_CareTaker_number.text}&place=${_selectedItem.toString()}&buy_rent=${_selectedItem1.toString()}&typeofproperty=${_typeofproperty.toString()}&select_bhk=${_bhk.toString()}&floor_number=${_floor.text}&sqyare_feet=${_sqft.text}&propertyname_address=${_address.text}&building_information_facilitys=${_Building_information.text}&property_address_for_fieldworkar=${_Address_apnehisaabka.text}&owner_vehical_number=${_vehicleno.text}&your_address=${_Google_Location.text}'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
+  Future<void> fetchdata() async {
+    final Uri apiUri = Uri.https(
+      'verifyserve.social',
+      '/WebService4.asmx/update_futureproperty_by_id_',
+      {
+        'id': widget.id.toString(),
+        'ownername': _Ownername.text,
+        'ownernumber': _Owner_number.text,
+        'caretakername': _CareTaker_name.text,
+        'caretakernumber': _CareTaker_number.text,
+        'place': _selectedItem?.toString() ?? '',
+        'buy_rent': _selectedItem1?.toString() ?? '',
+        'typeofproperty': _typeofproperty?.toString() ?? '',
+        'select_bhk': _bhk?.toString() ?? '',
+        'floor_number': _floor.text,
+        'sqyare_feet': _sqft.text,
+        'propertyname_address': _address.text,
+        'building_information_facilitys': _Building_information.text,
+        'property_address_for_fieldworkar': _Address_apnehisaabka.text,
+        'owner_vehical_number': _vehicleno.text,
+        'your_address': _Google_Location.text,
+      },
+    );
 
-    if(responce.statusCode == 200){
-      print(responce.body);
-      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Future_Property_details(idd: '${widget.id}',),), (route) => route.isFirst);
+    try {
+      final response = await http.get(apiUri);
 
-      //SharedPreferences prefs = await SharedPreferences.getInstance();
+      // 🔹 Always log API hit
+      BugLogger.log(
+        apiLink: apiUri.toString(),
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
 
-    } else {
-      print('Failed Registration');
+      if (response.statusCode == 200) {
+        final body = response.body.toLowerCase();
+
+        // ASP.NET asmx mostly returns plain text
+        if (body.contains('success') || body.contains('updated') || body.isNotEmpty) {
+          print("✅ Future property updated");
+          print(response.body);
+
+          if (!context.mounted) return;
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) =>
+                  Future_Property_details(idd: '${widget.id}'),
+            ),
+                (route) => route.isFirst,
+          );
+        } else {
+          // 🔴 200 but logical failure
+          await BugLogger.log(
+            apiLink: apiUri.toString(),
+            error: "200 but logical failure | Body: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          print('⚠️ Update failed (logical issue)');
+        }
+      } else {
+        // 🔴 Non-200 HTTP error
+        await BugLogger.log(
+          apiLink: apiUri.toString(),
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        print('❌ Failed Registration');
+      }
+    } catch (e, stack) {
+      // 🔥 Network / encoding / runtime crash
+      await BugLogger.log(
+        apiLink: apiUri.toString(),
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      print('❌ Exception while updating future property: $e');
     }
-
   }
+
 
   @override
   void initState() {

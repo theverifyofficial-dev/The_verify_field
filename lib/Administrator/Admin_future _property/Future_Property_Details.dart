@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../Future_Property_OwnerDetails_section/add_flat_form.dart';
 import '../../constant.dart';
 import '../../model/futureProperty_Slideer.dart';
@@ -377,6 +378,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Ground Floor');
     }
   }
@@ -389,6 +395,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load First Floor');
     }
   }
@@ -401,6 +412,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Second Floor');
     }
   }
@@ -413,6 +429,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Third Floor');
     }
   }
@@ -425,6 +446,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Fourth Floor');
     }
   }
@@ -437,6 +463,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Fifth Floor');
     }
   }
@@ -449,6 +480,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Sixth Floor');
     }
   }
@@ -461,6 +497,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
       List<Ground> data = listResponse.map((data) => Ground.fromJson(data)).toList();
       return data.reversed.toList();
     } else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load Seventh Floor');
     }
   }
@@ -468,13 +509,18 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
   Future<List<FutureProperty2>> _fetchPropertyData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=${widget.buildingId}");
     print(widget.buildingId);
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      List listresponce = json.decode(response.body);
       listresponce.sort((a, b) => b['id'].compareTo(a['id']));
       return listresponce.map((data) => FutureProperty2.fromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Failed to load property data');
     }
   }
@@ -489,6 +535,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
         );
       }).toList();
     } else {
+      await BugLogger.log(
+          apiLink: response.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Failed to load carousel data');
     }
   }

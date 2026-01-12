@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../../ui_decoration_tools/app_images.dart';
@@ -158,6 +159,11 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
         );
         print('Upload successful: ${response.data}');
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/PHP_Files/EDIT_FUTURE_PROPERTY/futureproperty_update.php",
+            error: response.data.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         setState(() {
           _isLoading = false;
         });
@@ -167,6 +173,11 @@ class _Edit_Building_futurepropertyState extends State<Edit_Building_futureprope
         print('Upload failed: ${response.statusCode}');
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/PHP_Files/EDIT_FUTURE_PROPERTY/futureproperty_update.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error occurred: $e')),
       );

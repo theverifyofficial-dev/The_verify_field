@@ -25,6 +25,7 @@ class _PropertyListingPageState extends State<PropertyListingPage> {
   // Controllers
   late final List<TextEditingController> _controllers;
 
+
   // Individual controllers
   final TextEditingController _plotSizeController = TextEditingController();
   final TextEditingController _frontSizeController = TextEditingController();

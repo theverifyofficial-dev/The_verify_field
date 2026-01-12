@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../utilities/bug_founder_fuction.dart';
+
 class RentedPropertyPage extends StatefulWidget {
   final String id;
   final String subid;
@@ -67,6 +69,11 @@ class _RentedPropertyPageState extends State<RentedPropertyPage> {
           ? "✅ Delete Success: ${deleteResponse.body}"
           : "❌ Delete Failed: ${deleteResponse.statusCode}";
     } catch (e) {
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_for_fieldworkar.php',
+        error: e.toString(),
+        statusCode: 500,
+      );
       _responseMessage += "⚠ Exception: $e";
     } finally {
       setState(() {

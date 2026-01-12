@@ -14,7 +14,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
@@ -217,6 +217,11 @@ class _View_DetailsState extends State<DetailPage> {
       // No data found for this subid, return empty list instead of throwing
       return [];
     } else {
+      await BugLogger.log(
+        apiLink: url,
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }

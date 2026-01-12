@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'Bug_fender_screen.dart';
 import 'Login_page.dart';
 import 'model/Profile_model.dart';
 import 'main.dart'; // Import to access ThemeSwitcher
+import 'utilities/bug_founder_fuction.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -52,6 +54,12 @@ class _ProfilePageState extends State<ProfilePage> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=$number',
+        error: e.toString(),
+        statusCode: 500,
+      );
       print('Error: $e');
       if (mounted) {
         setState(() {
@@ -119,6 +127,14 @@ class _ProfilePageState extends State<ProfilePage> {
             color: isDark ? Colors.white : const Color(0xFF1A1A1A),
           ),
         ),
+        actions: [
+          if (_user != null && _user!.aadhar == "Developer")
+            IconButton(onPressed: (){
+            Navigator.push(context, MaterialPageRoute(builder: (context) => ErrorLogScreen()
+            ));
+          }, icon: Icon(Icons.error_outline,
+            color: isDark ? Colors.white : Colors.black,)),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Colors.amber))

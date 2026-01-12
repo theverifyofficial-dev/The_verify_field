@@ -17,6 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Model.dart';
 import 'package:verify_feild_worker/property_preview.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
@@ -202,6 +203,7 @@ class View_Details extends StatefulWidget {
   const View_Details({super.key, required this.id});
   @override
   State<View_Details> createState() => _View_DetailsState();
+
 }
 
 class _View_DetailsState extends State<View_Details> {
@@ -213,6 +215,11 @@ class _View_DetailsState extends State<View_Details> {
         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Show_Real_Estate()), (route) => route.isFirst);
       }
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$_id&looking=Book",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       print('Failed Registration');
     }
   }
@@ -237,39 +244,68 @@ class _View_DetailsState extends State<View_Details> {
       // No data found for this subid, return empty list instead of throwing
       return [];
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }
 
   Future<List<Catid>> fetchData(int id) async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
-    );
-    final response = await http.get(url).timeout(const Duration(seconds: 30));
-    if (response.statusCode != 200) {
-      throw Exception("HTTP ${response.statusCode}: ${response.body}");
-    }
-    final decoded = json.decode(response.body);
-    final dynamic raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
-    final List<Map<String, dynamic>> listResponse;
-    if (raw is List) {
-      listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
-    } else if (raw is Map) {
-      listResponse = [Map<String, dynamic>.from(raw)];
-    } else {
-      listResponse = const [];
-    }
-    final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
-    // >>> store firstProperty for later navigation
-    if (properties.isNotEmpty) {
-      if (mounted) {
-        setState(() {
-          firstProperty = properties.first;
-        });
+    final apiLink =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id";
+
+    try {
+      final url = Uri.parse(apiLink);
+      final response =
+      await http.get(url).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: apiLink,
+          error: response.body,
+          statusCode: response.statusCode,
+        );
+        throw Exception("HTTP ${response.statusCode}");
       }
+
+      final decoded = json.decode(response.body);
+
+      final dynamic raw =
+      decoded is Map<String, dynamic> ? decoded['data'] : decoded;
+
+      if (raw == null) return [];
+
+      final List<Map<String, dynamic>> listResponse;
+
+      if (raw is List) {
+        listResponse =
+            raw.map((e) => Map<String, dynamic>.from(e)).toList();
+      } else if (raw is Map) {
+        listResponse = [Map<String, dynamic>.from(raw)];
+      } else {
+        await BugLogger.log(
+          apiLink: apiLink,
+          error: "Unexpected response format",
+          statusCode: response.statusCode,
+        );
+        return [];
+      }
+
+      return listResponse.map((e) => Catid.fromJson(e)).toList();
+    } catch (e) {
+      await BugLogger.log(
+        apiLink: apiLink,
+        error: e.toString(),
+        statusCode: 0,
+      );
+      rethrow;
     }
-    return properties;
   }
+
+
 
   bool _isDeleting = false;
   //Delete api
@@ -286,6 +322,11 @@ class _View_DetailsState extends State<View_Details> {
       print(response.body.toString());
       print('Item deleted successfully');
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       print('Error deleting item. Status code: ${response.statusCode}');
       throw Exception('Failed to load data');
     }
@@ -395,6 +436,11 @@ class _View_DetailsState extends State<View_Details> {
                     _propertyFuture = fetchData(propertyId);
                   });
                 } else {
+                  await BugLogger.log(
+                    apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_video_in_main_realetstae.php",
+                  error: response.body.toString(),
+                  statusCode: response.statusCode ?? 0,
+                  );
                   ScaffoldMessenger.of(sheetContext).showSnackBar(
                     SnackBar(
                         content: Text(
@@ -402,6 +448,11 @@ class _View_DetailsState extends State<View_Details> {
                   );
                 }
               } catch (e) {
+                await BugLogger.log(
+                  apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_video_in_main_realetstae.php",
+                  error: e.toString(),
+                  statusCode: 500,
+                );
                 ScaffoldMessenger.of(sheetContext).showSnackBar(
                   SnackBar(content: Text("Error: $e")),
                 );

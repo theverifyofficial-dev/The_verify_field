@@ -10,6 +10,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../../ui_decoration_tools/app_images.dart';
 import '../Future_property_details.dart';
@@ -161,6 +162,11 @@ class _Add_FutureProperty_forflatsState extends State<Add_FutureProperty_forflat
         );
         print('Upload successful: ${response.data}');
       } else {
+        await BugLogger.log(
+            apiLink: uploadUrl,
+            error: response.data.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         setState(() {
           _isLoading = false;
         });

@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Real-Estate.dart';
@@ -209,6 +210,11 @@ class _AddPropertiesFirstPageState extends State<AddPropertiesFirstPage> {
         print("❌ Upload failed: ${response.statusCode}");
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("❌ Upload error: $e");
     }
   }
@@ -1505,11 +1511,21 @@ class _AddPropertiesFirstPageState extends State<AddPropertiesFirstPage> {
             // ));
           }
         } else {
+          await BugLogger.log(
+              apiLink: "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php",
+              error: response.body.toString(),
+              statusCode: response.statusCode ?? 0,
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Failed to submit property. Status code: ${response.statusCode}")),
           );
         }
       } catch (e) {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/PHP_Files/Main_Realestate/insert_property.php",
+          error: e.toString(),
+          statusCode: 500,
+        );
         print('Error submitting form: $e');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("An error occurred: $e")),

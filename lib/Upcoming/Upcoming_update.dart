@@ -13,6 +13,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../constant.dart';
@@ -296,6 +297,11 @@ class _UpdateRealEstatePropertyState extends State<UpcomingUpdate> {
       listResponse.sort((a, b) => b['id'].compareTo(a['id']));
       return listResponse.map((data) => FutureProperty2.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }

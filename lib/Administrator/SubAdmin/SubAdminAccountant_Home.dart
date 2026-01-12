@@ -21,6 +21,7 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import '../Admin_future _property/Administater_Future_Property.dart';
 import '../Admin_upcoming.dart';
+import '../Adminisstrator_Target_details/Targets.dart';
 import 'ShowTenantDemant.dart';
 import 'SubAdmin_MainRealEstate_Tabbar.dart';
 
@@ -363,7 +364,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: 3,
+                            itemCount: 5,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -423,6 +424,15 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                         context,
                                         MaterialPageRoute(
                                             builder: (_) => const AdminUpcoming()));
+                                  },
+                                },{
+                                  "image": AppImages.target,
+                                  "title": "Target",
+                                  "onTap": () {
+                                    Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (_) => const Target()));
                                   },
                                 },
                               ];

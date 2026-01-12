@@ -30,6 +30,8 @@ class MetroAPI {
         return List<Map<String, dynamic>>.from(data["items"]);
       }
     } catch (e) {
+
+
       print("❌ Normalize error: $e");
     }
     return [];

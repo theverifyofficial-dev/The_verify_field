@@ -15,6 +15,8 @@ import '../Home_Screen_click/Filter_Options.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_Assign_Tenant_Demand/See_All_Realestate.dart';
 import 'Administater_Realestate_Details.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
+
 
 class Catid {
   final int id;
@@ -383,44 +385,64 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
     super.dispose();
   }
 
+
   Future<void> _fetchAndUpdateData() async {
+
     setState(() => _isLoading = true);
+
     Map<String, List<Catid>> grouped = {};
     List<Future<void>> futures = [];
+
     for (var fw in fieldWorkers) {
       final number = fw['id']!;
-      Uri url;
-      if (number == '8130209217' || number == '9675383184') {
-        // Fallback to PHP endpoint for Manish and Abhey to fetch all properties
-        url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
-        );
-      } else {
-        url = Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
-        );
-      }
+
+      final Uri url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php?field_workar_number=$number",
+      );
+
       futures.add(
         _fetchCommon(url).then((data) {
-          // Added logging for debugging
-          print("Fetched ${data.length} properties for ${fw['name']} (${fw['id']}): ${data.isNotEmpty ? data.first.id : 'EMPTY'}");
           grouped[fw['name']!] = data;
-        }).catchError((error) {
-          print("Error fetching for ${fw['name']}: $error");
+        }).catchError((error) async {
+          await BugLogger.log(
+            apiLink: url.toString(),
+            error: error.toString(),
+            statusCode: 500,
+          );
           grouped[fw['name']!] = [];
         }),
       );
     }
-    await Future.wait(futures);
-    if (mounted) {
-      setState(() {
-        _groupedData = grouped;
-        _isLoading = false;
-      });
-      _animationController.forward(); // Start fade in animation
+
+    try {
+      await Future.wait(futures);
+    } catch (e) {
+      await BugLogger.log(
+        apiLink: "Future.wait",
+        error: e.toString(),
+        statusCode: 500,
+      );
     }
-    await _prefetchAllPropertyData();
-    // Scroll to highlighted if exists
+
+    if (!mounted) return;
+
+    setState(() {
+      _groupedData = grouped;
+      _isLoading = false;
+    });
+
+    _animationController.forward();
+
+    try {
+      await _prefetchAllPropertyData();
+    } catch (e) {
+      await BugLogger.log(
+        apiLink: "_prefetchAllPropertyData",
+        error: e.toString(),
+        statusCode: 500,
+      );
+    }
+
     if (_highlightedFlatId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _scrollToHighlighted();
@@ -431,31 +453,53 @@ class _ADministaterShow_realesteteState extends State<ADministaterShow_realestet
   Future<void> _prefetchAllPropertyData() async {
     final allProperties = _groupedData.values.expand((list) => list).toList();
     if (allProperties.isEmpty) return;
+
     final uniqueSubids = <int>{};
     for (var p in allProperties) {
       uniqueSubids.add(p.subid);
     }
+
     final futures = uniqueSubids.map((sid) async {
+      final String apiUrl =
+          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid';
+
       try {
-        // Fetch total flats
-        final response2 = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$sid',
-        )).timeout(const Duration(seconds: 5)); // Added timeout
+        final response = await http
+            .get(Uri.parse(apiUrl))
+            .timeout(const Duration(seconds: 5));
+
         String totalStr = "0";
-        if (response2.statusCode == 200) {
-          final body = jsonDecode(response2.body);
+
+        if (response.statusCode == 200) {
+          final body = jsonDecode(response.body);
           if (body is List && body.isNotEmpty) {
             totalStr = body[0]['logg'].toString();
           }
+        } else {
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: response.body,
+            statusCode: response.statusCode,
+          );
         }
+
         if (mounted) _totalFlatsMap[sid] = totalStr;
-      } catch (_) {
+      } catch (e) {
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: e.toString(),
+          statusCode: 500,
+        );
         if (mounted) _totalFlatsMap[sid] = "0";
       }
     }).toList();
+
     await Future.wait(futures);
+
     if (mounted) setState(() {});
   }
+
+
 
   Future<void> _handleNotification(String flatId) async {
     setState(() {

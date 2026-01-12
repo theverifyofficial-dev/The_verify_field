@@ -4,6 +4,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../Tenant_Details_Demand/Feedback_Details_Page.dart';
 
@@ -92,47 +93,180 @@ class Pending_demand_Status extends StatefulWidget {
 class _Pending_demand_StatusState extends State<Pending_demand_Status> {
 
   Future<List<Catid>> fetchData() async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${widget.id}');
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
+    final String apiUrl =
+        'https://verifyserve.social/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${widget.id}';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Log API hit
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded is List) {
+          decoded.sort(
+                (a, b) => (b['VTD_id'] ?? 0).compareTo(a['VTD_id'] ?? 0),
+          );
+
+          return decoded
+              .map<Catid>((data) => Catid.FromJson(data))
+              .toList();
+        } else {
+          // 🔴 200 but unexpected format
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "200 but response is not List | Body: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          throw Exception('Invalid response format');
+        }
+      } else {
+        // 🔴 Non-200 HTTP response
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        throw Exception('Failed to fetch data');
+      }
+    } catch (e, stack) {
+      // 🔥 Network / JSON / runtime crash
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      rethrow;
     }
   }
 
-  Future<List<Catid_pending>> fetchData_pendinhg(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/assign_tenant_demand_show_by_demand_number_?demand_number=${widget.id}');
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid_pending.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
+
+  Future<List<Catid_pending>> fetchData_pending(dynamic id) async {
+    final String apiUrl =
+        'https://verifyserve.social/WebService4.asmx/assign_tenant_demand_show_by_demand_number_?demand_number=${widget.id}';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Log API hit
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded is List) {
+          decoded.sort(
+                (a, b) => (b['id'] ?? 0).compareTo(a['id'] ?? 0),
+          );
+
+          return decoded
+              .map<Catid_pending>((data) => Catid_pending.FromJson(data))
+              .toList();
+        } else {
+          // 🔴 200 but unexpected format
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "200 but response is not List | Body: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          throw Exception('Invalid response format');
+        }
+      } else {
+        // 🔴 Non-200 HTTP response
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        throw Exception('Failed to fetch pending data');
+      }
+    } catch (e, stack) {
+      // 🔥 Network / JSON / runtime crash
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      rethrow;
     }
   }
 
-  Future<void> fetchdata_action(idddd,looking,fedback) async{
-    final responce = await http.get(Uri.parse
-      ('https://verifyserve.social/WebService4.asmx/update_assign_tenant_demand_by_id_looking_feedback_?id=$idddd&looking_type=$looking&feedback=$fedback'));
-    //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
 
-    if(responce.statusCode == 200){
-      print(responce.body);
-      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Pending_demand_Status(id: '${widget.id}',),), (route) => route.isFirst);
+  Future<void> fetchdata_action(dynamic idddd, String looking, String feedback) async {
+    final Uri apiUri = Uri.https(
+      'verifyserve.social',
+      '/WebService4.asmx/update_assign_tenant_demand_by_id_looking_feedback_',
+      {
+        'id': idddd.toString(),
+        'looking_type': looking,
+        'feedback': feedback,
+      },
+    );
 
-      //SharedPreferences prefs = await SharedPreferences.getInstance();
+    try {
+      final response = await http.get(apiUri);
 
-    } else {
-      print('Failed Registration');
+      // 🔹 Log API hit
+      BugLogger.log(
+        apiLink: apiUri.toString(),
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
+
+      if (response.statusCode == 200) {
+        // ASP.NET APIs often return plain text / XML
+        final body = response.body.toLowerCase();
+
+        if (body.contains('success') || body.contains('updated') || body.isNotEmpty) {
+          print("✅ Update successful: ${response.body}");
+
+          if (!context.mounted) return;
+
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(
+              builder: (context) => Pending_demand_Status(id: '${widget.id}'),
+            ),
+                (route) => route.isFirst,
+          );
+        } else {
+          // 🔴 200 but logical failure
+          await BugLogger.log(
+            apiLink: apiUri.toString(),
+            error: "200 but logical failure | Body: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          print("⚠️ Update failed (logical error)");
+        }
+      } else {
+        // 🔴 Non-200 HTTP error
+        await BugLogger.log(
+          apiLink: apiUri.toString(),
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        print('❌ Failed Registration');
+      }
+    } catch (e, stack) {
+      // 🔥 Network / runtime / encoding crash
+      await BugLogger.log(
+        apiLink: apiUri.toString(),
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      print('❌ Exception while updating demand: $e');
     }
-
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -184,7 +318,7 @@ class _Pending_demand_StatusState extends State<Pending_demand_Status> {
 
             Container(
               child: FutureBuilder<List<Catid_pending>>(
-                  future: fetchData_pendinhg(""+1.toString()),
+                  future: fetchData_pending(""+1.toString()),
                   builder: (context,abc){
                     if(abc.connectionState == ConnectionState.waiting){
                       return Center(child: CircularProgressIndicator());

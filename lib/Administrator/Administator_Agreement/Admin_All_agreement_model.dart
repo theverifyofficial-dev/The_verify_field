@@ -1,4 +1,5 @@
 class AdminAllAgreementModel {
+
   final int id;
   final String ownerName;
   final String ownerRelation;
@@ -32,6 +33,7 @@ class AdminAllAgreementModel {
   final String? agreementType;
 
   AdminAllAgreementModel( {
+
     required this.id,
     required this.ownerName,
     required this.ownerRelation,

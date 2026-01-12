@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../utilities/bug_founder_fuction.dart';
+
 class Property {
   final int id;
   final String currentDates;
@@ -145,12 +147,22 @@ class _TenantPaymentFlowPageState extends State<TenantPaymentFlowPage> {
           });
         }
       } else {
+        await BugLogger.log(
+          apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=$userNumber',
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         setState(() {
           loading = false;
           errorMessage = "Failed to fetch properties!";
         });
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=$userNumber',
+        error: e.toString(),
+        statusCode: 500,
+      );
       setState(() {
         loading = false;
         errorMessage = "Error: $e";

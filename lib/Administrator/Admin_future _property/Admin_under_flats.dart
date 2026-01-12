@@ -8,6 +8,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../ui_decoration_tools/app_images.dart';
 import '../../../model/realestateSlider.dart';
 import '../../property_preview.dart';
@@ -338,8 +339,10 @@ class Catid1 {
 }
 
 class Admin_underflat_futureproperty extends StatefulWidget {
+
   String id;
   String Subid;
+
   Admin_underflat_futureproperty({super.key, required this.id, required this.Subid});
 
   @override
@@ -347,8 +350,11 @@ class Admin_underflat_futureproperty extends StatefulWidget {
 }
 
 class Admin_underflat_futurepropertyState extends State<Admin_underflat_futureproperty> {
+
   Future<List<RealEstateSlider1>> fetchCarouselData() async {
-    final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
+    final response =
+    await http.get(Uri.parse(
+        'https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}'));
     print(" Multi Image ID: ${widget.id}");
 
     if (response.statusCode == 200) {
@@ -359,6 +365,11 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
         );
       }).toList();
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}",
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Failed to load data');
     }
   }
@@ -372,6 +383,11 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       List listresponce = json.decode(responce.body);
       return listresponce.map((data) => Property.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -384,6 +400,11 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       List listresponce = json.decode(Response.body);
       return listresponce.map((data) => Catid1.FromJson(data)).toList();
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/display_tenant_in_future_property?sub_id=${widget.id}",
+          error: Response.body.toString(),
+          statusCode: Response.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -478,14 +499,17 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       return const SizedBox.shrink();
     }
 
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
-
     final Color cardColor = Colors.white;
-    final Color borderColor = Colors.grey.shade200;
-    final Color titleColor = Colors.grey.shade700;
-    final Color valueColor = Colors.black87;
+    final Color borderColor =
+    isDarkMode ? Colors.grey.shade700.withOpacity(0.2) : Colors.grey.shade200;
+    final Color titleColor =
+    isDarkMode ? Colors.black87 : Colors.grey.shade700;
+    final Color valueColor = isDarkMode ? Colors.black87 : Colors.black87;
     final Color iconBg = iconColor.withOpacity(0.10);
+
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
@@ -494,6 +518,9 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
         color: cardColor,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: borderColor),
+        boxShadow: isDarkMode
+            ? [const BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2))]
+            : null,
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -540,6 +567,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
   Widget buildContactCard(String role, String name, String number, {Color? bgColor}) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     Color cardColor = bgColor ?? Colors.blue;
     String maskedNumber = maskPhoneNumber(number);
 
@@ -597,7 +625,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                         style: TextStyle(
                           fontSize: isSmallScreen ? 13.0 : 14.0,
                           fontWeight: FontWeight.w500,
-                          color: Colors.black87,
+                          color: isDarkMode ? Colors.black : Colors.black87,
                         ),
                         softWrap: true,
                       ),
@@ -678,6 +706,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
 
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     final Widget card = Container(
       margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 2.0 : 4.0),
@@ -722,7 +751,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                     style: TextStyle(
                       fontSize: isSmallScreen ? 13.0 : 14.0,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                      color: isDarkMode ? Colors.black : Colors.black87,
                     ),
                     softWrap: true,
                   ),
@@ -825,6 +854,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       return const SizedBox.shrink();
     }
 
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final Color cardColor = Colors.blue;
     final Color bgColor = Colors.blue;
 
@@ -874,7 +904,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                       style: TextStyle(
                         fontSize: isSmallScreen ? 13.0 : 14.0,
                         fontWeight: FontWeight.w500,
-                        color: Colors.black87,
+                        color: isDarkMode ? Colors.black : Colors.black87,
                       ),
                       softWrap: true,
                     ),
@@ -994,9 +1024,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
     if (prop.metroDistance.isNotEmpty) {
       rows.add(buildInfoRow(Icons.train, Colors.orange, "Metro Station", prop.metroDistance));
     }
-    if (prop.highwayDistance.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Metro Distance", prop.highwayDistance));
-    }
+
     if (prop.mainMarketDistance.isNotEmpty) {
       rows.add(buildInfoRow(Icons.store, Colors.purple, "Market Distance", prop.mainMarketDistance));
     }
@@ -1009,19 +1037,21 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
       rows.add(buildInfoRow(Icons.category, Colors.deepOrange, "Type of Property", prop.typeofProperty));
     }
 
-    if (prop.availableDate.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", prop.availableDate));
+    if (prop.floor.isNotEmpty) {
+      rows.add(buildInfoRow(Icons.apartment, Colors.red, "Floor", prop.floor));
     }
 
-
-    if (prop.roadSize.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize}"));
+    if (prop.availableDate.isNotEmpty) {
+      rows.add(buildInfoRow(Icons.calendar_today, Colors.blue, "Available From", prop.availableDate));
     }
 
     if (prop.highwayDistance.isNotEmpty) {
       rows.add(buildInfoRow(Icons.directions_car, Colors.red, "Metro Distance", prop.highwayDistance));
     }
 
+    if (prop.roadSize.isNotEmpty) {
+      rows.add(buildInfoRow(Icons.straighten, Colors.teal, "Road Size", "${prop.roadSize}"));
+    }
 
 
     if (prop.loan.isNotEmpty) {
@@ -1126,6 +1156,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final isSmallScreen = screenWidth < 360;
     final isTablet = screenWidth > 600;
     final horizontalPadding = isSmallScreen ? 8.0 : (isTablet ? 24.0 : 12.0);
@@ -1136,7 +1167,8 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
     final fontScale = isSmallScreen ? 0.9 : (isTablet ? 1.1 : 1.0);
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor:
+      isDarkMode ? Colors.grey[900] : Colors.white,
       appBar: AppBar(
         centerTitle: true,
         backgroundColor: Colors.black,
@@ -1306,7 +1338,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                                 style: TextStyle(
                                   fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
                                   fontWeight: FontWeight.w600,
-                                  color: Colors.white,
+                                  color: isDarkMode ? Colors.white : Colors.black,
                                 ),
                               ),
                               SizedBox(height: verticalPadding * 1.2),
@@ -1319,7 +1351,6 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
 
                                   final chipsData = [
                                     {'icon': Icons.bedroom_parent, 'text': prop.bhk, 'color': Colors.blue},
-                                    {'icon': Icons.kitchen, 'text': prop.kitchen, 'color': Colors.green},
                                     {'icon': Icons.chair, 'text': prop.furnishedUnfurnished, 'color': Colors.purple},
                                     {'icon': Icons.apartment, 'text': prop.residenceCommercial, 'color': Colors.amber},
                                   ].where((e) => (e['text'] as String).isNotEmpty).toList();

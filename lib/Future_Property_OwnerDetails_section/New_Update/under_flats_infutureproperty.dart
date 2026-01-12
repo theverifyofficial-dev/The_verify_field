@@ -8,6 +8,7 @@ import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../model/realestateSlider.dart';
 import '../../property_preview.dart';
 import 'Edit_flat.dart';
@@ -273,6 +274,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         );
       }).toList();
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_multiple_images?subid=${widget.id}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Failed to load data');
     }
 
@@ -294,6 +300,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         throw Exception('No data found');
       }
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/detail_page_for_future_property_under_flat.php?P_id=${widget.id}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -318,6 +329,13 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         decoded['data'] is List) {
       final List list = decoded['data'];
       return list.map((e) => Catid1.fromJson(e)).toList();
+    }
+    else{
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/show_api_add_tenant.php?sub_id=${widget.id}",
+          error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
     }
 
     return [];
@@ -462,7 +480,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
-
     final Color cardColor = Colors.white;
     final Color borderColor =
     isDarkMode ? Colors.grey.shade700.withOpacity(0.2) : Colors.grey.shade200;
@@ -744,12 +761,10 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     return card;
   }
 
-  Widget _buildAdaptiveRows(
-      List<Widget> cards, double verticalPadding) {
+  Widget _buildAdaptiveRows(List<Widget> cards, double verticalPadding) {
     return LayoutBuilder(builder: (context, constraints) {
       final available = constraints.maxWidth;
-      final spacing =
-      MediaQuery.of(context).size.width < 360 ? 6.0 : 8.0;
+      final spacing = MediaQuery.of(context).size.width < 360 ? 6.0 : 8.0;
       final runSpacing = verticalPadding;
       final int itemsPerRow =
       available >= 800 ? 4 : available >= 520 ? 3 : 2;
@@ -1407,6 +1422,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/move_to_main_realestae.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: $e"),
@@ -1439,7 +1459,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     try {
       final upcomingUrl = Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php");
-
       if (upcomingStatus == "Book") {
         final selectedDate = await _pickDate();
 
@@ -1539,6 +1558,11 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_flat_move_to_realestate.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error: $e"),
@@ -1560,7 +1584,6 @@ class _underflat_futurepropertyState extends State<underflat_futureproperty> {
     final isTablet = screenWidth > 600;
     final bool isDarkMode =
         Theme.of(context).brightness == Brightness.dark;
-
     final horizontalPadding =
     isSmallScreen ? 8.0 : (isTablet ? 24.0 : 12.0);
     final verticalPadding =

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../ui_decoration_tools/app_images.dart';
 
 class InsertMetaAdsExpensePro extends StatefulWidget {
@@ -245,6 +246,11 @@ class _InsertMetaAdsExpenseProState extends State<InsertMetaAdsExpensePro>
 
       if (success) Navigator.of(context).pop(true);
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/insert_meta_ads_expanse.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
         content: Text('Network error. Try again.'),
         backgroundColor: Colors.redAccent,

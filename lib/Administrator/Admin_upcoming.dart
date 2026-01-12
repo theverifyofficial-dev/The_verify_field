@@ -131,7 +131,6 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
       final url = Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php"
       );
-
       print("🚀 Admin Mode URL: $url");
 
       final response = await http.get(url);
@@ -148,7 +147,6 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
     } else {
       finalLocation = _location;
     }
-
     final url = Uri.parse(
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/upcoming_show_api_for_subadmin.php?locations=$finalLocation"
     );
@@ -158,6 +156,7 @@ class _Show_New_Real_EstateState extends State<AdminUpcoming> {
     final response = await http.get(url);
     return _parsePropertyData(response);
   }
+
   List<Upcoming_model> _parsePropertyData(http.Response response) {
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);

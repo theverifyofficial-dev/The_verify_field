@@ -1,17 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../Home_Screen_click/All_view_details.dart';
 import '../../Home_Screen_click/New_Real_Estate.dart';
 import '../../ui_decoration_tools/app_images.dart';
-
 
 class SubAdminAllLiveProperty extends StatefulWidget {
   const SubAdminAllLiveProperty({super.key});
@@ -74,54 +72,77 @@ class _AllLiveProperty extends State<SubAdminAllLiveProperty> {
     });
   }
 
-
   Future<List<NewRealEstateShowDateModel>> fetchData(String number) async {
-    String baseUrl =
+    const String baseUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/show_api_for_location_base_website_live_property_data.php";
 
     String finalUrl = baseUrl;
 
-    // 🔥 RULE 1 → Shivani Joshi
-    if (_number == "8743080855") {
+    if (number == "8743080855") {
       finalUrl = "$baseUrl?locations=Rajpur Khurd,ChhattarPur";
-    }
-
-    // 🔥 RULE 2 → Saurabh Yadav
-    else if (_number == "9711779003") {
+    } else if (number == "9711779003") {
       finalUrl = "$baseUrl?locations=Sultanpur";
     }
 
-    // print("🌍 API URL Used: $finalUrl");
+        // 🔥 RULE 2 → Saurabh Yadav
+        else if (_number == "9711779003") {
+          finalUrl = "$baseUrl?locations=Sultanpur"; }
 
-    final url = Uri.parse(finalUrl);
-    final response = await http.get(url);
+        // print("🌍 API URL Used: $finalUrl");
 
-    if (response.statusCode != 200) {
-      throw Exception("HTTP ${response.statusCode}: ${response.body}");
+    try {
+      final response = await http.get(Uri.parse(finalUrl));
+
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: finalUrl,
+          error: response.body,
+          statusCode: response.statusCode,
+        );
+        return [];
+      }
+
+      final decoded = json.decode(response.body);
+      final raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
+
+      List<Map<String, dynamic>> listResponse = [];
+
+      if (raw is List) {
+        listResponse =
+            raw.map((e) => Map<String, dynamic>.from(e)).toList();
+      } else if (raw is Map) {
+        listResponse = [Map<String, dynamic>.from(raw)];
+      } else {
+        await BugLogger.log(
+          apiLink: finalUrl,
+          error: "Unexpected JSON format",
+          statusCode: response.statusCode,
+        );
+        return [];
+      }
+
+      int _asInt(dynamic v) =>
+          v is int ? v : int.tryParse(v?.toString() ?? "0") ?? 0;
+
+      listResponse.sort(
+            (a, b) => _asInt(b['P_id']).compareTo(_asInt(a['P_id'])),
+      );
+
+      return listResponse
+          .map((e) => NewRealEstateShowDateModel.fromJson(e))
+          .toList();
+    } catch (e) {
+      await BugLogger.log(
+        apiLink: finalUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
+      return [];
     }
-
-    final decoded = json.decode(response.body);
-    final raw = decoded is Map<String, dynamic> ? decoded['data'] : decoded;
-
-    final List<Map<String, dynamic>> listResponse;
-
-    if (raw is List) {
-      listResponse = raw.map((e) => Map<String, dynamic>.from(e)).toList();
-    } else if (raw is Map) {
-      listResponse = [Map<String, dynamic>.from(raw)];
-    } else {
-      listResponse = const [];
-    }
-
-    int _asInt(dynamic v) =>
-        v is int ? v : (int.tryParse(v?.toString() ?? "0") ?? 0);
-
-    listResponse.sort((a, b) => _asInt(b['P_id']).compareTo(_asInt(a['P_id'])));
-
-    return listResponse
-        .map((data) => NewRealEstateShowDateModel.fromJson(data))
-        .toList();
   }
+
+
+
 
   @override
   void initState() {

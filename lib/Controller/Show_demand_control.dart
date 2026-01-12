@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../model/show_demand_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -70,10 +71,19 @@ class TenantController extends GetxController {
 
         print("📊 tenantList updated. Count: ${tenantList.length}");
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$num",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         print("❌ Failed with status code: ${response.statusCode}");
         Get.snackbar('Error', 'Failed to fetch tenant data');
       }
     } catch (e) {
+      await BugLogger.log(apiLink: "https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$num",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("🔥 JSON decode error or API failure: $e");
       Get.snackbar('Error', 'Invalid response format');
     }

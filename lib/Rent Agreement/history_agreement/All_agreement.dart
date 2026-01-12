@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
 import '../../Administrator/Administator_Agreement/Sub/All_data_details_page.dart';
 import '../All_detailpage.dart';
@@ -85,6 +86,11 @@ class _AllAgreementState extends State<AllAgreement> {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber",
+          error: e.toString(),
+          statusCode: 500,
+      );
       debugPrint('❌ Error fetching data: $e');
       setState(() => isLoading = false);
     }

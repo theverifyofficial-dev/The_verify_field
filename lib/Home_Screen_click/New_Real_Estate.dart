@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../Propert_verigication_Document/Show_tenant.dart';
 import '../SocialMediaHandler/VideoSubmitPage.dart';
@@ -369,6 +370,12 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
     } else if (raw is Map) {
       listResponse = [Map<String, dynamic>.from(raw)];
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_mainrealestate_by_fieldworkar.php"
+              "?field_workar_number=$number&live_unlive=Live",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       listResponse = const [];
     }
 

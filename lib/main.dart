@@ -1,14 +1,12 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bugfender/flutter_bugfender.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:verify_feild_worker/Bug_fender/Bugfender.dart' show BugLogger;
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
 import 'package:verify_feild_worker/provider/Theme_provider.dart';
 import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
@@ -17,12 +15,12 @@ import 'package:verify_feild_worker/provider/property_id_for_multipleimage_provi
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
 import 'package:verify_feild_worker/routes.dart';
 import 'package:verify_feild_worker/splash.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Controller/Show_demand_binding.dart';
 import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
-
 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -37,27 +35,19 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  await BugLogger.init(); // 🔥 ONE TIME ONLY
-
+  GoogleFonts.config.allowRuntimeFetching = false;
+  /// 🔴 FLUTTER UI / RENDER / PIXEL ERRORS
   FlutterError.onError = (FlutterErrorDetails details) {
-    BugLogger.logError(
-      screen: "FLUTTER_GLOBAL",
-      error: details.exceptionAsString(),
-    );
+    BugLogger.logFlutterError(details);
   };
 
-  PlatformDispatcher.instance.onError = (error, stack) {
-    BugLogger.logError(
-      screen: "DART_ISOLATE",
-      error: error.toString(),
-    );
-    return true;
-  };
 
 
   await Firebase.initializeApp();
+  // await dotenv.load(fileName: ".env");
   await FireBaseApi().initNotifications();
+
+  // register FCM background handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
   TenantBinding();
@@ -71,9 +61,15 @@ void main() async {
         ChangeNotifierProvider(create: (_) => MultiImageUploadProvider()),
         ChangeNotifierProvider(create: (_) => RealEstateShowDataProvider()),
       ],
+
       child: const MyApp(),
     ),
   );
+  /// 🔴 ASYNC / FUTURE / BACKGROUND ERRORS
+  runZonedGuarded(() {
+  }, (error, stack) {
+    BugLogger.logDartError(error, stack);
+  });
 }
 
 
@@ -130,7 +126,10 @@ class _MyAppState extends State<MyApp> {
     return match?.group(1);
   }
 
-  void _openNotificationPage(RemoteMessage message, {bool fromTerminated = false}) {
+  void _openNotificationPage(
+
+      RemoteMessage message,
+      {bool fromTerminated = false}) {
     try {
       final data = message.data;
       String? type = data['type']?.toString();
@@ -152,6 +151,25 @@ class _MyAppState extends State<MyApp> {
         });
         return;
       }
+
+
+      if (type == "Developer") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.errorLogScreen,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "api": data['api'],
+              "status_code": data['status _code'],
+              "date": data['date'],
+              "tabIndex": 1, // Notification tab
+            },
+          );
+        });
+      }
+
+
 
       // 🔹 Second Payment → OPEN TAB 1
       if (type == "SECOND_PAYMENT_ADDED") {
@@ -287,69 +305,69 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
-        // 1️⃣ EDITOR REPLY → LiveTabbar (Tab 2 + highlight)
-              if (type == "EDITOR_REPLY") {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (_) => LiveTabbar(
-                      initialIndex: 1,
-                      highlightPropertyId: data['main_id']?.toString(),
-                    ),
-                  ),
-                );
-                return;
-              }
+      // 1️⃣ EDITOR REPLY → LiveTabbar (Tab 2 + highlight)
+      if (type == "EDITOR_REPLY") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => LiveTabbar(
+              initialIndex: 1,
+              highlightPropertyId: data['main_id']?.toString(),
+            ),
+          ),
+        );
+        return;
+      }
 
-        // 2️⃣ FIELDWORKER REPLY → Social Media Home Page
-              if (type == "FIELDWORKER_REPLY") {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (_) => SocialMediaHomePage(
-                      highlightPropertyId: data['main_id']?.toString(),   // 👈 FIXED KEY
-                    ),
-                  ),
-                );
+      // 2️⃣ FIELDWORKER REPLY → Social Media Home Page
+      if (type == "FIELDWORKER_REPLY") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => SocialMediaHomePage(
+              highlightPropertyId: data['main_id']?.toString(),   // 👈 FIXED KEY
+            ),
+          ),
+        );
 
-                return;
-              }
+        return;
+      }
 
-        // 3️⃣ VIDEO SUBMITTED → Social Media Home Page
-              if (type == "VIDEO_SUBMITTED") {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (_) => SocialMediaHomePage(
-                      highlightPropertyId: data['main_id']?.toString(),   // 👈 FIXED KEY
-                    ),
-                  ),
-                );
-                return;
-              }
+      // 3️⃣ VIDEO SUBMITTED → Social Media Home Page
+      if (type == "VIDEO_SUBMITTED") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => SocialMediaHomePage(
+              highlightPropertyId: data['main_id']?.toString(),   // 👈 FIXED KEY
+            ),
+          ),
+        );
+        return;
+      }
 
-        // 4️⃣ EDITOR RECEIVED → LiveTabbar (Tab 2 + highlight)
-              if (type == "EDITOR_RECEIVED") {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (_) => LiveTabbar(
-                      initialIndex: 1,
-                      highlightPropertyId: data['main_id']?.toString(),
-                    ),
-                  ),
-                );
-                return;
-              }
+      // 4️⃣ EDITOR RECEIVED → LiveTabbar (Tab 2 + highlight)
+      if (type == "EDITOR_RECEIVED") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => LiveTabbar(
+              initialIndex: 1,
+              highlightPropertyId: data['main_id']?.toString(),
+            ),
+          ),
+        );
+        return;
+      }
 
-        // 5️⃣ VIDEO UPLOADED → LiveTabbar (Tab 2 + highlight)
-              if (type == "VIDEO_UPLOADED") {
-                navigatorKey.currentState?.push(
-                  MaterialPageRoute(
-                    builder: (_) => LiveTabbar(
-                      initialIndex: 1,
-                      highlightPropertyId: data['main_id']?.toString(),
-                    ),
-                  ),
-                );
-                return;
-              }
+      // 5️⃣ VIDEO UPLOADED → LiveTabbar (Tab 2 + highlight)
+      if (type == "VIDEO_UPLOADED") {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (_) => LiveTabbar(
+              initialIndex: 1,
+              highlightPropertyId: data['main_id']?.toString(),
+            ),
+          ),
+        );
+        return;
+      }
 
 
       // 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
@@ -493,7 +511,8 @@ class _MyAppState extends State<MyApp> {
           .apply(fontFamily: 'Poppins', bodyColor: Colors.white),
     );
 
-    return NetworkListener(
+    return
+      NetworkListener(
       child: AnimatedTheme(
         data: _themeMode == ThemeMode.dark ? darkTheme : lightTheme,
         duration: const Duration(milliseconds: 400),
@@ -510,7 +529,8 @@ class _MyAppState extends State<MyApp> {
           builder: (context, child) {
             return MediaQuery(
               data: MediaQuery.of(context).copyWith(textScaleFactor: 1.0),
-              child: ThemeSwitcher(
+              child:
+              ThemeSwitcher(
                 themeMode: _themeMode,
                 toggleTheme: _toggleTheme,
                 child: child ?? const SizedBox.shrink(),

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 class UpcomingPropertyImage {
   final int id;
@@ -95,6 +95,11 @@ class _MultiImagePickerPageState extends State<MultiImg> {
     } else if (response.statusCode == 404) {
       return [];
     } else {
+      await BugLogger.log(
+          apiLink: url,
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+      );
       throw Exception('Server error with status code: ${response.statusCode}');
     }
   }

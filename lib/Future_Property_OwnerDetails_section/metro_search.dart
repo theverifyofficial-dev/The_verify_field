@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 class MetroField extends StatefulWidget {
   final String? initialValue;
@@ -32,7 +33,20 @@ class _MetroFieldState extends State<MetroField> {
         final data = json.decode(res.body);
         return _normalizeItems(data);
       }
-    } catch (_) {}
+      else{
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Metro_name/metro_name.php?q=$pattern",
+            error: res.body.toString(),
+            statusCode: res.statusCode ?? 0,
+        );
+      }
+    } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Metro_name/metro_name.php?q=$pattern",
+        error: e.toString(),
+        statusCode: 500,
+      );
+    }
     return [];
   }
 

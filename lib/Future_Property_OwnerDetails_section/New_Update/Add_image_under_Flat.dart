@@ -15,6 +15,7 @@ import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../../ui_decoration_tools/app_images.dart';
 
@@ -99,6 +100,11 @@ class _FileUploadPage_FlatFuturepropertyState extends State<FileUploadPage_FlatF
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/show_subid_multiple_images_for_flat_under_future?sub_id=${widget.id}",
+      error: responce.body.toString(),
+      statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -142,13 +148,25 @@ class _FileUploadPage_FlatFuturepropertyState extends State<FileUploadPage_FlatF
           SnackBar(content: Text('Upload successful: ${response.data}')),
         );
         print('Upload successful: ${response.data}');
-      } else {
+      }
+      else {
+
+        await BugLogger.log(
+            apiLink: uploadUrl,
+            error: response.data.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload failed: ${response.statusCode}')),
         );
         print('Upload failed: ${response.statusCode}');
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: uploadUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error occurred: $e')),
       );

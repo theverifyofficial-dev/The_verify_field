@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../constant.dart';
 
@@ -55,6 +56,11 @@ class _UpdateTenantPageState extends State<UpdateTenantPage> {
           });
         }
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=${widget.propertyId}",
+            error:response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         throw Exception("Failed to load tenant");
       }
     } catch (e) {
@@ -96,6 +102,11 @@ class _UpdateTenantPageState extends State<UpdateTenantPage> {
         );
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/PHP_Files/add_tanant_in_future_property/update_tenant.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Exception: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),

@@ -17,6 +17,7 @@ import 'package:verify_feild_worker/provider/Theme_provider.dart';
 import 'package:verify_feild_worker/provider/main_RealEstate_provider.dart';
 import 'package:verify_feild_worker/provider/multile_image_upload_provider.dart';
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Administrator/Add_Assign_Tenant_Demand/Feild_Workers_Bylocation.dart';
 import '../constant.dart';
@@ -549,6 +550,11 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       List<dynamic> listResponse = json.decode(response.body);
       return listResponse.map((data) => Catid.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/details_page_data_in_main_realestate?P_id=$id",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -612,10 +618,20 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
             .map((item) => RealEstateSlider.fromJson(item))
             .toList();
       } catch (e) {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id",
+            error: e.toString(),
+            statusCode: 500,
+        );
         print("Error parsing response: $e");
         throw Exception('Failed to parse response data');
       }
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Server error');
     }
   }
@@ -3339,9 +3355,19 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         );
         Navigator.pop(context);
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget.propertyId}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         throw Exception("Failed to upload data.");
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/update_main_realestate_property.php?P_id=${widget.propertyId}",
+          error: e.toString(),
+          statusCode: 500,
+      );
       // Fluttertoast.showToast(
       //   msg: "Error: ${e.toString()}",
       //   toastLength: Toast.LENGTH_SHORT,

@@ -14,6 +14,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../constant.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 
 class AddComingFlats extends StatefulWidget {
@@ -361,6 +363,58 @@ class _RegisterPropertyState extends State<AddComingFlats> {
     'Semi Furnished',
     'Unfurnished',
   ];
+
+  Future<void> _autoFetchLocation(FormFieldState field) async {
+    // 🔹 GPS ON check
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please turn ON GPS")),
+      );
+      return;
+    }
+
+    // 🔹 Permission check
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Location permission permanently denied")),
+      );
+      return;
+    }
+
+    // 🔹 Get LIVE location
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble('latitude', position.latitude);
+    await prefs.setDouble('longitude', position.longitude);
+
+    // 🔹 Convert lat/long to address
+    List<Placemark> placemarks =
+    await placemarkFromCoordinates(position.latitude, position.longitude);
+
+    if (placemarks.isNotEmpty) {
+      Placemark p = placemarks.first;
+
+      String address =
+          '${p.street}, ${p.subLocality}, ${p.locality}, '
+          '${p.administrativeArea}, ${p.postalCode}, ${p.country}';
+
+      setState(() {
+        full_address = address;
+        _Google_Location.text = address;
+      });
+
+      field.validate(); // 🔥 update FormField validation
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -2301,50 +2355,7 @@ class _RegisterPropertyState extends State<AddComingFlats> {
                         children: [
                           GestureDetector(
                             onTap: () async {
-                              final status = await Permission.location.request();
-                              if (!status.isGranted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Location permission is required')),
-                                );
-                                return;
-                              }
-
-                              try {
-                                final savedLocation = await getSavedLatLong();
-
-                                double latitude = double.tryParse(
-                                  savedLocation['Latitude']!.replaceAll(RegExp(r'[^\d\.\-]'), ''),
-                                ) ??
-                                    0.0;
-                                double longitude = double.tryParse(
-                                  savedLocation['Longitude']!.replaceAll(RegExp(r'[^\d\.\-]'), ''),
-                                ) ??
-                                    0.0;
-
-                                List<Placemark> placemarks =
-                                await placemarkFromCoordinates(latitude, longitude);
-
-                                String output = 'Unable to fetch location';
-                                if (placemarks.isNotEmpty) {
-                                  Placemark place = placemarks.first;
-                                  output =
-                                  '${place.street}, ${place.subLocality}, ${place.locality}, '
-                                      '${place.subAdministrativeArea}, ${place.administrativeArea}, '
-                                      '${place.country}, ${place.postalCode}';
-                                }
-
-                                setState(() {
-                                  full_address = output;
-                                  _Google_Location.text = full_address;
-                                });
-
-                                field.validate(); // 🔹 refresh validator after setting value
-                              } catch (e) {
-                                print('Error: ${e.toString()}');
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Failed to get address: ${e.toString()}')),
-                                );
-                              }
+                              await _autoFetchLocation(field);
                             },
                             child: Container(
                               width: double.infinity,
@@ -2373,7 +2384,7 @@ class _RegisterPropertyState extends State<AddComingFlats> {
                             ),
                           ),
 
-                          // 🔹 Validation error message
+                          // 🔴 Validation error
                           if (field.hasError)
                             Padding(
                               padding: const EdgeInsets.only(top: 6, left: 4),
@@ -2384,7 +2395,8 @@ class _RegisterPropertyState extends State<AddComingFlats> {
                             ),
                         ],
                       ),
-                    )
+                    ),
+
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -2826,190 +2838,196 @@ class _RegisterPropertyState extends State<AddComingFlats> {
   void _submitForm() async {
     if (_isSubmitting) return;
 
-    if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save();
+    if (!_formKey.currentState!.validate()) return;
 
-      setState(() {
-        _isSubmitting = true;
-      });
+    _formKey.currentState!.save();
 
-      final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isSubmitting = true;
+    });
 
-      final provider = Provider.of<PropertyIdProvider>(context, listen: false);
-      await provider.fetchLatestPropertyId.toString();
-      final propertyId = provider.latestPropertyId.toString();
-      String? name = prefs.getString('name');
-      String? number = prefs.getString('number');
-      final uri = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_urgent_flat.php");
-      var request = http.MultipartRequest('POST', uri);
+    final prefs = await SharedPreferences.getInstance();
 
-      request.fields['locations'] = _location ?? '';
-      request.fields['Flat_number'] = _flatNumberController.text;
-      request.fields['Buy_Rent'] = _buyOrRent ?? '';
-      request.fields['Residence_Commercial'] = _resOrComm ?? '';
-      request.fields['Apartment_Address'] = _apartmentAddressController.text;
-      request.fields['Typeofproperty'] = _propertyType ?? '';
-      request.fields['Bhk'] = (_bhk == "Custom" ? _customBhk ?? '' : _bhk) ?? '';
-      request.fields['show_Price'] = _formattedPrice.isNotEmpty ? _formattedPrice : _priceController.text.replaceAll(',', '').trim();
-      request.fields['Last_Price'] = _formattedLastPrice.isNotEmpty
+    final provider = Provider.of<PropertyIdProvider>(context, listen: false);
+    await provider.fetchLatestPropertyId(); // ✅ fixed
+    final propertyIdFromProvider = provider.latestPropertyId.toString();
+
+    String? name = prefs.getString('name');
+    String? number = prefs.getString('number');
+
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_urgent_flat.php",
+    );
+
+    var request = http.MultipartRequest('POST', uri);
+
+    // ---------- Fields ----------
+    request.fields.addAll({
+      'locations': _location ?? '',
+      'Flat_number': _flatNumberController.text,
+      'Buy_Rent': _buyOrRent ?? '',
+      'Residence_Commercial': _resOrComm ?? '',
+      'Apartment_Address': _apartmentAddressController.text,
+      'Typeofproperty': _propertyType ?? '',
+      'Bhk': (_bhk == "Custom" ? _customBhk ?? '' : _bhk) ?? '',
+      'show_Price': _formattedPrice.isNotEmpty
+          ? _formattedPrice
+          : _priceController.text.replaceAll(',', '').trim(),
+      'Last_Price': _formattedLastPrice.isNotEmpty
           ? _formattedLastPrice
-          : _lastPriceController.text.replaceAll(',', '').trim();
-      request.fields['asking_price'] = _formattedAskingPrice.isNotEmpty
+          : _lastPriceController.text.replaceAll(',', '').trim(),
+      'asking_price': _formattedAskingPrice.isNotEmpty
           ? _formattedAskingPrice
-          : _askingPriceController.text.replaceAll(',', '').trim();
-      request.fields['Floor_'] = _floor ?? '';
-      request.fields['Total_floor'] = _totalFloorController.text;
-      request.fields['Balcony'] = _balcony ?? '';
-      request.fields['squarefit'] = _squareFeetController.text;
-      request.fields['maintance'] = (_maintenance == "Custom" ? _customMaintenance ?? '' : _maintenance) ?? '';
-      request.fields['parking'] = _parking ?? '';
-      request.fields['age_of_property'] = _propertyAge ?? '';
-      request.fields['fieldworkar_address'] = _fieldWorkerAddressController.text;
-      request.fields['Road_Size'] = _roadSizeController.text;
-      request.fields['metro_distance'] = _nearMetroController.text;
-      request.fields['highway_distance'] = _highwayController.text;
-      request.fields['main_market_distance'] = _mainMarketController.text;
-      request.fields['meter'] = (_houseMeter == "Custom" ? _houseMeterController.text : (_houseMeter ?? ''));
-      request.fields['owner_name'] = _ownerNameController.text;
-      request.fields['owner_number'] = _ownerNumberController.text;
-      request.fields['video_link'] = _videoLinkController.text;
-      print("Video link field value: '${_videoLinkController.text}'");
-      request.fields['current_dates'] = DateFormat('yyyy-MM-dd').format(DateTime.now());
-      request.fields['available_date'] = _flatAvailableDate?.toIso8601String() ?? '';
-      request.fields['kitchen'] = _kitchenType ?? '';
-      request.fields['bathroom'] = _bathroom ?? '';
-      request.fields['live_unlive'] = 'Book';
-      request.fields['lift'] = _lift ?? '';
-      request.fields['Facility'] = _facilityController.text;
-// Map UI value -> backend value (change to 'Semi Furnished' / 'Fully Furnished' if your API wants full labels)
-      String _furnishingForBackend(String? val) {
-        switch (val) {
-          case 'Semi Furnished':  return 'Semi Furnished';
-          case 'Fully Furnished': return 'Fully Furnished';
-          default:                return 'Unfurnished';
-        }
+          : _askingPriceController.text.replaceAll(',', '').trim(),
+      'Floor_': _floor ?? '',
+      'Total_floor': _totalFloorController.text,
+      'Balcony': _balcony ?? '',
+      'squarefit': _squareFeetController.text,
+      'maintance': (_maintenance == "Custom"
+          ? _customMaintenance ?? ''
+          : _maintenance) ?? '',
+      'parking': _parking ?? '',
+      'age_of_property': _propertyAge ?? '',
+      'fieldworkar_address': _fieldWorkerAddressController.text,
+      'Road_Size': _roadSizeController.text,
+      'metro_distance': _nearMetroController.text,
+      'highway_distance': _highwayController.text,
+      'main_market_distance': _mainMarketController.text,
+      'meter': (_houseMeter == "Custom"
+          ? _houseMeterController.text
+          : (_houseMeter ?? '')),
+      'owner_name': _ownerNameController.text,
+      'owner_number': _ownerNumberController.text,
+      'video_link': _videoLinkController.text,
+      'current_dates': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      'available_date': _flatAvailableDate?.toIso8601String() ?? '',
+      'kitchen': _kitchenType ?? '',
+      'bathroom': _bathroom ?? '',
+      'live_unlive': 'Book',
+      'lift': _lift ?? '',
+      'Facility': _facilityController.text,
+      'field_warkar_name': name ?? '',
+      'field_workar_number': number ?? '',
+      'care_taker_name': _careTakerNameController.text,
+      'care_taker_number': _careTakerNumberController.text,
+      'registry_and_gpa': _registryAndGpa ?? '',
+      'loan': _loan ?? '',
+      'field_worker_current_location': full_address ?? '',
+      'Latitude': prefs.getDouble('latitude')?.toString() ?? '',
+      'Longitude': prefs.getDouble('longitude')?.toString() ?? '',
+    });
+
+    // ---------- Furnishing ----------
+    String furnishingForBackend(String? val) {
+      switch (val) {
+        case 'Semi Furnished':
+          return 'Semi Furnished';
+        case 'Fully Furnished':
+          return 'Fully Furnished';
+        default:
+          return 'Unfurnished';
       }
+    }
 
-      final bool isFurnished = _furnishing == 'Semi Furnished' || _furnishing == 'Fully Furnished';
+    final bool isFurnished =
+        _furnishing == 'Semi Furnished' || _furnishing == 'Fully Furnished';
 
-// Build "Fan (1), Light (2)" string (only items with qty > 0)
-      final String furnitureList = (_selectedFurniture.entries)
-          .where((e) => (e.value) > 0)
-          .map((e) => '${e.key} (${e.value})')
-          .join(', ')
-          .trim();
+    final String furnitureList = (_selectedFurniture.entries)
+        .where((e) => e.value > 0)
+        .map((e) => '${e.key} (${e.value})')
+        .join(', ')
+        .trim();
 
-// Always send clean furnished flag
-      request.fields['furnished_unfurnished'] = _furnishingForBackend(_furnishing);
+    request.fields['furnished_unfurnished'] =
+        furnishingForBackend(_furnishing);
 
-// Send furniture details (or "No Furniture" to avoid NULL)
-      request.fields['Apartment_name'] = isFurnished
-          ? (furnitureList.isNotEmpty ? furnitureList : 'No Furniture')
-          : 'No Furniture';
+    request.fields['Apartment_name'] = isFurnished
+        ? (furnitureList.isNotEmpty ? furnitureList : 'No Furniture')
+        : 'No Furniture';
 
-// (Optional) debug logs to see exactly what's going out:
-      print('=> furnished_unfurnished: ${request.fields['furnished_unfurnished']}');
-      print('=> Apartment_name: ${request.fields['Apartment_name']}');
-
-      request.fields['field_warkar_name'] = name!;
-      request.fields['field_workar_number'] = number!;
-      request.fields['care_taker_name'] = _careTakerNameController.text;
-      request.fields['care_taker_number'] = _careTakerNumberController.text;
-      request.fields['registry_and_gpa'] = _registryAndGpa ?? '';
-      request.fields['loan'] = _loan ?? '';
-      request.fields['field_worker_current_location'] = full_address ?? '';
-
-      final lat = prefs.getDouble('latitude');
-      final long = prefs.getDouble('longitude');
-      request.fields['Latitude'] = lat?.toString() ?? '';
-      request.fields['Longitude'] = long?.toString() ?? '';
-
-      // Add single main image
-      if (_imageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath(
+    // ---------- Images ----------
+    if (_imageFile != null) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
           'property_photo',
           _imageFile!.path,
-        ));
+        ),
+      );
+    }
+
+    for (final img in _images) {
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'images[]',
+          img.path,
+        ),
+      );
+    }
+
+    try {
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      // 🔴 API ERROR LOG (non-200)
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+        );
+
+        throw Exception("Server error ${response.statusCode}");
       }
 
-      // ✅ Add multiple images to "images[]"
-      for (int i = 0; i < _images.length; i++) {
-        File imageFile = File(_images[i].path);
-        request.files.add(await http.MultipartFile.fromPath(
-          'images[]', // Must match your PHP input name
-          imageFile.path,
-        ));
+      final data = jsonDecode(response.body);
+
+      // 🔴 BACKEND ERROR WITH 200
+      if (data is Map && data['status'] != 'success') {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: response.body.toString(),
+          statusCode: 200,
+        );
+
+        throw Exception(data['message'] ?? "Backend error");
       }
 
-      try {
-        final streamedResponse = await request.send();
-        final response = await http.Response.fromStream(streamedResponse);
+      final int propertyId = data['P_id'] ?? 0;
 
-        print('Status code: ${response.statusCode}');
-        print('Response body: ${response.body}');
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          int propertyId = 0;
-
-          if (data['status'] == 'success' && data['P_id'] != null) {
-            propertyId = data['P_id'];
-          }
-
-          if (mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.clearSnackBars();
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text("Successfully Registered, Property ID: $propertyId"),
-                  backgroundColor: Colors.green,
-                ),
-              );
-
-              // Only pop after a successful response
-              Future.delayed(const Duration(milliseconds: 50), () {
-                Navigator.pop(context);
-              });
-            });
-          }
-        } else {
-          if (mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              final messenger = ScaffoldMessenger.of(context);
-              messenger.clearSnackBars();
-              messenger.showSnackBar(
-                SnackBar(
-                  content: Text("Failed to upload data. Status code: ${response.statusCode}"),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            });
-          }
-        }
-      } catch (e) {
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final messenger = ScaffoldMessenger.of(context);
-            messenger.clearSnackBars();
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text("Error: $e"),
-                backgroundColor: Colors.red,
-              ),
-            );
-          });
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isSubmitting = false;
-          });
-        }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Successfully Registered, Property ID: $propertyId"),
+            backgroundColor: Colors.green,
+          ),
+        );
+        Navigator.pop(context);
       }
+    } catch (e) {
+      // 🔴 NETWORK / EXCEPTION LOG
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: e.toString(),
+        statusCode: 0,
+      );
 
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error: $e"),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
     }
   }
+
 
   void _showFacilitySelectionDialog() async {
     final result = await showModalBottomSheet<List<String>>(
@@ -3176,15 +3194,6 @@ class _RegisterPropertyState extends State<AddComingFlats> {
     );
   }
 
-  Future<Map<String, String>> getSavedLatLong() async {
-    final prefs = await SharedPreferences.getInstance();
-    final lat = prefs.getDouble('latitude')?.toString() ?? '';
-    final long = prefs.getDouble('longitude')?.toString() ?? '';
-    return {
-      'Latitude': lat,
-      'Longitude': long,
-    };
-  }
 }
 class _FacilityBottomSheet extends StatefulWidget {
   final List<String> options;

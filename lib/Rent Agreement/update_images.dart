@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 class UpdateImages extends StatefulWidget {
   final int propertyId;
@@ -36,33 +37,57 @@ class _MultiImagePickerPageState extends State<UpdateImages> {
 
   // 🔹 Fetch images from the server
   Future<void> fetchImages() async {
+    setState(() => isLoading = true);
+
     try {
-      final response = await http.post(Uri.parse(fetchUrl), body: {
-        'action': 'show',
-        'subid': widget.propertyId.toString(),
-      });
+      final response = await http.post(
+        Uri.parse(fetchUrl),
+        body: {
+          'action': 'show',
+          'subid': widget.propertyId.toString(),
+        },
+      );
 
       print("Response Body: ${response.body}");
 
+      if (response.statusCode != 200) {
+        throw Exception("HTTP ${response.statusCode}");
+      }
+
       final data = json.decode(response.body);
 
-      if (data['status'] == 'success' && data['data'] != null) {
+      if (data is Map &&
+          data['status'] == 'success' &&
+          data['data'] is List) {
         setState(() {
           existingImages = (data['data'] as List)
+              .where((item) => item['M_images'] != null)
               .map((item) =>
           'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item['M_images']}')
               .toList();
-          isLoading = false;
         });
       } else {
-        print("API success false or unexpected data: $data");
-        setState(() => isLoading = false);
+        await BugLogger.log(
+          apiLink: fetchUrl,
+          error: response.body,
+          statusCode: response.statusCode,
+        );
+        print("Unexpected API response: $data");
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: fetchUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Error fetching images: $e");
-      setState(() => isLoading = false);
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
+
 
   // 🔹 Pick new images from gallery
   Future<void> pickImage() async {

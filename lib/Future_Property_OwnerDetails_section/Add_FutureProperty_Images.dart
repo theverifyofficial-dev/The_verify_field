@@ -5,6 +5,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 
+import '../utilities/bug_founder_fuction.dart';
+
 class FuturePropertyFileUploadPage extends StatefulWidget {
   final String idd;
 
@@ -48,10 +50,21 @@ class _FuturePropertyFileUploadPageState extends State<FuturePropertyFileUploadP
           isLoading = false;
         });
       } else {
+        await BugLogger.log(
+          apiLink: baseUrl,
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+
         print("API success false or unexpected data: $data");
         setState(() => isLoading = false);
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: baseUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Error fetching images: $e");
       setState(() => isLoading = false);
     }

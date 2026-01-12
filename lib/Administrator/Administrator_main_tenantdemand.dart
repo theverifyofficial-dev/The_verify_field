@@ -7,6 +7,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Tenant_Details_Demand/ALl_Demands.dart';
 import '../Tenant_Details_Demand/Add_tenantdemand_num.dart';
@@ -67,18 +68,61 @@ class Administrator_Tenant_demands extends StatefulWidget {
 
 class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_demands> {
 
-  Future<List<Catid>> fetchData(id) async {
-    var url = Uri.parse('https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num');
-    final responce = await http.get(url);
-    if (responce.statusCode == 200) {
-      List listresponce = json.decode(responce.body);
-      listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
-    }
-    else {
-      throw Exception('Unexpected error occured!');
+  Future<List<Catid>> fetchData(dynamic id) async {
+    final String apiUrl =
+        'https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num';
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Log API hit
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded is List) {
+          decoded.sort(
+                (a, b) => (b['VTD_id'] ?? 0).compareTo(a['VTD_id'] ?? 0),
+          );
+
+          return decoded
+              .map<Catid>((data) => Catid.FromJson(data))
+              .toList();
+        } else {
+          // 🔴 200 but unexpected format
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "200 but response is not List | Body: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          throw Exception("Invalid response format");
+        }
+      } else {
+        // 🔴 Non-200 response
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        throw Exception('Failed to fetch data');
+      }
+    } catch (e, stack) {
+      // 🔥 Network / JSON / runtime crash
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      rethrow;
     }
   }
+
+
   late Future<List<Catid>> _futureData;
   List<Catid> _allData = [];
   List<Catid> _filteredData = [];

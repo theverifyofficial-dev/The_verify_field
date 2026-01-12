@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Administrator_HomeScreen.dart';
 import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/profile.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
 import 'SocialMediaHandler/video_home.dart';
 import 'ui_decoration_tools/app_images.dart';
+import 'utilities/bug_founder_fuction.dart';
 
 class Catid {
   final String F_Name;
@@ -38,6 +41,7 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
+
   Future<List<Catid>> fetchData_account(llogin) async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${llogin}");
@@ -46,6 +50,12 @@ class _SplashState extends State<Splash> {
       List listresponce = json.decode(responce.body);
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${llogin}',
+        error: responce.body.toString(),
+        statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -72,6 +82,10 @@ class _SplashState extends State<Splash> {
         } else if (role == "Sub Administrator") {
           Navigator.pushReplacement(context, MaterialPageRoute(
             builder: (context) => SubAdminHomeScreen(),
+          ));
+        }else if (role == "Developer") {
+          Navigator.pushReplacement(context, MaterialPageRoute(
+            builder: (context) =>ProfilePage(),
           ));
         } else if (role == "Editor") {
           Navigator.pushReplacement(context, MaterialPageRoute(

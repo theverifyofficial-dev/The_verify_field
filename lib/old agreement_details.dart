@@ -1,5 +1,6 @@
 import 'dart:convert';
-
+import 'dart:developer';
+import 'utilities/bug_founder_fuction.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -69,6 +70,12 @@ class _AgreementDetailsState extends State<AgreementDetails1> {
         throw Exception('Failed to load data');
       }
     } catch (e) {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_application/show_agreement_by_fieldworkar.php?Fieldwarkarnumber=$mobileNumber',
+        error: e.toString(),
+        statusCode: 500,
+      );
       print('Error fetching data: $e');
       setState(() => isLoading = false);
     }

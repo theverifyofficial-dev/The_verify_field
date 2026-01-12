@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
@@ -5,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
 import 'package:verify_feild_worker/Login_page.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
@@ -22,6 +25,7 @@ import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
 import 'New_TenandDemand/Tenant_demand.dart';
+import 'Adminisstrator_Target_details/Targets.dart';
 
 class AdministratorHome_Screen extends StatefulWidget {
   static const route = "/AdministratorHome_Screen";
@@ -54,22 +58,59 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
   }
 
   Future<void> hitAgreementRenewalAPI() async {
-
-    const String url = "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_renewal_cron.php";
+    const String apiUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_renewal_cron.php";
 
     try {
-      final response = await http.get(Uri.parse(url));
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Always log response hit
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
 
       if (response.statusCode == 200) {
-        print("✅ Agreement renewal API triggered successfully.");
-        print("Response: ${response.body}");
+        // Try to validate response content (if JSON)
+        try {
+          final decoded = json.decode(response.body);
+
+          if (decoded is Map && decoded["success"] == true) {
+            print("✅ Agreement renewal API triggered successfully.");
+          } else {
+            // 200 but logical failure
+            await BugLogger.log(
+              apiLink: apiUrl,
+              error: "200 but success=false | Body: ${response.body}",
+              statusCode: response.statusCode,
+            );
+            print("⚠️ Agreement renewal API returned success=false");
+          }
+        } catch (_) {
+          // Not JSON or unexpected format
+          print("✅ Agreement renewal API triggered (non-JSON response).");
+        }
       } else {
+        // 🔴 Non-200 HTTP response
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
         print("⚠️ API failed with status: ${response.statusCode}");
       }
-    } catch (e) {
+    } catch (e, stack) {
+      // 🔥 Network / timeout / runtime error
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
       print("❌ Error hitting agreement renewal API: $e");
     }
   }
+
 
 
   @override
@@ -372,7 +413,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                           crossAxisSpacing: 16,
                           mainAxisSpacing: 16,
                         ),
-                        itemCount: 9,
+                        itemCount: 10,
                         itemBuilder: (context, index) {
                           final List<Map<String, dynamic>> featureItems = [
                             {
@@ -468,6 +509,14 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
                                           context) => const TenantDemand())),
+                            },
+                            {
+                              'image': AppImages.target,
+                              'title': "Target",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (
+                                          context) => const Target())),
                             },
                           ];
 

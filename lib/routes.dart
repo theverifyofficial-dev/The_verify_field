@@ -9,6 +9,7 @@ import 'Administrator/Administator_Add_Rented_Flat_Tabbar.dart' hide Administato
 import 'Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import 'Administrator/Administator_Realestate.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
+import 'Bug_fender_screen.dart';
 import 'Rent Agreement/details_agreement.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Web_query/web_query.dart';
@@ -24,12 +25,15 @@ class Routes {
   static const String fieldAgreementPending = '/fieldAgreementPending';
   static const String adminAgreementPending = '/adminAgreementPending';
   static const String administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
+  static const String errorLogScreen = "/errorLogScreen";
 
   static Map<String, WidgetBuilder> routes = {
     Splash.route: (context) => const Splash(),
     Home_Screen.route: (context) => const Home_Screen(),
     AdministratorHome_Screen.route: (context) => const AdministratorHome_Screen(),
     Login_page.route: (context) => const Login_page(),
+
+
 
     // 🔸 Admin Real Estate View
     administaterShowRealEstate: (context) {
@@ -51,6 +55,26 @@ class Routes {
         buildingId: args['buildingId'],
       );
     },
+
+
+    errorLogScreen: (context) {
+      final args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      final String? api = args['api'] as String?;
+      final String? statusCode = args['status_code']?.toString();
+      final String? date = args['date'] as String?;
+
+      return ErrorLogScreen(
+        fromNotification: args['fromNotification'] ?? false,
+        apiFilter: api,
+        statusCodeFilter: statusCode,
+        dateFilter: date,
+        tabIndex: 1,
+      );
+    },
+
+
 
     // 🔸 Admin Future Property Details
     administaterFuturePropertyDetails: (context) {

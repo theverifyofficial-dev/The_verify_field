@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 import 'package:file_picker/file_picker.dart';
@@ -83,10 +84,12 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
 
                       // Original file
                       File original = File(picked.path);
-                      print("📸 BEFORE SIZE: ${(await original.length() / 1024).toStringAsFixed(2)} KB");
+                      print("📸 BEFORE SIZE: ${(await original.length() / 1024)
+                          .toStringAsFixed(2)} KB");
 
                       // ---- COMPRESS (first pass) ----
-                      XFile? compressedX = await FlutterImageCompress.compressAndGetFile(
+                      XFile? compressedX = await FlutterImageCompress
+                          .compressAndGetFile(
                         original.path,
                         "${original.path}_c1.jpg",
                         quality: 20,
@@ -105,10 +108,12 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                       // ---- RECOMPRESS UNTIL UNDER 150 KB ----
                       int quality = 20;
 
-                      while (await finalFile.length() > 150 * 1024 && quality > 5) {
+                      while (await finalFile.length() > 150 * 1024 &&
+                          quality > 5) {
                         quality -= 5;
 
-                        XFile? retryX = await FlutterImageCompress.compressAndGetFile(
+                        XFile? retryX = await FlutterImageCompress
+                            .compressAndGetFile(
                           finalFile.path,
                           "${finalFile.path}_retry.jpg",
                           quality: quality,
@@ -119,7 +124,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                         finalFile = File(retryX.path); // XFile → File
                       }
 
-                      print("📸 AFTER SIZE: ${(await finalFile.length() / 1024).toStringAsFixed(2)} KB");
+                      print("📸 AFTER SIZE: ${(await finalFile.length() / 1024)
+                          .toStringAsFixed(2)} KB");
 
                       print("📤 UPLOAD ID: ${widget.agreementId}");
 
@@ -135,7 +141,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                       Navigator.pop(context);
 
                       final picked = await ImagePicker()
-                          .pickImage(source: ImageSource.gallery, imageQuality: 90);
+                          .pickImage(
+                          source: ImageSource.gallery, imageQuality: 90);
 
                       if (picked != null) {
                         File imgFile = File(picked.path);
@@ -159,88 +166,102 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   Future<void> _uploadDocument(File file, {required String type}) async {
     if (!mounted) return;
 
+    // 🔹 Validate type
+    if (type != "notry_img" && type != "police_verification_pdf") {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Invalid document type")),
+      );
+      return;
+    }
+
+    // 🔹 Show loader
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (_) => const Center(child: CircularProgressIndicator()),
     );
 
+    const apiUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/update_notry_and_police_verification.php";
+
     try {
-      final request = http.MultipartRequest(
-        "POST",
-        Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/update_notry_and_police_verification.php"),
+      final request = http.MultipartRequest("POST", Uri.parse(apiUrl));
+
+      request.fields["id"] = widget.agreementId.toString(); // ✅ string safe
+
+      // 🔹 Attach file
+      request.files.add(
+        await http.MultipartFile.fromPath(type, file.path),
       );
 
-      request.fields["id"] = widget.agreementId;
-
-      // Add only required field
-      if (type == "notry_img") {
-        request.files.add(
-          await http.MultipartFile.fromPath("notry_img", file.path),
-        );
-      } else if (type == "police_verification_pdf") {
-        request.files.add(
-          await http.MultipartFile.fromPath("police_verification_pdf", file.path),
-        );
-      }
-
-      debugPrint("📤 Upload Started : ${file.path}");
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Uploading $type for agreement ${widget.agreementId}",
+        statusCode: 0,
+      );
 
       final response = await request.send();
       final responseBody = await response.stream.bytesToString();
 
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "HTTP ${response.statusCode} | BODY => $responseBody",
+        statusCode: response.statusCode,
+      );
+
+      if (!mounted) return;
+      Navigator.of(context, rootNavigator: true).pop(); // close loader
+
+      if (response.statusCode != 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Upload failed (${response.statusCode})"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        return;
+      }
+
+      // 🔹 Parse JSON safely
+      final decoded = jsonDecode(responseBody);
+
+      if (decoded is! Map || decoded["success"] != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(decoded["message"] ?? "Upload failed"),
+            backgroundColor: Colors.redAccent,
+          ),
+        );
+        return;
+      }
+
+      // ✅ SUCCESS
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(decoded["message"] ?? "Upload successful"),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      _fetchAgreementDetail(); // refresh UI
+
+    } catch (e, stack) {
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStack: $stack",
+        statusCode: 500,
+      );
+
+
       if (!mounted) return;
       Navigator.of(context, rootNavigator: true).pop();
 
-      debugPrint("🌐 Response Code: ${response.statusCode}");
-      debugPrint("🧾 Raw Response: $responseBody");
-
-      if (response.statusCode == 200) {
-        try {
-          final data = jsonDecode(responseBody);
-
-          if (response.statusCode == 200) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(data["message"] ?? "Upload successful"),
-                backgroundColor: Colors.green,
-              ),
-            );
-            _fetchAgreementDetail();
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text("Failed: ${data['message']}"),
-                backgroundColor: Colors.redAccent,
-              ),
-            );
-          }
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("Response: $responseBody"),
-              backgroundColor: Colors.orange,
-            ),
-          );
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Upload failed: ${response.statusCode}"),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Error: $e"),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Error: $e"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 

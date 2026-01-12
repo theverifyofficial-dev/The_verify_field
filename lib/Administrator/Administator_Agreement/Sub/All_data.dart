@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
 
@@ -57,7 +58,8 @@ class _AgreementDetailsState extends State<AllData> {
   Future<void> fetchAgreements() async {
     try {
       final response = await http.get(
-        Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
+        Uri.parse(
+            'https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php'),
       );
 
       if (response.statusCode == 200) {
@@ -76,9 +78,19 @@ class _AgreementDetailsState extends State<AllData> {
           throw Exception('Invalid data format');
         }
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php",
+            error: response.body.toString(),
+            statusCode: response.statusCode,
+        );
         throw Exception('Failed to load data');
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/show_main_agreement_data.php",
+        error: e.toString(),
+        statusCode: 0,
+      );
       debugPrint('❌ Error fetching data: $e');
       setState(() => isLoading = false);
     }

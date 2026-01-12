@@ -7,7 +7,9 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
+import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'Future_Property_Details.dart';
@@ -395,9 +397,19 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
           _isLoading = false;
         });
       } else {
+        await BugLogger.log(
+            apiLink: url.toString(),
+            error: response.body.toString(),
+            statusCode: response.statusCode,
+        );
         throw Exception("Unexpected error occurred!");
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: e.toString(),
+        statusCode: 0,
+      );
       debugPrint("API Error: $e");
       setState(() => _isLoading = false);
     }

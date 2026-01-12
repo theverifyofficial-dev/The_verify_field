@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Custom_Widget/Custom_backbutton.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
@@ -57,9 +57,19 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
           setState(() => isLoading = false);
         }
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         setState(() => isLoading = false);
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=${widget.agreementId}",
+        error: e.toString(),
+        statusCode: 500,
+      );
       debugPrint("Error: $e");
       setState(() => isLoading = false);
     }

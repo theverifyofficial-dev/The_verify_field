@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Home_Screen_click/All_view_details.dart';
 import '../Home_Screen_click/New_Real_Estate.dart';
 import '../Propert_verigication_Document/Show_tenant.dart';
@@ -83,6 +82,11 @@ class _AllLiveProperty extends State<AdvertisePage> {
     } else if (raw is Map) {
       listResponse = [Map<String, dynamic>.from(raw)];
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_count.php",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       listResponse = const [];
     }
 
@@ -170,6 +174,11 @@ class _AllLiveProperty extends State<AdvertisePage> {
 
       return null;
     } catch (e) {
+      await BugLogger.log(
+          apiLink:"https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("❌ API ERROR: $e");
       return null;
     }

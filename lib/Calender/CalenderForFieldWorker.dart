@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
+import '../utilities/bug_founder_fuction.dart';
 
 
 /// -------- AGREEMENT MODEL --------
@@ -515,6 +516,21 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           w = WebsiteVisitResponse(status: "error", data: []);
         }
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate&Fieldwarkarnumber=${userNumber}",
+            error: responses[0].body.toString(),
+            statusCode: responses[0].statusCode ?? 0,
+        );
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$formattedDate&fieldworkarnumber=${userNumber}",
+          error: responses[1].body.toString(),
+          statusCode: responses[1].statusCode ?? 0,
+        );
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate&field_workar_number=${userNumber}",
+          error: responses[2].body.toString(),
+          statusCode: responses[2].statusCode ?? 0,
+        );
         debugPrint("WebsiteVisit API failed (${responses[2].statusCode})");
         w = WebsiteVisitResponse(status: "error", data: []);
       }

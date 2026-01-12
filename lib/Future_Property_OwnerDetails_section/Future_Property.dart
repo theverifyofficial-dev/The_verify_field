@@ -12,6 +12,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_commercial_property.dart';
 import 'Add_futureProperty.dart';
@@ -400,20 +401,23 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
   }
 
   Future<Map<String, dynamic>> fetchPropertyStatus(int subid) async {
+    String loggValue1 = "Loading...";
+    String loggValue2 = "Loading...";
+    Color statusColor = Colors.grey;
+    int liveCount = 0;
+
+    final api1 =
+        "https://verifyserve.social/WebService4.asmx/check_live_flat_in_main_realesate?subid=$subid&live_unlive=Flat";
+
+    final api2 =
+        "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid";
+
+    final api3 =
+        "https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$subid";
+
     try {
-      final response1 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/check_live_flat_in_main_realesate?subid=$subid&live_unlive=Flat"));
-
-      final response2 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/count_api_for_avability_for_building?subid=$subid"));
-
-      final response3 = await http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/live_unlive_flat_under_building?subid=$subid"));
-
-      String loggValue1 = "Loading...";
-      String loggValue2 = "Loading...";
-      Color statusColor = Colors.grey;
-      int liveCount = 0;
+      /// ---------- API 1 ----------
+      final response1 = await http.get(Uri.parse(api1));
 
       if (response1.statusCode == 200) {
         final body = jsonDecode(response1.body);
@@ -422,15 +426,32 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
           loggValue1 = logg.toString();
           statusColor = (logg == 0) ? Colors.red : Colors.green;
         }
+      } else {
+        await BugLogger.log(
+          apiLink: api1,
+          error: "HTTP ${response1.statusCode} | ${response1.body}",
+          statusCode: response1.statusCode,
+        );
       }
+
+      /// ---------- API 2 ----------
+      final response2 = await http.get(Uri.parse(api2));
 
       if (response2.statusCode == 200) {
         final body = jsonDecode(response2.body);
         if (body is List && body.isNotEmpty) {
-          final logg = body[0]['logg'];
-          loggValue2 = logg.toString();
+          loggValue2 = body[0]['logg'].toString();
         }
+      } else {
+        await BugLogger.log(
+          apiLink: api2,
+          error: "HTTP ${response2.statusCode} | ${response2.body}",
+          statusCode: response2.statusCode,
+        );
       }
+
+      /// ---------- API 3 ----------
+      final response3 = await http.get(Uri.parse(api3));
 
       if (response3.statusCode == 200) {
         final body3 = jsonDecode(response3.body);
@@ -442,6 +463,12 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
             }
           }
         }
+      } else {
+        await BugLogger.log(
+          apiLink: api3,
+          error: "HTTP ${response3.statusCode} | ${response3.body}",
+          statusCode: response3.statusCode,
+        );
       }
 
       return {
@@ -450,7 +477,14 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
         "statusColor": statusColor,
         "liveCount": liveCount,
       };
-    } catch (e) {
+    } catch (e, stack) {
+      /// 🔥 ANY UNEXPECTED ERROR
+      await BugLogger.log(
+        apiLink: "fetchPropertyStatus",
+        error: "$e\n$stack",
+        statusCode: 500,
+      );
+
       return {
         "loggValue1": "Error",
         "loggValue2": "Error",
@@ -459,6 +493,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
       };
     }
   }
+
 
   Future<void> fetchAllStatuses() async {
     if (_allProperties.isEmpty) return;
@@ -478,40 +513,56 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
       _isLoading = true;
     });
 
-    print("FIELDWORKER NUMBER: $_number");
-
     try {
-      var url = Uri.parse(
+      final url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$_number",
       );
+
       final response = await http.get(url);
 
+      /// ✅ SUCCESS CASE
       if (response.statusCode == 200) {
-        print("API Response Body: ${response.body}");
-
-        List<dynamic> listResponse = json.decode(response.body);
+        final List<dynamic> listResponse = json.decode(response.body);
 
         listResponse.sort((a, b) => b['id'].compareTo(a['id']));
 
-        _allProperties = listResponse
-            .map((data) => Catid.FromJson(data))
-            .toList();
+        _allProperties =
+            listResponse.map((data) => Catid.FromJson(data)).toList();
 
-        _filteredProperties = _allProperties;
+        _filteredProperties = List.from(_allProperties);
+
+        setState(() {
+          _isLoading = false;
+          propertyCount = _allProperties.length;
+        });
+      }
+      /// ❌ ERROR CASE
+      else {
+        await BugLogger.log(
+          apiLink:
+          "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$_number",
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+        );
 
         setState(() {
           _isLoading = false;
         });
-      } else {
-        throw Exception('Unexpected error occurred!');
       }
-    } catch (e) {
-      print("Error: $e");
+    } catch (e, stack) {
+      await BugLogger.log(
+        apiLink:
+        "https://verifyserve.social/WebService4.asmx/display_future_property_by_field_workar_number?fieldworkarnumber=$_number",
+        error: "$e\n$stack",
+        statusCode: 500,
+      );
+
       setState(() {
         _isLoading = false;
       });
     }
   }
+
 
   Future<void> _refreshProperties() async {
     _propertyStatuses.clear();
@@ -556,6 +607,11 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
           });
         }
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${_number}",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         if (mounted) {
           setState(() {
             bookFlats = 0;
@@ -565,6 +621,11 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/GetTotalFlats_Live_under_building?field_workar_number=${_number}",
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Error fetching flats status: $e");
       if (mounted) {
         setState(() {
@@ -594,6 +655,11 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
           });
         }
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=${_number}",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+          );
         if (mounted) {
           setState(() {
             totalFlats = 0;
@@ -602,6 +668,11 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty>
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/GetTotalFlats_under_building?field_workar_number=${_number}",
+        error: e.toString(),
+        statusCode: 500,
+      );
       if (mounted) {
         setState(() {
           totalFlats = 0;

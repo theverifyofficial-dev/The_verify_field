@@ -12,8 +12,8 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
-
 
 
 class Add_Flatunder_futureproperty extends StatefulWidget {
@@ -388,9 +388,19 @@ class _Add_Flatunder_futurepropertyState extends State<Add_Flatunder_futureprope
         showSnack("Property Added Successfully");
         Navigator.pop(context);
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php",
+            error: response.data.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         showSnack("Something went wrong");
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_flat_in_future_property.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("❌ Upload error: $e");
       showSnack("Upload failed: $e");
     } finally {

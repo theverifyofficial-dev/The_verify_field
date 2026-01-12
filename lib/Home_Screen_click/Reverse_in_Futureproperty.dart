@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import 'New_Real_Estate.dart';
 
@@ -59,9 +60,19 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
           setState(() => propertyData = null);
         }
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=$id",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         setState(() => propertyData = null);
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/display_future_property_by_id?id=$id",
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("🔴 Error: $e");
       setState(() => propertyData = null);
     }
@@ -103,6 +114,11 @@ class _ReverseInFuturePropertyState extends State<ReverseInFutureProperty> {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/reverised.php?pid=${widget.id}&subid=$subid",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("🔴 Error in second API: $e");
     }
 

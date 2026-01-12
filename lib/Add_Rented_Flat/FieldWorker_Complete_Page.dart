@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../../Add_Rented_Flat/Action_Form.dart';
 import '../../Add_Rented_Flat/Add_Tenent.dart';
@@ -596,6 +597,12 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
             .toList();
       }
     }
+    // 🔴 LOG BACKEND FAILURE
+    await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_fieldworkar.php?field_workar_number=$_fieldworkarnumber",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+    );
     throw Exception("Failed to load data");
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
@@ -613,6 +620,12 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
         throw Exception("API success = false");
       }
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception("Failed to load tenants");
     }
   }
@@ -632,6 +645,11 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
         return [];
       }
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception("Failed to fetch owner data");
     }
   }
@@ -671,6 +689,11 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
 
     final decoded = json.decode(r.body) as Map<String, dynamic>;
     if (decoded['success'] != true) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid",
+          error: r.body.toString(),
+          statusCode: r.statusCode ?? 0,
+      );
       throw Exception('API error: ${decoded['message'] ?? 'unknown'}');
     }
 
@@ -678,6 +701,7 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
     return data
         .map((e) => FirstPaymentRecord.fromJson(e as Map<String, dynamic>))
         .toList();
+
   }
 
   /// Optional: get the latest row (highest id) for that subid.
@@ -1311,6 +1335,11 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
 
       return res.statusCode == 200 && raw.toLowerCase().contains("success");
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/change_final_amount.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       debugPrint("API ERROR: $e");
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -12,6 +12,7 @@ import 'package:verify_feild_worker/Administrator/All_Rented_Flat/Pending_Add%20
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
 import 'package:verify_feild_worker/Propert_verigication_Document/Add_Property_Veerification.dart';
 import 'package:verify_feild_worker/Upcoming/add_coming_flats.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import 'dart:io';
 import '../property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -308,7 +309,14 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
     if (response.statusCode == 200) {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
+
     } else {
+
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.idd}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -319,6 +327,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -329,6 +342,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -339,6 +357,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -349,6 +372,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -359,6 +387,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -369,6 +402,11 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
@@ -379,47 +417,79 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       List listResponse = json.decode(response.body);
       return listResponse.map((data) => Ground.fromJson(data)).toList();
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occurred!');
     }
   }
 
   Future<List<FutureProperty2>> fetchData() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.idd}",
-    );
+    final apiUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php"
+        "?id=${widget.idd}";
 
-    final response = await http.get(url);
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
 
-    if (response.statusCode != 200) {
-      throw Exception('API Error: ${response.statusCode}');
-    }
-
-    final decoded = json.decode(response.body);
-    List listResponse = [];
-
-    if (decoded is List) {
-      listResponse = decoded;
-    }
-    else if (decoded is Map<String, dynamic>) {
-      if (decoded['data'] is List) {
-        listResponse = decoded['data'];
+      if (response.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+        );
+        return [];
       }
-      else if (decoded['Table'] is List) {
-        listResponse = decoded['Table'];
+
+      final decoded = json.decode(response.body);
+      List listResponse = [];
+
+      if (decoded is List) {
+        listResponse = decoded;
+      } else if (decoded is Map<String, dynamic>) {
+        if (decoded['data'] is List) {
+          listResponse = decoded['data'];
+        } else if (decoded['Table'] is List) {
+          listResponse = decoded['Table'];
+        } else {
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "No list found in response: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          return [];
+        }
+      } else {
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Unexpected response format: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        return [];
       }
-      else {
-        throw Exception("No list found in API response");
-      }
+
+      listResponse.sort(
+            (a, b) => (b['id'] ?? '')
+            .toString()
+            .compareTo((a['id'] ?? '').toString()),
+      );
+
+      return listResponse
+          .map((e) => FutureProperty2.fromJson(e))
+          .toList();
+    } catch (e) {
+      // ✅ Network / runtime error
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: e.toString(),
+        statusCode: 0,
+      );
+      return [];
     }
-
-    listResponse.sort(
-          (a, b) => (b['id'] ?? '').toString().compareTo((a['id'] ?? '').toString()),
-    );
-
-    return listResponse
-        .map((e) => FutureProperty2.fromJson(e))
-        .toList();
   }
+
 
   Future<List<DocumentMainModel_F>> fetchCarouselData() async {
     final response = await http.get(Uri.parse('https://verifyserve.social/WebService4.asmx/display_future_property_multiple_images?subid=${widget.idd}'));
@@ -431,6 +501,12 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
         );
       }).toList();
     } else {
+
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/display_future_property_multiple_images?subid=${widget.idd}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Failed to load data');
     }
   }

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Statistics/Progressbar.dart';
+import 'utilities/bug_founder_fuction.dart';
 
 class TargetMonthlyResult {
   final DateTime periodStartUtc;
@@ -180,18 +181,38 @@ class _Target_MonthlyState extends State<Target_Monthly> {
 
 
   Future<void> _loadMonthlyTarget() async {
-    setState(() { _mtLoading = true; _mtError = null; });
+    setState(() {
+      _mtLoading = true;
+      _mtError = null;
+    });
+
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php'
+          '?field_workar_number=$_number',
+    );
+
     try {
-      final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php?field_workar_number=$_number',
-      );
       final resp = await http.get(uri);
+
+      // 🔴 HTTP ERROR
       if (resp.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: resp.body.toString(),
+          statusCode: resp.statusCode,
+        );
         throw Exception('HTTP ${resp.statusCode}');
       }
 
       final root = json.decode(resp.body) as Map<String, dynamic>;
+
+      // 🔴 API LOGIC ERROR
       if (root['success'] != true) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: resp.body.toString(),
+          statusCode: 200,
+        );
         throw Exception('API returned success=false');
       }
 
@@ -205,15 +226,29 @@ class _Target_MonthlyState extends State<Target_Monthly> {
         _mtStartRaw   = start;
         _mtEndExclRaw = endExcl;
         _mtAchieved   = booked;
-        _mtData       = Map<String, dynamic>.from(d); // <— stash entire data map
+        _mtData       = Map<String, dynamic>.from(d);
       });
-    } catch (e) {
+    } catch (e, stack) {
+      // 🔴 RUNTIME / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
+
       if (!mounted) return;
-      setState(() { _mtError = e.toString(); });
+      setState(() {
+        _mtError = e.toString();
+      });
     } finally {
-      if (mounted) setState(() { _mtLoading = false; });
+      if (mounted) {
+        setState(() {
+          _mtLoading = false;
+        });
+      }
     }
   }
+
 
   Future<void> _loaduserdata() async {
     final prefs = await SharedPreferences.getInstance();
@@ -229,42 +264,100 @@ class _Target_MonthlyState extends State<Target_Monthly> {
     required int fieldWorkerNumber,
   }) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_book_flat_for_month.php?field_workar_number=$_number',
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/'
+          'count_api_for_book_flat_for_month.php?field_workar_number=$fieldWorkerNumber',
     );
-    final resp = await http.get(uri);
-    if (resp.statusCode != 200) {
-      throw Exception('HTTP ${resp.statusCode}: ${resp.body}');
+
+    try {
+      final resp = await http.get(uri);
+
+      // 🔴 HTTP ERROR
+      if (resp.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: resp.body.toString(),
+          statusCode: resp.statusCode,
+        );
+        throw Exception('HTTP ${resp.statusCode}');
+      }
+
+      final root = json.decode(resp.body) as Map<String, dynamic>;
+
+      // 🔴 API LOGIC ERROR
+      if (root['success'] != true) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: resp.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception('API returned success=false');
+      }
+
+      // ✅ SUCCESS → NO BUGLOGGER
+      return TargetMonthlyResult.fromRoot(root);
+    } catch (e, stack) {
+      // 🔴 NETWORK / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
+      rethrow;
     }
-    final root = json.decode(resp.body) as Map<String, dynamic>;
-    if (root['success'] != true) {
-      throw Exception('API returned success=false');
-    }
-    return TargetMonthlyResult.fromRoot(root);
   }
 
-  Future<void> _fetchBuildingCount() async {
-    try {
-      final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_building.php?fieldworkarnumber=${_number}',
-      );
 
+
+  Future<void> _fetchBuildingCount() async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/'
+          'count_api_for_building.php?fieldworkarnumber=$_number',
+    );
+
+    try {
       final res = await http.get(uri).timeout(const Duration(seconds: 8));
+
+      // 🔴 HTTP ERROR → LOG FIRST
       if (res.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: res.statusCode,
+        );
         throw Exception('HTTP ${res.statusCode}');
       }
 
       final body = jsonDecode(res.body);
+
+      // 🔴 API FAILURE WITH 200 STATUS
+      if (body is Map && body['success'] == false) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception('API returned success=false');
+      }
+
       final data = body['data'];
       final count = (data is Map && data['logg'] != null)
           ? int.tryParse(data['logg'].toString()) ?? 0
           : 0;
 
       if (!mounted) return;
+
       setState(() {
-        _buildingCount = count;  // e.g. 187
+        _buildingCount = count;
         _buildingErr = null;
       });
-    } catch (e) {
+    } catch (e, stack) {
+      // 🔴 NETWORK / TIMEOUT / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
+
       if (!mounted) return;
       setState(() {
         _buildingCount = 0;
@@ -273,168 +366,271 @@ class _Target_MonthlyState extends State<Target_Monthly> {
     }
   }
 
+
   Future<void> _fetchBuyLiveCount() async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=$_number',
+    );
+
     try {
-      final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_buy_field.php?field_workar_number=$_number',
-      );
+      final res = await http
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
 
-      final res = await http.get(uri).timeout(const Duration(seconds: 8));
-
-      if (res.statusCode != 200) throw Exception('HTTP ${res.statusCode}');
+      // 🔴 HTTP ERROR → LOG FIRST
+      if (res.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: res.statusCode,
+        );
+        throw Exception('HTTP ${res.statusCode}');
+      }
 
       final body = jsonDecode(res.body);
+
+      // 🔴 API FAILURE WITH 200 STATUS
+      if (body is Map && body['success'] == false) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception('API returned success=false');
+      }
+
       final data = body['data'] ?? {};
 
-      // Support all possible key names (backend changes randomly)
       int count = 0;
-
       if (data is Map) {
-        count = (data['total_live_rent_flat'] ??
-            data['total_live_buy_flat'] ??
-            data['total_live'] ??
-            data['logg'])
-            ?.toInt() ??
-            int.tryParse(data['total_live_rent_flat']?.toString() ?? '0') ??
-            0;
+        count =
+            (data['total_live_buy_flat'] ??
+                data['total_live_rent_flat'] ??
+                data['total_live'] ??
+                data['logg'])
+                ?.toInt() ??
+                int.tryParse(
+                  data['total_live_buy_flat']?.toString() ??
+                      data['total_live_rent_flat']?.toString() ??
+                      data['total_live']?.toString() ??
+                      data['logg']?.toString() ??
+                      '0',
+                ) ??
+                0;
       }
 
       if (!mounted) return;
-
       setState(() {
         _buyLiveCount = count;
         _buyErr = null;
       });
-    } catch (e) {
+    } catch (e, stack) {
+      // 🔴 NETWORK / TIMEOUT / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
+
       if (!mounted) return;
       setState(() {
         _buyLiveCount = 0;
-        _buyErr = 'Failed to load buy live count: $e';
+        _buyErr = 'Failed to load buy live count';
       });
     }
   }
 
+
   Future<void> _fetchLiveCount() async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$_number',
+    );
+
     setState(() {
       _loadingLive = true;
       _liveErr = null;
     });
 
     try {
-      final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$_number',
-      );
+      final res = await http
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
 
-      final res = await http.get(uri).timeout(const Duration(seconds: 8));
+      // 🔴 HTTP ERROR → LOG FIRST
       if (res.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: res.statusCode,
+        );
         throw Exception('HTTP ${res.statusCode}');
       }
 
       final root = jsonDecode(res.body);
 
-      final data = root['data'] as Map?;
+      // 🔴 API LOGIC ERROR (200 but success=false)
+      if (root is Map && root['success'] == false) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception('API returned success=false');
+      }
 
-      // 👈 correct key from this API
-      final count = (data?['total_live_rent_flat'] as num?)?.toInt() ?? 0;
+      final data = root['data'] as Map?;
+      final count =
+          (data?['total_live_rent_flat'] as num?)?.toInt() ?? 0;
 
       if (!mounted) return;
 
       setState(() {
         _liveCount = count;
-        _loadingLive = false;
         _liveErr = null;
       });
-    } catch (e) {
-      if (!mounted) return;
+    } catch (e, stack) {
+      // 🔴 NETWORK / TIMEOUT / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
 
+      if (!mounted) return;
       setState(() {
         _liveCount = 0;
-        _loadingLive = false;
-        _liveErr = 'Failed to load live count: $e';
+        _liveErr = 'Failed to load live count';
       });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loadingLive = false;
+        });
+      }
     }
   }
 
-  Future<void> _fetchCommercialLiveCount() async {
-    try {
-      final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=$_number',
-      );
 
-      final res = await http.get(uri).timeout(const Duration(seconds: 8));
+  Future<void> _fetchCommercialLiveCount() async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_commercial_space.php?field_workar_number=$_number',
+    );
+
+    try {
+      final res = await http
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
+
+      // 🔴 HTTP ERROR → LOG FIRST
       if (res.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: res.statusCode,
+        );
         throw Exception('HTTP ${res.statusCode}');
       }
 
       final body = jsonDecode(res.body);
-      final data = body['data'] ?? {};
 
+      // 🔴 API LOGIC ERROR (200 but success=false)
+      if (body is Map && body['success'] == false) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception('API returned success=false');
+      }
+
+      final data = body['data'] ?? {};
       int count = 0;
 
       if (data is Map) {
-        // Try all possible backend keys
-        count = (data['total_live_commercial'] ??
-            data['total_live_rent_flat'] ??   // NEW API sending this
-            data['total_live'] ??
-            data['logg'])
-            ?.toInt() ??
-            int.tryParse(data['total_live_commercial']?.toString() ?? '0') ??
-            int.tryParse(data['total_live_rent_flat']?.toString() ?? '0') ??
-            0;
+        count =
+            (data['total_live_commercial'] ??
+                data['total_live_rent_flat'] ??
+                data['total_live'] ??
+                data['logg'])
+                ?.toInt() ??
+                int.tryParse(
+                  data['total_live_commercial']?.toString() ??
+                      data['total_live_rent_flat']?.toString() ??
+                      data['total_live']?.toString() ??
+                      data['logg']?.toString() ??
+                      '0',
+                ) ??
+                0;
       }
 
       if (!mounted) return;
-
       setState(() {
         _commercialLiveCount = count;
         _commercialErr = null;
       });
-    } catch (e) {
+    } catch (e, stack) {
+      // 🔴 NETWORK / TIMEOUT / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
+
       if (!mounted) return;
       setState(() {
         _commercialLiveCount = 0;
-        _commercialErr = 'Failed to load commercial live count: $e';
+        _commercialErr = 'Failed to load commercial live count';
       });
     }
   }
 
-  Future<void> _fetchAgreementCount() async {
-    try {
-      final uri = Uri.parse(
-        'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=$_number',
-      );
 
-      final res = await http.get(uri).timeout(const Duration(seconds: 8));
+  Future<void> _fetchAgreementCount() async {
+    final uri = Uri.parse(
+      'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_for_agreement.php?Fieldwarkarnumber=$_number',
+    );
+
+    try {
+      final res = await http
+          .get(uri)
+          .timeout(const Duration(seconds: 8));
+
+      // 🔴 HTTP ERROR → LOG FIRST
       if (res.statusCode != 200) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: res.statusCode,
+        );
         throw Exception('HTTP ${res.statusCode}');
       }
 
       final body = jsonDecode(res.body);
-      final data = body['data'] ?? {};
 
+      // 🔴 API LOGIC ERROR (200 but success=false)
+      if (body is Map && body['success'] == false) {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: res.body.toString(),
+          statusCode: 200,
+        );
+        throw Exception('API returned success=false');
+      }
+
+      final data = body['data'] ?? {};
       int count = 0;
 
       if (data is Map) {
-        count = (data['total_agreements'] ??     // NEW API key
-            data['agreements'] ??            // fallback 1
-            data['logg'] ??                  // old API
-            data['total_agreement'] ??       // fallback 2
-            data['total']                    // fallback 3
-        ) is int
-            ? (data['total_agreements'] ??
-            data['agreements'] ??
-            data['logg'] ??
-            data['total_agreement'] ??
-            data['total'])
-            : int.tryParse(
-            (data['total_agreements'] ??
+        final raw =
+            data['total_agreements'] ??
                 data['agreements'] ??
                 data['logg'] ??
                 data['total_agreement'] ??
-                data['total'])
-                ?.toString() ??
-                '0') ??
-            0;
+                data['total'];
+
+        count = raw is int
+            ? raw
+            : int.tryParse(raw?.toString() ?? '0') ?? 0;
       }
 
       if (!mounted) return;
@@ -443,17 +639,26 @@ class _Target_MonthlyState extends State<Target_Monthly> {
         _agreementCount = count;
         _agreementErr = null;
       });
-    } catch (e) {
+    } catch (e, stack) {
+      // 🔴 NETWORK / TIMEOUT / PARSE ERROR
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: '$e\n$stack',
+        statusCode: 0,
+      );
+
       if (!mounted) return;
       setState(() {
         _agreementCount = 0;
-        _agreementErr = 'Failed to load agreement count: $e';
+        _agreementErr = 'Failed to load agreement count';
       });
     }
   }
 
+
   int get _mtBuy  => (_mtData?['buy_count']  as num?)?.toInt() ?? 0;
   int get _mtRent => (_mtData?['rent_count'] as num?)?.toInt() ?? 0;
+
 
   @override
   Widget build(BuildContext context) {
@@ -533,11 +738,6 @@ class _Target_MonthlyState extends State<Target_Monthly> {
                   ),
                 ],
               ),
-
-
-
-
-
 
               // ===================== RENT SECTION =====================
               const SizedBox(height: 16),

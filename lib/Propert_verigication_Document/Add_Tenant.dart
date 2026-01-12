@@ -5,6 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../ui_decoration_tools/app_images.dart';
 import 'Show_tenant.dart';
@@ -72,7 +73,9 @@ class _TenantDetailsState extends State<TenantDetails> {
   final TextEditingController _Tenant_WorkProfile = TextEditingController();
   final TextEditingController _Tenant_Members = TextEditingController();
 
-  Future<void> fetchdata(Tenant_Name,Tenant_Rented_Amount,Tenant_Rented_Date,Tenant_Number,Tenant_Email,Tenant_WorkProfile,Tenant_Members) async{
+  Future<void> fetchdata(
+      Tenant_Name,Tenant_Rented_Amount,Tenant_Rented_Date,Tenant_Number,Tenant_Email,Tenant_WorkProfile,Tenant_Members
+      ) async{
     final responce = await http.get(Uri.parse
       ('https://verifyserve.social/WebService4.asmx/insert_Verify_AddTenant_Under_Property_Table?Property_Image=$_property_image&Property_Number=$_Property_Number&PropertyAddress=$_PropertyAddress&Looking_Prop_=$_Looking_Prop_&maintence=$_maintence&FLoorr=$_FLoorr&Flat=$_Flat&Tenant_Name=$Tenant_Name&Tenant_Rented_Amount=$Tenant_Rented_Amount&Tenant_Rented_Date=$Tenant_Rented_Date&bhk=$_bhk_bhk&Tenant_Number=$Tenant_Number&Tenant_Email=$Tenant_Email&Tenant_WorkProfile=$Tenant_WorkProfile&Tenant_Members=$Tenant_Members&Owner_Name=$_Owner_Name&Owner_Number=$_Owner_Number&Subid=$data1&fieldworkarname=$_fieldworkarname&fieldworkarnumber=$_fieldworkarnumber'));
     //final responce = await http.get(Uri.parse('https://verifyserve.social/WebService2.asmx/Add_Tenants_Documaintation?Tenant_Name=gjhgjg&Tenant_Rented_Amount=entamount&Tenant_Rented_Date=entdat&About_tenant=bout&Tenant_Number=enentnum&Tenant_Email=enentemail&Tenant_WorkProfile=nantwor&Tenant_Members=enentmember&Owner_Name=wnername&Owner_Number=umb&Owner_Email=emi&Subid=3'));
@@ -85,6 +88,11 @@ class _TenantDetailsState extends State<TenantDetails> {
       //SharedPreferences prefs = await SharedPreferences.getInstance();
 
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/insert_Verify_AddTenant_Under_Property_Table?Property_Image=$_property_image&Property_Number=$_Property_Number&PropertyAddress=$_PropertyAddress&Looking_Prop_=$_Looking_Prop_&maintence=$_maintence&FLoorr=$_FLoorr&Flat=$_Flat&Tenant_Name=$Tenant_Name&Tenant_Rented_Amount=$Tenant_Rented_Amount&Tenant_Rented_Date=$Tenant_Rented_Date&bhk=$_bhk_bhk&Tenant_Number=$Tenant_Number&Tenant_Email=$Tenant_Email&Tenant_WorkProfile=$Tenant_WorkProfile&Tenant_Members=$Tenant_Members&Owner_Name=$_Owner_Name&Owner_Number=$_Owner_Number&Subid=$data1&fieldworkarname=$_fieldworkarname&fieldworkarnumber=$_fieldworkarnumber",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       print('Failed Registration');
     }
 
@@ -104,6 +112,11 @@ class _TenantDetailsState extends State<TenantDetails> {
       //SharedPreferences prefs = await SharedPreferences.getInstance();
 
     } else {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/add_rent_property?owner_name=$owner_name&owner_number=$owner_number&tenant_name=$tenant_name&tanant_number=$tanant_number&property_address=$property_address&rent_amount=$rent_amount&building_id=$building_id&feildworkar_name=$feildworkar_name&feildworkar_number=$feildworkar_number&random_text=$random_text",
+        error: responce.body.toString(),
+        statusCode: responce.statusCode ?? 0,
+      );
       print('Failed Registration');
     }
 
@@ -120,6 +133,11 @@ class _TenantDetailsState extends State<TenantDetails> {
       //SharedPreferences prefs = await SharedPreferences.getInstance();
 
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=$data1&looking=Tenant_Added",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       print('Failed Registration');
     }
 

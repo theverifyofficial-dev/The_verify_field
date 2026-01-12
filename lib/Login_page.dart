@@ -7,10 +7,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Reset_password/forget.dart';
+import 'package:verify_feild_worker/profile.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Home_Screen.dart';
 import 'SocialMediaHandler/video_home.dart';
+import 'utilities/bug_founder_fuction.dart';
 import 'constant.dart';
 
 class Catid {
@@ -53,6 +55,12 @@ class _Login_pageState extends State<Login_page> {
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: url.toString(),
+        error: responce.body.toString(),
+        statusCode: responce.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -233,32 +241,133 @@ class _Login_pageState extends State<Login_page> {
         )
     ));
   }
-  Future<void> loginUser(BuildContext context, String number, String password) async {
+  // Future<void> loginUser(BuildContext context, String number, String password) async {
+  //   try {
+  //     // Get FCM Token
+  //     FirebaseMessaging messaging = FirebaseMessaging.instance;
+  //     String? fcmToken = await messaging.getToken();
+  //     print("🔑 FCM Token: $fcmToken");
+  //
+  //     // API call with number, password, and token
+  //     final response = await http.get(Uri.parse(
+  //       "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
+  //     ));
+  //
+  //     print("📩 Raw Response: ${response.body}");
+  //
+  //     final data = json.decode(response.body);
+  //
+  //     if (data is List && data.isNotEmpty && data[0]["status"] == "success") {
+  //       final user = data[0];
+  //
+  //       // Save data in SharedPreferences
+  //       SharedPreferences prefs = await SharedPreferences.getInstance();
+  //       prefs.setString('name', user["FName"]);
+  //       prefs.setString('number', user["FNumber"]);
+  //       prefs.setString('post', user["FAadharCard"]);
+  //       prefs.setString('location', user["F_Location"] ?? "");
+  //       prefs.setString('fcmToken', user["FCM"]);
+  //
+  //       Fluttertoast.showToast(
+  //         msg: user["message"] ?? "Login Successful ✅",
+  //         backgroundColor: Colors.green,
+  //         textColor: Colors.white,
+  //       );
+  //
+  //       // Navigate by role
+  //       if (user["FAadharCard"] == "Administrator") {
+  //         Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
+  //       }
+  //       else if (user["FAadharCard"] == "Sub Administrator") {
+  //         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
+  //           return SubAdminHomeScreen();
+  //         }));
+  //
+  //       }
+  //       else if (user["FAadharCard"] == "FieldWorkar") {
+  //         Navigator.of(context).pushReplacementNamed(Home_Screen.route);
+  //       }
+  //       else if (user["FAadharCard"] == "Editor") {
+  //         Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
+  //           return VideoHomepage();
+  //         }));
+  //       }
+  //       else {
+  //
+  //         Fluttertoast.showToast(
+  //           msg: "Unknown Role: ${user["FAadharCard"]}",
+  //           backgroundColor: Colors.orange,
+  //           textColor: Colors.white,
+  //         );
+  //       }
+  //     } else {
+  //       // 🔴 LOG BACKEND FAILURE
+  //       await BugLogger.log(
+  //         apiLink: 'https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=',
+  //         error: response.body.toString(),
+  //         statusCode: response.statusCode,
+  //       );
+  //       Fluttertoast.showToast(
+  //         msg: "Invalid Number or Password ❌",
+  //         backgroundColor: Colors.red,
+  //         textColor: Colors.white,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     // 🔴 LOG BACKEND FAILURE
+  //     await BugLogger.log(
+  //       apiLink: 'https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=',
+  //       error: e.toString(),
+  //       statusCode: 0,
+  //     );
+  //     print("❌ Error: $e");
+  //     Fluttertoast.showToast(
+  //       msg: "Error: $e",
+  //       backgroundColor: Colors.red,
+  //       textColor: Colors.white,
+  //     );
+  //   }
+  // }
+  Future<void> loginUser(
+      BuildContext context,
+      String number,
+      String password,
+      ) async {
+    String? fcmToken;
+
     try {
-      // Get FCM Token
+      // 🔹 Get FCM Token
       FirebaseMessaging messaging = FirebaseMessaging.instance;
-      String? fcmToken = await messaging.getToken();
-      print("🔑 FCM Token: $fcmToken");
+      fcmToken = await messaging.getToken();
+      debugPrint("🔑 FCM Token: $fcmToken");
 
-      // API call with number, password, and token
-      final response = await http.get(Uri.parse(
-        "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin?FNumber=$number&Password=$password&FCM=$fcmToken",
-      ));
+      final uri = Uri.parse(
+        "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin"
+            "?FNumber=$number&Password=$password&FCM=${fcmToken ?? ''}",
+      );
 
-      print("📩 Raw Response: ${response.body}");
+      // 🔹 API Call
+      final response = await http.get(uri);
 
-      final data = json.decode(response.body);
+      debugPrint("📩 Status Code: ${response.statusCode}");
+      debugPrint("📩 Raw Response: ${response.body}");
 
-      if (data is List && data.isNotEmpty && data[0]["status"] == "success") {
-        final user = data[0];
+      final decoded = json.decode(response.body);
 
-        // Save data in SharedPreferences
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('name', user["FName"]);
-        prefs.setString('number', user["FNumber"]);
-        prefs.setString('post', user["FAadharCard"]);
-        prefs.setString('location', user["F_Location"] ?? "");
-        prefs.setString('fcmToken', user["FCM"]);
+      // 🔹 SUCCESS CASE
+      if (decoded is List &&
+          decoded.isNotEmpty &&
+          decoded[0] is Map &&
+          decoded[0]["status"] == "success") {
+        final user = decoded[0];
+
+        // 🔹 Save user data
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('name', user["FName"] ?? "");
+        await prefs.setString('number', user["FNumber"] ?? "");
+        await prefs.setString('post', user["FAadharCard"] ?? "");
+        await prefs.setString('location', user["F_Location"] ?? "");
+        await prefs.setString('fcmToken', fcmToken ?? "");
 
         Fluttertoast.showToast(
           msg: user["message"] ?? "Login Successful ✅",
@@ -266,46 +375,67 @@ class _Login_pageState extends State<Login_page> {
           textColor: Colors.white,
         );
 
-        // Navigate by role
-        if (user["FAadharCard"] == "Administrator") {
-          Navigator.of(context).pushReplacementNamed(AdministratorHome_Screen.route);
-        }
-        else if (user["FAadharCard"] == "Sub Administrator") {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
-            return SubAdminHomeScreen();
-          }));
+        // 🔹 Role-based navigation
+        final role = user["FAadharCard"];
 
-        }
-        else if (user["FAadharCard"] == "FieldWorkar") {
-          Navigator.of(context).pushReplacementNamed(Home_Screen.route);
-        }
-        else if (user["FAadharCard"] == "Editor") {
-          Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context){
-            return VideoHomepage();
-          }));
-        }
-        else {
+        if (role == "Administrator") {
+          Navigator.of(context)
+              .pushReplacementNamed(AdministratorHome_Screen.route);
+        } else if (role == "Sub Administrator") {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => SubAdminHomeScreen()),
+          );
+        } else if (role == "FieldWorkar") {
+          Navigator.of(context)
+              .pushReplacementNamed(Home_Screen.route);
+        } else if (role == "Editor") {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => VideoHomepage()),
+          );
+        } else if (role == "Developer") { //just for show error bug founder
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => ProfilePage()),
+          );
+        } else {
           Fluttertoast.showToast(
-            msg: "Unknown Role: ${user["FAadharCard"]}",
+            msg: "Unknown Role: $role",
             backgroundColor: Colors.orange,
             textColor: Colors.white,
           );
         }
-      } else {
+      }
+      // 🔴 LOGIN FAILED (WRONG CREDENTIALS / BACKEND ERROR)
+      else {
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: response.body.toString(),
+          statusCode: response.statusCode,
+        );
+
         Fluttertoast.showToast(
           msg: "Invalid Number or Password ❌",
           backgroundColor: Colors.red,
           textColor: Colors.white,
         );
       }
-    } catch (e) {
-      print("❌ Error: $e");
+    }
+    // 🔴 NETWORK / PARSE / RUNTIME ERROR
+    catch (e, stack) {
+      await BugLogger.log(
+        apiLink:
+        "https://verifyserve.social/WebService4.asmx/new_login_api_for_field_and_admin"
+            "?FNumber=$number&Password=$password&FCM=${fcmToken ?? ''}",
+        error: "$e\n$stack",
+        statusCode: 0,
+      );
+
+      debugPrint("❌ Login Error: $e");
+
       Fluttertoast.showToast(
-        msg: "Error: $e",
+        msg: "Something went wrong. Please try again.",
         backgroundColor: Colors.red,
         textColor: Colors.white,
       );
     }
-  }
-
+}
 }

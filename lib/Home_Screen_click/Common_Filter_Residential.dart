@@ -8,6 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_image_under_property.dart';
 import 'Filter_All_Details.dart';
@@ -422,7 +423,7 @@ class Show_CommonFilter extends StatefulWidget {
 class _Show_CommonFilterState extends State<Show_CommonFilter> {
 
   Future<List<Catid>> fetchData(by_rt,bhk,plc,type) async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_Residental_api_?Buy_Rent=$by_rt&Bhk_Squarefit=$bhk&Place_=$plc&Typeofproperty=$type&Looking_Property_=Flat");
+    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/filter_Residental_api_?Buy_Rent");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       print(by_rt);
@@ -435,6 +436,11 @@ class _Show_CommonFilterState extends State<Show_CommonFilter> {
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/filter_Residental_api_?Buy_Rent=$by_rt&Bhk_Squarefit=$bhk&Place_=$plc&Typeofproperty=$type&Looking_Property_=Flat",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }

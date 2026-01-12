@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Add_Rented_Flat/Action_Form.dart';
 import '../Add_Rented_Flat/Add_Tenent.dart';
 import '../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
@@ -242,43 +242,114 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
 
   String _fieldworkarnumber = '';
 
+
   Future<List<Property>> fetchBookingData() async {
-    final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
-    print("User Name :"+"${userName}");
-    print("User Number :"+"${userNumber}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded["success"] == true) {
-        List data = decoded["data"];
-        return data
-            .map((e) => Property.fromJson(e))
-            .toList()
-            .reversed
-            .toList();
-      }
-    }
-    throw Exception("Failed to load data");
-  }
-  Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId"),
-    );
+    final String apiUrl =
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php";
 
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
+    try {
+      print("User Name: $userName");
+      print("User Number: $userNumber");
 
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        return data.map((e) => Tenant.fromJson(e)).toList();
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Log raw response (optional but helpful)
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded is Map && decoded["success"] == true) {
+          List data = decoded["data"] ?? [];
+
+          return data
+              .map((e) => Property.fromJson(e))
+              .toList()
+              .reversed
+              .toList();
+        } else {
+          // 🔴 success false but 200 response
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "API success false | Response: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          throw Exception("API returned success = false");
+        }
       } else {
-        throw Exception("API success = false");
+        // 🔴 Non-200 status
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 Response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        throw Exception("Failed to load data");
       }
-    } else {
-      throw Exception("Failed to load tenants");
+    } catch (e, stack) {
+      // 🔥 Network / JSON / Runtime error
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      rethrow;
     }
   }
+
+
+  Future<List<Tenant>> fetchTenants(int subId) async {
+    final String apiUrl =
+        "https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId";
+
+    try {
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Log that API responded
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
+
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+
+        if (decoded is Map && decoded["success"] == true) {
+          List data = decoded["data"] ?? [];
+          return data.map((e) => Tenant.fromJson(e)).toList();
+        } else {
+          // 🔴 200 but success=false
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "API success=false | Response: ${response.body}",
+            statusCode: response.statusCode,
+          );
+          throw Exception("API returned success = false");
+        }
+      } else {
+        // 🔴 Non-200 status
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
+        throw Exception("Failed to load tenants");
+      }
+    } catch (e, stack) {
+      // 🔥 Network / JSON / Runtime crash
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+      rethrow;
+    }
+  }
+
 
   @override
   void initState() {

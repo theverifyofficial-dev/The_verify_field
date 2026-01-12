@@ -16,6 +16,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Home_Screen_click/Real-Estate.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../ui_decoration_tools/app_images.dart';
 
 class  Add_Realestate extends StatefulWidget {
@@ -163,7 +164,13 @@ class _Add_RealestateState extends State<Add_Realestate> {
     return result;
   }
 
-  Future<void> uploadImageWithTitle(File imageFile, String propertyNumber, String address, String sqft, String price, String maintenance, String floor, String flat, String furnished_details, String Ownername, String Owner_number, String Building_information, String Address_apnehisaabka, String _CareTaker_number,
+  Future<void> uploadImageWithTitle
+      (File imageFile,
+      String propertyNumber,
+      String address, String
+      sqft, String price, String
+      maintenance, String floor,
+      String flat, String furnished_details, String Ownername, String Owner_number, String Building_information, String Address_apnehisaabka, String _CareTaker_number,
       String Place_,String Buy_Rent,String Residence_Commercial,String Looking_Property_,String Typeofproperty,String Bhk_Squarefit,String Furnished,String Parking,String balcony,String kitchen,String Baathroom,
       String date_,String fieldworkarname,String fieldworkarnumber,String Longtitude,String Latitude,
       String facility,String blank_one,String Blank_two,String Blank_three,String district,String policestation,String pincode,String Google_Location,String Sell_price,String Verify_Price,String caretaker_name) async {
@@ -237,6 +244,11 @@ class _Add_RealestateState extends State<Add_Realestate> {
         });
         print('Upload successful: ${response.data}');
       } else {
+        await BugLogger.log(
+          apiLink: uploadUrl,
+          error: response.data.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload failed: ${response.statusCode}')),
         );
@@ -252,6 +264,11 @@ class _Add_RealestateState extends State<Add_Realestate> {
         print('Upload failed: ${response.statusCode}');
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: uploadUrl,
+          error: e.toString(),
+          statusCode: 0,
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error occurred: $e')),
       );

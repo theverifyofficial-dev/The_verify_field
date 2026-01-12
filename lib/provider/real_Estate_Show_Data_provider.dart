@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import '../model/real_Estate_Show_Data_Model.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 class RealEstateShowDataProvider with ChangeNotifier {
   bool _isLoading = false;
@@ -30,12 +30,24 @@ class RealEstateShowDataProvider with ChangeNotifier {
         _isLoading = false;
         notifyListeners();
       } else {
+
+        await BugLogger.log(
+          apiLink: url,
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+
         _errorMessage = 'Failed to load properties. Status: ${response.statusCode}';
         _isLoading = false;
         notifyListeners();
       }
     }
     catch (e) {
+      await BugLogger.log(
+        apiLink: url,
+        error: e.toString(),
+        statusCode: 0,
+      );
       _errorMessage = 'Error occurred: $e';
       _isLoading = false;
       notifyListeners();

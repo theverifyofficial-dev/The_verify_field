@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:pinput/pinput.dart';
 import 'package:http/http.dart' as http;
-
 import 'changing_pass.dart';
+
 class Otp extends StatefulWidget {
   final String number;
   final String sessionId;
-
   const Otp({super.key, required this.number, required this.sessionId});
 
   @override

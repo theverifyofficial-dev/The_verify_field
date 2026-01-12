@@ -10,7 +10,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../Police_Verification/Owner_Details.dart';
 import '../property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -162,6 +162,11 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.SUbid}",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -174,6 +179,11 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
       return listresponce.map((data) => Catid_details.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Show_Verify_AddTenant_Under_Property_Table_by_id_?TUP_id=${widget.iidd}",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -188,6 +198,11 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
         );
       }).toList();
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Show_Image_under_Realestatet?id_num=${widget.SUbid}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Failed to load data');
     }
   }
@@ -202,6 +217,11 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
       //SharedPreferences prefs = await SharedPreferences.getInstance();
 
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Update_Book_Realestate_by_feildworker?idd=${widget.SUbid}&looking=Flat",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       print('Failed Registration');
     }
 
@@ -223,6 +243,11 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
       print(response.body.toString());
       print('Item deleted successfully');
     } else {
+      BugLogger.log(
+        apiLink: "https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=${widget.SUbid}",
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+    );
       print('Error deleting item. Status code: ${response.statusCode}');
       throw Exception('Failed to load data');
     }

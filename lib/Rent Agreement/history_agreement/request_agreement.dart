@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Commercial_Form.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Renewal_form.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Verification_form.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../../model/agrement_model.dart';
 import '../Forms/Agreement_Form.dart';
@@ -112,9 +113,19 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
           setState(() => isLoading = false);
         }
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_preview_agreemet.php?Fieldwarkarnumber=$mobileNumber",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         setState(() => isLoading = false);
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_preview_agreemet.php?Fieldwarkarnumber=$mobileNumber",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("❌ Error fetching agreements: $e");
       setState(() => isLoading = false);
     }

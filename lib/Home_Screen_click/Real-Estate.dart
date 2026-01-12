@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../Propert_verigication_Document/Show_tenant.dart';
 import '../ui_decoration_tools/app_images.dart';
@@ -145,6 +146,11 @@ class _Show_Real_EstateState extends State<Show_Real_Estate> {
       return listresponce.map((data) => RealEstateShowDateModel.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/show_RealEstate_by_fieldworkarnumber?fieldworkarnumber=$_number&looking=Flat",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -236,6 +242,11 @@ class _Show_Real_EstateState extends State<Show_Real_Estate> {
       print(response.body.toString());
       print('Item deleted successfully');
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/Verify_Property_Verification_delete_by_id?PVR_id=$itemId",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       print('Error deleting item. Status code: ${response.statusCode}');
       throw Exception('Failed to load data');
     }

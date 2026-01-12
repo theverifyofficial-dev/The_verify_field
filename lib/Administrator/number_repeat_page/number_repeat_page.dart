@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import '../Add_Assign_Tenant_Demand/Add_Assign_Demand_form.dart';
 import '../Pending_demand_Status.dart';
@@ -76,6 +77,11 @@ class _add_repet_numState extends State<add_repet_num> {
       return listresponce.map((data) => Catid.FromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: url.toString(),
+          error: responce.body.toString(),
+          statusCode: responce.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }

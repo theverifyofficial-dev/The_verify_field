@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../constant.dart';
 import 'Salary_home.dart';
 
@@ -87,8 +88,6 @@ class _AddExpensesState extends State<AddSalary> {
         'https://verifyserve.social/Second%20PHP%20FILE/Expanse/salary_expanse.php';
     Dio dio = Dio();
 
-
-
     String year = _payingDate != null ? DateFormat('yyyy').format(_payingDate!) : '';
     String month = _payingDate != null ? DateFormat('MM').format(_payingDate!) : '';
 
@@ -129,11 +128,21 @@ class _AddExpensesState extends State<AddSalary> {
           msg: "✅ Expense #${data['id']} added successfully!",
         );
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Expanse/salary_expanse.php",
+          error: response.data.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         Fluttertoast.showToast(
           msg: "❌ Upload failed: ${data['message'] ?? 'Unknown error'}",
         );
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Expanse/salary_expanse.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       Fluttertoast.showToast(msg: "❌ Upload failed: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);

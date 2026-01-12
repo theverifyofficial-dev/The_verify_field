@@ -9,6 +9,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
@@ -168,6 +169,11 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
         debugPrint("⚠️ No agreement data found");
       }
     } else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+      );
       debugPrint("❌ Failed to load agreement details: ${response.body}");
     }
   }
@@ -358,6 +364,11 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
 
       print("✅ ${isOwner ? 'Owner' : 'Tenant'} data loaded successfully");
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php",
+          error: e.toString(),
+          statusCode: 500,
+      );
       print("🔥 Exception while fetching ${isOwner ? 'owner' : 'tenant'}: $e");
       _showToast("Error: $e");
     }
@@ -495,10 +506,20 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
         });
 
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement.php",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         _showToast('Submit failed (${response.statusCode})');
         print("❌ Submission failed: ${response.body}");
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       _showToast('Submit error: $e');
       print("🔥 Exception during submit: $e");
     }
@@ -620,10 +641,20 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       }
 
       else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_update.php",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         _showToast('Submit failed (${response.statusCode})');
         print("❌ Resubmission failed: ${response.body}");
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreement_update.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       _showToast('Submit error: $e');
       print("🔥 Exception during submit: $e");
     }

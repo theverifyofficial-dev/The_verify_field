@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../model/String_ID_model.dart';
 import 'Accepted_details.dart';
 
@@ -55,9 +56,19 @@ class _AgreementDetailsState extends State<AdminAccepted> {
           throw Exception('Invalid data format');
         }
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_all_data_accept_agreement.php",
+            error: response.body.toString(),
+            statusCode: response.statusCode,
+        );
         throw Exception('Failed to load data');
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_all_data_accept_agreement.php",
+        error: e.toString(),
+        statusCode: 0,
+      );
       debugPrint('Error fetching data: $e');
       setState(() => isLoading = false);
     }

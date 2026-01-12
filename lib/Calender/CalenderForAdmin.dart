@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
@@ -546,6 +547,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         _isLoading = false;
       });
     } catch (e) {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate&field_workar_number=",
+          error: e.toString(),
+          statusCode: 500,
+      );
       debugPrint("❌ Exception fetching admin data: $e");
       if (!mounted) return;
       setState(() {
@@ -795,7 +801,13 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         if (hasEvent) {
           _eventDays[DateTime(year, month, day)] = true;
         }
-      } catch (_) {}
+      } catch (e) {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=",
+            error: e.toString(),
+            statusCode: 500,
+        );
+      }
     }
 
     if (mounted) setState(() {});
@@ -1182,6 +1194,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         if (await canLaunchUrl(url)) {
           await launchUrl(url, mode: LaunchMode.externalApplication);
         } else {
+          await BugLogger.log(
+              apiLink: "https://theverify.in/details.html?id=${w.subid}",
+              error: "Could not open link",
+              statusCode: 500,
+            );
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text("Could not open link."),

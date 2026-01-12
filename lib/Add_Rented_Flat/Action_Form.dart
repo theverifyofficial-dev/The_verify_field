@@ -4,7 +4,7 @@ import '../constant.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
-
+import '../utilities/bug_founder_fuction.dart';
 
 class ActionForm extends StatefulWidget {
   final String propertyId;
@@ -101,9 +101,22 @@ class _ActionFormState extends State<ActionForm> {
         print("API Response: ${response.body}");
         Navigator.pop(context, true);
       } else {
-        print("Failed with status: ${response.statusCode}");
+          //🔴 LOG BACKEND FAILURE
+          await BugLogger.log(
+            apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_update_api_for_field_workar.php',
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+          );
+          print("Failed with status: ${response.statusCode}");
+
       }
     } catch (e) {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'ttps://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_update_api_for_field_workar.php',
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error: $e")),
@@ -373,7 +386,9 @@ class _ActionFormState extends State<ActionForm> {
       ),
     );
   }
-
-
-
 }
+
+
+
+
+

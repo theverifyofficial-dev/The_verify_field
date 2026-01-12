@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 import 'package:dio/dio.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 class MyItem {
   final String title;
@@ -89,12 +90,22 @@ class _MultiImageCompressorState extends State<MultiImageCompressor> {
           SnackBar(content: Text('Uploaded: ${response.data}')),
         );
       } else {
+        await BugLogger.log(
+          apiLink: uploadUrl,
+          error: response.data.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         print('❌ Upload failed: ${response.statusCode}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Upload failed: ${response.statusCode}')),
         );
       }
     } catch (e) {
+      await BugLogger.log(
+          apiLink: uploadUrl,
+          error: e.toString(),
+          statusCode: 500,
+      );
       print('❌ Error occurred: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error occurred: $e')),

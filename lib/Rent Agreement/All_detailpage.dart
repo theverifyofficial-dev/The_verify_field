@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../Administrator/imagepreviewscreen.dart';
 
@@ -75,10 +76,20 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
           setState(() => isLoading = false);
         }
       } else {
+        await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         print("Error: Status code ${response.statusCode}");
         setState(() => isLoading = false);
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_application/detail_page_main_agreement.php?id=${widget.agreementId}",
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Error: $e");
       setState(() => isLoading = false);
     }
@@ -508,12 +519,22 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
             propertyCard = _propertyCard(data);
           });
         } else {
+          await BugLogger.log(
+            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php",
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(json['message'] ?? "Property not found")),
           );
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to fetch property details")),

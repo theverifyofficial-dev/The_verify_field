@@ -11,6 +11,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../constant.dart';
 import 'flat_edit_model.dart';
 
@@ -251,9 +252,19 @@ class EditFlatState extends State<EditFlat> {
         showSnack("Property Updated Successfully");
         Navigator.pop(context);
       } else {
+        await BugLogger.log(
+            apiLink: uploadUrl,
+            error: response.data.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         showSnack("Something went wrong");
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: uploadUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("❌ Upload error: $e");
       showSnack("Upload failed: $e");
 
@@ -502,6 +513,11 @@ class EditFlatState extends State<EditFlat> {
       return listresponce.map((data) => Property1.fromJson(data)).toList();
     }
     else {
+      await BugLogger.log(
+          apiLink: "https://verifyserve.social/WebService4.asmx/display_flat_in_future_property_details_page?id=${widget.id}",
+          error: responce.body.toString(),
+          statusCode: responce.statusCode ?? 0,
+      );
       throw Exception('Unexpected error occured!');
     }
   }

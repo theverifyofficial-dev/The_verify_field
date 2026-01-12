@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../constant.dart';
+import '../utilities/bug_founder_fuction.dart';
 import 'metro_api.dart';
 
 // ----------------- Model -----------------
@@ -277,6 +278,13 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
       List list = decoded["data"];
       return list.map((e) => FutureProperty2.fromJson(e)).toList();
     }
+    else{
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_for_details_page.php?id=${widget.propertyId}",
+        error: res.body.toString(),
+        statusCode: res.statusCode ?? 0,
+      );
+    }
 
     throw Exception("Invalid API structure");
   }
@@ -443,9 +451,19 @@ class _UpdateRealEstatePropertyState extends State<UpdateRealEstateProperty> {
         showSnack("Property Updated Successfully");
         Navigator.pop(context);
       } else {
+        await BugLogger.log(
+            apiLink: uploadUrl,
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+        );
         showSnack("Something went wrong");
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: uploadUrl,
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("Upload error: $e");
       showSnack("Upload failed: $e");
     } finally {

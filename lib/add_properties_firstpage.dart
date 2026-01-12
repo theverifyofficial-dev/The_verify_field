@@ -14,6 +14,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import 'constant.dart';
+import 'utilities/bug_founder_fuction.dart';
 
 // final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
 
@@ -360,6 +361,12 @@ class _RegisterPropertyState extends State<RegisterProperty> {
         print("❌ Upload failed: ${response.statusCode}");
       }
     } catch (e) {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: e.toString(),
+        statusCode: 500,
+      );
       print("❌ Upload error: $e");
     }
   }
@@ -2872,7 +2879,7 @@ class _RegisterPropertyState extends State<RegisterProperty> {
       final prefs = await SharedPreferences.getInstance();
 
       final provider = Provider.of<PropertyIdProvider>(context, listen: false);
-      await provider.fetchLatestPropertyId.toString();
+      await provider.fetchLatestPropertyId();
       final propertyId = provider.latestPropertyId.toString();
       String? name = prefs.getString('name');
       String? number = prefs.getString('number');
@@ -3010,6 +3017,12 @@ class _RegisterPropertyState extends State<RegisterProperty> {
             });
           }
         } else {
+          // 🔴 LOG BACKEND FAILURE
+          await BugLogger.log(
+            apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_main_realestate_propperty.php',
+            error: response.body.toString(),
+            statusCode: response.statusCode ?? 0,
+          );
           if (mounted) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               final messenger = ScaffoldMessenger.of(context);
@@ -3024,6 +3037,12 @@ class _RegisterPropertyState extends State<RegisterProperty> {
           }
         }
       } catch (e) {
+// 🔴 LOG BACKEND FAILURE
+        await BugLogger.log(
+          apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/main_realestate/add_main_realestate_propperty.php',
+          error: e.toString(),
+          statusCode: 500,
+        );
         if (mounted) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             final messenger = ScaffoldMessenger.of(context);

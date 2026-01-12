@@ -9,6 +9,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 
 import '../constant.dart';
 import '../property_preview.dart';
+import '../utilities/bug_founder_fuction.dart';
 class PropertyDetail {
   final String id;
   final String propertyPhoto;
@@ -191,6 +192,12 @@ class _PropertyDetailPageState extends State<PropertyDetailPage> {
         return PropertyDetail.fromJson(decoded["data"][0]);
       }
     }
+    // 🔴 LOG BACKEND FAILURE
+    await BugLogger.log(
+      apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/details_page_for_book_flat.php?P_id=$pId",
+      error: response.body.toString(),
+      statusCode: response.statusCode ?? 0,
+    );
     throw Exception("Failed to load property detail");
   }
 

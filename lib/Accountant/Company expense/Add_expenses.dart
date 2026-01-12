@@ -10,7 +10,9 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../constant.dart';
+import '../../utilities/bug_founder_fuction.dart';
 import 'Tabbar_control.dart';
+
 
 class AddExpenses extends StatefulWidget {
   const AddExpenses({super.key});
@@ -133,11 +135,23 @@ class _AddExpensesState extends State<AddExpenses> {
           msg: "✅ Expense #${data['id']} added successfully!",
         );
       } else {
+        //🔴 LOG BACKEND FAILURE
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Expanse/company_expanse.php",
+          error: response.data.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
         Fluttertoast.showToast(
           msg: "❌ Upload failed: ${data['message'] ?? 'Unknown error'}",
         );
       }
     } catch (e) {
+// 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/Expanse/company_expanse.php',
+        error: e.toString(),
+        statusCode: 500,
+      );
       Fluttertoast.showToast(msg: "❌ Upload failed: $e");
     } finally {
       if (mounted) setState(() => _isLoading = false);

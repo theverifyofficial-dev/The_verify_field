@@ -32,13 +32,13 @@ import 'Propert_verigication_Document/Show_tenant.dart';
 import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
+import 'Target_details/Target_details.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
 import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
 import 'Yearly_Target.dart';
 import 'add_properties_firstpage.dart';
+import 'utilities/bug_founder_fuction.dart';
 import 'main.dart';
-
-
 
 class TodayCounts {
   final int agreements;
@@ -1028,6 +1028,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
       debugPrint("📅 Tomorrow events FINAL count: ${tomorrowEvents.length}");
     } catch (e) {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$tomorrow&Fieldwarkarnumber=$fieldNo',
+        error: e.toString(),
+        statusCode: 0,
+      );
       debugPrint("🔥 Error fetching tomorrow data: $e");
     }
   }
@@ -1100,6 +1106,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         websiteVisits: todayWebsiteVisits.length,
       );
     } catch (e) {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo',
+        error: e.toString(),
+        statusCode: 0,
+      );
+
       debugPrint('🔥 Error in fetchTodayCounts(): $e');
       return TodayCounts(
         agreements: 0,
@@ -1201,6 +1214,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       List listresponse = json.decode(response.body);
       return listresponse.map((data) => Catid.fromJson(data)).toList();
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}',
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -1218,6 +1237,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       });
       return listresponse.map((data) => Catid1122.fromJson(data)).toList();
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?fieldworkarnumber=$number',
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -1232,6 +1257,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       List listresponse = json.decode(response.body);
       return listresponse.map((data) => Catid.fromJson(data)).toList();
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}',
+        error: response.body.toString(),
+        statusCode: response.statusCode,
+      );
       throw Exception('Unexpected error occured!');
     }
   }
@@ -1285,6 +1316,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           SnackBar(content: Text('Monthly data error: $e')),
         );
       }
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
+        error: e.toString(),
+        statusCode: 0,
+      );
     }
   }
 
@@ -1313,9 +1350,16 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Yearly data error: $e')),
         );
+        // 🔴 LOG BACKEND FAILURE
+        await BugLogger.log(
+            apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/Target/count_api_live_flat_for_field.php?field_workar_number=$number',
+            error: e.toString(),
+            statusCode: 0,
+        );
       }
     }
   }
+
   Future<void> _onRefresh() async {
     if (mounted) {
       setState(() {
@@ -1386,9 +1430,10 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       LinearGradient(colors: [const Color(0xFF8B5CF6), const Color(0xFF7C3AED)]),
       LinearGradient(colors: [const Color(0xFFEF4444), const Color(0xFFDC2626)]),
       LinearGradient(colors: [const Color(0xFF06B6D4), const Color(0xFF0891B2)]),
-      LinearGradient(colors: [const Color(0xFF6366F1), const Color(0xFF4F46E5)]),
-      LinearGradient(colors: [const Color(0xFF1D4ED8), const Color(0xFFDC2626)]),
-      LinearGradient(colors: [const Color(0xFFDC2626), const Color(0xFF06B6D4)]),
+      LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFFF59E0B)]),
+      LinearGradient(colors: [const Color(0xFF1D4ED8), const Color(0xFF1D4ED8)]),
+      LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFFF59E0B)]),
+      LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFF7C3AED)]),
       LinearGradient(colors: [ Colors.blue,  Colors.purple]),
     ];
 
@@ -1460,6 +1505,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               context,
               MaterialPageRoute(
                   builder: (_) => const Target_MainPage()));
+        },
+        "gradient": cardGradients[6],
+      },
+      {
+        "image": AppImages.target,
+        "title": "Target Details",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const TargetScreen()));
         },
         "gradient": cardGradients[6],
       },

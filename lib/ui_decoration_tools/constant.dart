@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AppImages{
   static const vehicle = "assets/images/carshundred.png";
   static const documents = "assets/images/Documenthundred.png";

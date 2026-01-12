@@ -7,11 +7,12 @@ import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
-
 import '../../constant.dart';
 import '../../property_preview.dart';
+import '../../utilities/bug_founder_fuction.dart';
 import 'Add_expenses.dart';
 import 'expenses_details.dart';
+
 
 class Expense {
   final String expenseID;
@@ -81,6 +82,12 @@ class _ExpenseListScreenState extends State<CompanyScreen> {
       final List data = jsonDecode(response.body);
       return data.map((e) => Expense.fromJson(e)).toList().reversed.toList();
     } else {
+      // 🔴 LOG BACKEND FAILURE
+      await BugLogger.log(
+        apiLink: 'https://verifyserve.social/Second%20PHP%20FILE/Expanse/display_paymenti_information.php',
+        error: response.body.toString(),
+        statusCode: response.statusCode ?? 0,
+      );
       throw Exception('Failed to load expenses');
     }
   }

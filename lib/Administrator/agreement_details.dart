@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../ui_decoration_tools/app_images.dart';
 import '../model/Agreement_model.dart';
@@ -26,9 +27,18 @@ class _AgreementDetailsState extends State<AgreementDetails> {
   }
 
   Future<void> fetchAgreements() async {
+    const String apiUrl =
+        'https://verifyserve.social/WebService4.asmx/show_agreement_data';
+
     try {
-      final response = await http.get(Uri.parse(
-          'https://verifyserve.social/WebService4.asmx/show_agreement_data'));
+      final response = await http.get(Uri.parse(apiUrl));
+
+      // 🔹 Log API hit
+      BugLogger.log(
+        apiLink: apiUrl,
+        error: "Response received",
+        statusCode: response.statusCode,
+      );
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
@@ -41,19 +51,42 @@ class _AgreementDetailsState extends State<AgreementDetails> {
                 .reversed
                 .toList();
             isLoading = false;
-          }
-          );
+          });
         } else {
+          // 🔴 200 but wrong format
+          await BugLogger.log(
+            apiLink: apiUrl,
+            error: "200 but invalid JSON format | Body: ${response.body}",
+            statusCode: response.statusCode,
+          );
           throw Exception('Invalid data format');
         }
       } else {
+        // 🔴 Non-200 HTTP response
+        await BugLogger.log(
+          apiLink: apiUrl,
+          error: "Non-200 response | Body: ${response.body}",
+          statusCode: response.statusCode,
+        );
         throw Exception('Failed to load data');
       }
-    } catch (e) {
-      print('Error fetching data: $e');
-      setState(() => isLoading = false);
+    } catch (e, stack) {
+      // 🔥 Network / JSON / runtime crash
+      await BugLogger.log(
+        apiLink: apiUrl,
+        error: "Exception: $e\nStackTrace: $stack",
+        statusCode: 0,
+      );
+
+      print('❌ Error fetching agreements: $e');
+
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
+
+
   _launchURL(String pdf_url) async {
     final Uri url = Uri.parse(pdf_url);
     if (!await launchUrl(url)) {

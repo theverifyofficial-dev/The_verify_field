@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 class PropertyIdProvider with ChangeNotifier {
   int? _latestPropertyId;
@@ -24,6 +25,11 @@ class PropertyIdProvider with ChangeNotifier {
         }
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/PHP_Files/Main_Realestate/show_only_id.php",
+        error: e.toString(),
+        statusCode: 0,
+      );
       print("Error fetching ID: $e");
     }
 

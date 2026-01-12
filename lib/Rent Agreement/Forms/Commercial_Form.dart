@@ -70,6 +70,9 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   String maintenance = 'Including';
   String parking = 'Car';
   final customMaintanceAmount = TextEditingController();
+  final Agreement_price = TextEditingController();
+  String AgreementAmountInWords = '';
+  String Notary_price = '10 rupees';
 
 
 
@@ -190,6 +193,8 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           maintenance = data["maintaince"] ?? "Including";
           customMaintanceAmount.text = data["custom_maintenance_charge"]?.toString() ?? "";
           parking = data["parking"] ?? "Car";
+          Notary_price = data["notary_price"] ?? "10 rupees";
+          Agreement_price.text = data["agreement_price"] ?? "";
 
           shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
               ? DateTime.tryParse(data["shifting_date"])
@@ -238,6 +243,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
     securityAmount.dispose();
     installmentAmount.dispose();
     customUnitAmount.dispose();
+    Agreement_price.dispose();
     super.dispose();
   }
 
@@ -503,6 +509,8 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
+        "agreement_price": Agreement_price.text,
+        "notary_price": Notary_price ?? '10 rupees',
         "agreement_type": "Commercial Agreement",
       };
 
@@ -649,6 +657,8 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
+        "agreement_price": Agreement_price.text,
+        "notary_price": Notary_price ?? '10 rupees',
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -1769,6 +1779,56 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                 ]
             ),
             _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 10),
+            Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: Notary_price,
+                      items: const [
+                        '10 rupees',
+                        '50 rupees',
+                        '100 rupees',
+                        '200 rupees'
+                      ].map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e,
+                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                        ),
+                      ))
+                          .toList(),
+                      onChanged: (v) => setState(() => Notary_price = v ?? '10 rupees'),
+                      decoration: _fieldDecoration('Notary price').copyWith(
+                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        ),
+                      ),
+                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                      style: const TextStyle(color: Colors.black), // ✅ selected text black
+                    ),
+
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child:
+                      _glowTextField(controller: Agreement_price, label: 'Agreement price', keyboard: TextInputType.number,  showInWords: true,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                          onChanged: (v) {
+                            setState(() {
+                              AgreementAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                            });
+                          },
+                          validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                ]),
             Row(
                 children: [
                   Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
@@ -2069,6 +2129,8 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           _kv('Sqft', Sqft.text),
           _kv('Floor', floor.text),
           _kv('Address', Address.text),
+          _kv('Notary Price', Notary_price),
+          _kv('Agreement price', '${Agreement_price.text} (${AgreementAmountInWords})'),
           _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
           _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
           if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),

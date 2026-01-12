@@ -237,7 +237,7 @@ class _Add_FuturePropertyState extends State<Add_FutureProperty> {
 
   Future<void> uploadImageWithTitle(XFile imageFile) async {
     String uploadUrl =
-        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_image.php';
+        'https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/new_future_property_api_with_images.php';
 
     FormData formData = FormData();
 

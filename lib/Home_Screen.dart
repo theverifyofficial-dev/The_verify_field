@@ -23,9 +23,12 @@ import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
 import 'Add_Rented_Flat/Field_Worker_Target.dart';
+import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import 'Administrator/agreement_details.dart';
 import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Costumer_demand.dart';
+import 'Demand_2/Tabbar.dart';
+import 'Demand_card.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
 import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
@@ -307,6 +310,15 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
   String number = '';
 
+  bool demandLoading = true;
+
+  int newCount = 0;
+  int progressingCount = 0;
+  int disclosedCount = 0;
+  int redemandCount = 0;
+
+  List<Map<String, dynamic>> todayDemands = [];
+
   String? userName;
   String? userNumber;
 
@@ -342,6 +354,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   @override
   void initState() {
     super.initState();
+    _loadCustomerDemandCard();
     formattedDate = "${now.month}/${now.year}";
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1200),
@@ -370,6 +383,71 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     // Load data asynchronously without blocking UI
     _initializeData();
   }
+
+
+  Future<int> _fetchCountByStatus({
+    required String fieldworkerName,
+    required String status,
+  }) async {
+    try {
+      final url =
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/"
+          "visit_for_fieldworkar_status.php"
+          "?assigned_fieldworker_name=${Uri.encodeQueryComponent(fieldworkerName)}"
+          "&Status=${Uri.encodeQueryComponent(status)}";
+
+      final res = await Dio().get(url);
+
+      if (res.statusCode == 200 &&
+          res.data is Map &&
+          res.data["status"] == true) {
+        return int.tryParse(res.data["total_count"].toString()) ?? 0;
+      }
+    } catch (e) {
+      debugPrint("❌ Count error [$status]: $e");
+    }
+    return 0;
+  }
+
+
+  Future<void> _loadCustomerDemandCard() async {
+    try {
+      setState(() => demandLoading = true);
+
+      final prefs = await SharedPreferences.getInstance();
+      final fieldworkerName = prefs.getString("name") ?? "";
+
+      if (fieldworkerName.isEmpty) return;
+
+      // 🚀 PARALLEL STATUS CALLS
+      final results = await Future.wait([
+        _fetchCountByStatus(
+            fieldworkerName: fieldworkerName, status: "assigned to fieldworker"),
+        _fetchCountByStatus(
+            fieldworkerName: fieldworkerName, status: "progressing"),
+        _fetchCountByStatus(
+            fieldworkerName: fieldworkerName, status: "disclosed"),
+        _fetchCountByStatus(
+            fieldworkerName: fieldworkerName, status: "redemand"),
+      ]);
+
+      newCount = results[0];
+      progressingCount = results[1];
+      disclosedCount = results[2];
+      redemandCount = results[3];
+
+      // 📅 TODAY DEMANDS
+      todayDemands = await fetchTodayDemands(fieldworkerName);
+
+    } catch (e) {
+      debugPrint("❌ Demand card error: $e");
+    } finally {
+      if (mounted) setState(() => demandLoading = false);
+    }
+  }
+
+
+
 
   Future<void> _initializeData() async {
     await _loaduserdata();
@@ -1435,6 +1513,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFFF59E0B)]),
       LinearGradient(colors: [const Color(0xFFF59E0B), const Color(0xFF7C3AED)]),
       LinearGradient(colors: [ Colors.blue,  Colors.purple]),
+      LinearGradient(colors: [ Colors.blueAccent,  Colors.blue.shade800]),
     ];
 
     final List<Map<String, dynamic>> cardData = [
@@ -1467,17 +1546,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         ),
         "gradient": cardGradients[2],
       },
-      {
-        "image": AppImages.tenant,
-        "title": "Tenant Demands",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const MainPage_TenandDemand()));
-        },
-        "gradient": cardGradients[3],
-      },
+      // {
+      //   "image": AppImages.tenant,
+      //   "title": "Tenant Demands",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const MainPage_TenandDemand()));
+      //   },
+      //   "gradient": cardGradients[3],
+      // },
       {
         "image": AppImages.agreement,
         "title": "Property Agreement",
@@ -1493,21 +1572,21 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const AddRentedFlatTabbar()));
+                  builder: (_) => const AddRentedFlatTabbarNew()));
         },
         "gradient": cardGradients[5],
       },
-      {
-        "image": AppImages.target,
-        "title": "Target",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const Target_MainPage()));
-        },
-        "gradient": cardGradients[6],
-      },
+      // {
+      //   "image": AppImages.target,
+      //   "title": "Target",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const Target_MainPage()));
+      //   },
+      //   "gradient": cardGradients[6],
+      // },
       {
         "image": AppImages.target,
         "title": "Target Details",
@@ -1541,17 +1620,28 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       //   },
       //   "gradient": cardGradients[8],
       // },
-      {
-        "image": AppImages.demand_2,
-        "title": "Costumer Demands 2.O",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const CostumerDemand()));
-        },
-        "gradient": cardGradients[9],
-      },
+      // {
+      //   "image": AppImages.demand_2,
+      //   "title": "Costumer Demands 2.O",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const Tabbar()));
+      //   },
+      //   "gradient": cardGradients[9],
+      // },
+      // {
+      //   "image": AppImages.AI,
+      //   "title": "Gemini AI",
+      //   "onTap": () {
+      //     Navigator.push(
+      //         context,
+      //         MaterialPageRoute(
+      //             builder: (_) => const GeminiChatScreen()));
+      //   },
+      //   "gradient": cardGradients[10],
+      // },
     ];
     return Scaffold(
       backgroundColor: scaffoldBackground,
@@ -1625,12 +1715,12 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             ],
                           ),
                         ),
-                        SizedBox(height: screenHeight * 0.02),
+                        SizedBox(height: screenHeight * 0.01),
                         // Dual Target Progress Indicators - Use Wrap for responsiveness
                         Expanded(
                           child: Wrap(
                             spacing: screenWidth * 0.15,
-                            runSpacing: screenHeight * 0.1,
+                            runSpacing: screenHeight * 0.2,
                             alignment: WrapAlignment.spaceEvenly,
                             children: [
                               _TargetProgressCircle(
@@ -1667,18 +1757,63 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
               ),
             ),
 
-           // Dashboard Grid Section
+
+            // Dashboard Grid Section
             SliverToBoxAdapter(
               child: Padding(
                 padding: EdgeInsets.all(screenWidth * 0.05),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Today's Card (replacing welcome back)
-                   // _todayCard(isDark),
-                  //  const SizedBox(height: 10),
+
                     _todayCard(isDark),
-                    const SizedBox(height: 16),
+
+                    const SizedBox(height: 8),
+
+                    Divider(thickness: 2,color: Colors.grey,),
+
+                    const SizedBox(height: 8),
+
+                    customerDemand2CompactCard(
+                      isDark: isDark,
+                      loading: demandLoading,
+                      newCount: newCount,
+                      progressing: progressingCount,
+                      disclosed: disclosedCount,
+                      redemand: redemandCount,
+                      todayDemands: todayDemands,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const Tabbar()),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+
+
+                    // Padding(
+                    //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    //     child: GeminiAISearchBar(
+                    //       width: screenWidth,
+                    //       onTap: () {
+                    //         void showGeminiBottomSheet(BuildContext context) {
+                    //           showModalBottomSheet(
+                    //             context: context,
+                    //             isScrollControlled: true,
+                    //             backgroundColor: Colors.transparent,
+                    //             barrierColor: Colors.black54,
+                    //             builder: (_) {
+                    //               return const GeminiChatBottomSheet();
+                    //             },
+                    //           );
+                    //         }
+                    //         showGeminiBottomSheet(context);
+                    //       },
+                    //     ),
+                    //   ),
+
                     // Feature Grid
                     GridView.builder(
                       physics: const NeverScrollableScrollPhysics(),
@@ -2207,3 +2342,141 @@ class _PremiumFeatureCardState extends State<_PremiumFeatureCard> {
     );
   }
 }
+
+class GeminiAISearchBar extends StatefulWidget {
+  final VoidCallback onTap;
+  final double width;
+
+  const GeminiAISearchBar({
+    super.key,
+    required this.onTap,
+    required this.width,
+  });
+
+  @override
+  State<GeminiAISearchBar> createState() => _GeminiAISearchBarState();
+}
+
+class _GeminiAISearchBarState extends State<GeminiAISearchBar> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(); // infinite clockwise animation
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final height = widget.width * 0.18;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return CustomPaint(
+            painter: _GradientBorderPainter(
+              angle: _controller.value * 2 * pi,
+            ),
+            child: Container(
+              height: height.clamp(60, 78),
+              padding: const EdgeInsets.all(3), // border thickness
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(40),
+              ),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF121212) : Colors.white54,
+                  borderRadius: BorderRadius.circular(36),
+                  boxShadow: [
+                    if (!isDark)
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.08),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                  ],
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Row(
+                  children: [
+                    Image.asset(
+                      AppImages.AI,
+                      height: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Ask Gemini anything…",
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black54,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      size: 18,
+                    )
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _GradientBorderPainter extends CustomPainter {
+  final double angle;
+
+  _GradientBorderPainter({required this.angle});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+
+    final paint = Paint()
+      ..shader = SweepGradient(
+        startAngle: angle,
+        endAngle: angle + 2 * pi,
+        colors: const [
+          Color(0xFF4285F4), // blue
+          Color(0xFFDB4437), // red
+          Color(0xFFF4B400), // yellow
+          Color(0xFF0F9D58), // green
+          Color(0xFF4285F4),
+        ],
+      ).createShader(rect)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+
+    final rrect = RRect.fromRectAndRadius(
+      rect.deflate(1.5),
+      const Radius.circular(40),
+    );
+
+    canvas.drawRRect(rrect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _GradientBorderPainter oldDelegate) =>
+      oldDelegate.angle != angle;
+}
+

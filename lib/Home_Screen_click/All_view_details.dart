@@ -368,7 +368,7 @@ class _View_DetailsState extends State<AllViewDetails> {
               firstProperty = prop;
               // Nested Gallery FutureBuilder - Fix #1: Use prop.subid
               return FutureBuilder<List<RealEstateSlider>>(
-                future: fetchCarouselData(prop.subid), // Correct subid from prop
+                future: fetchCarouselData(prop.id), // Correct subid from prop
                 builder: (context, gallerySnapshot) {
                   if (gallerySnapshot.connectionState == ConnectionState.waiting) {
                     // Show property UI, gallery loading

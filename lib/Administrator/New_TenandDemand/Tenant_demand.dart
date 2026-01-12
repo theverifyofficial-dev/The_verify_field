@@ -5,6 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import '../../constant.dart';
 import '../../model/demand_model.dart';
+import '../../utilities/bug_founder_fuction.dart';
 import 'Add_demand.dart';
 import 'Admin_demand_detail.dart';
 
@@ -30,26 +31,71 @@ class _TenantDemandState extends State<TenantDemand> {
 
   Future<void> _loadDemands() async {
     setState(() => _isLoading = true);
+
     try {
-      final response = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"));
+      final response = await http.get(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+        ),
+      );
+
       if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-        final list =
-        data.map((e) => TenantDemandModel.fromJson(e)).toList().reversed.toList();
-        setState(() {
-          _allDemands = list;
-          _filteredDemands = list;
-        });
+        final decoded = jsonDecode(response.body);
+
+        // ✅ validate backend response
+        if (decoded["status"] == true && decoded["data"] is List) {
+          final List data = decoded["data"];
+
+          final list = data
+              .map((e) => TenantDemandModel.fromJson(e))
+              .toList();
+              // .reversed
+              // .toList();
+
+          setState(() {
+            _allDemands = list;
+            _filteredDemands = list;
+          });
+        } else {
+          // backend responded but with unexpected structure
+          // await BugLogger.log(
+          //   apiLink:
+          //   "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+          //   error: response.body,
+          //   statusCode: response.statusCode,
+          // );
+
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("No demand data found")),
+            );
+          }
+        }
+      } else {
+        await BugLogger.log(
+          apiLink:
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+          error: response.body,
+          statusCode: response.statusCode,
+        );
       }
     } catch (e) {
+      await BugLogger.log(
+        apiLink:
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand_for_admin.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("Error fetching data: $e")),
         );
       }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -94,17 +140,7 @@ class _TenantDemandState extends State<TenantDemand> {
       extendBodyBehindAppBar: true,
       backgroundColor:
       isDark ? const Color(0xFF090B11) : const Color(0xFFF4F6FA),
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.black,
-        surfaceTintColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 70),
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(PhosphorIcons.caret_left_bold, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+
       floatingActionButton: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(14),
@@ -171,7 +207,7 @@ class _TenantDemandState extends State<TenantDemand> {
 
           Column(
             children: [
-              const SizedBox(height: 100),
+              const SizedBox(height: 10),
               // floating search
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -378,10 +414,21 @@ class _TenantDemandState extends State<TenantDemand> {
                                   padding: const EdgeInsets.only(top: 6),
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start, children: [
-                                      Text("${d.location} • ${d.bhk} BHK",
+
+                                    Text("Contact: ${d.tnumber}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+
+
+                                    Text("${d.location} • ${d.bhk}",
                                           style: TextStyle( color: isDark ? Colors.white70 : Colors.black54, fontSize: 14)),
                                     const SizedBox(height: 2),
-                                    Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text("₹ ${d.price}", style: TextStyle( color: isDark ? Colors.white60 : Colors.black54, fontSize: 14)),
+
+                                      ],
+                                    ),
+
                                     if (d.reference.isNotEmpty)
                                       Padding( padding: const EdgeInsets.only(top: 3), child:
                                 Row(
@@ -402,7 +449,8 @@ class _TenantDemandState extends State<TenantDemand> {
                               ),
                             ),
                           ),
-                          if (d.status.toLowerCase() == "disclosed")
+
+                          if (d.status.toLowerCase() == "new")
                             Positioned(
                               top: 12,
                               left: -30,
@@ -414,15 +462,15 @@ class _TenantDemandState extends State<TenantDemand> {
                                   decoration: BoxDecoration(
                                     gradient: LinearGradient(
                                       colors: [
-                                        Colors.red.shade500,
-                                        Colors.red.shade700,
+                                        Colors.green.shade500,
+                                        Colors.green.shade700,
                                       ],
                                       begin: Alignment.topLeft,
                                       end: Alignment.bottomRight,
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.redAccent.withOpacity(0.4),
+                                        color: Colors.green.withOpacity(0.4),
                                         blurRadius: 6,
                                         offset: const Offset(2, 2),
                                       ),
@@ -430,7 +478,7 @@ class _TenantDemandState extends State<TenantDemand> {
                                   ),
                                   alignment: Alignment.center,
                                   child: const Text(
-                                    "DISCLOSED   ",
+                                    "NEW   ",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -441,6 +489,7 @@ class _TenantDemandState extends State<TenantDemand> {
                                 ),
                               ),
                             ),
+
                           if (d.status.toLowerCase() == "assigned to fieldworker")
                             Positioned(
                               top: 12,
@@ -461,7 +510,7 @@ class _TenantDemandState extends State<TenantDemand> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.redAccent.withOpacity(0.4),
+                                        color: Colors.green.withOpacity(0.4),
                                         blurRadius: 6,
                                         offset: const Offset(2, 2),
                                       ),
@@ -500,7 +549,7 @@ class _TenantDemandState extends State<TenantDemand> {
                                     ),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.redAccent.withOpacity(0.4),
+                                        color: Colors.green.withOpacity(0.4),
                                         blurRadius: 6,
                                         offset: const Offset(2, 2),
                                       ),
@@ -509,6 +558,45 @@ class _TenantDemandState extends State<TenantDemand> {
                                   alignment: Alignment.center,
                                   child: const Text(
                                     "ASSIGNED   ",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 1.2,
+                                      fontSize: 11.5,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          if (d.status.toLowerCase() == "redemand")
+                            Positioned(
+                              top: 12,
+                              left: -30,
+                              child: Transform.rotate(
+                                angle: -0.785398, // -45 degrees in radians
+                                child: Container(
+                                  width: 140,
+                                  padding: const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      colors: [
+                                        Colors.green.shade500,
+                                        Colors.green.shade700,
+                                      ],
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.green.withOpacity(0.4),
+                                        blurRadius: 6,
+                                        offset: const Offset(2, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Text(
+                                    "REDEMAND   ",
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,

@@ -8,7 +8,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 import 'PDF.dart';
@@ -188,61 +187,30 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
 
 
   Future<void> _fetchAgreementDetail() async {
-    print("Agreement ID: ${widget.agreementId}");
-
-    final apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/details_api_for_accect_agreement.php?id=${widget.agreementId}";
-
+    print(widget.agreementId);
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/details_api_for_accect_agreement.php?id=${widget.agreementId}"));
 
-      if (response.statusCode != 200) {
-        throw Exception("HTTP ${response.statusCode}");
+      if (response.statusCode == 200) {
+        final decoded = json.decode(response.body);
+        if (decoded["success"] == true &&
+            decoded["data"] != null &&
+            decoded["data"].isNotEmpty) {
+          setState(() {
+            agreement = Map<String, dynamic>.from(decoded["data"][0]);
+            isLoading = false;
+          });
+          fetchPropertyCard();
+        } else {
+          setState(() => isLoading = false);
+        }
       }
-
-      final decoded = jsonDecode(response.body);
-
-      if (decoded is! Map ||
-          decoded["success"] != true ||
-          decoded["data"] == null ||
-          decoded["data"] is! List ||
-          decoded["data"].isEmpty) {
-
-        await BugLogger.log(
-          apiLink: apiUrl,
-          error: response.body.toString(),
-          statusCode: response.statusCode,
-        );
-
-        if (!mounted) return;
-        setState(() => isLoading = false);
-        return;
-      }
-
-      if (!mounted) return;
-
-      setState(() {
-        agreement = Map<String, dynamic>.from(decoded["data"][0]);
-        isLoading = false;
-      });
-
-      // If async function
-      await fetchPropertyCard();
-
     } catch (e) {
-      await BugLogger.log(
-        apiLink: apiUrl,
-        error: e.toString(),
-        statusCode: 500,
-      );
-
-      print("Agreement Fetch Error: $e");
-
-      if (!mounted) return;
+      print("Error: $e");
       setState(() => isLoading = false);
     }
   }
-
 
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -363,6 +331,9 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "property_id": agreement?["property_id"] ?? "",
         "agreement_type": agreement?["agreement_type"] ?? "",
         "furniture": agreement?["furniture"] ?? "",
+        "agreement_price": agreement?["agreement_price"] ?? "",
+        "notary_price": agreement?["notary_price"] ?? "",
+
       };
 
       fields.forEach((k, v) {
@@ -552,6 +523,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                       _kv("Maintenance", agreement?["maintaince"]),
                       _kv("Parking", agreement?["parking"]),
                       _kv("Shifting Date", _formatDate(agreement?["shifting_date"]) ?? ""),
+                      _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),
+                      _kv("Notary Amount", agreement?["notary_price"] ?? 'Not Added'),
                       _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
 
                     ],
@@ -934,22 +907,12 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
             propertyCard = _propertyCard(data);
           });
         } else {
-          await BugLogger.log(
-            apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php",
-            error: response.body.toString(),
-            statusCode: response.statusCode,
-          );
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(json['message'] ?? "Property not found")),
           );
         }
       }
     } catch (e) {
-      await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_base_on_flat_id.php",
-          error: e.toString(),
-          statusCode: 0,
-      );
       print("Error: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Failed to fetch property details")),

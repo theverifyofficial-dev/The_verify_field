@@ -59,65 +59,24 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   final securityAmount = TextEditingController();
   bool securityInstallment = false;
   final installmentAmount = TextEditingController();
-  String meterInfo = 'As per Govt. Unit';
   final customUnitAmount = TextEditingController();
   final propertyID = TextEditingController();
-  DateTime? shiftingDate;
-  String maintenance = 'Including';
-  String parking = 'Car';
   final customMaintanceAmount = TextEditingController();
-
-
-
   final ImagePicker _picker = ImagePicker();
-
   // animations
   late final AnimationController _fabController;
 
-
-
-
-
-  String convertToWords(int number) {
-    if (number == 0) return 'Zero';
-
-    final ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
-    final teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
-    final tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
-
-    String twoDigits(int n) {
-      if (n < 10) return ones[n];
-      if (n < 20) return teens[n - 10];
-      return '${tens[n ~/ 10]} ${ones[n % 10]}'.trim();
-    }
-
-    String threeDigits(int n) {
-      int hundred = n ~/ 100;
-      int rest = n % 100;
-      String result = '';
-      if (hundred > 0) result += '${ones[hundred]} Hundred ';
-      if (rest > 0) result += twoDigits(rest);
-      return result.trim();
-    }
-
-    List<String> parts = [];
-
-    int lakh = number ~/ 100000;
-    number %= 100000;
-    if (lakh > 0) parts.add('${twoDigits(lakh)} Lakh');
-
-    int thousand = number ~/ 1000;
-    number %= 1000;
-    if (thousand > 0) parts.add('${twoDigits(thousand)} Thousand');
-
-    if (number > 0) parts.add(threeDigits(number));
-
-    return parts.join(' ').trim();
-  }
-
-
+  final Agreement_price = TextEditingController();
+  String AgreementAmountInWords = '';
+  String Notary_price = '10 rupees';
+  DateTime? shiftingDate;
+  String maintenance = 'Including';
+  String parking = 'Car';
+  String meterInfo = 'As per Govt. Unit';
   String rentAmountInWords = '';
   String securityAmountInWords = '';
+
+
   String installmentAmountInWords = '';
   String customUnitAmountInWords = '';
   String customMaintanceAmountInWords = '';
@@ -139,7 +98,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       _fetchAgreementDetails(widget.agreementId!);
     }
   }
-
 
   Future<void> _fetchAgreementDetails(String id) async {
     final url = Uri.parse(
@@ -185,7 +143,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           maintenance = data["maintaince"] ?? "Including";
           customMaintanceAmount.text = data["custom_maintenance_charge"]?.toString() ?? "";
           parking = data["parking"] ?? "Car";
-
+          Notary_price = data["notary_price"] ?? "10 rupees";
+          Agreement_price.text = data["agreement_price"] ?? "";
           shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
               ? DateTime.tryParse(data["shifting_date"])
               : null;
@@ -229,6 +188,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     floor.dispose();
     Address.dispose();
     rentAmount.dispose();
+    Agreement_price.dispose();
     securityAmount.dispose();
     installmentAmount.dispose();
     customUnitAmount.dispose();
@@ -322,13 +282,50 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     _number = prefs.getString('number') ?? '';
   }
 
+  String convertToWords(int number) {
+    if (number == 0) return 'Zero';
+
+    final ones = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];
+    final teens = ['Ten', 'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+    final tens = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
+
+    String twoDigits(int n) {
+      if (n < 10) return ones[n];
+      if (n < 20) return teens[n - 10];
+      return '${tens[n ~/ 10]} ${ones[n % 10]}'.trim();
+    }
+
+    String threeDigits(int n) {
+      int hundred = n ~/ 100;
+      int rest = n % 100;
+      String result = '';
+      if (hundred > 0) result += '${ones[hundred]} Hundred ';
+      if (rest > 0) result += twoDigits(rest);
+      return result.trim();
+    }
+
+    List<String> parts = [];
+
+    int lakh = number ~/ 100000;
+    number %= 100000;
+    if (lakh > 0) parts.add('${twoDigits(lakh)} Lakh');
+
+    int thousand = number ~/ 1000;
+    number %= 1000;
+    if (thousand > 0) parts.add('${twoDigits(thousand)} Thousand');
+
+    if (number > 0) parts.add(threeDigits(number));
+
+    return parts.join(' ').trim();
+  }
 
 
   Future<void> _fetchUserData({
     required bool isOwner,                // true for owner, false for tenant
     required String? aadhaar,             // value in the Aadhaar field
     required String? mobile,              // value in the mobile field
-  }) async {
+  })
+  async {
     String query;
     String paramKey;
     bool searchedByAadhaar;
@@ -490,6 +487,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
+        "agreement_price": Agreement_price.text,
+        "notary_price": Notary_price ?? '10 rupees',
         "agreement_type": "Rental Agreement",
       };
 
@@ -635,6 +634,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
+        "agreement_price": Agreement_price.text,
+        "notary_price": Notary_price ?? '10 rupees',
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -1051,7 +1052,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
                 const SizedBox(height: 10),
 
-                // 👷 Field Worker + Location
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1915,6 +1915,57 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 ]
             ),
             _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            const SizedBox(height: 10),
+            Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: Notary_price,
+                      items: const [
+                        '10 rupees',
+                        '50 rupees',
+                        '100 rupees',
+                        '200 rupees'
+                      ].map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e,
+                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                        ),
+                      ))
+                          .toList(),
+                      onChanged: (v) => setState(() => Notary_price = v ?? '10 rupees'),
+                      decoration: _fieldDecoration('Notary price').copyWith(
+                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        ),
+                      ),
+                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                      style: const TextStyle(color: Colors.black), // ✅ selected text black
+                    ),
+
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                      child:
+                      _glowTextField(controller: Agreement_price, label: 'Agreement price', keyboard: TextInputType.number,  showInWords: true,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                          onChanged: (v) {
+                            setState(() {
+                              AgreementAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                            });
+                          },
+                          validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      ]),
+
             Row(
                 children: [
               Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
@@ -1933,6 +1984,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   });
                 }, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,)),
             ]),
+
+
             const SizedBox(height: 8),
             CheckboxListTile(
               value: securityInstallment,
@@ -2009,7 +2062,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 },
               ),
 
-            const SizedBox(height: 12),
+
+            const SizedBox(height: 6),
 
             ListTile(
               contentPadding: EdgeInsets.zero,
@@ -2018,14 +2072,14 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     ? 'Select Shifting Date'
                     : 'Shifting: ${shiftingDate!.toLocal().toString().split(' ')[0]}',
                 style: TextStyle(
-                  color: shiftingDate == null ? Colors.black : Colors.red,
+                  color: Colors.red,
                   fontWeight:
                   shiftingDate == null ? FontWeight.w500 : FontWeight.w700,
                 ),
               ),
               trailing: Icon(
                 Icons.calendar_today,
-                color: shiftingDate == null ? Colors.black87 : Colors.green,
+                color: Colors.red,
               ),
               onTap: () async {
                 final picked = await showDatePicker(
@@ -2189,6 +2243,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           _kv('BHK', Bhk.text),
           _kv('Floor', floor.text),
           _kv('Address', Address.text),
+          _kv('Notary Price', Notary_price),
+          _kv('Agreement price', '${Agreement_price.text} (${AgreementAmountInWords})'),
           _kv('Rent', '${rentAmount.text} (${rentAmountInWords})'),
           _kv('Security', '${securityAmount.text} (${securityAmountInWords})'),
           if (securityInstallment) _kv('Installment', '${installmentAmount.text} (${installmentAmountInWords})'),

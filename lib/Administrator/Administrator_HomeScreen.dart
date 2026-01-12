@@ -24,6 +24,7 @@ import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+import 'New_TenandDemand/Admin_tabbar.dart';
 import 'New_TenandDemand/Tenant_demand.dart';
 import 'Adminisstrator_Target_details/Targets.dart';
 
@@ -37,7 +38,6 @@ class AdministratorHome_Screen extends StatefulWidget {
 
 class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> with TickerProviderStateMixin {
   int _currentIndex = 0;
-  String? userName;
   late AnimationController _shineController;
   late Animation<double> _shineAnimation;
 
@@ -125,50 +125,23 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     });
   }
 
-  void _logout() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text("Logout"),
-          content: const Text("Are you sure you want to logout?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.remove('number');
-                Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const Login_page()),
-                );
-              },
-              child: const Text("Logout"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  _launchURL() async {
-    final Uri url = Uri.parse('https://theverify.in/');
-    if (!await launchUrl(url)) {
-      throw Exception('Could not launch $url');
-    }
-  }
+  String? userName;
+  String? userNumber;
+  String? userStoredFAadharCard;
 
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
-
+    final storedNumber = prefs.getString('number');
+    final storedFAadharCard = prefs.getString('post');
+    // debugPrint("User Name: $storedName");
+    // debugPrint("User Number: $storedNumber");
+    // debugPrint("User FAadharCard: $storedFAadharCard");
     if (mounted) {
       setState(() {
         userName = storedName;
+        userNumber = storedNumber;
+        userStoredFAadharCard = storedFAadharCard;
       });
     }
   }
@@ -258,7 +231,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                     const Text('🌐'),
                   ],
                 ),
-                const Text('Web'),
+                const Text('Web',style: TextStyle(color: Colors.white),),
               ],
             ),
           ),
@@ -508,7 +481,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               'onTap': () =>
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
-                                          context) => const TenantDemand())),
+                                          context) => const AdminTabbar())),
                             },
                             {
                               'image': AppImages.target,

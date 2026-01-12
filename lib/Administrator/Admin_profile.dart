@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Account_registeration.dart';
 
-import '../Bug_fender_screen.dart';
-import '../Future_Property_OwnerDetails_section/PlotShow.dart';
 import '../Login_page.dart';
 import '../model/Profile_model.dart';
 
@@ -125,7 +123,6 @@ class _ProfilePageState extends State<AdminProfile> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final themeSwitcher = ThemeSwitcher.of(context);
 
     return Scaffold(
       backgroundColor: isDark ? Colors.black : const Color(0xFFF2F2F7),
@@ -341,18 +338,10 @@ class _ProfilePageState extends State<AdminProfile> {
           _divider(),
           _infoTile(Icons.location_on, "Location", _user!.location),
           _divider(),
-          _infoTile(Icons.vertical_align_bottom, "App Version", "2.0"),
-          //
-          // const SizedBox(height: 20),
-          // // Integrated Premium Theme Toggle (without label and box)
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          //   child: _buildIntegratedThemeToggle(context, isDark, ThemeSwitcher.of(context)),
-          // ),
-          // const SizedBox(height: 20),
+          _infoTile(Icons.vertical_align_bottom, "App Version", "3.0"),
+
         ],
       ),
-
     );
   }
 
@@ -405,7 +394,6 @@ class _ProfilePageState extends State<AdminProfile> {
       child: Divider(color: Colors.grey.shade300, thickness: 1),
     );
   }
-
 
   void _showLogoutDialog() {
     showDialog(
@@ -466,111 +454,5 @@ class _ProfilePageState extends State<AdminProfile> {
       ),
     );
   }
-}
 
-// Widget _buildIntegratedThemeToggle(BuildContext context, bool isDark, ThemeSwitcher? themeSwitcher) {
-//   return LayoutBuilder(
-//     builder: (context, constraints) {
-//       final tabWidth = (constraints.maxWidth - 0) / 2; // Adjusted for tighter padding
-//       return Stack(
-//         children: [
-//           // Background Container
-//           Container(
-//             height: 44,
-//             decoration: BoxDecoration(
-//               color: isDark ? Colors.grey[800] : Colors.grey[100],
-//               borderRadius: BorderRadius.circular(20),
-//               border: Border.all(color: isDark ? Colors.grey[700]! : Colors.grey[300]!),
-//             ),
-//           ),
-//           // Sliding Indicator
-//           AnimatedPositioned(
-//             duration: const Duration(milliseconds: 300),
-//             left: isDark ? tabWidth : 0,
-//             top: 2,
-//             bottom: 2,
-//             child: Container(
-//               width: tabWidth,
-//               decoration: BoxDecoration(
-//                 gradient: LinearGradient(
-//                   colors: [const Color(0xFF3B82F6), const Color(0xFF1D4ED8)],
-//                 ),
-//                 borderRadius: BorderRadius.circular(18),
-//                 boxShadow: [
-//                   BoxShadow(
-//                     color: const Color(0xFF3B82F6).withOpacity(0.3),
-//                     blurRadius: 8,
-//                     offset: const Offset(0, 3),
-//                   ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//           // Tabs
-//           Row(
-//             children: [
-//               InkWell(
-//                 onTap: () {
-//                   if (isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
-//                 },
-//                 borderRadius: BorderRadius.circular(20),
-//                 splashColor: Colors.white.withOpacity(0.2),
-//                 highlightColor: Colors.white.withOpacity(0.1),
-//                 child: Container(
-//                   width: tabWidth,
-//                   height: 40,
-//                   alignment: Alignment.center,
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Icon(Icons.light_mode, size: 16, color: !isDark ? Colors.white : (isDark ? const Color(0xFF9CA3AF) : Colors.grey[600])),
-//                       const SizedBox(width: 4),
-//                       Text(
-//                         "Light",
-//                         style: TextStyle(
-//                           fontFamily: "Poppins",
-//                           fontWeight: FontWeight.w600,
-//                           color: !isDark ? Colors.white : (isDark ? const Color(0xFF9CA3AF) : Colors.grey[600]),
-//                           fontSize: 13,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//               InkWell(
-//                 onTap: () {
-//                   if (!isDark && themeSwitcher != null) themeSwitcher.toggleTheme();
-//                 },
-//                 borderRadius: BorderRadius.circular(20),
-//                 splashColor: Colors.white.withOpacity(0.2),
-//                 highlightColor: Colors.white.withOpacity(0.1),
-//                 child: Container(
-//                   width: tabWidth,
-//                   height: 40,
-//                   alignment: Alignment.center,
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.center,
-//                     children: [
-//                       Icon(Icons.dark_mode, size: 16, color: isDark ? Colors.white : (isDark ? Colors.grey[600] : const Color(0xFF9CA3AF))),
-//                       const SizedBox(width: 4),
-//                       Text(
-//                         "Dark",
-//                         style: TextStyle(
-//                           fontFamily: "Poppins",
-//                           fontWeight: FontWeight.w600,
-//                           color: isDark ? Colors.white : (isDark ? Colors.grey[600] : const Color(0xFF9CA3AF)),
-//                           fontSize: 13,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
+}

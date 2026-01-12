@@ -37,45 +37,145 @@ class AgreementTaskResponse {
 
 class AgreementTask {
   final int id;
+
+  // OWNER
   final String ownerName;
+  final String ownerMobile;
+  final String ownerAadhar;
+  final String ownerRelation;
+  final String ownerRelationName;
+  final String ownerPermanentAddress;
+
+  // TENANT
   final String tenantName;
+  final String tenantMobile;
+  final String tenantAadhar;
+  final String tenantRelation;
+  final String tenantRelationName;
+  final String tenantPermanentAddress;
+  final String tenantImage;
+
+  // PROPERTY & AGREEMENT
   final String rentedAddress;
   final String monthlyRent;
+  final String securityAmount;
+  final String meter;
+  final String maintenance;
+  final String shiftingDate;
   final String bhk;
   final String floor;
+  final String parking;
   final String agreementType;
   final String status;
+  final String currentDate;
+  final String propertyId;
+
+  // FIELD WORKER
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  // DOCUMENTS
+  final String? agreementPdf;
+  final String ownerAadharFront;
+  final String ownerAadharBack;
+  final String tenantAadharFront;
+  final String tenantAadharBack;
 
   AgreementTask({
     required this.id,
+
     required this.ownerName,
+    required this.ownerMobile,
+    required this.ownerAadhar,
+    required this.ownerRelation,
+    required this.ownerRelationName,
+    required this.ownerPermanentAddress,
+
     required this.tenantName,
+    required this.tenantMobile,
+    required this.tenantAadhar,
+    required this.tenantRelation,
+    required this.tenantRelationName,
+    required this.tenantPermanentAddress,
+    required this.tenantImage,
+
     required this.rentedAddress,
     required this.monthlyRent,
+    required this.securityAmount,
+    required this.meter,
+    required this.maintenance,
+    required this.shiftingDate,
     required this.bhk,
     required this.floor,
+    required this.parking,
     required this.agreementType,
     required this.status,
+    required this.currentDate,
+    required this.propertyId,
+
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+
+    required this.ownerAadharFront,
+    required this.ownerAadharBack,
+    required this.tenantAadharFront,
+    required this.tenantAadharBack,
+    this.agreementPdf,
   });
 
   factory AgreementTask.fromJson(Map<String, dynamic> json) {
     return AgreementTask(
-      id: json['id'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+
+      // OWNER
       ownerName: json['owner_name'] ?? '',
+      ownerMobile: json['owner_mobile_no'] ?? '',
+      ownerAadhar: json['owner_addhar_no'] ?? '',
+      ownerRelation: json['owner_relation'] ?? '',
+      ownerRelationName: json['relation_person_name_owner'] ?? '',
+      ownerPermanentAddress: json['parmanent_addresss_owner'] ?? '',
+
+      // TENANT
       tenantName: json['tenant_name'] ?? '',
+      tenantMobile: json['tenant_mobile_no'] ?? '',
+      tenantAadhar: json['tenant_addhar_no'] ?? '',
+      tenantRelation: json['tenant_relation'] ?? '',
+      tenantRelationName: json['relation_person_name_tenant'] ?? '',
+      tenantPermanentAddress: json['permanent_address_tenant'] ?? '',
+      tenantImage: json['tenant_image'] ?? '',
+
+      // PROPERTY & AGREEMENT
       rentedAddress: json['rented_address'] ?? '',
       monthlyRent: json['monthly_rent'] ?? '',
+      securityAmount: json['securitys'] ?? '',
+      meter: json['meter'] ?? '',
+      maintenance: json['maintaince'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
       bhk: json['Bhk'] ?? '',
       floor: json['floor'] ?? '',
+      parking: json['parking'] ?? '',
       agreementType: json['agreement_type'] ?? '',
       status: json['status'] ?? '',
+      currentDate: json['current_dates'] ?? '',
+      propertyId: json['property_id'] ?? '',
+
+      // FIELD WORKER
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
+
+      // DOCUMENTS
+      ownerAadharFront: json['owner_aadhar_front'] ?? '',
+      ownerAadharBack: json['owner_aadhar_back'] ?? '',
+      tenantAadharFront: json['tenant_aadhar_front'] ?? '',
+      tenantAadharBack: json['tenant_aadhar_back'] ?? '',
+      agreementPdf: json['agreement_pdf'],
     );
   }
 }
 /// -------- ADD FLAT IN FUTURE PROPERTY MODEL --------
 class AddFlatResponse {
   final String status;
-  final List<AddFlat> data;
+  final List<AdminAddFlat> data;
 
   AddFlatResponse({required this.status, required this.data});
 
@@ -83,7 +183,7 @@ class AddFlatResponse {
     return AddFlatResponse(
       status: json['status'] ?? 'error',
       data: (json['data'] as List<dynamic>?)
-          ?.map((e) => AddFlat.fromJson(e))
+          ?.map((e) => AdminAddFlat.fromJson(e))
           .toList() ??
           [],
     );
@@ -93,157 +193,64 @@ class AddFlatResponse {
       AddFlatResponse.fromJson(json.decode(str));
 }
 
-class AddFlat {
-  final int propertyId;
+class AdminAddFlat {
+  final int pId;
+  final String subId;
   final String propertyPhoto;
-  final String locations;
+  final String location;
   final String flatNumber;
   final String buyRent;
   final String residenceCommercial;
   final String apartmentName;
   final String apartmentAddress;
-  final String typeOfProperty;
   final String bhk;
   final String showPrice;
-  final String lastPrice;
-  final String askingPrice;
   final String floor;
   final String totalFloor;
-  final String balcony;
-  final String squareFit;
-  final String maintenance;
   final String parking;
-  final String ageOfProperty;
-  final String fieldworkarAddress;
-  final String roadSize;
-  final String metroDistance;
-  final String highwayDistance;
-  final String mainMarketDistance;
-  final String meter;
-  final String ownerName;
-  final String ownerNumber;
-  final String currentDates;
-  final String availableDate;
-  final String kitchen;
-  final String bathroom;
-  final String lift;
-  final String facility;
-  final String furnishedUnfurnished;
-  final String fieldWarkarName;
   final String liveUnlive;
-  final String fieldWorkarNumber;
-  final String registryAndGpa;
-  final String loan;
-  final String longitude;
-  final String latitude;
-  final String videoLink;
-  final String fieldWorkerCurrentLocation;
-  final String careTakerName;
-  final String careTakerNumber;
-  final String subId;
-  final String demoLiveUnlive;
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
 
-  AddFlat({
-    required this.propertyId,
+  AdminAddFlat({
+    required this.pId,
+    required this.subId,
     required this.propertyPhoto,
-    required this.locations,
+    required this.location,
     required this.flatNumber,
     required this.buyRent,
     required this.residenceCommercial,
     required this.apartmentName,
     required this.apartmentAddress,
-    required this.typeOfProperty,
     required this.bhk,
     required this.showPrice,
-    required this.lastPrice,
-    required this.askingPrice,
     required this.floor,
     required this.totalFloor,
-    required this.balcony,
-    required this.squareFit,
-    required this.maintenance,
     required this.parking,
-    required this.ageOfProperty,
-    required this.fieldworkarAddress,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.highwayDistance,
-    required this.mainMarketDistance,
-    required this.meter,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.currentDates,
-    required this.availableDate,
-    required this.kitchen,
-    required this.bathroom,
-    required this.lift,
-    required this.facility,
-    required this.furnishedUnfurnished,
-    required this.fieldWarkarName,
     required this.liveUnlive,
-    required this.fieldWorkarNumber,
-    required this.registryAndGpa,
-    required this.loan,
-    required this.longitude,
-    required this.latitude,
-    required this.videoLink,
-    required this.fieldWorkerCurrentLocation,
-    required this.careTakerName,
-    required this.careTakerNumber,
-    required this.subId,
-    required this.demoLiveUnlive,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
   });
 
-  factory AddFlat.fromJson(Map<String, dynamic> json) {
-    return AddFlat(
-      propertyId: json['P_id'] ?? 0,
+  factory AdminAddFlat.fromJson(Map<String, dynamic> json) {
+    return AdminAddFlat(
+      pId: (json['P_id'] as num?)?.toInt() ?? 0,
+      subId: json['subid']?.toString() ?? '',
       propertyPhoto: json['property_photo'] ?? '',
-      locations: json['locations'] ?? '',
+      location: json['locations'] ?? '',
       flatNumber: json['Flat_number'] ?? '',
       buyRent: json['Buy_Rent'] ?? '',
       residenceCommercial: json['Residence_Commercial'] ?? '',
       apartmentName: json['Apartment_name'] ?? '',
       apartmentAddress: json['Apartment_Address'] ?? '',
-      typeOfProperty: json['Typeofproperty'] ?? '',
       bhk: json['Bhk'] ?? '',
       showPrice: json['show_Price'] ?? '',
-      lastPrice: json['Last_Price'] ?? '',
-      askingPrice: json['asking_price'] ?? '',
       floor: json['Floor_'] ?? '',
       totalFloor: json['Total_floor'] ?? '',
-      balcony: json['Balcony'] ?? '',
-      squareFit: json['squarefit'] ?? '',
-      maintenance: json['maintance'] ?? '',
       parking: json['parking'] ?? '',
-      ageOfProperty: json['age_of_property'] ?? '',
-      fieldworkarAddress: json['fieldworkar_address'] ?? '',
-      roadSize: json['Road_Size'] ?? '',
-      metroDistance: json['metro_distance'] ?? '',
-      highwayDistance: json['highway_distance'] ?? '',
-      mainMarketDistance: json['main_market_distance'] ?? '',
-      meter: json['meter'] ?? '',
-      ownerName: json['owner_name'] ?? '',
-      ownerNumber: json['owner_number'] ?? '',
-      currentDates: json['current_dates'] ?? '',
-      availableDate: json['available_date'] ?? '',
-      kitchen: json['kitchen'] ?? '',
-      bathroom: json['bathroom'] ?? '',
-      lift: json['lift'] ?? '',
-      facility: json['Facility'] ?? '',
-      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
-      fieldWarkarName: json['field_warkar_name'] ?? '',
-      liveUnlive: json['live_unlive'] ?? '',
-      fieldWorkarNumber: json['field_workar_number'] ?? '',
-      registryAndGpa: json['registry_and_gpa'] ?? '',
-      loan: json['loan'] ?? '',
-      longitude: json['Longitude'] ?? '',
-      latitude: json['Latitude'] ?? '',
-      videoLink: json['video_link'] ?? '',
-      fieldWorkerCurrentLocation: json['field_worker_current_location'] ?? '',
-      careTakerName: json['care_taker_name'] ?? '',
-      careTakerNumber: json['care_taker_number'] ?? '',
-      subId: json['subid'] ?? '',
-      demoLiveUnlive: json['demo_live_unlive'] ?? '',
+      liveUnlive: json['live_unlive'] ?? 'Unknown',
+      fieldWorkerName: json['field_warkar_name'] ?? '',
+      fieldWorkerNumber: json['field_workar_number'] ?? '',
     );
   }
 }
@@ -270,50 +277,140 @@ class FuturePropertyResponse {
 
 class FutureProperty {
   final int id;
+
+  // Images
+  final String? image;
+
+  // Owner & Caretaker
+  final String ownerName;
+  final String ownerNumber;
   final String caretakerName;
   final String caretakerNumber;
+
+  // Location & Address
   final String place;
+  final String localityList;
+  final String propertyNameAddress;
+  final String propertyAddressForFieldworker;
+  final String yourAddress;
+
+  // Property Details
   final String buyRent;
-  final String propertyName;
-  final String propertyAddress;
+  final String residenceType; // Residence_commercial
+  final String bhk;
+  final String floorNumber;
+  final String squareFeet;
+  final String totalFloor;
+  final String ageOfProperty;
+  final String parking;
+  final String lift;
+  final String facility;
+
+  // Connectivity
+  final String roadSize;
   final String metroName;
   final String metroDistance;
-  final String totalFloor;
-  final String facility;
-  final String residenceType;
-  final String? image;
+  final String mainMarketDistance;
+
+  // Geo
+  final String latitude;
+  final String longitude;
+
+  // Field Worker
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  // Date
+  final String currentDate;
 
   FutureProperty({
     required this.id,
+    this.image,
+
+    required this.ownerName,
+    required this.ownerNumber,
     required this.caretakerName,
     required this.caretakerNumber,
+
     required this.place,
+    required this.localityList,
+    required this.propertyNameAddress,
+    required this.propertyAddressForFieldworker,
+    required this.yourAddress,
+
     required this.buyRent,
-    required this.propertyName,
-    required this.propertyAddress,
+    required this.residenceType,
+    required this.bhk,
+    required this.floorNumber,
+    required this.squareFeet,
+    required this.totalFloor,
+    required this.ageOfProperty,
+    required this.parking,
+    required this.lift,
+    required this.facility,
+
+    required this.roadSize,
     required this.metroName,
     required this.metroDistance,
-    required this.totalFloor,
-    required this.facility,
-    required this.residenceType,
-    this.image,
+    required this.mainMarketDistance,
+
+    required this.latitude,
+    required this.longitude,
+
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+
+    required this.currentDate,
   });
 
   factory FutureProperty.fromJson(Map<String, dynamic> json) {
     return FutureProperty(
-      id: json['id'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+
+      image: json['images'],
+
+      // Owner & Caretaker
+      ownerName: json['ownername'] ?? '',
+      ownerNumber: json['ownernumber'] ?? '',
       caretakerName: json['caretakername'] ?? '',
       caretakerNumber: json['caretakernumber'] ?? '',
+
+      // Location & Address
       place: json['place'] ?? '',
+      localityList: json['locality_list'] ?? '',
+      propertyNameAddress: json['propertyname_address'] ?? '',
+      propertyAddressForFieldworker:
+      json['property_address_for_fieldworkar'] ?? '',
+      yourAddress: json['your_address'] ?? '',
+
+      // Property Details
       buyRent: json['buy_rent'] ?? '',
-      propertyName: json['propertyname_address'] ?? '',
-      propertyAddress: json['property_address_for_fieldworkar'] ?? '',
+      residenceType: json['Residence_commercial'] ?? '',
+      bhk: json['select_bhk'] ?? '',
+      floorNumber: json['floor_number'] ?? '',
+      squareFeet: json['sqyare_feet'] ?? '',
+      totalFloor: json['total_floor'] ?? '',
+      ageOfProperty: json['age_of_property'] ?? '',
+      parking: json['parking'] ?? '',
+      lift: json['lift'] ?? '',
+      facility: json['facility'] ?? '',
+
+      // Connectivity
+      roadSize: json['Road_Size'] ?? '',
       metroName: json['metro_name'] ?? '',
       metroDistance: json['metro_distance'] ?? '',
-      totalFloor: json['total_floor'] ?? '',
-      facility: json['facility'] ?? '',
-      residenceType: json['Residence_commercial'] ?? '',
-      image: json['images'],
+      mainMarketDistance: json['main_market_distance'] ?? '',
+
+      // Geo
+      latitude: json['latitude'] ?? '',
+      longitude: json['longitude'] ?? '',
+
+      // Field Worker
+      fieldWorkerName: json['fieldworkarname'] ?? '',
+      fieldWorkerNumber: json['fieldworkarnumber'] ?? '',
+
+      // Date
+      currentDate: json['current_date_'] ?? '',
     );
   }
 }
@@ -342,31 +439,49 @@ class WebsiteVisitResponse {
 class WebsiteVisit {
   final int id;
   final String name;
+  final String email;
   final String contactNo;
   final String message;
+
   final String date;
   final String time;
   final int subid;
 
+  // NEW FIELDS
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+  final String? bhk;
+
   WebsiteVisit({
     required this.id,
     required this.name,
+    required this.email,
     required this.contactNo,
     required this.message,
     required this.date,
     required this.time,
     required this.subid,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    this.bhk,
   });
 
   factory WebsiteVisit.fromJson(Map<String, dynamic> json) {
     return WebsiteVisit(
-      id: json['id'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] ?? '',
+      email: json['email'] ?? '',
       contactNo: json['contact_no'] ?? '',
       message: json['message'] ?? '',
+
       date: json['dates'] ?? '',
       time: json['times'] ?? '',
-      subid: json['subid'] ?? 0,
+      subid: (json['subid'] as num?)?.toInt() ?? 0,
+
+      // NEW KEYS FROM API
+      fieldWorkerNumber: json['field_workar_number'] ?? '',
+      fieldWorkerName: json['field_workar_name'] ?? '',
+      bhk: json['bhk'],
     );
   }
 }
@@ -385,7 +500,6 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   bool _isLoading = false;
   List<AgreementTask> _agreements = [];
   List<FutureProperty> _futureProperties = [];
-  List<AddFlat> _addFlats = [];
   Map<DateTime, bool> _eventDays = {};
 
   // month/year state & lists
@@ -463,6 +577,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   List<String> _agreementWorkerNames = [];
   List<String> _futurePropertyWorkerNames = [];
   List<String> _websiteVisitWorkerNames = [];
+  List<AdminAddFlat> _addFlats = [];
 
   Future<void> _fetchData(DateTime date) async {
     setState(() => _isLoading = true);
@@ -481,6 +596,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     List<Map<String, dynamic>> agreements = [];
     List<Map<String, dynamic>> futureProps = [];
     List<Map<String, dynamic>> websiteVisits = [];
+    List<Map<String, dynamic>> adminAddFlat = [];
 
     try {
       for (final worker in fieldworkers) {
@@ -488,12 +604,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         final name = worker["name"];
 
         final responses = await Future.wait([
-          http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate&Fieldwarkarnumber=$number")),
-          http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$formattedDate&fieldworkarnumber=$number")),
-          http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate&field_workar_number=$number")),
+          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$formattedDate")),
+          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate")),
+          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate")),
+          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate")),
         ]);
 
         // Agreements
@@ -519,6 +633,16 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             w.data.map((e) => {"workerName": name, "data": e}),
           );
         }
+        // Admin Add Flat
+        if (responses[3].statusCode == 200 && responses[3].body.isNotEmpty) {
+          final addFlatRes = AddFlatResponse.fromRawJson(responses[3].body);
+
+          adminAddFlat.addAll(
+            addFlatRes.data.map((e) => {
+              "data": e,
+            }),
+          );
+        }
       }
 
       if (!mounted) return;
@@ -528,6 +652,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         final hasEvent =
             agreements.isNotEmpty ||
                 futureProps.isNotEmpty ||
+                adminAddFlat.isNotEmpty ||
                 websiteVisits.isNotEmpty;
 
         _eventDays[cleanDate] = hasEvent;
@@ -535,6 +660,12 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         _agreements = agreements.map((e) => e["data"] as AgreementTask).toList();
         _futureProperties = futureProps.map((e) => e["data"] as FutureProperty).toList();
         _websiteVisits = websiteVisits.map((e) => e["data"] as WebsiteVisit).toList();
+        _addFlats = adminAddFlat
+            .map((e) => e["data"] as AdminAddFlat)
+            .toList();
+
+
+
 
         // Save worker names (so we can use them in cards)
         _agreementWorkerNames =
@@ -558,6 +689,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         _agreements = [];
         _futureProperties = [];
         _websiteVisits = [];
+        _addFlats=[];
         _isLoading = false;
       });
     }
@@ -673,91 +805,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       },
     );
   }
-// Enhanced Add Flat Card
-  Widget _buildAddFlatCard(AddFlat f, bool isDark, String workerName) {
-    Color statusColor = _getLiveUnliveColor(f.liveUnlive);
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Admin_underflat_futureproperty(
-              id: '${f.propertyId}',
-              Subid: '${f.subId}',
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    workerName,
-                    style: const TextStyle(
-                      color: Colors.indigo,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      f.liveUnlive,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                f.apartmentName,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
   Future<void> _fetchMonthlyEvents(int year, int month) async {
     _eventDays.clear();
 
@@ -812,7 +860,158 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
     if (mounted) setState(() {});
   }
+// Enhanced Add Flat Card
+  Widget _buildAddFlatCard(AdminAddFlat f, bool isDark) {
+    final statusColor = _getLiveUnliveColor(f.liveUnlive);
 
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => Admin_underflat_futureproperty(
+              id: f.pId.toString(),
+              Subid: f.subId,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            /// 🔹 HEADER (same as Agreement)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.12),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  /// Left title
+                  Expanded(
+                    child: Text(
+                      "Add Flat • ${f.flatNumber}",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                  ),
+
+                  /// Status + Worker
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          f.liveUnlive,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        f.fieldWorkerName,
+                        style:  TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ?Colors.white:Colors.indigo
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            /// 🔹 CONTENT (info rows like Agreement)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  _buildInfoRow(
+                    icon: PhosphorIcons.map_pin,
+                    title: "Location",
+                    value: f.location,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 8),
+
+                  _buildInfoRow(
+                    icon: PhosphorIcons.house,
+                    title: "Address",
+                    value: f.apartmentAddress,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 8),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoRow(
+                          icon: PhosphorIcons.bed,
+                          title: "BHK",
+                          value: f.bhk,
+                          isDark: isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildInfoRow(
+                          icon: PhosphorIcons.buildings,
+                          title: "Floor",
+                          value: "${f.floor} / ${f.totalFloor}",
+                          isDark: isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+
+                  _buildInfoRow(
+                    icon: PhosphorIcons.currency_inr,
+                    title: "Price",
+                    value: "₹${f.showPrice}",
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 // Helper method for live/unlive status color
   Color _getLiveUnliveColor(String status) {
     switch (status.toLowerCase()) {
@@ -894,11 +1093,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     ),
                     SizedBox(width: 6,),
                     Text(
-                      workerName,
+                      t.fieldWorkerName,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Colors.indigo,
+                          color: isDark ?Colors.white:Colors.indigo
                       ),
                     ),
                   ],)
@@ -991,7 +1190,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      f.propertyName,
+                      f.propertyNameAddress,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1016,9 +1215,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   ),
                   SizedBox(width: 6,),
                   Text(
-                    workerName,
-                    style: const TextStyle(
-                      color: Colors.indigo,
+                    f.fieldWorkerName,
+                    style:  TextStyle(
+                      color: isDark ?Colors.white:Colors.indigo,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -1237,8 +1436,6 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     ),
                   ),
                 ),
-
-
                 Text(
                   w.time,
                   style: TextStyle(
@@ -1256,9 +1453,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    workerName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    w.fieldWorkerName,
+                    style:  TextStyle(
+                      color: isDark ?Colors.white:Colors.indigo,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1633,17 +1830,15 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   // ✅ Add Flats Section
                   if (_addFlats.isNotEmpty)
                     _sectionTitle("Add Flats", isDark, _addFlats.length),
+
                   ...List.generate(
                     _addFlats.length,
                         (i) => _buildAddFlatCard(
                       _addFlats[i],
                       isDark,
-                      _futurePropertyWorkerNames.isNotEmpty
-                          ? _futurePropertyWorkerNames[
-                      i % _futurePropertyWorkerNames.length]
-                          : "Unknown", // fallback name
                     ),
                   ),
+
 
                   // ✅ Website Visit Section
                   if (_websiteVisits.isNotEmpty)

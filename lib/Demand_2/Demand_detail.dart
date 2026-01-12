@@ -2,16 +2,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
 import 'package:verify_feild_worker/utilities/bug_founder_fuction.dart';
 
 import '../model/demand_model.dart';
+import '../utilities/bug_founder_fuction.dart';
 import 'demand_Form.dart';
 
 class DemandDetail extends StatefulWidget {
   final String demandId;
-  const DemandDetail({super.key, required this.demandId});
+  final bool fromNotification;
+  const DemandDetail({
+    super.key, required
+    this.demandId,
+    this.fromNotification = false,});
 
   @override
   State<DemandDetail> createState() => _AdminDemandDetailState();
@@ -20,7 +27,6 @@ class DemandDetail extends StatefulWidget {
 class _AdminDemandDetailState extends State<DemandDetail> {
   Map<String, dynamic>? _demand;
   bool _isLoading = true;
-  DateTime? _finishingDate;
   String? _finalReason;
   bool _isSubmittingFinal = false;
   final TextEditingController _otherReasonCtrl = TextEditingController();
@@ -61,6 +67,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           });
         }
       }
+      else{
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+      }
     } catch (e) {
       await BugLogger.log(
         apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
@@ -72,14 +85,37 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             SnackBar(content: Text("Error fetching details: $e")));
       }
       setState(() => _isLoading = false);
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+        error: e.toString(),
+        statusCode: 500,
+      );
     }
   }
 
   Future<void> _fetchRedemands() async {
     try {
-      final res = await http.get(Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=${widget.demandId}",
-      ));
+
+
+      final prefs = await SharedPreferences.getInstance();
+      final FieldName = prefs.getString('name') ?? "";
+      final FieldLocation = prefs.getString('location') ?? "";
+      print(FieldName);
+      print(FieldLocation);
+
+      if (FieldName.isEmpty || FieldLocation.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("User info missing. Please login again.")),
+        );
+        return;
+      }
+      final encodedName = Uri.encodeQueryComponent(FieldName);
+      final encodedLoc = Uri.encodeQueryComponent(FieldLocation);
+
+      String url = "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_subid_fieldworkar_name_and_location.php?subid=${widget.demandId}&assigned_fieldworker_name=$encodedName&assigned_fieldworker_location=$encodedLoc";
+
+      print(url);
+      final res = await http.get(Uri.parse(url,));
 
       if (res.statusCode == 200) {
         final json = jsonDecode(res.body);
@@ -104,6 +140,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           _isRedemandLoading = false;
         }
       }
+      else{
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_subid_fieldworkar_name_and_location.php?subid=${widget.demandId}&assigned_fieldworker_name=$encodedName&assigned_fieldworker_location=$encodedLoc",
+          error: res.body.toString(),
+          statusCode: res.statusCode ?? 0,
+        );
+      }
     } catch (e) {
       await BugLogger.log(
         apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=${widget.demandId}",
@@ -112,6 +155,11 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       );
       _isRedemandLoading = false;
       if (mounted) {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_based_on_subid_fieldworkar_name_and_location.php?subid=${widget.demandId}&assigned_fieldworker_name=encodedName&assigned_fieldworker_location=encodedLoc",
+          error: e.toString(),
+          statusCode: 500,
+        );
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Failed to load redemands")),
         );
@@ -122,7 +170,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   Future<void> _logContact({
     required String message,
     required String id,
-  }) async {
+  })
+  async {
     final now = DateTime.now();
     final date = "${now.year}-${now.month}-${now.day}";
     final time = "${now.hour}:${now.minute}";
@@ -131,9 +180,12 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/calling_option_for_fieldworkar.php";
 
     try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      final storedName = prefs.getString('name');
+      print("sending name: $storedName");
       final response = await http.post(
         Uri.parse(apiUrl),
-        body: {"message": message, "date": date, "time": time, "subid": id},
+        body: {"message": message, "date": date, "time": time, "subid": id,"who_calling":storedName,},
       );
 
       debugPrint("Log saved: ${response.body}");
@@ -147,8 +199,21 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     }
   }
 
+  String normalizeWhatsAppNumber(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'\D'), '');
 
+    // If already has country code (starts with 91 and length > 10)
+    if (cleaned.length > 10 && cleaned.startsWith('91')) {
+      return cleaned;
+    }
 
+    // Default to India
+    if (cleaned.length == 10) {
+      return '91$cleaned';
+    }
+
+    return cleaned; // fallback
+  }
 
 
   String formatApiDate(dynamic raw) {
@@ -175,6 +240,55 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   }
 
 
+  Widget _fieldWorkerNotice(bool isDark) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.orange.withOpacity(isDark ? 0.15 : 0.12),
+        border: Border.all(
+          color: Colors.orange.withOpacity(0.45),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.engineering_rounded,
+            color: Colors.orange.shade700,
+            size: 26,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Field Worker Added Demand",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "This demand was added directly by a field worker.",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.orangeAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -182,8 +296,18 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     final bool isUrgent = _demand?["mark"] == "1";
     final Color accent =
     isUrgent ? Colors.redAccent : theme.colorScheme.primary;
-    final bool isDisclosed = _demand?["Status"]?.toString().toLowerCase() == "disclosed";
     final status = _demand?["Status"]?.toLowerCase();
+
+    bool _isAddedByFieldWorker(dynamic value) {
+      if (value == null) return false;
+      if (value is bool) return value;
+      if (value is String) return value.toLowerCase() == "true";
+      return false;
+    }
+    final bool addedByField =
+    _isAddedByFieldWorker(_demand?["by_field"]);
+
+    final bool isDisclosed = _demand?["Status"]?.toString().toLowerCase() == "disclosed" || _demand?["Status"]?.toString().toLowerCase() == "redemand" ;
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
@@ -245,22 +369,32 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
               ),
             ],
+
+            if (addedByField) _fieldWorkerNotice(isDark),
+
+            if (status == "redemand")
+              infoBanner(
+                icon: Icons.repeat,
+                color: Colors.blue,
+                title: "Demand Reopened",
+                message:
+                "A new redemand was added after the parent demand was disclosed. "
+                    "Work is active again.",
+              ),
+
+
             Divider(),
             _buildTenantCard(isDark, accent),
             const SizedBox(height: 24),
 
-            if (status == "progressing" || status == "disclosed")
-
+            if (status == "progressing" || status == "disclosed" || status == "redemand")
               _buildProgressDetailsCard(_demand!, isDark, accent),
 
             if (status == "progressing")
               _buildCompletionSection(isDark, accent),
 
-            if (status == "disclosed")
+            if (status == "disclosed" || status == "redemand")
               _buildFinalSummarySection(isDark, accent),
-
-
-
 
             const SizedBox(height: 24),
 
@@ -290,13 +424,40 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                   ).then((_) => _fetchDemandDetails());
                 },
                 child: Text(
-                  isDisclosed ? "Demand Closed" : "Add More Details",
+                  isDisclosed  ? "Demand Closed" : "Add More Details",
                   style: const TextStyle(
                     color: Colors.black,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            if (status != "disclosed" && status != "redemand")
+
+              SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.dangerous, color: Colors.white),
+                label: const Text(
+                  "Return to Sub Administrator",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () => _showReturnConfirmDialog(),
               ),
             ),
 
@@ -329,6 +490,79 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       ),
     );
   }
+
+  Widget infoBanner({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String message,
+    bool isDark = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: color.withOpacity(isDark ? 0.15 : 0.12),
+        border: Border.all(
+          color: color.withOpacity(0.45),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: color,
+            size: 26,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "$message ",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark
+                              ? color.withOpacity(0.9)
+                              : color.withOpacity(0.85),
+                        ),
+                      ),
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Icon(
+                          Icons.sentiment_satisfied_alt,
+                          size: 16,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildFinalSummarySection(bool isDark, Color accent) {
     final theme = Theme.of(context);
@@ -500,8 +734,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             ),
           ),
 
-
-
         GestureDetector(
           onTap: () {
             Navigator.push(
@@ -618,7 +850,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${d.location} • ${d.bhk} BHK",
+                    Text("${d.location} • ${d.bhk} ",
                         style: TextStyle(
                             color: isDark ? Colors.white70 : Colors.black54,
                             fontSize: 14)),
@@ -627,13 +859,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                         style: TextStyle(
                             color: isDark ? Colors.white60 : Colors.black54,
                             fontSize: 14)),
-                    if (d.reference.isNotEmpty)
+                    if (d.id.toString().isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 3),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text("Ref: ${d.reference}",
+                            Text("ReDemand ID: ${d.id}",
                                 style: TextStyle(
                                     color: isDark
                                         ? Colors.white38
@@ -644,6 +876,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                               style: TextStyle(
                                   color: Colors.grey.shade500, fontSize: 13),
                             )
+
                           ],
                         ),
                       ),
@@ -655,6 +888,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         ),
 
         // ----- Existing ribbons -------
+        if (d.status.toLowerCase() == "assigned to fieldworker")
+          _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
         if (d.status.toLowerCase() == "disclosed")
           _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
         if (d.status.toLowerCase() == "progressing")
@@ -664,6 +899,61 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     );
   }
 
+  String _fmt(dynamic v) {
+    if (v == null) return "—";
+    if (v.toString().trim().isEmpty) return "—";
+    return v.toString();
+  }
+
+  String _fmtDate(dynamic v) {
+    if (v == null) return "—";
+
+    try {
+      if (v is String && v.contains('-')) {
+        final d = DateTime.parse(v);
+        return DateFormat('dd MMM yyyy').format(d);
+      }
+
+      if (v is Map && v['date'] != null) {
+        final d = DateTime.parse(v['date']);
+        return DateFormat('dd MMM yyyy').format(d);
+      }
+    } catch (_) {}
+
+    return v.toString();
+  }
+
+  String _fmtFurnishedItems(dynamic raw) {
+    if (raw == null || raw.toString().trim().isEmpty) return "—";
+
+    try {
+      final Map<String, dynamic> items =
+      raw is String ? jsonDecode(raw) : Map<String, dynamic>.from(raw);
+
+      if (items.isEmpty) return "—";
+
+      return items.entries
+          .map((e) => "${e.key} (${e.value})")
+          .join(", ");
+    } catch (_) {
+      return "—";
+    }
+  }
+
+
+  String _fmtFamily(Map<String, dynamic> data) {
+    final structure = data['family_structur'];
+    final members = data['family_member'];
+    final count = data['count_of_person'];
+
+    if (structure == null && members == null) return "—";
+
+    return [
+      if (structure != null) structure,
+      if (members != null) "$members members",
+      if (count != null) "($count)"
+    ].join(' • ');
+  }
 
   Widget _buildProgressDetailsCard(
       Map<String, dynamic> data,
@@ -697,21 +987,48 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           ),
           const SizedBox(height: 16),
 
-          _infoRow("Parking", data["parking"]),
-          _infoRow("Lift", data["lift"]),
-          _infoRow("Furnished", data["furnished_unfurnished"]),
-          _infoRow("Family Structure", data["family_structur"]),
-          _infoRow("Family Members", data["family_member"]),
-          _infoRow("Religion", data["religion"]),
-          _infoRow("Visiting Date", data["visiting_dates"]),
-          _infoRow("Vehicle Type", data["vichle_type"]),
-          _infoRow("Vehicle No", data["vichle_no"]),
-          _infoRow("Floor", data["floor"]),
-          _infoRow("Shifting Date", data["shifting_date"]),
+          _infoRow("Parking", _fmt(data["parking"])),
+          _infoRow("Lift", _fmt(data["lift"])),
+          _infoRow("Furnished", _fmt(data["furnished_unfurnished"])),
+
+          if (data["furnished_unfurnished"] == "Fully Furnished" ||
+              data["furnished_unfurnished"] == "Semi Furnished")
+            _infoRow(
+              "Items",
+              _fmtFurnishedItems(data["furnished_item"]),
+            ),
+
+          _infoRow(
+            "Family",
+            _fmtFamily(data),
+          ),
+
+          _infoRow("Religion", _fmt(data["religion"])),
+
+          _infoRow(
+            "Visiting Date",
+            _fmtDate(data["visiting_dates"]),
+          ),
+
+          _infoRow("Vehicle Type", _fmt(data["vichle_type"])),
+
+          if (_fmt(data["vichle_no"]) != "—")
+            _infoRow("Vehicle No", _fmt(data["vichle_no"])),
+
+          _infoRow(
+            "Floor",
+            _fmt(data["floor"])!.replaceAll(',', ', '),
+          ),
+
+          _infoRow(
+            "Shifting Date",
+            _fmtDate(data["shifting_date"]),
+          ),
         ],
       ),
     );
   }
+
 
 
 
@@ -745,49 +1062,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               color: accent,
             ),
           ),
-          const SizedBox(height: 16),
 
-          // Finishing Date
-          Text("Finishing Date",
-              style: theme.textTheme.titleSmall!
-                  .copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 6),
-          GestureDetector(
-            onTap: () async {
-              final picked = await showDatePicker(
-                context: context,
-                initialDate: DateTime.now(),
-                firstDate: DateTime(2020),
-                lastDate: DateTime(2040),
-              );
-              if (picked != null) {
-                setState(() => _finishingDate = picked);
-              }
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                color: theme.colorScheme.surfaceVariant.withOpacity(0.15),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    _finishingDate == null
-                        ? "Select Date"
-                        : "${_finishingDate!.year}-${_finishingDate!.month.toString().padLeft(2, '0')}-${_finishingDate!.day.toString().padLeft(2, '0')}",
-                    style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black87,
-                      fontSize: 15,
-                    ),
-                  ),
-                  Icon(Icons.calendar_today,
-                      size: 20, color: theme.iconTheme.color),
-                ],
-              ),
-            ),
-          ),
 
           const SizedBox(height: 18),
 
@@ -897,10 +1172,12 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     );
   }
 
-
   void _showFinalReasonSheet() {
     final reasons = [
       "Completed Successfully",
+      "Wrong Contact Number",
+      "Not Reachable",
+      "No Respond",
       "Property Not Found",
       "Customer Cancelled",
       "Mismatch Requirements",
@@ -939,15 +1216,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   }
 
   Future<void> _submitFinalUpdate() async {
-    if (_finishingDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          backgroundColor: Colors.redAccent,
-          content: Text("Please select finishing date"),
-        ),
-      );
-      return;
-    }
 
     if (_finalReason == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -958,6 +1226,18 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       );
       return;
     }
+
+    final now = DateTime.now();
+
+
+    final String finishingDateTime =
+        "${now.year}-"
+        "${now.month.toString().padLeft(2, '0')}-"
+        "${now.day.toString().padLeft(2, '0')} "
+        "${now.hour.toString().padLeft(2, '0')}:"
+        "${now.minute.toString().padLeft(2, '0')}:"
+        "${now.second.toString().padLeft(2, '0')}";
+
 
     final String finalReasonToSend =
         (_finalReason ?? "") +
@@ -973,8 +1253,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
             "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_tenant_demand.php"),
         body: {
           "id": _demand!["id"].toString(),
-          "finishing_date":
-          "${_finishingDate!.year}-${_finishingDate!.month.toString().padLeft(2, '0')}-${_finishingDate!.day.toString().padLeft(2, '0')}",
+          "finishing_date": finishingDateTime,
           "final_reason": finalReasonToSend,
         },
       );
@@ -1004,6 +1283,86 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     setState(() => _isSubmittingFinal = false);
   }
 
+  void _showReturnConfirmDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          title: const Text("Confirm Action"),
+          content: const Text(
+            "Are you sure you want to Return this demand to Sub Administrator? "
+                "\nThis action cannot be undone.",
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _returnDemand();
+              },
+              child: const Text("Confirm"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _returnDemand() async {
+    try {
+      print("Returning Demand ID: ${_demand!["id"]}");
+
+      final uri = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/fieldworkar_return_demand_to_subadmin.php",
+      );
+
+      /// ✅ FORM DATA (x-www-form-urlencoded)
+      final response = await http.post(
+        uri,
+        body: {
+          "id": _demand!["id"].toString(),
+        },
+      );
+
+      print("📡 RESPONSE BODY: ${response.body}");
+
+      final result = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Colors.green,
+            content: Text("Demand Returned successfully"),
+          ),
+        );
+
+        Navigator.pop(context);
+
+      } else {
+        throw Exception(result["message"] ?? "Returning failed");
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Returning failed: $e"),
+        ),
+      );
+
+      await BugLogger.log(
+        apiLink:
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/fieldworkar_return_demand_to_subadmin.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
+    }
+  }
 
   Future<List<dynamic>> _fetchLogs(String id) async {
     try {
@@ -1021,6 +1380,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
           return body["data"];
         }
       }
+      else{
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+          error: res.body.toString(),
+          statusCode: res.statusCode ?? 0,
+        );
+      }
     } catch (e) {
       await BugLogger.log(
         apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
@@ -1028,10 +1394,14 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         statusCode: 500,
       );
       print("❌ Error fetching logs: $e");
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+        error: e.toString(),
+        statusCode: 500,
+      );
     }
     return [];
   }
-
 
   void _openContactSheet(BuildContext context, Color accent, bool isDark) async {
     final number = _demand?["Tnumber"] ?? "";
@@ -1056,7 +1426,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
               setSheetState(() {
                 logs = updated;
               });
-              print("✅ Logs Updated: ${logs.length}");
+              print("✅ Logs Update  d: ${logs.length}");
             }
 
             return Container(
@@ -1102,7 +1472,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                             print("☎ CALL tapped");
 
                             await _logContact(
-                                message: "Try to Call $number", id: id);
+                                message: "Try to Call ${maskPhone(number)}", id: id);
 
                             print("📌 Log Inserted → Calling...");
                             await refreshLogs();
@@ -1122,13 +1492,13 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                             print("💬 WhatsApp tapped");
 
                             await _logContact(
-                                message: "Try to message on WhatsApp $number",
+                                message: "Try to message on WhatsApp ${maskPhone(number)}",
                                 id: id);
 
                             print("📌 Log Inserted → Opening WhatsApp...");
                             await refreshLogs();
 
-                            final phone = number.replaceAll(" ", "");
+                            final phone = normalizeWhatsAppNumber(number);
                             final txt = Uri.encodeComponent(
                                 "Hello $name, I’m contacting regarding your request.");
                             final url =
@@ -1185,6 +1555,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                         final msg = log['message'] ?? "";
                         final date = log['date'] ?? "";
                         final time = log['time'] ?? "";
+                        final by = log['who_calling'] ?? "";
+
 
                         final isCall =
                         msg.toLowerCase().contains("call");
@@ -1233,14 +1605,28 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    "$date • $time",
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: isDark
-                                          ? Colors.white54
-                                          : Colors.grey.shade600,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "$date • $time",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      Text(
+                                        "by $by",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
@@ -1260,10 +1646,6 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       },
     );
   }
-
-
-
-
 
   Widget _contactButton({
     required String label,
@@ -1290,7 +1672,10 @@ class _AdminDemandDetailState extends State<DemandDetail> {
     );
   }
 
-
+  String maskPhone(String? phone) {
+    if (phone == null || phone.length < 3) return "Hidden";
+    return "XXXXXXX${phone.substring(phone.length - 3)}";
+  }
 
 
   Widget _buildTenantCard(bool isDark, Color accent) {
@@ -1310,7 +1695,8 @@ class _AdminDemandDetailState extends State<DemandDetail> {
       ),
 
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
+        Row(
+            children: [
           Container(
             height: 55,
             width: 55,
@@ -1345,19 +1731,28 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black)),
                   const SizedBox(height: 3),
-                  Text(_demand?["Tnumber"] ?? "-",
+                  Text(maskPhone(_demand?["Tnumber"]),
                       style:
                       TextStyle(color: Colors.grey.shade500, fontSize: 14)),
 
                   Text(
                     "Created: ${formatApiDate(_demand!["created_date"])}",
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                  )
+                  ),
+                  Text('Demand ID: ${_demand?["id"].toString()}' ?? "0",
+                      style: TextStyle(
+                          color: isDark
+                              ? Colors.white38
+                              : Colors.black45,
+                          fontSize: 13)),
+
+
 
                 ]),
           ),
-          if (_demand?["mark"] == "1")
-            Container(
+          if (_demand?["mark"] == "1") ...[
+            Spacer(),
+          Container(
               width: 10,
               height: 10,
               decoration: BoxDecoration(
@@ -1371,7 +1766,9 @@ class _AdminDemandDetailState extends State<DemandDetail> {
                 ],
               ),
             ),
-        ]),
+    ]
+        ]
+        ),
         const SizedBox(height: 12),
         Divider(color: Colors.grey.withOpacity(0.3)),
 
@@ -1379,7 +1776,7 @@ class _AdminDemandDetailState extends State<DemandDetail> {
         _infoRow("Location", _demand?["Location"]),
         _infoRow("Price Range", _demand?["Price"]),
         _infoRow("BHK Range", _demand?["Bhk"]),
-        _infoRow("Reference", _demand?["Reference"]),
+        // _infoRow("Reference", _demand?["Reference"]),
         _infoRow("Status", _demand?["Status"]),
         _infoRow("Message", _demand?["Message"]),
       ]),
@@ -1387,24 +1784,30 @@ class _AdminDemandDetailState extends State<DemandDetail> {
   }
 
 
-  Widget _infoRow(String title, String? value) {
+  Widget _infoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(title,
-            style: const TextStyle(
-                color: Colors.grey, fontSize: 14, fontWeight: FontWeight.w500)),
-        Flexible(
-          child: Text(
-            (value?.isNotEmpty ?? false) ? value! : "-",
-            textAlign: TextAlign.right,
-            style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w500),
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 140,
+            child: Text(
+              "$label:",
+              style: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13.5,
+              ),
+            ),
           ),
-        ),
-      ]),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(fontSize: 13.5),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

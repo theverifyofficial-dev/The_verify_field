@@ -5,6 +5,8 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import '../../constant.dart';
+import '../../utilities/bug_founder_fuction.dart';
+import 'Admin_demand_detail.dart';
 
 class CustomerDemandFormPage extends StatefulWidget {
   const CustomerDemandFormPage({super.key});
@@ -20,35 +22,26 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   final _nameCtrl = TextEditingController();
   final _numberCtrl = TextEditingController();
   final _messageCtrl = TextEditingController();
+  bool _fetchingCustomer = false;
+  Map<String, dynamic>? _existingCustomer;
+
+
 
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
   final String _status = "New";
   bool _isUrgent = false;
 
-  RangeValues _bhkRange = const RangeValues(1, 3);
   RangeValues _buyBudget = const RangeValues(1000000, 5000000);
 
-  final List<int> _rentSteps = [5000, 10000, 15000, 20000, 25000, 30000, 40000, 50000, 75000, 100000];
-  int? _rentMin = 5000;
-  int? _rentMax = 20000;
+
+  RangeValues _rentBudget = const RangeValues(5000, 20000);
+
 
   final List<String> _buyRentOptions = ["Buy", "Rent"];
   final List<String> _referenceOptions = ["99 Acres", "Housing", "Instagram", "Youtube","facebook","Website","Other"];
   final List<String> _locationOptions = [
-    "SultanPur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni",""
-  ];
-
-  String _assignType = "All Offices";
-  String? _selectedOffice;
-  final List<String> _officeOptions = [
-    "All Offices",
-    "SultanPur Office",
-    "Chhattarpur Office",
-    "Rajpur Office",
-    "Aya Nagar Office",
-    "Ghitorni Office",
-  ];
+    "Sultanpur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni"];
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
@@ -74,6 +67,149 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     super.dispose();
   }
 
+  bool get _canSubmitRedemand {
+    if (_existingCustomer == null) return true;
+
+    final fwName = _existingCustomer?["assigned_fieldworker_name"];
+
+    // can submit only if fieldworker is assigned
+    return fwName != null && fwName.toString().trim().isNotEmpty;
+  }
+
+  Widget _redemandBlockedBanner() {
+    final theme = Theme.of(context);
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.red.withOpacity(0.12),
+        border: Border.all(
+          color: Colors.red.withOpacity(0.45),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.block_rounded,
+            color: Colors.red.shade700,
+            size: 26,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Redemand Not Allowed Yet",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.red,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "You can add a new demand only after the previous demand is assigned to Fieldworker.",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.redAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
+  Future<void> _fetchCustomerByPhone(String phone) async {
+    if (phone.length != 10) return;
+
+    setState(() => _fetchingCustomer = true);
+
+    try {
+      final res = await _dio.get(
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/fecth_tenant_number.php?Tnumber=$phone",
+      );
+
+      if (res.statusCode == 200 && res.data["success"] == true) {
+        final List list = res.data["data"];
+        if (list.isEmpty) return;
+
+        final data = list.first;
+
+        setState(() {
+          _existingCustomer = data;
+          _autofillFromExistingCustomer(data);
+        });
+      }
+    } catch (_) {
+     } finally {
+      if (mounted) setState(() => _fetchingCustomer = false);
+    }
+  }
+
+  void _autofillFromExistingCustomer(Map<String, dynamic> data) {
+    // NAME
+    if (_nameCtrl.text.isEmpty && data["Tname"] != null) {
+      _nameCtrl.text = data["Tname"].toString();
+    }
+
+
+    // BUY / RENT
+    if (_buyRent == null && data["Buy_rent"] != null) {
+      _buyRent = data["Buy_rent"];
+    }
+
+    // LOCATION
+    if (_location == null && data["Location"] != null) {
+      _location = data["Location"];
+    }
+
+    // Reference
+    if (_reference == null && data["Reference"] != null) {
+      _reference = data["Reference"];
+    }
+
+    // MESSAGE (append, don’t replace)
+    if (_messageCtrl.text.isEmpty && data["Message"] != null) {
+      _messageCtrl.text = data["Message"].toString();
+    }
+
+    // BHK (multi-select safe)
+    if (_selectedBhks.isEmpty && data["Bhk"] != null) {
+      _selectedBhks.clear();
+      final bhks = data["Bhk"].toString().split(",");
+      for (final b in bhks) {
+        _selectedBhks.add(b.trim());
+      }
+    }
+
+    // PRICE → BUDGET
+    if (data["Price"] != null) {
+      final parts = data["Price"].toString().split("-");
+      if (parts.length == 2) {
+        final start = double.tryParse(parts[0]);
+        final end = double.tryParse(parts[1]);
+
+        if (start != null && end != null) {
+          if (_buyRent == "Buy") {
+            _buyBudget = RangeValues(start, end);
+          } else {
+            _rentBudget = RangeValues(start, end);
+          }
+        }
+      }
+    }
+  }
+
+
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
@@ -82,21 +218,33 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     final now = DateTime.now();
     final isBuy = _buyRent == "Buy";
 
+    if (_selectedBhks.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Please select at least one BHK option"),
+        ),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
     final formData = {
       "Tname": _nameCtrl.text.trim(),
       "Tnumber": _numberCtrl.text.trim(),
       "Buy_rent": _buyRent,
       "Reference": _reference ?? "",
-      "Price": isBuy
+      "Price": _buyRent == "Buy"
           ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-          : "$_rentMin-$_rentMax",
+          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
       "Message": _messageCtrl.text.trim(),
-      "Bhk": "${_bhkRange.start.toInt()}-${_bhkRange.end.toInt()}",
+      "Bhk": _selectedBhks.join(", "),
       "Location": _location ?? "",
       "Status": _status, // Always "New"
       "mark": _isUrgent, // true / false urgent flag
       "created_date": DateFormat('yyyy-MM-dd').format(now),
       "Result": "", // Initially blank
+      "by_field": "false", // STRING, not bool
     };
 
     try {
@@ -106,37 +254,95 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         options: Options(headers: {"Content-Type": "application/json"}),
       );
 
-      print('printing response ${res.data['body']}');
+      print('printing response ${res.data}');
 
       if (res.statusCode == 200) {
+        final data = res.data;
+
+        print(data);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Text(res.data["message"] ?? "Demand Added Successfully"),
+            content: Text(data["message"]),
           ),
         );
-        _formKey.currentState?.reset();
-        setState(() {
-          _buyRent = _reference = _location = null;
-          _isUrgent = false;
-        });
+
+        if (data["main_status"] == "redemand") {
+          final parentId = data["matched_add_demand_id"].toString();
+
+          print(parentId);
+
+
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AdminDemandDetail(demandId: parentId),
+            ),
+          );
+          return;
+        }
+
         Navigator.pop(context);
-      } else {
+      }
+      else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.redAccent,
             content: Text(res.data["message"] ?? "Failed to Add Demand"),
           ),
         );
+
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          error: res.data.toString(),
+          statusCode: res.statusCode ?? 0,
+        );
+
       }
-    } catch (e) {
+    } on DioException catch (e) {
+      String errorMessage = "Something went wrong";
+
+      // ✅ Backend responded with error
+      if (e.response != null) {
+        final status = e.response?.statusCode;
+        final data = e.response?.data;
+
+        if (data is Map && data["message"] != null) {
+          errorMessage = data["message"];
+        } else {
+          errorMessage = "Server error ($status)";
+        }
+
+        print(errorMessage);
+
+        // 🔍 LOG REAL ERROR
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          error: data.toString(),
+          statusCode: status ?? 0,
+        );
+      }
+
+      // ❌ No response → network / timeout / SSL
+      else {
+        errorMessage = "Network error. Check internet connection.";
+
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          error: e.message ?? "Unknown Dio error",
+          statusCode: 0,
+        );
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           backgroundColor: Colors.redAccent,
-          content: Text("Error: $e"),
+          content: Text(errorMessage),
         ),
       );
-    } finally {
+    }
+    finally {
       setState(() => _isSubmitting = false);
     }
   }
@@ -159,19 +365,22 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     );
   }
 
-  // 💰 Smart formatter
-  String _formatAmount(num n) {
-    if (n >= 10000000) return "₹${(n / 10000000).toStringAsFixed(1)}Cr";
-    if (n >= 100000) return "₹${(n / 100000).toStringAsFixed(1)}L";
-    if (n >= 1000) return "₹${(n / 1000).toStringAsFixed(0)}k";
-    return "₹${n.toInt()}";
-  }
+
+  final List<String> _bhkOptions = [
+    "1 RK",
+    "1 BHK",
+    "2 BHK",
+    "3 BHK",
+    "4 BHK",
+    "Commercial",
+    "Plot",
+  ];
+
+  final Set<String> _selectedBhks = {};
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isBuy = _buyRent == "Buy";
-    final isRent = _buyRent == "Rent";
 
     return Scaffold(
       appBar: AppBar(
@@ -191,7 +400,13 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
           child: Form(
             key: _formKey,
             child: Column(children: [
-
+              if (_existingCustomer != null) ...[
+                _ExistingCustomerCard(
+                  data: _existingCustomer!,
+                  isDark: Theme.of(context).brightness == Brightness.dark,
+                ),
+                const SizedBox(height: 16),
+              ],
 
               // 🚨 Premium Urgent Demand Swipe Toggle (Pulse + Bounce)
               const SizedBox(height: 10),
@@ -307,6 +522,31 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
               ),
               const SizedBox(height: 20),
 
+              TextFormField(
+                controller: _numberCtrl,
+                enabled: _existingCustomer == null,
+                decoration: _inputStyle("Phone Number", Icons.phone).copyWith(
+                  suffixIcon: _fetchingCustomer
+                      ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                      : null,
+                ),
+                keyboardType: TextInputType.phone,
+                maxLength: 10,
+                onChanged: (v) {
+                  if (v.length == 10) {
+                    _fetchCustomerByPhone(v);
+                  }
+                },
+                validator: (v) =>
+                v!.length != 10 ? "Enter valid 10-digit number" : null,
+              ),
 
               TextFormField(
                 controller: _nameCtrl,
@@ -314,14 +554,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                 validator: (v) => v!.isEmpty ? "Enter name" : null,
               ),
               const SizedBox(height: 10),
-              TextFormField(
-                controller: _numberCtrl,
-                decoration: _inputStyle("Phone Number", Icons.phone),
-                keyboardType: TextInputType.phone,
-                maxLength: 12,
-                validator: (v) =>
-                v!.length != 10 ? "Enter valid 10-digit number" : null,
-              ),
+
               GestureDetector(
                 onTap: () => _showSelectBottomSheet(
                   title: "Select Type (Buy or Rent)",
@@ -358,86 +591,50 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                          isBuy
-                              ? "Select Buy Price Range (₹)"
-                              : "Select Rent Range (₹/month)",
-                          style: theme.textTheme.titleSmall!
-                              .copyWith(fontWeight: FontWeight.w600)),
-
-                      // 🟢 Buy uses RangeSlider
-                      if (isBuy)
-                        RangeSlider(
-                          values: _buyBudget,
-                          min: 500000,
-                          max: 20000000,
-                          divisions: 40,
-                          labels: RangeLabels(
-                            _formatAmount(_buyBudget.start),
-                            _formatAmount(_buyBudget.end),
-                          ),
-                          onChanged: (r) => setState(() => _buyBudget = r),
-                        ),
-
-                      // 🟣 Rent uses Dropdowns
-                      if (isRent) ...[
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                value: _rentMin,
-                                decoration: const InputDecoration(
-                                    labelText: "Min (₹)",
-                                    border: OutlineInputBorder()),
-                                items: _rentSteps
-                                    .map((e) => DropdownMenuItem(
-                                    value: e, child: Text(_formatAmount(e))))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _rentMin = v),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: DropdownButtonFormField<int>(
-                                value: _rentMax,
-                                decoration: const InputDecoration(
-                                    labelText: "Max (₹)",
-                                    border: OutlineInputBorder()),
-                                items: _rentSteps
-                                    .map((e) => DropdownMenuItem(
-                                    value: e, child: Text(_formatAmount(e))))
-                                    .toList(),
-                                onChanged: (v) =>
-                                    setState(() => _rentMax = v),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                      BudgetSelector(
+                        type: _buyRent!,
+                        buyBudget: _buyBudget,
+                        rentBudget: _rentBudget,
+                        onBuyChange: (v) => setState(() => _buyBudget = v),
+                        onRentChange: (v) => setState(() => _rentBudget = v),
+                      ),
 
                       const SizedBox(height: 12),
-                      Text("Select BHK Range",
-                          style: theme.textTheme.titleSmall!
-                              .copyWith(fontWeight: FontWeight.w600)),
-                      RangeSlider(
-                        values: _bhkRange,
-                        min: 1,
-                        max: 5,
-                        divisions: 4,
-                        activeColor: theme.colorScheme.primary,
-                        labels: RangeLabels(
-                          "${_bhkRange.start.toInt()} BHK",
-                          "${_bhkRange.end.toInt()} BHK",
-                        ),
-                        onChanged: (r) => setState(() => _bhkRange = r),
+
+                      Text(
+                        "Select BHK",
+                        style: theme.textTheme.titleSmall!
+                            .copyWith(fontWeight: FontWeight.w600),
                       ),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 8,
+                        children: _bhkOptions.map((e) {
+                          final isSelected = _selectedBhks.contains(e);
+                          return ChoiceChip(
+                            label: Text(e),
+                            selected: isSelected,
+                            selectedColor: theme.colorScheme.primary.withOpacity(0.25),
+                            onSelected: (selected) {
+                              setState(() {
+                                selected ? _selectedBhks.add(e) : _selectedBhks.remove(e);
+                              });
+                            },
+                          );
+                        }).toList(),
+                      ),
+
+                      if (_selectedBhks.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          "Selected: ${_selectedBhks.join(', ')}",
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ],
-
               const SizedBox(height: 10),
               TextFormField(
                 controller: _messageCtrl,
@@ -446,37 +643,75 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                 maxLines: 3,
               ),
               const SizedBox(height: 20),
+
+              if (_existingCustomer != null && !_canSubmitRedemand) ...[
+                _redemandBlockedBanner(),
+              ],
+              const SizedBox(height: 10),
+
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
                   icon: _isSubmitting
                       ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.upload, color: Colors.white, size: 25),
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                      : Icon(
+                    !_canSubmitRedemand
+                        ? Icons.lock_outline
+                        : Icons.upload,
+                    color: Colors.white,
+                    size: 24,
+                  ),
                   label: Text(
-                    _isSubmitting ? "Submitting..." : "Submit Demand",
+                    _submitButtonText,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
+                      color: Colors.white,
+                      fontSize: 17,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
+                    backgroundColor: _submitButtonColor(theme),
+                    disabledBackgroundColor:
+                    Colors.red.withOpacity(0.6), // 👈 still visible
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: _canSubmitRedemand ? 6 : 0,
                   ),
-                  onPressed: _isSubmitting ? null : _submitForm,
+                  onPressed: (_isSubmitting || !_canSubmitRedemand)
+                      ? null
+                      : _submitForm,
                 ),
               ),
+
             ]),
           ),
         ),
       ),
     );
+  }
+
+  String get _submitButtonText {
+    if (_isSubmitting) return "Submitting...";
+    if (!_canSubmitRedemand) return "Waiting for Assign";
+    return "Submit Demand";
+  }
+
+  Color _submitButtonColor(ThemeData theme) {
+    if (_isSubmitting) return Colors.grey.shade600;;
+
+    if (!_canSubmitRedemand) {
+      return Colors.red.shade600; // warning state
+    }
+    return theme.colorScheme.primary; // normal
   }
 
   Widget _optionBox(String label, String? value) {
@@ -504,7 +739,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ),
     );
   }
-  // 🔽 Reusable Bottom Sheet Selector
+
   void _showSelectBottomSheet({
     required String title,
     required List<String> items,
@@ -540,6 +775,290 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ),
     );
   }
-
 }
 
+
+class BudgetSelector extends StatelessWidget {
+  final String type; // "Buy" or "Rent"
+  final RangeValues buyBudget;
+  final RangeValues rentBudget;
+  final Function(RangeValues) onBuyChange;
+  final Function(RangeValues) onRentChange;
+
+  const BudgetSelector({
+    super.key,
+    required this.type,
+    required this.buyBudget,
+    required this.rentBudget,
+    required this.onBuyChange,
+    required this.onRentChange,
+  });
+
+  String _formatAmount(num n) {
+    if (n >= 10000000) return "₹${(n / 10000000).toStringAsFixed(1)}Cr";
+    if (n >= 100000) return "₹${(n / 100000).toStringAsFixed(1)}L";
+    if (n >= 1000) return "₹${(n / 1000).toStringAsFixed(0)}k";
+    return "₹${n.toInt()}";
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bool isBuy = type == "Buy";
+
+    final presets = isBuy
+        ? [
+      const RangeValues(2000000, 4000000),
+      const RangeValues(4000000, 8000000),
+      const RangeValues(8000000, 12000000),
+    ]
+        : [
+      const RangeValues(8000, 12000),
+      const RangeValues(12000, 20000),
+      const RangeValues(20000, 30000),
+    ];
+
+    final current = isBuy ? buyBudget : rentBudget;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          colors: [
+            theme.colorScheme.primary.withOpacity(0.15),
+            theme.colorScheme.primary.withOpacity(0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // TITLE
+          Text(
+            isBuy ? "Buy Budget" : "Monthly Rent Budget",
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+
+          // LIVE DISPLAY
+          Text(
+            isBuy
+                ? "${_formatAmount(current.start)} – ${_formatAmount(current.end)}"
+                : "₹${current.start.toInt()} – ₹${current.end.toInt()} / month",
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          const SizedBox(height: 12),
+
+          // PRESET CHIPS
+          Wrap(
+            spacing: 8,
+            children: presets.map((r) {
+              final label = isBuy
+                  ? "${_formatAmount(r.start)} - ${_formatAmount(r.end)}"
+                  : "₹${r.start.toInt()} - ₹${r.end.toInt()}";
+
+              return ChoiceChip(
+                label: Text(label),
+                selected: false,
+                onSelected: (_) =>
+                isBuy ? onBuyChange(r) : onRentChange(r),
+              );
+            }).toList(),
+          ),
+
+          const SizedBox(height: 12),
+
+          // RANGE SLIDER
+          RangeSlider(
+            values: current,
+            min: isBuy ? 500000 : 5000,
+            max: isBuy ? 20000000 : 100000,
+            divisions: isBuy ? 40 : 19,
+            labels: isBuy
+                ? RangeLabels(
+              _formatAmount(current.start),
+              _formatAmount(current.end),
+            )
+                : RangeLabels(
+              "₹${current.start.toInt()}",
+              "₹${current.end.toInt()}",
+            ),
+            onChanged: (r) =>
+            isBuy ? onBuyChange(r) : onRentChange(r),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExistingCustomerCard extends StatelessWidget {
+  final Map<String, dynamic> data;
+  final bool isDark;
+
+  const _ExistingCustomerCard({
+    required this.data,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final accent = theme.colorScheme.primary;
+
+    Widget row(String label, dynamic value) {
+      if (value == null || value.toString().trim().isEmpty) {
+        return const SizedBox.shrink(); // 🔥 hide row completely
+      }
+
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 110,
+              child: Text(
+                "$label:",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: theme.hintColor,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value.toString(),
+                style: TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : Colors.black87,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+
+    final name = (data["Tname"] ?? "").toString().trim();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(18),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            accent.withOpacity(isDark ? 0.10 : 0.08),
+            accent.withOpacity(isDark ? 0.08 : 0.10),
+          ],
+        ),
+        border: Border.all(
+          color: accent.withOpacity(0.35),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: accent.withOpacity(0.18),
+            blurRadius: 18,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // HEADER
+          Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                backgroundColor: accent.withOpacity(0.9),
+                child: Text(
+                  name.isNotEmpty ? name[0].toUpperCase() : "?",
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      data["Tname"] ?? "--",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black,
+                      ),
+                    ),
+                    Text(
+                      data["Tnumber"] ?? "--",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: theme.hintColor,
+                      ),
+                    ),
+
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  color: accent.withOpacity(0.85),
+                ),
+                child: Text(
+                  "EXISTING",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+          Divider(color: Colors.white.withOpacity(0.25)),
+          const SizedBox(height: 6),
+
+          row("Type", data["Buy_rent"]),
+          row("Budget", data["Price"] != null ? "₹ ${data["Price"]}" : null),
+          row("BHK", data["Bhk"]),
+          row("Location", data["Location"]),
+          row("Family Members", data["family_member"]),
+          row("Parking", data["parking"]),
+          row("Shifting Date", data["shifting_date"]),
+          row("Floor", data["floor"]),
+
+          const SizedBox(height: 8),
+          Divider(color: Colors.white.withOpacity(0.22)),
+          const SizedBox(height: 6),
+
+          row("Fieldworker", data["assigned_fieldworker_name"]),
+          row("FW Location", data["assigned_fieldworker_location"]),
+
+        ],
+      ),
+    );
+  }
+}

@@ -51,9 +51,8 @@ class _AllLiveProperty extends State<AllLiveProperty> {
   void _onSearchChanged() {
     final query = _searchController.text.toLowerCase().trim();
 
-    final baseList = _location.isNotEmpty
-        ? filterByLocationAndFieldWorker(_allProperties, _location)
-        : _allProperties;
+    final baseList = applyRoleBasedFilter(_allProperties);
+
 
     final filtered = baseList.where((item) {
       final values = [
@@ -132,14 +131,10 @@ class _AllLiveProperty extends State<AllLiveProperty> {
   void initState() {
     super.initState();
 
-    _searchController = TextEditingController();
     _searchController.addListener(_onSearchChanged);
-    _loaduserdata();
-
-    _loaduserdata().then((_) {
-      _fetchInitialData();
-    });
+    _loaduserdata(); // ONLY THIS
   }
+
   final Map<String, List<String>> fieldWorkersByLocation = {
     "sultanpur": [
       "ravi kumar",
@@ -168,15 +163,18 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     await _fetchProperties();
   }
 
+  bool get isAdmin => _aadhar.toLowerCase() == "admin";
+  bool get isSubAdmin => !isAdmin;
+
+
   Future<void> _fetchProperties() async {
     setState(() => _isLoading = true);
 
     try {
       final data = await fetchData(_number);
 
-      final filtered = _location.isNotEmpty
-          ? filterByLocationAndFieldWorker(data, _location)
-          : data;
+      final filtered = applyRoleBasedFilter(data);
+
 
       setState(() {
         _allProperties = data;
@@ -203,63 +201,28 @@ class _AllLiveProperty extends State<AllLiveProperty> {
     }
   }
 
-  void _setSearchText(String label, String text) {
-    setState(() {
-      selectedLabel = label;
-      _searchController.text = text;
-      _searchController.selection = TextSelection.fromPosition(
-        TextPosition(offset: _searchController.text.length),
-      );
-    });
-
-    print("Search for: $text");
-  }
-
-  bool get _isSearchActive {
-    return _searchController.text.trim().isNotEmpty || selectedLabel != null;
-  }
-   String LOC_SULTANPUR = "sultanpur";
-
-   List<String> GROUP_CHHATTARPUR = [
-    "chhattarpur",
-    "rajpur khurd",
-  ];
-  List<NewRealEstateShowDateModel> filterByLocationAndFieldWorker(
+  List<NewRealEstateShowDateModel> applyRoleBasedFilter(
       List<NewRealEstateShowDateModel> list,
-      String selectedLocation,
       ) {
-    final loc = selectedLocation.toLowerCase().trim();
+    // 🔥 ADMIN → SEE EVERYTHING
+    if (isAdmin) return list;
 
-    // 🔹 SULTANPUR → only Sultanpur fieldworkers
-    if (loc == "sultanpur") {
-      return list.where((p) {
-        final worker = (p.fieldWorkerName ?? '').toLowerCase();
-        final location = (p.locations ?? '').toLowerCase();
+    // 🔥 SUB ADMIN RULES
+    return list.where((p) {
+      final location = (p.locations ?? '').toLowerCase();
+      final worker = (p.fieldWorkerName ?? '').toLowerCase();
 
-        return location.contains("sultanpur") &&
-            fieldWorkersByLocation["sultanpur"]!.any(
-                  (name) => worker.contains(name),
-            );
-      }).toList();
-    }
+      // 🟢 SULTANPUR → ALL FIELD WORKERS
+      if (location.contains("sultanpur")) {
+        return true;
+      }
 
-    // 🔹 CHHATTARPUR / RAJPUR KHURD → both together
-    if (loc == "chhattarpur" || loc == "rajpur khurd") {
-      return list.where((p) {
-        final worker = (p.fieldWorkerName ?? '').toLowerCase();
-        final location = (p.locations ?? '').toLowerCase();
-
-        return (location.contains("chhattarpur") ||
-            location.contains("rajpur khurd")) &&
-            fieldWorkersByLocation["chhattarpur_group"]!.any(
-                  (name) => worker.contains(name),
-            );
-      }).toList();
-    }
-
-    // 🔹 DEFAULT (no restriction)
-    return list;
+      // 🔵 OTHER LOCATIONS → ONLY ABHAY & MANISH
+      return worker.contains("abhay") || worker.contains("manish");
+    }).toList();
   }
+
+
 
   @override
   Widget build(BuildContext context) {

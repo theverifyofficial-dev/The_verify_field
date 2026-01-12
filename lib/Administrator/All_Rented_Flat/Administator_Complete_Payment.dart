@@ -11,11 +11,12 @@ import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
 import '../../Add_Rented_Flat/FieldWorker_Complete_Detail_Page.dart';
 import '../../constant.dart';
 import 'AdministatorPropertyDetailPage.dart';
+import 'CompletePropertyCalculationPage.dart';
 import 'Pending_Add _Property_Form.dart';
 import 'Pending_Property_Update_Form.dart';
 import 'PropertyCalculationPage.dart';
 class Property {
-  final int id;
+  final int pId;
   final String propertyPhoto;
   final String locations;
   final String flatNumber;
@@ -63,6 +64,7 @@ class Property {
   final String statusForFinalPayment;
   final String statusForSecondPayment;
   final dynamic subid;
+  final String? sourceId;
 
   // ✅ New fields
   final String rent;
@@ -73,9 +75,11 @@ class Property {
   final String totalBalance;
   final String secondAmount;
   final String finalAmount;
+  final String ownerCommission;
 
   Property({
-    required this.id,
+    required this.pId,
+    required this.sourceId,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -131,11 +135,13 @@ class Property {
     required this.secondAmount,
     required this.statusForFinalPayment,
     required this.statusForSecondPayment,
+    required this.ownerCommission,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
-      id: json["P_id"] ?? 0,
+      pId: json["P_id"] ?? 0,
+      sourceId: json["source_id"] ?? "",
       propertyPhoto: json["property_photo"] ?? "",
       locations: json["locations"] ?? "",
       flatNumber: json["Flat_number"] ?? "",
@@ -145,6 +151,7 @@ class Property {
       apartmentAddress: json["Apartment_Address"] ?? "",
       typeOfProperty: json["Typeofproperty"] ?? "",
       bhk: json["Bhk"] ?? "",
+      ownerCommission: json["owner_side_commition"] ?? "",
       showPrice: json["show_Price"] ?? "",
       lastPrice: json["Last_Price"] ?? "",
       askingPrice: json["asking_price"] ?? "",
@@ -197,56 +204,59 @@ class Property {
 
 class Tenant {
   final int id;
-  final String tenantName;
-  final String tenantPhoneNumber;
-  final String? flatRent;
-  final String shiftingDate;
-  final String? members;
-  final String? email;
-  final String? tenantVichalDetails;
-  final String? workProfile;
-  final String? bhk;
-  final String? typeOfProperty;
-  final int subId;
-  final String paymentMode;
   final String status;
+  // Tenant
+  final String tenantName;
+  final String tenantNumber;
+  final String shiftingDate;
+  final String paymentModeForTenant;
+
+  // Owner
+  final String ownerName;
+  final String ownerNumber;
+  final String paymentModeForOwner;
+
+  // Visitor
+  final String vist_field_workar_name;
+  final String vist_field_workar_number;
+  // Relation
+  final String subId;
 
   Tenant({
     required this.id,
     required this.tenantName,
-    required this.tenantPhoneNumber,
-    this.flatRent,
+    required this.tenantNumber,
     required this.shiftingDate,
-    this.members,
-    this.email,
-    this.tenantVichalDetails,
-    this.workProfile,
-    this.bhk,
-    this.typeOfProperty,
+    required this.paymentModeForTenant,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.paymentModeForOwner,
     required this.subId,
-    required this.paymentMode,
     required this.status,
+    required this.vist_field_workar_name,
+    required this.vist_field_workar_number
   });
 
   factory Tenant.fromJson(Map<String, dynamic> json) {
     return Tenant(
-      id: json['id'],
-      tenantName: json['tenant_name'] ?? "",
-      tenantPhoneNumber: json['tenant_phone_number'] ?? "",
-      flatRent: json['flat_rent']?.toString(),
-      shiftingDate: json['shifting_date'] ?? "",
-      members: json['members'],
-      email: json['email'],
-      tenantVichalDetails: json['tenant_vichal_details'],
-      workProfile: json['work_profile'],
-      bhk: json['bhk'],
-      typeOfProperty: json['type_of_property'],
-      subId: json['sub_id'],
-      paymentMode: json['payment_mode'] ?? "",
+      id: (json['id'] as num?)?.toInt() ?? 0,
+
+      tenantName: json['tenant_name'] ?? '',
+      tenantNumber: json['tenant_number'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      paymentModeForTenant: json['payment_mode_for_tenant'] ?? '',
+
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      paymentModeForOwner: json['payment_mode_for_owner'] ?? '',
+      vist_field_workar_name: json['vist_field_workar_name'] ?? '',
+      vist_field_workar_number: json['vist_field_workar_number'] ?? '',
       status: json['status'] ?? "",
+      subId: json['subid']?.toString() ?? '',
     );
   }
 }
+
 class OwnerModel {
   bool success;
   List<OwnerData> data;
@@ -358,6 +368,12 @@ class FirstPaymentRecord {
   final String? dates3rd;    // dates_3rd
   final String? times3rd;    // times_3rd
 
+  final String? visitorShare;
+  final String? officeGst;
+  final String? afterGstAmount;
+  final String? officeShareFiftyPercent;
+  final String? fieldWorkarShareFiftyPercent;
+
   FirstPaymentRecord({
     required this.id,
     required this.subid,
@@ -386,6 +402,11 @@ class FirstPaymentRecord {
     this.times2nd,
     this.dates3rd,
     this.times3rd,
+    this.visitorShare,
+    this.officeGst,
+    this.afterGstAmount,
+    this.officeShareFiftyPercent,
+    this.fieldWorkarShareFiftyPercent,
   });
 
   factory FirstPaymentRecord.fromJson(Map<String, dynamic> j) {
@@ -425,6 +446,14 @@ class FirstPaymentRecord {
       times2nd: _s('times_2nd'),
       dates3rd: _s('dates_3rd'),
       times3rd: _s('times_3rd'),
+
+      visitorShare: _s('visiter_share'),
+      officeGst: _s('office_gst'),
+      afterGstAmount: _s('after_gst_amount'),
+      officeShareFiftyPercent: _s('office_share_fifty_percent'),
+      fieldWorkarShareFiftyPercent: _s('field_workar_share_fifity_percent'),
+
+
     );
   }
 
@@ -456,6 +485,13 @@ class FirstPaymentRecord {
     'times_2nd': times2nd,
     'dates_3rd': dates3rd,
     'times_3rd': times3rd,
+
+    'visiter_share': visitorShare,
+    'office_gst': officeGst,
+    'after_gst_amount': afterGstAmount,
+    'office_share_fifty_percent': officeShareFiftyPercent,
+    'field_workar_share_fifity_percent': fieldWorkarShareFiftyPercent,
+
   };
 
   FirstPaymentRecord copyWith({
@@ -486,7 +522,13 @@ class FirstPaymentRecord {
     String? times2nd,
     String? dates3rd,
     String? times3rd,
-  }) {
+    String? visitorShare,
+    String? officeGst,
+    String?afterGstAmount,
+    String? officeShareFiftyPercent,
+    String? fieldWorkarShareFiftyPercent,
+
+}) {
     return FirstPaymentRecord(
       id: id ?? this.id,
       subid: subid ?? this.subid,
@@ -521,6 +563,11 @@ class FirstPaymentRecord {
       times2nd: times2nd ?? this.times2nd,
       dates3rd: dates3rd ?? this.dates3rd,
       times3rd: times3rd ?? this.times3rd,
+      visitorShare: visitorShare ?? this.visitorShare,
+      officeGst: officeGst ?? this.officeGst,
+      afterGstAmount: afterGstAmount ?? this.afterGstAmount,
+      officeShareFiftyPercent: officeShareFiftyPercent ?? this.officeShareFiftyPercent,
+      fieldWorkarShareFiftyPercent: fieldWorkarShareFiftyPercent ?? this.fieldWorkarShareFiftyPercent,
     );
   }
 }
@@ -600,16 +647,28 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
     }
     throw Exception("Failed to load data");
   }
+  double _safeDouble(String? v) {
+    if (v == null) return 0;
+    return double.tryParse(
+        v.replaceAll(RegExp(r'[^0-9.]'), '')
+    ) ?? 0;
+  }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId"),
+      Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
+      ),
     );
+
+    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
+    debugPrint("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
+        debugPrint("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");
@@ -619,13 +678,14 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
     }
   }
   Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
+    final url = Uri.parse('https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_for_owner_tenant_api_for_complete_api.php?subid=$subid');
     final response = await http.get(url);
 
     print("API Response: ${response.body}");
 
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
+      print("--=-=-=-=-=-=-=-=-=-=-=-=-=-="+response.body);
       if (decoded['success'] == true) {
         final data = decoded['data'] as List<dynamic>;
         print("Decoded Owner Data: $data"); // ✅ Check decoded list
@@ -663,7 +723,7 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
   /// ---------- FETCH (by subid) ----------
   Future<List<FirstPaymentRecord>> fetchFirstPaymentsBySubId(int subid) async {
     final uri = Uri.parse(
-      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php?subid=$subid',
+      'https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php?subid=$subid',
     );
 
     final r = await http.get(uri);
@@ -701,11 +761,14 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
   }
 
   String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
+  final ScrollController _scrollController = ScrollController();
+
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return RefreshIndicator(
       onRefresh: _onRefresh,
-
       child: Scaffold(
         body: FutureBuilder<List<Property>>(
           future: fetchBookingData(),
@@ -717,468 +780,21 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
               return Center(child: Text("Error: ${snapshot.error}"));
             }
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No booking data available"));
+              return Center(
+                child: Text(
+                  "No booking data available",
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                ),
+              );
             }
 
             final bookingList = snapshot.data!;
-
             return ListView.builder(
               padding: const EdgeInsets.all(12),
               itemCount: bookingList.length,
               itemBuilder: (context, index) {
                 final item = bookingList[index];
-                return GestureDetector(
-                  onTap: (){
-                    print(item.id);
-                    final pid = int.parse(item.id.toString()); // check/validate
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => PropertyCompleteDetailPage(
-                          propertyId: pid.toString(),
-                        ),
-                      ),
-                    );
-
-                  },
-                  child:Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 6,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-
-                        /// --- Tags Row (Type, Location, Buy/Rent)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            _buildTag(item.bhk, Colors.blue),
-                            _buildTag(item.typeOfProperty, Colors.green),
-                            _buildTag(item.locations, Colors.cyan),
-                            _buildTag(item.buyRent, Colors.deepPurple),
-                            _buildTag("₹ ${item.showPrice}", Colors.red),
-
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        /// --- Property Image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl:
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
-                            height: 160,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Image.asset(AppImages.loading, fit: BoxFit.cover),
-                            errorWidget: (context, error, stack) =>
-                                Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        /// --- Financial Details Box
-// ===================== FINANCIAL DETAILS EXPANSION TILE =====================
-                        Container(
-                          decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(12)
-                          ),
-                          // margin: const EdgeInsets.symmetric(horizontal: 8, ),
-
-                          child: ExpansionTile(
-                            initiallyExpanded: false,
-                            // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                            backgroundColor: Colors.grey.shade200,
-                            collapsedBackgroundColor: Colors.grey.shade200,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            collapsedShape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            title: const Text(
-                              "Financial Details",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            trailing: Text(
-                              "ID: ${item.id}",
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildDetailRow("Rent", "₹ ${item.rent}"),
-                                    _buildDetailRow("Security", "₹ ${item.security}"),
-                                    _buildDetailRow("Tenant Commission", "₹ ${item.commission}"),
-                                    _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
-                                    _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
-                                    _buildAdvancePayment("Advance Payment", "₹ ${item.advancePayment}"),
-                                    _buildDetailRow("Second Amount ", "₹ ${item.secondAmount}"),
-                                    _buildDetailRow("Final Amount ", "₹ ${item.finalAmount}"),
-                                    const Divider(thickness: 0.5, color: Colors.grey),
-                                    _buildDetailRow(
-                                      "Remaining Amount",
-                                      _cur(
-                                        (_toD(item.totalBalance)
-                                            - _toD(item.advancePayment)
-                                            - _toD(item.secondAmount)
-                                            - _toD(item.finalAmount))
-                                            .clamp(0, double.infinity),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-
-                        const SizedBox(height: 8),
-                        /// --- Tenant Details Section
-                        FutureBuilder<List<Tenant>>(
-                          future: fetchTenants(item.id),
-                          builder: (context, tenantSnapshot) {
-                            if (tenantSnapshot.connectionState == ConnectionState.waiting) {
-                              return const Center();
-                            }
-                            if (tenantSnapshot.hasError) {
-                              return const Text("Tenant Data Empty",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-                            if (!tenantSnapshot.hasData || tenantSnapshot.data!.isEmpty) {
-                              return const Text("No tenant data available",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-
-                            final tenants = tenantSnapshot.data!;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                const Text(
-                                  "Tenant Details",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                SizedBox(height: 10,),
-                                ...tenants.map((tenant) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 6,
-                                      children: [
-                                        _buildTag(tenant.tenantName, Colors.purple),
-                                        _buildTag(tenant.tenantPhoneNumber, Colors.green),
-                                        _buildTag(_formatDate(tenant.shiftingDate), Colors.blue),
-                                        _buildTag(tenant.paymentMode, Colors.red),
-
-                                      ],
-                                    ),
-
-                                  ],
-                                )),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        FutureBuilder<List<OwnerData>>(
-                          future: fetchPersonDetail(item.id),
-                          builder: (context, ownerSnapshot) {
-                            if (ownerSnapshot.connectionState == ConnectionState.waiting) {
-                              return const Center();
-                            }
-                            if (ownerSnapshot.hasError) {
-                              return const Text("Data Empty",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-                            if (!ownerSnapshot.hasData || ownerSnapshot.data!.isEmpty) {
-                              return const Text("No owner data available",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-
-                            final owner = ownerSnapshot.data!;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                const Text(
-                                  "Owner Details",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                SizedBox(height: 10,),
-                                ...owner.map((owner) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 6,
-                                      children: [
-                                        _buildTag(owner.ownerName, Colors.deepPurple),
-                                        _buildTag(owner.ownerNumber, Colors.teal),
-                                        SizedBox(height: 10,),
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade50,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Colors.grey.shade200),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              _buildDetailRow("Company Commission \nFrom Owner: ","₹ ${owner.paymentMode}"),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ))
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-
-                        /// --- Date & ID Row
-                        Row(
-                          // crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDate(item.currentDates),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-
-
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-// ===================== SINGLE FUTURE BUILDER =====================
-                        FutureBuilder<List<FirstPaymentRecord>>(
-                          future: fetchFirstPaymentsBySubId(item.id),
-                          builder: (context, snap) {
-                            if (snap.connectionState == ConnectionState.waiting) {
-                              return const SizedBox.shrink();
-                            }
-                            if (snap.hasError) {
-                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
-                            }
-
-                            final allRecords = snap.data ?? const <FirstPaymentRecord>[];
-                            if (allRecords.isEmpty) return const SizedBox.shrink();
-
-                            // Helper functions
-                            bool _hasMid(dynamic v) {
-                              if (v == null) return false;
-                              if (v is num) return v != 0;
-                              final s = v.toString().trim();
-                              if (s.isEmpty) return false;
-                              final n = num.tryParse(s.replaceAll(RegExp(r'[^\d\.\-]'), ''));
-                              return (n ?? 0) != 0;
-                            }
-
-                            bool _hasAny(dynamic v) {
-                              if (v == null) return false;
-                              return v.toString().trim().isNotEmpty;
-                            }
-
-                            String _money(dynamic v) {
-                              if (v == null || v.toString().trim().isEmpty) return "—";
-                              final n = num.tryParse(v.toString().replaceAll(RegExp(r'[^\d\.\-]'), '')) ?? 0;
-                              return "₹ ${n.toStringAsFixed(0)}";
-                            }
-
-                            bool _hasStep3(FirstPaymentRecord r) =>
-                                _hasAny(r.tenantPayLastAmount) ||
-                                    _hasAny(r.bothSideCompanyCommission) ||
-                                    _hasAny(r.ownerReceivedFinalAmount) ||
-                                    _hasAny(r.tenantTotalPay) ||
-                                    _hasAny(r.ownerTotalReceivedAmount) ||
-                                    _hasAny(r.remainingHold) ||
-                                    _hasAny(r.companyKeepComition) ||
-                                    _hasAny(r.remainBalanceShareToOwner) ||
-                                    _hasAny(r.finalRecivedAmountOwner) ||
-                                    _hasAny(r.remaingFinalBalance) ||
-                                    _hasAny(r.totalPayTenant);
-
-                            // Filter records for each step
-                            final step1Records = allRecords.where((r) =>
-                            _hasAny(r.tenantAdvance) || _hasAny(r.giveToOwnerAdvance) || _hasAny(r.officeHold)).toList();
-
-                            final step2Records = allRecords.where((r) => _hasMid(r.midPaymentToOwner)).toList();
-
-                            final step3Records = allRecords.where(_hasStep3).toList();
-
-                            return Column(
-                              children: [
-                                // ===================== STEP 1 =====================
-                                if (step1Records.isNotEmpty) ...[
-                                  _buildBillingStep(
-                                    title: "Step 1 Billing",
-                                    records: step1Records,
-                                    buildContent: (rec) => Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 6,
-                                          children: [
-                                            _buildTag("${rec.statusFirst ?? '—'}", Colors.deepPurple),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade50,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Colors.grey.shade300),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              _amountRow("Tenant Advance", rec.tenantAdvance, Polarity.credit,context),
-                                              _amountRow("Give to Owner", rec.giveToOwnerAdvance, Polarity.debit,context),
-                                              _amountRow("Office Hold", rec.officeHold, Polarity.credit,context),
-                                              _buildDetailRow("Date/Time ", "${rec.dates??""},${rec.times??""}"),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-
-                                // ===================== STEP 2 =====================
-                                if (step2Records.isNotEmpty) ...[
-                                  _buildBillingStep(
-                                    title: "Step 2 Billing",
-                                    records: step2Records,
-                                    buildContent: (rec) => Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 6,
-                                          children: [
-                                            _buildTag("${rec.statusSec ?? '—'}", Colors.deepPurple),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade50,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Colors.grey.shade300),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              _amountRow("Mid Payment From Tenant", rec.midPaymentToOwner, Polarity.credit,context),
-                                              _amountRow("Office Transfer Payment To Owner", rec.midPaymentToOwner, Polarity.debit,context),
-                                              _buildDetailRow("Date/Time ", "${rec.dates2nd??""},${rec.times2nd??""}"),
-
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-
-                                // ===================== STEP 3 =====================
-                                if (step3Records.isNotEmpty) ...[
-                                  _buildBillingStep(
-                                    title: "Step 3 Billing",
-                                    records: step3Records,
-                                    isStep3: true,
-                                    buildContent: (rec) {
-                                      final rows = <Widget>[
-                                        _amountRow("Last Payment From Tenant", rec.tenantPayLastAmount, Polarity.credit, context),
-                                        _amountRow("Remaining Hold (Final + Hold)", rec.remainingHold, Polarity.credit, context),
-                                        _amountRow("Company Keep Commission Both-side", rec.companyKeepComition, Polarity.debit, context),
-                                        _amountRow("Remaining Balance Share To Owner", rec.remainBalanceShareToOwner, Polarity.debit, context),
-                                        _amountRow("Owner Final Received", rec.finalRecivedAmountOwner, Polarity.debit, context),
-                                        _amountRow("Remaining Final Balance", rec.remaingFinalBalance, Polarity.neutral, context),
-                                        _amountRow("Total Paid By Tenant", rec.totalPayTenant, Polarity.credit, context),
-                                        _buildDetailRow("Date/Time ", "${rec.dates3rd ?? ""}, ${rec.times3rd ?? ""}"),
-
-                                        const SizedBox(height: 16),
-
-                                      ];
-
-                                      return Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade50,
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: Colors.grey.shade300),
-                                        ),
-                                        child: Column(children: rows),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ],
-                            );
-                          },
-                        ),
-
-                      ],
-                    ),
-                  ),
-                );
+                return _transactionCard(context, item);
               },
             );
           },
@@ -1186,7 +802,410 @@ class _AdministatiorFieldWorkerCompleteFlatsState extends State<AdministatiorFie
       ),
     );
   }
+  Widget _transactionCard(BuildContext context, Property item) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
+    return GestureDetector(
+
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PropertyCompleteDetailPage(
+              propertyId: item.pId.toString(),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+
+              /// ID CHIPS
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  _idChip("Building ID: ${item.subid}", Colors.indigo, isDarkMode),
+                  _idChip("Flat ID: ${item.sourceId}", Colors.purple, isDarkMode),
+                  _idChip("Flat No: ${item.flatNumber}", Colors.teal, isDarkMode),
+                ],
+              ),
+
+              const SizedBox(height: 10),
+
+              /// MAIN ROW
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => PropertyCompleteDetailPage(
+                        propertyId: item.pId.toString(),
+                      ),
+                    ),
+                  );
+                },
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// IMAGE
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        imageUrl:
+                        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                        height: 72,
+                        width: 72,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    /// INFO
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  "${item.bhk} ${item.typeOfProperty}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                    color: isDarkMode ? Colors.white : Colors.black,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                "₹ ${item.showPrice}",
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          Text(
+                            item.locations,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: isDarkMode
+                                  ? Colors.grey.shade400
+                                  : Colors.grey.shade600,
+                            ),
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          Row(
+                            children: [
+                              Text(
+                                "Txn ID: #${item.pId}",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDarkMode
+                                      ? Colors.grey.shade400
+                                      : Colors.grey.shade500,
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              // _billingSection(item),
+              /// SHOW BILLING BUTTON
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: const Icon(Icons.receipt_long, size: 16, color: Colors.white,),
+                  label: const Text(
+                    "Show Billing",
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
+                  onPressed: () async {
+                    final int propertyId = item.pId;
+
+                    final double tenantCommission = _safeDouble(item.commission);
+                    final double ownerCommission = _safeDouble(item.ownerCommission);
+
+                    final String fieldworkerName = item.fieldWorkerName ?? "";
+                    final String fieldworkerNumber = item.fieldWorkerNumber ?? "";
+
+                    final String flatId = item.pId.toString();
+
+                    final ok = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CompletePropertyCalculate(
+                          propertyId: propertyId,
+                          flatId: flatId,
+                          fieldworkerName: fieldworkerName,
+                          fieldworkerNumber: fieldworkerNumber,
+                          tenantCommission: tenantCommission.toString(),
+                          ownerCommission: ownerCommission.toString(),
+                        ),
+                      ),
+                    );
+
+                    if (ok == true) {
+                      _onRefresh();
+                    }
+                  },
+
+                ),
+              ),
+
+              // SizedBox(
+              //   width: double.infinity,
+              //   child: ElevatedButton.icon(
+              //     style: ElevatedButton.styleFrom(
+              //       backgroundColor: Colors.blue,
+              //       shape: RoundedRectangleBorder(
+              //         borderRadius: BorderRadius.circular(10),
+              //       ),
+              //     ),
+              //     icon: const Icon(Icons.receipt_long, size: 16),
+              //     label: const Text(
+              //       "Show Billing",
+              //       style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              //     ),
+              //     onPressed: () async {
+              //       final ok = await Navigator.push<bool>(
+              //         context,
+              //         MaterialPageRoute(
+              //           builder: (_) => TransactionDetailsPage(
+              //               propertyId:item.pId
+              //           ),
+              //
+              //         ),
+              //       );
+              //
+              //       if (ok == true && context.mounted) {
+              //         setState(() {});
+              //       }
+              //     },
+              //   ),
+              // ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _idChip(String text, Color color, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? color.withOpacity(0.25)
+            : color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w600,
+          color: isDarkMode ? Colors.white : color,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniChip(String text, Color backgroundColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+
+  Widget _buildExpansionSection({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+    bool initiallyExpanded = false,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: initiallyExpanded,
+            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            leading: Icon(icon, size: 18, color: Colors.blue.shade700),
+            title: Text(
+              title,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            trailing: const Icon(Icons.expand_more, size: 16),
+            children: children,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow2(String label, String value, {bool isBold = false, Color? color, required bool isDarkMode}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w700,
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color ?? (isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, {required bool isDarkMode}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...details,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonDetail(String label, String value, bool isDarkMode) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              "$label:",
+              style: TextStyle(
+                fontSize: 11,
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : "Not provided",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status, bool isDarkMode) {
+    if (status.toLowerCase().contains('pending'))
+      return isDarkMode ? Colors.orange.shade700 : Colors.orange;
+    if (status.toLowerCase().contains('completed') || status.toLowerCase().contains('done'))
+      return isDarkMode ? Colors.green.shade700 : Colors.green;
+    if (status.toLowerCase().contains('rent'))
+      return isDarkMode ? Colors.purple.shade700 : Colors.purple;
+    if (status.toLowerCase().contains('buy'))
+      return isDarkMode ? Colors.blue.shade700 : Colors.blue;
+    return isDarkMode ? Colors.grey.shade600 : Colors.grey;
+  }
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -1218,26 +1237,27 @@ Widget _pillButton({
 // Helper widget for billing steps
 Widget _buildBillingStep({
   required String title,
+  required BuildContext context,
   required List<FirstPaymentRecord> records,
   required Widget Function(FirstPaymentRecord) buildContent,
   bool isStep3 = false,
 }) {
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
   return StatefulBuilder(
     builder: (context, setState) {
       return Container(
         decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(12)
+          color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
         ),
         child: ExpansionTile(
-          iconColor: Colors.blue,
-          collapsedIconColor: Colors.black54,
-
+          iconColor: isDarkMode ? Colors.blue.shade200 : Colors.blue,
+          collapsedIconColor: isDarkMode ? Colors.grey.shade400 : Colors.black54,
           initiallyExpanded: false,
-          // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-          backgroundColor: Colors.grey.shade200,
-          collapsedBackgroundColor: Colors.grey.shade200,
+          backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+          collapsedBackgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -1246,10 +1266,10 @@ Widget _buildBillingStep({
           ),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDarkMode ? Colors.white : Colors.black87,
             ),
           ),
           subtitle: isStep3 && records.isNotEmpty
@@ -1258,7 +1278,7 @@ Widget _buildBillingStep({
             children: [
               _buildTag(
                 (records.last.statusThird.isEmpty ? "—" : records.last.statusThird),
-                Colors.deepPurple,
+                isDarkMode ? Colors.purple.shade300 : Colors.deepPurple,
               ),
             ],
           )
@@ -1323,7 +1343,7 @@ Color _amtColor(BuildContext c, Polarity p) {
   switch (p) {
     case Polarity.credit: return Colors.green;
     case Polarity.debit:  return Colors.red;
-    case Polarity.neutral:return Colors.black;
+    case Polarity.neutral:return Theme.of(c).brightness==Brightness.dark?Colors.white: Colors.black;
   }
 }
 
@@ -1335,7 +1355,7 @@ Widget _amountRow(String label, dynamic value, Polarity p,BuildContext context) 
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black)),
+          child: Text(label, style:  TextStyle(fontWeight: FontWeight.w600,color:Theme.of(context).brightness==Brightness.dark?Colors.white: Colors.black)),
         ),
         const SizedBox(width: 8),
         Text(

@@ -13,8 +13,11 @@ import 'AdministatorPropertyDetailPage.dart';
 import 'Pending_Add _Property_Form.dart';
 import 'Pending_Property_Update_Form.dart';
 import 'PropertyCalculationPage.dart';
+final GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
+
 class Property {
-  final int id;
+  final int pId;
+  final String? sourceId;
   final String propertyPhoto;
   final String locations;
   final String flatNumber;
@@ -42,6 +45,7 @@ class Property {
   final String meter;
   final String ownerName;
   final String ownerNumber;
+  final String ownerCommission;
   final String currentDates;
   final String availableDate;
   final String kitchen;
@@ -74,7 +78,8 @@ class Property {
   final String finalAmount;
 
   Property({
-    required this.id,
+    required this.pId,
+    required this.sourceId,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -102,6 +107,7 @@ class Property {
     required this.meter,
     required this.ownerName,
     required this.ownerNumber,
+    required this.ownerCommission,
     required this.currentDates,
     required this.availableDate,
     required this.kitchen,
@@ -134,7 +140,7 @@ class Property {
 
   factory Property.fromJson(Map<String, dynamic> json) {
     return Property(
-      id: json["P_id"] ?? 0,
+      pId: json["P_id"] ?? 0,
       propertyPhoto: json["property_photo"] ?? "",
       locations: json["locations"] ?? "",
       flatNumber: json["Flat_number"] ?? "",
@@ -162,6 +168,7 @@ class Property {
       meter: json["meter"] ?? "",
       ownerName: json["owner_name"] ?? "",
       ownerNumber: json["owner_number"] ?? "",
+      ownerCommission: json["owner_side_commition"] ?? "",
       currentDates: json["current_dates"] ?? "",
       availableDate: json["available_date"] ?? "",
       kitchen: json["kitchen"] ?? "",
@@ -190,130 +197,66 @@ class Property {
       finalAmount: json["final_amount"] ?? "",
       statusForSecondPayment: json["status_for_second_payment"] ?? "",
       statusForFinalPayment: json["status_for_final_payment"] ?? "",
+      sourceId: json["source_id"] ?? "",
     );
   }
 }
 
 class Tenant {
   final int id;
-  final String tenantName;
-  final String tenantPhoneNumber;
-  final String? flatRent;
-  final String shiftingDate;
-  final String? members;
-  final String? email;
-  final String? tenantVichalDetails;
-  final String? workProfile;
-  final String? bhk;
-  final String? typeOfProperty;
-  final int subId;
-  final String paymentMode;
   final String status;
+  // Tenant
+  final String tenantName;
+  final String tenantNumber;
+  final String shiftingDate;
+  final String paymentModeForTenant;
+
+  // Owner
+  final String ownerName;
+  final String ownerNumber;
+  final String paymentModeForOwner;
+
+  // Visitor
+  final String vist_field_workar_name;
+  final String vist_field_workar_number;
+  // Relation
+  final String subId;
 
   Tenant({
     required this.id,
     required this.tenantName,
-    required this.tenantPhoneNumber,
-    this.flatRent,
+    required this.tenantNumber,
     required this.shiftingDate,
-    this.members,
-    this.email,
-    this.tenantVichalDetails,
-    this.workProfile,
-    this.bhk,
-    this.typeOfProperty,
+    required this.paymentModeForTenant,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.paymentModeForOwner,
     required this.subId,
-    required this.paymentMode,
     required this.status,
+    required this.vist_field_workar_name,
+    required this.vist_field_workar_number
   });
 
   factory Tenant.fromJson(Map<String, dynamic> json) {
     return Tenant(
-      id: json['id'],
-      tenantName: json['tenant_name'] ?? "",
-      tenantPhoneNumber: json['tenant_phone_number'] ?? "",
-      flatRent: json['flat_rent']?.toString(),
-      shiftingDate: json['shifting_date'] ?? "",
-      members: json['members'],
-      email: json['email'],
-      tenantVichalDetails: json['tenant_vichal_details'],
-      workProfile: json['work_profile'],
-      bhk: json['bhk'],
-      typeOfProperty: json['type_of_property'],
-      subId: json['sub_id'],
-      paymentMode: json['payment_mode'] ?? "",
+      id: (json['id'] as num?)?.toInt() ?? 0,
+
+      tenantName: json['tenant_name'] ?? '',
+      tenantNumber: json['tenant_number'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      paymentModeForTenant: json['payment_mode_for_tenant'] ?? '',
+
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      paymentModeForOwner: json['payment_mode_for_owner'] ?? '',
+      vist_field_workar_name: json['vist_field_workar_name'] ?? '',
+      vist_field_workar_number: json['vist_field_workar_number'] ?? '',
       status: json['status'] ?? "",
+      subId: json['subid']?.toString() ?? '',
     );
   }
 }
-class OwnerModel {
-  bool success;
-  List<OwnerData> data;
 
-  OwnerModel({
-    required this.success,
-    required this.data,
-  });
-
-  factory OwnerModel.fromJson(Map<String, dynamic> json) => OwnerModel(
-    success: json["success"],
-    data: List<OwnerData>.from(json["data"].map((x) => OwnerData.fromJson(x))),
-  );
-
-  Map<String, dynamic> toJson() => {
-    "success": success,
-    "data": List<dynamic>.from(data.map((x) => x.toJson())),
-  };
-}
-
-class OwnerData {
-  int id;
-  String ownerName;
-  String ownerNumber;
-  String paymentMode;
-  String advanceAmount;
-  String rent;
-  String securitys;
-  String subid;
-  String status;
-
-  OwnerData({
-    required this.id,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.paymentMode,
-    required this.advanceAmount,
-    required this.rent,
-    required this.securitys,
-    required this.subid,
-    required this.status,
-  });
-
-  factory OwnerData.fromJson(Map<String, dynamic> json) => OwnerData(
-    id: json["id"] ?? 0,
-    ownerName: json["owner_name"] ?? "-",
-    ownerNumber: json["owner_number"] ?? "-",
-    paymentMode: json["payment_mode"] ?? "-",
-    advanceAmount: json["advance_amount"] ?? "0",
-    rent: json["rent"] ?? "0",
-    securitys: json["securitys"] ?? "0",
-    subid: json["subid"] ?? "-",
-    status: json["status"] ?? "-",
-  );
-
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "owner_name": ownerName,
-    "owner_number": ownerNumber,
-    "payment_mode": paymentMode,
-    "advance_amount": advanceAmount,
-    "rent": rent,
-    "securitys": securitys,
-    "subid": subid,
-    "status": status,
-  };
-}
 // FirstPaymentRecord.dart
 
 class FirstPaymentRecord {
@@ -357,6 +300,12 @@ class FirstPaymentRecord {
   final String? dates3rd;    // dates_3rd
   final String? times3rd;    // times_3rd
 
+  final String? visitorShare;
+  final String? officeGst;
+  final String? afterGstAmount;
+  final String? officeShareFiftyPercent;
+  final String? fieldWorkarShareFiftyPercent;
+
   FirstPaymentRecord({
     required this.id,
     required this.subid,
@@ -385,6 +334,11 @@ class FirstPaymentRecord {
     this.times2nd,
     this.dates3rd,
     this.times3rd,
+    this.visitorShare,
+    this.officeGst,
+    this.afterGstAmount,
+    this.officeShareFiftyPercent,
+    this.fieldWorkarShareFiftyPercent,
   });
 
   factory FirstPaymentRecord.fromJson(Map<String, dynamic> j) {
@@ -424,6 +378,14 @@ class FirstPaymentRecord {
       times2nd: _s('times_2nd'),
       dates3rd: _s('dates_3rd'),
       times3rd: _s('times_3rd'),
+
+      visitorShare: _s('visiter_share'),
+      officeGst: _s('office_gst'),
+      afterGstAmount: _s('after_gst_amount'),
+      officeShareFiftyPercent: _s('office_share_fifty_percent'),
+      fieldWorkarShareFiftyPercent: _s('field_workar_share_fifity_percent'),
+
+
     );
   }
 
@@ -455,6 +417,13 @@ class FirstPaymentRecord {
     'times_2nd': times2nd,
     'dates_3rd': dates3rd,
     'times_3rd': times3rd,
+
+    'visiter_share': visitorShare,
+    'office_gst': officeGst,
+    'after_gst_amount': afterGstAmount,
+    'office_share_fifty_percent': officeShareFiftyPercent,
+    'field_workar_share_fifity_percent': fieldWorkarShareFiftyPercent,
+
   };
 
   FirstPaymentRecord copyWith({
@@ -485,6 +454,12 @@ class FirstPaymentRecord {
     String? times2nd,
     String? dates3rd,
     String? times3rd,
+    String? visitorShare,
+    String? officeGst,
+    String?afterGstAmount,
+    String? officeShareFiftyPercent,
+    String? fieldWorkarShareFiftyPercent,
+
   }) {
     return FirstPaymentRecord(
       id: id ?? this.id,
@@ -520,6 +495,11 @@ class FirstPaymentRecord {
       times2nd: times2nd ?? this.times2nd,
       dates3rd: dates3rd ?? this.dates3rd,
       times3rd: times3rd ?? this.times3rd,
+      visitorShare: visitorShare ?? this.visitorShare,
+      officeGst: officeGst ?? this.officeGst,
+      afterGstAmount: afterGstAmount ?? this.afterGstAmount,
+      officeShareFiftyPercent: officeShareFiftyPercent ?? this.officeShareFiftyPercent,
+      fieldWorkarShareFiftyPercent: fieldWorkarShareFiftyPercent ?? this.fieldWorkarShareFiftyPercent,
     );
   }
 }
@@ -601,14 +581,20 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
-      Uri.parse("https://verifyserve.social/PHP_Files/show_tenant_api.php?sub_id=$subId"),
+      Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
+      ),
     );
+
+    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
+    debugPrint("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
+        debugPrint("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");
@@ -617,45 +603,68 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       throw Exception("Failed to load tenants");
     }
   }
-  Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
-    final response = await http.get(url);
+  final Map<int, bool> _processingMap = {};
 
-    print("API Response: ${response.body}");
-
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded['success'] == true) {
-        final data = decoded['data'] as List<dynamic>;
-        print("Decoded Owner Data: $data"); // ✅ Check decoded list
-        return data.map((e) => OwnerData.fromJson(e)).toList();
-      } else {
-        return [];
-      }
-    } else {
-      throw Exception("Failed to fetch owner data");
-    }
-  }
-
+  bool _hasAnyBilling = false;
   @override
   void initState() {
     super.initState();
     _loaduserdata();
     loadUserName();
+    _onRefresh();
+    _propertyFuture = fetchBookingData();
     //initializeService();
   }
+  void _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
 
+    setState(() {
+      _fieldworkarnumber = prefs.getString('number') ?? '';
+    });
+  }
+
+  final Map<int, bool> _billingMap = {};
+  Future<void> _checkBilling(int pId) async {
+    if (_billingMap.containsKey(pId)) return; // already checked
+
+    try {
+      final records = await fetchFirstPaymentsBySubId(pId);
+
+      bool hasBilling = records.any((r) =>
+      r.tenantAdvance.isNotEmpty ||
+          r.officeHold.isNotEmpty ||
+          (r.midPaymentToOwner?.isNotEmpty ?? false) ||
+          (r.tenantPayLastAmount?.isNotEmpty ?? false));
+
+      if (mounted) {
+        setState(() {
+          _billingMap[pId] = hasBilling;
+        });
+      }
+    } catch (_) {
+      _billingMap[pId] = false;
+    }
+  }
+
+  late Future<List<Property>> _propertyFuture;
   String? userName;
   String? userNumber;
+  String? userStoredFAadharCard;
+
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
-
+    final storedFAadharCard = prefs.getString('post');
+    debugPrint("User Name: $storedName");
+    debugPrint("User Number: $storedNumber");
+    debugPrint("User FAadharCard: $storedFAadharCard");
     if (mounted) {
       setState(() {
         userName = storedName;
         userNumber = storedNumber;
+        userStoredFAadharCard = storedFAadharCard;
+
       });
     }
   }
@@ -689,660 +698,31 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
     return list.last;
   }
 
-  Future<void> _onRefresh() async {
-    setState(() {
-      fetchBookingData();
-    });
-  }
+
   double _toD(dynamic v) {
     final s = (v ?? '').toString().trim();
     return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
   }
+  double _safeDouble(String? v) {
+    if (v == null) return 0;
+    return double.tryParse(
+        v.replaceAll(RegExp(r'[^0-9.]'), '')
+    ) ?? 0;
+  }
 
   String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
-  @override
-  Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: _onRefresh,
+  Future<void> _onRefresh() async {
+    final data = await fetchBookingData();   // 👈 API hit
+    if (!mounted) return;
 
-      child: Scaffold(
-        body: FutureBuilder<List<Property>>(
-          future: fetchBookingData(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.hasError) {
-              return Center(child: Text("Error: ${snapshot.error}"));
-            }
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text("No booking data available"));
-            }
-
-            final bookingList = snapshot.data!;
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: bookingList.length,
-              itemBuilder: (context, index) {
-                final item = bookingList[index];
-                return GestureDetector(
-                  onTap: (){
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context){
-                      return AdministatorPropertyDetailPage(propertyId: item.id.toString(),);
-                    }));
-                  },
-                  child:Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.1),
-                          blurRadius: 6,
-                          spreadRadius: 2,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-
-                        /// --- Tags Row (Type, Location, Buy/Rent)
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            _buildTag(item.bhk, Colors.blue),
-                            _buildTag(item.typeOfProperty, Colors.green),
-                            _buildTag(item.locations, Colors.cyan),
-                            _buildTag(item.buyRent, Colors.deepPurple),
-                            _buildTag("₹ ${item.showPrice}", Colors.red),
-
-                          ],
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        /// --- Property Image
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl:
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
-                            height: 160,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Image.asset(AppImages.loading, fit: BoxFit.cover),
-                            errorWidget: (context, error, stack) =>
-                                Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
-                          ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        /// --- Financial Details Box
-// ===================== FINANCIAL DETAILS EXPANSION TILE =====================
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade200,
-                            borderRadius: BorderRadius.circular(12)
-                          ),
-                          // margin: const EdgeInsets.symmetric(horizontal: 8, ),
-
-                          child: ExpansionTile(
-                            initiallyExpanded: false,
-                            // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-                            backgroundColor: Colors.grey.shade200,
-                            collapsedBackgroundColor: Colors.grey.shade200,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            collapsedShape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            title: const Text(
-                              "Financial Details",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            trailing: Text(
-                              "ID: ${item.id}",
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: Colors.grey.shade200),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildDetailRow("Rent", "₹ ${item.rent}"),
-                                    _buildDetailRow("Security", "₹ ${item.security}"),
-                                    _buildDetailRow("Tenant Commission", "₹ ${item.commission}"),
-                                    _buildDetailRow("Extra Expense", "₹ ${item.extraExpense}"),
-                                    _buildDetailRow("Total Amount", "₹ ${item.totalBalance}"),
-                                    _buildAdvancePayment("Advance Payment", "₹ ${item.advancePayment}"),
-                                    _buildDetailRow("Second Amount ", "₹ ${item.secondAmount}"),
-                                    _buildDetailRow("Final Amount ", "₹ ${item.finalAmount}"),
-                                    const Divider(thickness: 0.5, color: Colors.grey),
-                                    _buildDetailRow(
-                                      "Remaining Amount",
-                                      _cur(
-                                        (_toD(item.totalBalance)
-                                            - _toD(item.advancePayment)
-                                            - _toD(item.secondAmount)
-                                            - _toD(item.finalAmount))
-                                            .clamp(0, double.infinity),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 6,
-                          children: [
-                            // STEP 2
-                            if (item.statusForSecondPayment=="2nd payment pending")
-                              _pillButton(
-                                label: "Accept 2nd Amount",
-                                color: Colors.blue,
-                                onPressed: () async {
-                                  final ok = await _changeSecondPaymentStatus(pId: item.id,);
-                                  if (!mounted) return;
-                                  _onRefresh();
-                                },
-                              ),
-
-                            if (item.statusForFinalPayment=="final payment pending")
-                              _pillButton(
-                                label: "Accept Final Amount",
-                                color: Colors.deepOrange,
-                                onPressed: () async {
-                                  final ok = await _changeFinishPaymentStatus(pId: item.id,);
-                                  if (!mounted) return;
-                                  _onRefresh();
-                                },
-                              ),
-
-                            // STEP 3 / FINAL
-                          ],
-                        ),
-
-                        const SizedBox(height: 8),
-                        /// --- Tenant Details Section
-                        FutureBuilder<List<Tenant>>(
-                          future: fetchTenants(item.id),
-                          builder: (context, tenantSnapshot) {
-                            if (tenantSnapshot.connectionState == ConnectionState.waiting) {
-                              return const Center();
-                            }
-                            if (tenantSnapshot.hasError) {
-                              return const Text("Tenant Data Empty",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-                            if (!tenantSnapshot.hasData || tenantSnapshot.data!.isEmpty) {
-                              return const Text("No tenant data available",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-
-                            final tenants = tenantSnapshot.data!;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                const Text(
-                                  "Tenant Details",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                SizedBox(height: 10,),
-                                ...tenants.map((tenant) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 6,
-                                      children: [
-                                        _buildTag(tenant.tenantName, Colors.purple),
-                                        _buildTag(tenant.tenantPhoneNumber, Colors.green),
-                                        _buildTag(_formatDate(tenant.shiftingDate), Colors.blue),
-                                        _buildTag(tenant.paymentMode, Colors.red),
-
-                                      ],
-                                    ),
-
-                                  ],
-                                )),
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        FutureBuilder<List<OwnerData>>(
-                          future: fetchPersonDetail(item.id),
-                          builder: (context, ownerSnapshot) {
-                            if (ownerSnapshot.connectionState == ConnectionState.waiting) {
-                              return const Center();
-                            }
-                            if (ownerSnapshot.hasError) {
-                              return const Text("Data Empty",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-                            if (!ownerSnapshot.hasData || ownerSnapshot.data!.isEmpty) {
-                              return const Text("No owner data available",
-                                  style: TextStyle(color: Colors.black54));
-                            }
-
-                            final owner = ownerSnapshot.data!;
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const SizedBox(height: 8),
-                                const Text(
-                                  "Owner Details",
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                SizedBox(height: 10,),
-                                ...owner.map((owner) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Wrap(
-                                      spacing: 8,
-                                      runSpacing: 6,
-                                      children: [
-                                        _buildTag(owner.ownerName, Colors.deepPurple),
-                                        _buildTag(owner.ownerNumber, Colors.teal),
-                                        SizedBox(height: 10,),
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade50,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Colors.grey.shade200),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              _buildDetailRow("Company Commission \nFrom Owner: ","₹ ${owner.paymentMode}"),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ))
-                              ],
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 8),
-
-                        /// --- Date & ID Row
-                        Row(
-                          // crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _formatDate(item.currentDates),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black54,
-                              ),
-                            ),
-
-                            Row(
-                              children: [
-                              _buildTenantButton(
-                              label: "Add Billing",
-                              color: Colors.blue,
-                              onTap: () async {
-
-                                // wherever you have the current property's id:
-                                final int propertyId = item.id; // or however you get it
-
-                                final ok = await Navigator.push<bool>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => PropertyCalculate(propertyId: propertyId),
-                                  ),
-                                );
-
-                                if (ok == true) {
-                                  _onRefresh();
-                                }
-                              },
-                            ),
-                                SizedBox(width: 6,),
-                                FutureBuilder<List<OwnerData>>(
-                                  future: fetchPersonDetail(item.id),
-                                  builder: (context, snapshot) {
-                                    if (snapshot.connectionState == ConnectionState.waiting) {
-                                      return const SizedBox(
-                                        height: 40,
-                                        child: Center(),
-                                      );
-                                    }
-
-                                    if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                                      // 👉 No Owner → Show Add Owner button
-                                      return _buildTenantButton(
-                                        label: "Add Owner Detail",
-                                        color: Colors.green,
-                                        onTap: () async {
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => AddOwnerPage(propertyId: item.id.toString()),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            // refresh UI if owner was added
-                                            _onRefresh();
-                                          }
-                                        },
-                                      );
-                                    }
-                                    else {
-                                      final owner = snapshot.data!.first; // ✅ Get first owner (or loop if multiple)
-                                      return _buildTenantButton(
-                                        label: "Update Owner Detail",
-                                        color: Colors.deepOrange,
-                                        onTap: () async {
-                                          print("Owner Id :"+owner.id.toString());
-                                          final result = await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => UpdateOwnerPage(
-                                                ownerId: owner.id.toString(), // ✅ Pass ownerId
-                                                propertyId: item.id.toString(), // ✅ Pass ownerId
-                                              ),
-                                            ),
-                                          );
-
-                                          if (result == true) {
-                                            _onRefresh();
-                                          }
-                                        },
-                                      );
-                                    }
-                                  },
-                                ),
-                              ],
-                            )
-
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-
-// ===================== SINGLE FUTURE BUILDER =====================
-                        FutureBuilder<List<FirstPaymentRecord>>(
-                          future: fetchFirstPaymentsBySubId(item.id),
-                          builder: (context, snap) {
-                            if (snap.connectionState == ConnectionState.waiting) {
-                              return const SizedBox.shrink();
-                            }
-                            if (snap.hasError) {
-                              return const Text("Billing data error", style: TextStyle(color: Colors.black54));
-                            }
-
-                            final allRecords = snap.data ?? const <FirstPaymentRecord>[];
-                            if (allRecords.isEmpty) return const SizedBox.shrink();
-
-                            // Helper functions
-                            bool _hasMid(dynamic v) {
-                              if (v == null) return false;
-                              if (v is num) return v != 0;
-                              final s = v.toString().trim();
-                              if (s.isEmpty) return false;
-                              final n = num.tryParse(s.replaceAll(RegExp(r'[^\d\.\-]'), ''));
-                              return (n ?? 0) != 0;
-                            }
-
-                            bool _hasAny(dynamic v) {
-                              if (v == null) return false;
-                              return v.toString().trim().isNotEmpty;
-                            }
-
-                            String _money(dynamic v) {
-                              if (v == null || v.toString().trim().isEmpty) return "—";
-                              final n = num.tryParse(v.toString().replaceAll(RegExp(r'[^\d\.\-]'), '')) ?? 0;
-                              return "₹ ${n.toStringAsFixed(0)}";
-                            }
-
-                            bool _hasStep3(FirstPaymentRecord r) =>
-                                _hasAny(r.tenantPayLastAmount) ||
-                                    _hasAny(r.bothSideCompanyCommission) ||
-                                    _hasAny(r.ownerReceivedFinalAmount) ||
-                                    _hasAny(r.tenantTotalPay) ||
-                                    _hasAny(r.ownerTotalReceivedAmount) ||
-                                    _hasAny(r.remainingHold) ||
-                                    _hasAny(r.companyKeepComition) ||
-                                    _hasAny(r.remainBalanceShareToOwner) ||
-                                    _hasAny(r.finalRecivedAmountOwner) ||
-                                    _hasAny(r.remaingFinalBalance) ||
-                                    _hasAny(r.totalPayTenant);
-
-                            // Filter records for each step
-                            final step1Records = allRecords.where((r) =>
-                            _hasAny(r.tenantAdvance) || _hasAny(r.giveToOwnerAdvance) || _hasAny(r.officeHold)).toList();
-
-                            final step2Records = allRecords.where((r) => _hasMid(r.midPaymentToOwner)).toList();
-
-                            final step3Records = allRecords.where(_hasStep3).toList();
-
-                            return Column(
-                              children: [
-                                // ===================== STEP 1 =====================
-                                if (step1Records.isNotEmpty) ...[
-                                  _buildBillingStep(
-                                    title: "Step 1 Billing",
-                                    records: step1Records,
-                                    buildContent: (rec) => Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 6,
-                                          children: [
-                                            _buildTag("${rec.statusFirst ?? '—'}", Colors.deepPurple),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade50,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Colors.grey.shade300),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              _amountRow("Tenant Advance", rec.tenantAdvance, Polarity.credit,context),
-                                              _amountRow("Give to Owner", rec.giveToOwnerAdvance, Polarity.debit,context),
-                                              _amountRow("Office Hold", rec.officeHold, Polarity.credit,context),
-                                              _buildDetailRow("Date/Time ", "${rec.dates??""},${rec.times??""}"),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-
-                                // ===================== STEP 2 =====================
-                                if (step2Records.isNotEmpty) ...[
-                                  _buildBillingStep(
-                                    title: "Step 2 Billing",
-                                    records: step2Records,
-                                    buildContent: (rec) => Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Wrap(
-                                          spacing: 8,
-                                          runSpacing: 6,
-                                          children: [
-                                            _buildTag("${rec.statusSec ?? '—'}", Colors.deepPurple),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 10),
-                                        Container(
-                                          padding: const EdgeInsets.all(10),
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade50,
-                                            borderRadius: BorderRadius.circular(10),
-                                            border: Border.all(color: Colors.grey.shade300),
-                                          ),
-                                          child: Column(
-                                            children: [
-                                              _amountRow("Mid Payment From Tenant", rec.midPaymentToOwner, Polarity.credit,context),
-                                              _amountRow("Office Transfer Payment To Owner", rec.midPaymentToOwner, Polarity.debit,context),
-                                              _buildDetailRow("Date/Time ", "${rec.dates2nd??""},${rec.times2nd??""}"),
-
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                ],
-
-                                // ===================== STEP 3 =====================
-                                if (step3Records.isNotEmpty) ...[
-                                  _buildBillingStep(
-                                    title: "Step 3 Billing",
-                                    records: step3Records,
-                                    isStep3: true,
-                                    buildContent: (rec) {
-                                      final rows = <Widget>[
-                                        _amountRow("Last Payment From Tenant", rec.tenantPayLastAmount, Polarity.credit, context),
-                                        _amountRow("Remaining Hold (Final + Hold)", rec.remainingHold, Polarity.credit, context),
-                                        _amountRow("Company Keep Commission Both-side", rec.companyKeepComition, Polarity.debit, context),
-                                        _amountRow("Remaining Balance Share To Owner", rec.remainBalanceShareToOwner, Polarity.debit, context),
-                                        _amountRow("Owner Final Received", rec.finalRecivedAmountOwner, Polarity.debit, context),
-                                        _amountRow("Remaining Final Balance", rec.remaingFinalBalance, Polarity.neutral, context),
-                                        _amountRow("Total Paid By Tenant", rec.totalPayTenant, Polarity.credit, context),
-                                        _buildDetailRow("Date/Time ", "${rec.dates3rd ?? ""}, ${rec.times3rd ?? ""}"),
-
-                                        const SizedBox(height: 16),
-
-                                        // ⭐ COMPLETE PAYMENT BUTTON ⭐
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.green,
-                                            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                          ),
-                                          onPressed: () async {
-                                            try {
-                                              final url = Uri.parse(
-                                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/complete_payment.php",
-                                              );
-
-                                              // ⭐ POST CALL
-                                              final response = await http.post(
-                                                url,
-                                                headers: {
-                                                  "Content-Type": "application/x-www-form-urlencoded",
-                                                },
-                                                body: {
-                                                  "P_id": item.id.toString(),   // <-- sending P_id to API
-                                                },
-                                              );
-                                              if (response.statusCode == 200) {
-                                                final res = jsonDecode(response.body);
-                                                print("P_id :${item.id}");
-                                                if (res["success"] == true) {
-                                                  _onRefresh();
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text("Payment Completed Successfully!")),
-
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text(res["message"] ?? "Something went wrong")),
-                                                  );
-                                                }
-                                              } else {
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text("Server Error: ${response.statusCode}")),
-                                                );
-                                              }
-                                            } catch (e) {
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(content: Text("Error: $e")),
-                                              );
-                                            }
-                                          },
-                                          child: const Text(
-                                            "Complete Payment",
-                                            style: TextStyle(fontSize: 16,fontWeight: FontWeight.w600, color: Colors.white),
-                                          ),
-                                        ),
-                                      ];
-
-                                      return Container(
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade50,
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: Colors.grey.shade300),
-                                        ),
-                                        child: Column(children: rows),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ],
-                            );
-                          },
-                        ),
-
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
-    );
+    setState(() {
+      _propertyFuture = Future.value(data); // keep FutureBuilder happy
+    });
   }
+
+
+  String _visitorName = "";
+  String _visitorNumber = "";
   Future<bool> _changeSecondPaymentStatus({
     required int pId,
   }) async {
@@ -1448,16 +828,581 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       return false;
     }
   }
+  @override
+  Widget build(BuildContext context) {
+    final isDark= Theme.of(context).brightness == Brightness.dark;
 
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: Scaffold(
+        body: FutureBuilder<List<Property>>(
+          future: _propertyFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Text(
+                  "No booking data available",
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                ),
+              );
+            }
 
-  void _loaduserdata() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+            final bookingList = snapshot.data!;
 
-    setState(() {
-      _fieldworkarnumber = prefs.getString('number') ?? '';
-    });
+            return ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: bookingList.length,
+              itemBuilder: (context, index) {
+                final item = bookingList[index];
+                _checkBilling(item.pId);
+                final bool isLoading = _processingMap[item.pId] == true;
+
+                final bool hasBilling = _billingMap[item.pId] ?? false;
+                return GestureDetector(
+                  onTap:(){
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AdministatorPropertyDetailPage(
+                        propertyId: item.pId.toString(),
+                      ),
+                    ),
+                  );
+                },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Theme(
+                      data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                      ),
+                      child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey.shade900 : Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            _idChip("Building ID: ${item.subid}", Colors.indigo, isDark),
+                            _idChip("Flat ID: ${item.sourceId}", Colors.purple, isDark),
+                            _idChip("Flat No: ${item.flatNumber}", Colors.teal, isDark),
+                          ],
+                        ),
+                        SizedBox(height: 5,),
+                        /// ---------------- TOP ROW ----------------
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage(
+                                imageUrl:
+                                "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                                height: 64,
+                                width: 64,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  /// TITLE + PRICE
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          "${item.bhk} - ${item.typeOfProperty}",
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "₹${item.showPrice}",
+                                        style: const TextStyle(
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    item.locations,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                  ),
+
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "ID: #${item.pId}",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: "PoppinsBold",
+                                      color: Colors.grey.shade500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 10),
+
+                        /// ---------------- PAYMENT BUTTONS ----------------
+                        Row(
+                          children: [
+                            if (item.statusForSecondPayment == "2nd payment pending")
+                              Expanded(
+                                child: _paymentBtn(
+                                  label: "Accept 2nd Pay",
+                                  color: Colors.blue,
+                                  onTap: () async {
+                                    await _changeSecondPaymentStatus(pId: item.pId);
+                                    _onRefresh();
+                                  },
+                                ),
+                              ),
+
+                            if (item.statusForSecondPayment == "2nd payment pending" &&
+                                item.statusForFinalPayment == "final payment pending")
+                              const SizedBox(width: 8),
+
+                            if (item.statusForFinalPayment == "final payment pending")
+                              Expanded(
+                                child: _paymentBtn(
+                                  label: "Accept Final Pay",
+                                  color: Colors.deepOrange,
+                                  onTap: () async {
+                                    await _changeFinishPaymentStatus(pId: item.pId);
+                                    _onRefresh();
+                                  },
+                                ),
+                              ),
+                          ],
+                        ),
+
+                        // const SizedBox(height: 5),
+                        /// ---------------- BILLING BUTTON ----------------
+                        Row(
+                          children: [
+                            Expanded(
+                              child: SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  icon: Icon(
+                                      Icons.receipt_long,
+                                      size: 18,
+                                      color:  Colors.white
+                                  ),
+                                  label: Text(
+                                    userStoredFAadharCard == "Sub Administrator"
+                                        ? "Add Billing"
+                                        : "Show Billing",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+
+                                  style: OutlinedButton.styleFrom(
+                                    backgroundColor:userStoredFAadharCard == "Sub Administrator" ? Colors.orange.shade900:Colors.blue,
+                                    side:  BorderSide(
+                                      color: userStoredFAadharCard == "Sub Administrator" ? Colors.orange.shade900:Colors.blue, // 🔒 fixed border color
+                                      width: 1.4,
+                                    ),
+                                    foregroundColor: Colors.white,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  onPressed: () async {
+
+                                    final int propertyId = item.pId;
+                                    final double tenantCommission = _safeDouble(item.commission);
+                                    final double ownerCommission = _safeDouble(item.ownerCommission);
+                                    final String fieldworkerName = item.fieldWorkerName ?? "";
+                                    final String fieldworkerNumber = item.fieldWorkerNumber ?? "";
+                                    final String flatId = item.pId.toString();
+
+                                    final ok = await Navigator.push<bool>(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PropertyCalculate(
+                                          propertyId: propertyId,
+                                          flatId: flatId,
+                                          fieldworkerName: fieldworkerName,
+                                          fieldworkerNumber: fieldworkerNumber,
+                                          tenantCommission: tenantCommission.toString(),
+                                          ownerCommission: ownerCommission.toString(),
+                                        ),
+                                      ),
+                                    );
+
+                                    if (ok == true) {
+                                      _onRefresh();
+                                      _billingMap.remove(item.pId);
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                            if (userStoredFAadharCard == "Sub Administrator")
+                              Expanded(
+                                child: Column(
+                                  children: [
+
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.green,
+                                padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: isLoading
+                                  ? null
+                                  : () async {
+                                setState(() {
+                                  _processingMap[item.pId] = true; // ✅ only this card
+                                });
+
+                                try {
+                                  final response = await http.post(
+                                    Uri.parse(
+                                      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_complete_payment.php",
+                                    ),
+                                    headers: {
+                                      "Content-Type": "application/x-www-form-urlencoded",
+                                    },
+                                    body: {
+                                      "P_id": item.pId.toString(),
+                                    },
+                                  );
+
+                                  if (response.statusCode == 200) {
+                                    final result = jsonDecode(response.body);
+
+                                    if (result["success"] == true) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text("Payment completed successfully"),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+
+                                      if (mounted) {
+                                        await _onRefresh();   // ✅ SAME PAGE REFRESH
+                                      }
+                                    }
+                                    else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text("Unable to complete payment")),
+                                      );
+                                    }
+                                  }
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text("Error: $e")),
+                                  );
+                                } finally {
+                                  setState(() {
+                                    _processingMap[item.pId] = false; // ✅ stop loader for this card
+                                  });
+                                }
+                              },
+                              child: isLoading
+                                  ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                                  : const Text(
+                                "Complete Payment",
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            )
+                                  ],
+                                ),
+                              ),
+                          ],
+                        )
+
+                          ],
+                    ),
+                  ),
+
+                  ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+  Widget _idChip(String text, Color color, bool isDarkMode) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDarkMode
+            ? color.withOpacity(0.25)
+            : color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w600,
+          color: isDarkMode ? Colors.white : color,
+        ),
+      ),
+    );
+  }
+
+  Widget _statusChip(Property item) {
+    Color color = Colors.orange;
+    String text = "Pending";
+
+    if (item.statusForFinalPayment.toLowerCase().contains("done")) {
+      color = Colors.green;
+      text = "Completed";
+    } else if (item.statusForSecondPayment.toLowerCase().contains("processing")) {
+      color = Colors.blue;
+      text = "Processing";
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w600,
+          fontSize: 12,
+        ),
+      ),
+    );
+  }
+
+  Widget _paymentBtn({
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      onPressed: onTap,
+      child: Text(
+        label,
+        style: const TextStyle(fontSize: 12, color: Colors.white,fontWeight: FontWeight.w600),
+      ),
+    );
   }
 }
+  Widget _buildMiniChip(String text, Color backgroundColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpansionSection({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+    bool initiallyExpanded = false,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        child: Card(
+          margin: EdgeInsets.zero,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200, width: 1),
+          ),
+          color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+          child: Theme(
+            data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+            child: ExpansionTile(
+              initiallyExpanded: initiallyExpanded,
+              tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+              childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              leading: Icon(icon, size: 18,
+                  color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade700),
+              title: Text(
+                title,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+              trailing: Icon(Icons.expand_more, size: 16,
+                  color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600),
+              children: children,
+            ),
+          ),
+        ),
+    );
+  }
+
+  Widget _buildDetailRow2(String label, String value, {bool isBold = false, Color? color, required bool isDarkMode}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isBold ? FontWeight.bold : FontWeight.w700,
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color ?? (isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String text, IconData icon, Color color, {VoidCallback? onPressed}) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, size: 16),
+      label: Text(text, style: const TextStyle(fontSize: 12,fontWeight: FontWeight.w600)),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: onPressed,
+    );
+  }
+
+
+  Widget _buildPersonDetail(String label, String value, bool isDarkMode) {
+    return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 80,
+              child: Text(
+                "$label:",
+                style: TextStyle(
+                  fontSize: 11,
+                  color: isDarkMode ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Text(
+                value.isNotEmpty ? value : "Not provided",
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800,
+                ),
+              ),
+            ),
+          ],
+        ),
+    );
+  }
+
+  Color _getStatusColor(String status, bool isDarkMode) {
+    if (status.toLowerCase().contains('pending'))
+      return isDarkMode ? Colors.orange.shade700 : Colors.orange;
+    if (status.toLowerCase().contains('completed') || status.toLowerCase().contains('done'))
+      return isDarkMode ? Colors.green.shade700 : Colors.green;
+    if (status.toLowerCase().contains('rent'))
+      return isDarkMode ? Colors.purple.shade700 : Colors.purple;
+    if (status.toLowerCase().contains('buy'))
+      return isDarkMode ? Colors.blue.shade700 : Colors.blue;
+    return isDarkMode ? Colors.grey.shade600 : Colors.grey;
+  }
+
+
+
+
 
 Widget _pillButton({
   required String label,
@@ -1481,26 +1426,27 @@ Widget _pillButton({
 // Helper widget for billing steps
 Widget _buildBillingStep({
   required String title,
+  required BuildContext context,
   required List<FirstPaymentRecord> records,
   required Widget Function(FirstPaymentRecord) buildContent,
   bool isStep3 = false,
 }) {
+  final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
   return StatefulBuilder(
     builder: (context, setState) {
       return Container(
-            decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(12)
-            ),
+        decoration: BoxDecoration(
+          color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+          borderRadius: BorderRadius.circular(12),
+        ),
         child: ExpansionTile(
-          iconColor: Colors.blue,
-          collapsedIconColor: Colors.black54,
-
+          iconColor: isDarkMode ? Colors.blue.shade200 : Colors.blue,
+          collapsedIconColor: isDarkMode ? Colors.grey.shade400 : Colors.black54,
           initiallyExpanded: false,
-          // tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           childrenPadding: const EdgeInsets.only(left: 8, right: 8, bottom: 8),
-          backgroundColor: Colors.grey.shade200,
-          collapsedBackgroundColor: Colors.grey.shade200,
+          backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
+          collapsedBackgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade200,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -1509,10 +1455,10 @@ Widget _buildBillingStep({
           ),
           title: Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w700,
-              color: Colors.black87,
+              color: isDarkMode ? Colors.white : Colors.black87,
             ),
           ),
           subtitle: isStep3 && records.isNotEmpty
@@ -1521,7 +1467,7 @@ Widget _buildBillingStep({
             children: [
               _buildTag(
                 (records.last.statusThird.isEmpty ? "—" : records.last.statusThird),
-                Colors.deepPurple,
+                isDarkMode ? Colors.purple.shade300 : Colors.deepPurple,
               ),
             ],
           )
@@ -1548,6 +1494,7 @@ Widget _buildBillingStep({
     },
   );
 }
+
 
 // Your existing helper methods
 Widget _buildTag(String text, Color color) {
@@ -1586,7 +1533,7 @@ Color _amtColor(BuildContext c, Polarity p) {
   switch (p) {
     case Polarity.credit: return Colors.green;
     case Polarity.debit:  return Colors.red;
-    case Polarity.neutral:return Colors.black;
+    case Polarity.neutral:return Theme.of(c).brightness==Brightness.dark?Colors.white: Colors.black;
   }
 }
 
@@ -1598,7 +1545,7 @@ Widget _amountRow(String label, dynamic value, Polarity p,BuildContext context) 
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black)),
+          child: Text(label, style:  TextStyle(fontWeight: FontWeight.w600,color:Theme.of(context).brightness==Brightness.dark?Colors.white: Colors.black)),
         ),
         const SizedBox(width: 8),
         Text(
@@ -1614,89 +1561,6 @@ Widget _amountRow(String label, dynamic value, Polarity p,BuildContext context) 
   );
 }
 
-Widget _buildDetailRow(String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-      ],
-    ),
-  );
-}
-Widget _buildTenantButton({
-  required String label,
-  required Color color,
-  required VoidCallback onTap,
-}) {
-  return GestureDetector(
-    onTap: onTap,
-    child: Container(
-      height: 30,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(4.0),
-          child: Text(
-            label,
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-/// --- Helper Row for fields
-Widget _buildAdvancePayment(String label, String value) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Colors.black54,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontFamily: "PoppinsBold",
-            color: Colors.lightBlue,
-          ),
-        ),
-      ],
-    ),
-  );
-}
 String _formatDate(String? rawDate) {
   if (rawDate == null || rawDate.isEmpty) return "-";
   try {

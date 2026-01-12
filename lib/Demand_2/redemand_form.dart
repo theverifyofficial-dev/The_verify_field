@@ -4,16 +4,19 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import '../../constant.dart';
+import '../utilities/bug_founder_fuction.dart';
+import 'package:http/http.dart' as http;
+
 
 class RedemandForm extends StatefulWidget {
   final Map demand;
   const RedemandForm({super.key, required this.demand});
 
   @override
-  State<RedemandForm> createState() => _TenantDemandUpdatePageState();
+  State<RedemandForm> createState() => _RedemandFormState ();
 }
 
-class _TenantDemandUpdatePageState extends State<RedemandForm>
+class _RedemandFormState  extends State<RedemandForm>
     with SingleTickerProviderStateMixin {
   final Dio _dio = Dio();
 
@@ -24,31 +27,21 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
   String? _familyStructure;
   String? _familyMember;
   String? _religion;
+  RangeValues _rentBudget = const RangeValues(12000, 25000);
+  int _adultCount = 1;
+  int _childrenCount = 0;
+  Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
+
 
   DateTime? _visitingDate;
 
   final TextEditingController _vehicleNoCtrl = TextEditingController();
   String? _vehicleType;
 
-  RangeValues _bhkRange = const RangeValues(1, 3);
   RangeValues _buyBudget = const RangeValues(1000000, 5000000);
 
-  final List<int> _rentSteps = [
-    5000,
-    10000,
-    15000,
-    20000,
-    25000,
-    30000,
-    40000,
-    50000,
-    75000,
-    100000
-  ];
-  int? _rentMin = 5000;
-  int? _rentMax = 20000;
 
-  String? _floor;
+  final Set<String> _floor = {};
   DateTime? _shiftingDate;
 
   final TextEditingController _messageCtrl = TextEditingController();
@@ -72,6 +65,22 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
 
     _loadInitialValues();
   }
+
+  void _parseMemberCount(String? value) {
+    if (value == null || value.isEmpty) return;
+
+    final match = RegExp(r'(\d+)A-(\d+)C').firstMatch(value);
+    if (match != null) {
+      _adultCount = int.parse(match.group(1)!);
+      _childrenCount = int.parse(match.group(2)!);
+    }
+  }
+
+  final List<String> furnishingOptions = [
+    'Fully Furnished',
+    'Semi Furnished',
+    'Unfurnished',
+  ];
 
   void _loadInitialValues() {
     final d = widget.demand;
@@ -109,25 +118,18 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
       final parts = price.split('-');
       if (parts.length == 2) {
         try {
-          _rentMin = int.parse(parts[0]);
-          _rentMax = int.parse(parts[1]);
+          _rentBudget = RangeValues(
+            double.parse(parts[0]),
+            double.parse(parts[1]),
+          );
         } catch (_) {}
       }
     }
 
-    final bhk = d["bhk"]?.toString() ?? d["Bhk"]?.toString();
-    if (bhk != null && bhk.contains('-')) {
-      final parts = bhk.split('-');
-      try {
-        _bhkRange = RangeValues(
-          double.parse(parts[0]),
-          double.parse(parts[1]),
-        );
-      } catch (_) {}
+
+    if (d["floor"] != null) {
+      _floor.addAll(d["floor"].toString().split(','));
     }
-
-    _floor = d["floor"]?.toString();
-
     if (d["shifting_date"] != null && d["shifting_date"].toString().isNotEmpty) {
       try {
         _shiftingDate = DateTime.parse(d["shifting_date"]);
@@ -190,6 +192,17 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
       ),
     );
   }
+  final List<String> _floorOptions = [
+    "Ground",
+    "Upper Ground",
+    "First",
+    "Second",
+    "Third",
+    "Fourth",
+    "Fifth",
+    "Top"
+  ];
+
 
   Widget dropdownField({
     required String title,
@@ -263,76 +276,155 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
     return "₹${n.toInt()}";
   }
 
+
   Future<void> _updateDemand() async {
     setState(() => _isUpdating = true);
+
+    print("🚀 UPDATE DEMAND STARTED");
+
+    String? error;
+
+    if (_furnished == null || _furnished!.isEmpty) {
+      error = "Please select furnishing type";
+    } else if (_familyStructure == null || _familyStructure!.isEmpty) {
+      error = "Please select family structure";
+    } else if (_familyMember == null || _familyMember!.isEmpty) {
+      error = "Please enter family member count";
+    } else if (_floor.isEmpty) {
+      error = "Please select at least one floor";
+    } else if (_buyRent == null || _buyRent!.isEmpty) {
+      error = "Please select Buy or Rent";
+    }
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(backgroundColor: Colors.redAccent, content: Text(error)),
+      );
+      setState(() => _isUpdating = false);
+      return;
+    }
+
+    final total = int.tryParse(_familyMember!) ?? 0;
+    if (_adultCount + _childrenCount != total) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Adult + Child count must equal total family members"),
+        ),
+      );
+      setState(() => _isUpdating = false);
+      return;
+    }
+
+    print("👨‍👩‍👧 Family Ratio OK → $_adultCount A, $_childrenCount C");
 
     final payload = {
       "id": widget.demand["id"].toString(),
       "parking": _parking ?? "",
       "lift": _lift ?? "",
       "furnished_unfurnished": _furnished ?? "",
-      "family_structur": _familyStructure ?? "",
-      "family_member": _familyMember ?? "",
+      "family_structur": _familyStructure,
+      "family_member": _familyMember,
+      "count_of_person": "${_adultCount}A-${_childrenCount}C",
       "religion": _religion ?? "",
       "visiting_dates": _visitingDate == null
           ? ""
           : DateFormat("yyyy-MM-dd").format(_visitingDate!),
       "vichle_no": _vehicleNoCtrl.text.trim(),
       "vichle_type": _vehicleType ?? "",
-      "Bhk": "${_bhkRange.start.toInt()}-${_bhkRange.end.toInt()}",
-      "floor": _floor ?? "",
+      "floor": _floor.join(','),
       "shifting_date": _shiftingDate == null
           ? ""
           : DateFormat("yyyy-MM-dd").format(_shiftingDate!),
       "Price": _buyRent == "Buy"
           ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-          : "$_rentMin-$_rentMax",
+          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
       "Message": _messageCtrl.text.trim(),
       "Buy_rent": _buyRent ?? "",
+      "furnished_item":
+      _selectedFurniture.isEmpty ? "" : jsonEncode(_selectedFurniture),
     };
 
+    print("📦 REQUEST PAYLOAD:");
+    payload.forEach((k, v) => print("   $k → $v"));
+
+    final uri = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php",
+    );
+
     try {
-      final res = await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/update_api_redemand.php",
-        data: FormData.fromMap(payload),
+      final response = await http.post(
+        uri,
+        body: payload,
       );
 
-      if (res.statusCode == 200) {
+      print("📥 RESPONSE STATUS: ${response.statusCode}");
+      print("📥 RESPONSE BODY: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final data = response.body.isNotEmpty ? jsonDecode(response.body) : {};
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Text(res.data["message"] ?? "Updated Successfully"),
+            content: Text(data["message"] ?? "Updated Successfully"),
           ),
         );
+
         Navigator.pop(context, true);
       } else {
+        String errorMessage = "Server error (${response.statusCode})";
+
+        if (response.body.isNotEmpty) {
+          try {
+            final data = jsonDecode(response.body);
+            if (data is Map && data["message"] != null) {
+              errorMessage = data["message"];
+            }
+          } catch (_) {
+            errorMessage = response.body;
+          }
+        }
+
+        await BugLogger.log(
+          apiLink: uri.toString(),
+          error: response.body,
+          statusCode: response.statusCode,
+        );
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: Colors.redAccent,
-            content: Text("Update failed: ${res.statusCode}"),
-          ),
+          SnackBar(backgroundColor: Colors.redAccent, content: Text(errorMessage)),
         );
       }
     } catch (e) {
+      print("❌ HTTP EXCEPTION: $e");
+
+      await BugLogger.log(
+        apiLink: uri.toString(),
+        error: e.toString(),
+        statusCode: 0,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           backgroundColor: Colors.redAccent,
-          content: Text("Error: $e"),
+          content: Text("Network error. Please check internet connection."),
         ),
       );
     } finally {
+      print("🏁 UPDATE DEMAND FINISHED");
       setState(() => _isUpdating = false);
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isBuy = _buyRent == "Buy";
-    final isRent = _buyRent == "Rent";
 
     return Scaffold(
       appBar: AppBar(
+        surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         centerTitle: true,
         elevation: 0,
@@ -355,209 +447,102 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
               Align(
                 alignment: Alignment.center,
                 child: Text(
-                  "Update Redemand Details",
+                  "Update ReDemand Details",
                   style: theme.textTheme.titleLarge!
                       .copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 12),
 
-              // Parking
-              dropdownField(
-                title: "Parking",
-                value: _parking,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Parking",
-                  items: ["Yes", "No"],
-                  onSelect: (v) => setState(() => _parking = v),
-                ),
-              ),
-
-              // Lift
-              dropdownField(
-                title: "Lift",
-                value: _lift,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Lift",
-                  items: ["Yes", "No"],
-                  onSelect: (v) => setState(() => _lift = v),
-                ),
-              ),
-
               // Furnished
-              dropdownField(
-                title: "Furnished / Unfurnished",
+              DropdownButtonFormField<String>(
                 value: _furnished,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Furnished Type",
-                  items: [
-                    "Furnished",
-                    "Semi-Furnished",
-                    "Unfurnished",
-                  ],
-                  onSelect: (v) => setState(() => _furnished = v),
-                ),
-              ),
-
-              // BHK Slider
-              Text(
-                "Select BHK Range",
-                style: theme.textTheme.titleSmall!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color:
-                  theme.colorScheme.surfaceVariant.withOpacity(0.1),
-                ),
-                child: RangeSlider(
-                  values: _bhkRange,
-                  min: 1,
-                  max: 5,
-                  divisions: 4,
-                  labels: RangeLabels(
-                    "${_bhkRange.start.toInt()} BHK",
-                    "${_bhkRange.end.toInt()} BHK",
+                decoration: InputDecoration(
+                  labelText: "Select Furnished Type",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
                   ),
-                  onChanged: (r) => setState(() => _bhkRange = r),
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Floor
-              dropdownField(
-                title: "Floor",
-                value: _floor,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Floor",
-                  items: [
-                    "Ground",
-                    "Upper Ground",
-                    "First",
-                    "Second",
-                    "Third",
-                    "Fourth",
-                    "Top"
-                  ],
-                  onSelect: (v) => setState(() => _floor = v),
-                ),
-              ),
-
-              // Family Structure
-              dropdownField(
-                title: "Family Structure",
-                value: _familyStructure,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Family Structure",
-                  items: ["Joint", "Nuclear", "Single"],
-                  onSelect: (v) => setState(() => _familyStructure = v),
-                ),
-              ),
-
-              // Family Member
-              TextField(
-                controller:
-                TextEditingController(text: _familyMember ?? ""),
-                keyboardType: TextInputType.number,
-                onChanged: (v) => _familyMember = v,
-                decoration:
-                _inputStyle("Family Member Count", Icons.group),
-              ),
-              const SizedBox(height: 12),
-
-              // Religion
-              dropdownField(
-                title: "Religion",
-                value: _religion,
-                onTap: () => _showSelectBottomSheet(
-                  title: "Religion",
-                  items: [
-                    "Hindu",
-                    "Muslim",
-                    "Sikh",
-                    "Christian",
-                    "Other"
-                  ],
-                  onSelect: (v) => setState(() => _religion = v),
-                ),
-              ),
-
-              // Price
-              Text(
-                "Price",
-                style: theme.textTheme.titleSmall!
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-
-              if (isBuy)
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    color: theme.colorScheme.surfaceVariant
-                        .withOpacity(0.1),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  // ✅ Error text style
+                  errorStyle: const TextStyle(
+                    color: Colors.redAccent,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
                   ),
-                  child: RangeSlider(
-                    values: _buyBudget,
-                    min: 500000,
-                    max: 20000000,
-                    divisions: 40,
-                    labels: RangeLabels(
-                      _formatAmount(_buyBudget.start),
-                      _formatAmount(_buyBudget.end),
+
+                  // ✅ Error border (deep red)
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: Colors.redAccent,
+                      width: 2,
                     ),
-                    onChanged: (r) =>
-                        setState(() => _buyBudget = r),
+                  ),
+
+                  // ✅ Focused border when error
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: const BorderSide(
+                      color: Colors.redAccent,
+                      width: 2,
+                    ),
                   ),
                 ),
+                items: furnishingOptions.map((option) {
+                  return DropdownMenuItem(
+                    value: option,
+                    child: Text(option,style: TextStyle(fontWeight: FontWeight.bold,color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.black),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  setState(() {
+                    _furnished = val;
+                    // Clear previously selected furniture if not furnished
+                    if (val == 'Unfurnished') {
+                      _selectedFurniture.clear();
+                    }
+                  });
+                },
 
-              if (isRent)
-                Row(
-                  children: [
-                    Expanded(
-                      child: DropdownButtonFormField<int>(
-                        value: _rentMin,
-                        decoration: const InputDecoration(
-                          labelText: "Min ₹",
-                          border: OutlineInputBorder(),
+                validator: (val) =>
+                val == null || val.isEmpty ? 'Please select furnishing' : null,
+              ),
+
+              if (_furnished == 'Fully Furnished' || _furnished == 'Semi Furnished')
+                GestureDetector(
+                  onTap: () => _showFurnitureBottomSheet(context),
+                  child: AbsorbPointer(
+                    child: Padding(
+                      padding:  EdgeInsets.only(top: 16.0),
+                      child:
+                      TextFormField(
+                        decoration: InputDecoration(
+                          labelText: "Select Furniture Items",
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          filled: true, // ✅ enable background color
+                          // fillColor: Colors.grey.shade800,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                         ),
-                        items: _rentSteps
-                            .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(_formatAmount(e))))
-                            .toList(),
-                        onChanged: (v) =>
-                            setState(() => _rentMin = v),
+                        controller: TextEditingController(
+                          text: _selectedFurniture.isEmpty
+                              ? ''
+                              : _selectedFurniture.entries
+                              .map((e) => '${e.key} (${e.value})')
+                              .join(', '),
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: DropdownButtonFormField<int>(
-                        value: _rentMax,
-                        decoration: const InputDecoration(
-                          labelText: "Max ₹",
-                          border: OutlineInputBorder(),
-                        ),
-                        items: _rentSteps
-                            .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(_formatAmount(e))))
-                            .toList(),
-                        onChanged: (v) =>
-                            setState(() => _rentMax = v),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
 
               const SizedBox(height: 12),
 
               // Shifting Date
               dropdownField(
-                title: "Shifting Date",
+                title: "Shifting Date*",
                 value: _shiftingDate == null
                     ? null
                     : DateFormat("yyyy-MM-dd").format(_shiftingDate!),
@@ -573,6 +558,39 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
                     setState(() => _shiftingDate = picked);
                 },
               ),
+
+              const SizedBox(height: 12),
+
+              dropdownField(
+                title: "Family Details",
+                value: _familyStructure == null
+                    ? null
+                    : "$_familyStructure • $_familyMember members",
+                onTap: () => _showFamilyBottomSheet(context),
+              ),
+
+              const SizedBox(height: 12),
+
+              // Religion
+              dropdownField(
+                title: "Religion (Optional)",
+                value: _religion,
+                onTap: () => _showSelectBottomSheet(
+                  title: "Religion",
+                  items: [
+                    "Hindu",
+                    "Muslim",
+                    "Sikh",
+                    "Christian",
+                    "Other"
+                  ],
+                  onSelect: (v) => setState(() => _religion = v),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+
 
               // Visiting Date
               dropdownField(
@@ -594,18 +612,42 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
                 },
               ),
 
-              // Vehicle Number
-              TextField(
-                controller: _vehicleNoCtrl,
-                decoration:
-                _inputStyle("Vehicle Number", Icons.car_crash),
-              ),
-              const SizedBox(height: 12),
 
-              // Vehicle Type
+              // Parking
+              Row(
+                children: [
+                  Expanded(
+                    child: dropdownField(
+                      title: "Parking",
+                      value: _parking,
+                      onTap: () => _showSelectBottomSheet(
+                        title: "Parking",
+                        items: ["Car", "Bike","Both","None"],
+                        onSelect: (v) => setState(() => _parking = v),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 5),
+                  // Lift
+                  Expanded(
+                    child: dropdownField(
+                      title: "Lift (Optional)",
+                      value: _lift,
+                      onTap: () => _showSelectBottomSheet(
+                        title: "Lift",
+                        items: ["Yes", "No"],
+                        onSelect: (v) => setState(() => _lift = v),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+
               dropdownField(
                 title: "Vehicle Type",
                 value: _vehicleType,
+
                 onTap: () => _showSelectBottomSheet(
                   title: "Vehicle Type",
                   items: ["2-Wheeler", "4-Wheeler", "None"],
@@ -613,6 +655,105 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
                       setState(() => _vehicleType = v),
                 ),
               ),
+              const SizedBox(height: 10),
+
+              TextField(
+                controller: _vehicleNoCtrl,
+                textCapitalization: TextCapitalization.characters, // 🔥 ALWAYS CAPS
+                keyboardType: TextInputType.text,
+                decoration:
+                _inputStyle("Vehicle Number (Optional)", Icons.car_crash),
+              ),
+              const SizedBox(height: 12),
+
+              // Price
+              Text(
+                "Price",
+                style: theme.textTheme.titleSmall!
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+
+              Text(
+                _buyRent == "Buy"
+                    ? "Buy Budget"
+                    : "Rent Budget (per month)",
+                style: theme.textTheme.titleSmall!
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 6),
+
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _buyRent == "Buy"
+                          ? "${_formatAmount(_buyBudget.start)} – ${_formatAmount(_buyBudget.end)}"
+                          : "₹${_rentBudget.start.toInt()} – ₹${_rentBudget.end.toInt()} / month",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    RangeSlider(
+                      values: _buyRent == "Buy" ? _buyBudget : _rentBudget,
+                      min: _buyRent == "Buy" ? 500000 : 5000,
+                      max: _buyRent == "Buy" ? 20000000 : 100000,
+                      divisions: _buyRent == "Buy" ? 40 : 19,
+                      labels: _buyRent == "Buy"
+                          ? RangeLabels(
+                        _formatAmount(_buyBudget.start),
+                        _formatAmount(_buyBudget.end),
+                      )
+                          : RangeLabels(
+                        "₹${_rentBudget.start.toInt()}",
+                        "₹${_rentBudget.end.toInt()}",
+                      ),
+                      onChanged: (range) {
+                        setState(() {
+                          if (_buyRent == "Buy") {
+                            _buyBudget = range;
+                          } else {
+                            _rentBudget = range;
+                          }
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              Text(
+                "Select Floor",
+                style: theme.textTheme.titleSmall!
+                    .copyWith(fontWeight: FontWeight.w600),
+              ),
+              Wrap(
+                spacing: 10,
+                runSpacing: 8,
+                children: _floorOptions.map((e) {
+                  final isSelected = _floor.contains(e);
+                  return ChoiceChip(
+                    label: Text(e),
+                    selected: isSelected,
+                    selectedColor: theme.colorScheme.primary.withOpacity(0.25),
+                    onSelected: (selected) {
+                      setState(() {
+                        selected ? _floor.add(e) : _floor.remove(e);
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+
+              const SizedBox(height: 10),
 
               // Message
               TextField(
@@ -659,4 +800,420 @@ class _TenantDemandUpdatePageState extends State<RedemandForm>
       ),
     );
   }
+
+
+  void _showFurnitureBottomSheet(BuildContext context) {
+    final List<String> furnitureItems = [
+      'Refrigerator',
+      'Washing Machine',
+      'Wardrobe',
+      'AC',
+      'Water Purifier',
+      'Single Bed',
+      'Double Bed',
+      'Geyser',
+      'LED TV',
+      'Sofa Set',
+      'Induction',
+      'Gas Stove',
+    ];
+
+    final Map<String, int> tempSelection = Map.from(_selectedFurniture);
+
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: isDark
+          ? theme.colorScheme.surface
+          : Colors.green.shade50,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return SizedBox(
+              height: MediaQuery.of(context).size.height * 0.55,
+              child: Column(
+                children: [
+                  // HEADER
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: isDark
+                            ? [
+                          Colors.grey.shade900,
+                          Colors.grey.shade800,
+                        ]
+                            :  [
+                          theme.colorScheme.primary,
+                          theme.colorScheme.primary,
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Select Furniture',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor:
+                            isDark ? Colors.grey.shade700 : Colors.white,
+                            foregroundColor:
+                            isDark ? Colors.white : theme.colorScheme.primary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _selectedFurniture = Map.fromEntries(
+                                tempSelection.entries
+                                    .where((e) => e.value > 0),
+                              );
+                            });
+                            Navigator.pop(ctx);
+                          },
+                          child: const Text(
+                            "Save",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+
+                  // LIST
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        children: furnitureItems.map((item) {
+                          final isSelected = tempSelection.containsKey(item);
+
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? (isDark
+                                  ? theme.colorScheme.primary.withOpacity(0.2)
+                                  : Colors.white)
+                                  : theme.cardColor,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                if (!isDark)
+                                  const BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                    offset: Offset(1, 2),
+                                  ),
+                              ],
+                            ),
+                            child: ListTile(
+                              leading: Checkbox(
+                                activeColor: theme.colorScheme.primary,
+                                value: isSelected,
+                                onChanged: (checked) {
+                                  setModalState(() {
+                                    if (checked == true) {
+                                      tempSelection[item] = 1;
+                                    } else {
+                                      tempSelection.remove(item);
+                                    }
+                                  });
+                                },
+                              ),
+                              title: Text(
+                                item,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: isSelected
+                                      ? theme.colorScheme.primary
+                                      : theme.textTheme.bodyLarge!.color,
+                                ),
+                              ),
+                              trailing: isSelected
+                                  ? Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(
+                                        Icons.remove_circle),
+                                    color: theme.colorScheme.primary,
+                                    onPressed: () {
+                                      setModalState(() {
+                                        if (tempSelection[item]! > 1) {
+                                          tempSelection[item] =
+                                              tempSelection[item]! - 1;
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  Text(
+                                    '${tempSelection[item]}',
+                                    style: theme.textTheme.bodyLarge!
+                                        .copyWith(
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  IconButton(
+                                    icon:
+                                    const Icon(Icons.add_circle),
+                                    color: theme.colorScheme.primary,
+                                    onPressed: () {
+                                      setModalState(() {
+                                        tempSelection[item] =
+                                            tempSelection[item]! + 1;
+                                      });
+                                    },
+                                  ),
+                                ],
+                              )
+                                  : null,
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showFamilyBottomSheet(BuildContext context) {
+    String? tempStructure = _familyStructure;
+    int tempMembers = int.tryParse(_familyMember ?? "") ?? 0;
+    int tempAdults = _adultCount;
+    int tempChildren = _childrenCount;
+
+    final TextEditingController memberCtrl =
+    TextEditingController(text: tempMembers > 0 ? tempMembers.toString() : "");
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        bool isValid =
+            tempMembers > 0 &&
+                tempAdults >= 1 &&
+                tempChildren >= 0 &&
+                (tempAdults + tempChildren == tempMembers);
+
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: SingleChildScrollView( // ✅ FIX OVERFLOW
+            child: StatefulBuilder(
+              builder: (context, setSheetState) {
+                return Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        "Family Details",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // FAMILY STRUCTURE
+                      ...[
+                        "Joint",
+                        "Nuclear",
+                        "Bachelor",
+                        "Live-In relation"
+                      ].map(
+                            (type) => RadioListTile<String>(
+                          value: type,
+                          groupValue: tempStructure,
+                          title: Text(type),
+                          onChanged: (v) {
+                            setSheetState(() => tempStructure = v);
+                          },
+                        ),
+                      ),
+
+                      const Divider(),
+
+                      const Text(
+                        "Total Family Members",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      const SizedBox(height: 6),
+
+                      TextField(
+                        controller: memberCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          hintText: "Enter total members",
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.group),
+                        ),
+                        onChanged: (v) {
+                          setSheetState(() {
+                            tempMembers = int.tryParse(v) ?? 0;
+
+                            if (tempAdults > tempMembers) {
+                              tempAdults = tempMembers;
+                            }
+
+                            if (tempChildren > tempMembers - tempAdults) {
+                              tempChildren = tempMembers - tempAdults;
+                            }
+                          });
+                        },
+                      ),
+
+                      if (tempMembers > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            "Adults + Children must equal $tempMembers",
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+
+                      const SizedBox(height: 12),
+
+                      _sheetCounter(
+                        label: "Adults",
+                        value: tempAdults,
+                        min: 1,
+                        max: tempMembers - tempChildren,
+                        enabled: tempMembers > 0,
+                        onChanged: (v) {
+                          setSheetState(() {
+                            tempAdults = v;
+                          });
+                        },
+                      ),
+
+                      _sheetCounter(
+                        label: "Children",
+                        value: tempChildren,
+                        min: 0, // ✅ FIX
+                        max: tempMembers - tempAdults,
+                        enabled: tempMembers > 0,
+                        onChanged: (v) {
+                          setSheetState(() {
+                            tempChildren = v;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 16),
+
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: isValid
+                              ? () {
+                            setState(() {
+                              _familyStructure = tempStructure;
+                              _familyMember = tempMembers.toString();
+                              _adultCount = tempAdults;
+                              _childrenCount = tempChildren;
+                            });
+                            Navigator.pop(ctx);
+                          }
+                              : null,
+                          style: ElevatedButton.styleFrom(
+                            elevation: isValid ? 4 : 0,
+                            backgroundColor: isValid
+                                ? Theme.of(context).colorScheme.primary
+                                : Colors.grey.shade400,
+                            disabledBackgroundColor: Colors.grey.shade800,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: Text(
+                            "Save",
+                            style: TextStyle(
+                              fontSize: isValid ? 16 : 14,
+                              fontWeight: FontWeight.bold,
+                              color: isValid ? Colors.white : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _sheetCounter({
+    required String label,
+    required int value,
+    required int min,
+    required int max,
+    required bool enabled,
+    required ValueChanged<int> onChanged,
+  }) {
+    return Opacity(
+      opacity: enabled ? 1 : 0.4,
+      child: IgnorePointer(
+        ignoring: !enabled,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.remove_circle_outline),
+                  onPressed: value > min ? () => onChanged(value - 1) : null,
+                ),
+                Text("$value", style: const TextStyle(fontSize: 16)),
+                IconButton(
+                  icon: const Icon(Icons.add_circle_outline),
+                  onPressed: value < max ? () => onChanged(value + 1) : null,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }

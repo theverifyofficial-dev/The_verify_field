@@ -21,6 +21,7 @@ import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 
+import 'New_TenandDemand/Admin_tabbar.dart';
 import 'New_TenandDemand/Tenant_demand.dart';
 
 class AdministratorHome_Screen extends StatefulWidget {
@@ -467,7 +468,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
                               'onTap': () =>
                                   Navigator.push(context, MaterialPageRoute(
                                       builder: (
-                                          context) => const TenantDemand())),
+                                          context) => const AdminTabbar())),
                             },
                           ];
 

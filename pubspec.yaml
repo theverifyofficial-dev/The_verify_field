@@ -107,6 +107,9 @@
     android_intent_plus: ^6.0.0
     google_fonts: ^6.2.1
     animated_analog_clock: ^0.2.0
+    google_generative_ai: ^0.4.7  # Or check pub.dev for the latest 2026 version
+
+
 
 
 
@@ -117,7 +120,7 @@
   flutter_icons:
     android: true
     ios: true
-    image_path: "assets/images/verify2.jpeg"
+    image_path: "assets/images/"
 
     # The "flutter_lints" package below contains a set of recommended lints to
     # encourage good coding practices. The lint set provided by the package is

@@ -449,18 +449,16 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             style: baseStyle,
           ),
         ),
-        pw.SizedBox(height: 9),
+        pw.SizedBox(height: 10),
         clause('6. Hybrid Work and Not for Commercial Use:', 'The Tenant may work from home for personal or professional purposes; however, the premises shall not be used for any commercial registration or business setup, including but not limited to GST registration, trade licenses, or office establishment, without the prior written consent of the Landlord. Any violation shall be treated as a breach of this Agreement. (IPC 420, 468, 471) (BNS 318, 326, 327(2))'),
-        pw.SizedBox(height: 9),
+        pw.SizedBox(height: 10),
         clause('7. Mandatory Police Verification & Visitor Compliance:', 'The Tenant shall complete mandatory Police Verification within 7 days from the date of possession.Failure to comply may result in legal action under Section 188 IPC. The First Party/Landlord may submit tenant information to the local police station as required by law. (IPC 188) (BNS 223(3))'),
-        pw.SizedBox(height: 9),
+        pw.SizedBox(height: 10),
         clause('8. Extension and Alterations:', 'The tenancy can be extended if both parties agree. The Tenant cannot make any alterations to the rented property without the owner\'s written permission.(IPC 425, 427) (BNS 324, 303)'),
-        pw.SizedBox(height: 9),
+        pw.SizedBox(height: 10),
         clause('9. Rules for Using Common Areas:', 'The Tenant shall not block staircases, corridors, terrace, or parking areas with personal belongings. Any violation may lead to penalty or termination.'),
-        pw.SizedBox(height: 9),
+        pw.SizedBox(height: 10),
         clause('10. Pet Policy:', 'No pets shall be kept on the premises without prior written approval of the Landlord. Any damage caused by pets shall be borne by the Tenant.'),
-        pw.SizedBox(height: 9),
-        clause('11. Inspection & Emergency Entry:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188) (BNS 280, 285, 281, 223(3))'),
 
       ],
     ),
@@ -482,6 +480,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         );
       },
       build: (context) => [
+        pw.SizedBox(height: 9),
+        clause('11. Inspection & Emergency Entry:', 'The Tenant must allow the Landlord or their authorized agent to enter the premises for inspection or required work. This access should be at any reasonable time, ensuring both parties can manage the property effectively. In situations involving a gas leak, fire, water leakage, flooding, structural danger, or any life-threatening emergency, the Landlord or authorized technicians may enter the premises without prior notice to prevent harm. (IPC 268, 269, 336, 188) (BNS 280, 285, 281, 223(3))'),
         pw.SizedBox(height: 12),
         clause('12. Taxes and Landlord\'s Liability:', 'The Landlord is responsible for paying house and municipal taxes. However, the Landlord isn\'t liable for disputes between the Tenant and other residents, or for any loss, damage, or injury to the Tenant\'s personal belongings or to the Tenant and their guests.'),
         pw.SizedBox(height: 12),
@@ -505,14 +505,11 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
         pw.SizedBox(height: 12),
         clause('22. Liability for Death or Suicide:', 'In the event of any death, suicide, or injury occurring within the premises, the First Party/Landlord shall not be held responsible or liable for any claims arising therefrom.'),
         pw.SizedBox(height: 12),
-        clause('23. Restriction on Subletting & Unauthorized Occupancy:', 'The Second Party/Tenant shall not sublet, share, transfer, or allow any third party to occupy the premises or any portion of it without the prior written consent of the First Party/Landlord. No person other than the Tenant is permitted to stay, reside, or use the premises in any manner without such written approval. Any form of unauthorized occupancy, shared accommodation, subletting, or permitting outsiders to stay whether temporary or permanent shall be treated as a violation of this Agreement and may result in immediate termination and legal action under IPC Sections 441 and 447. (BNS 329(5), 330)'),
-        pw.SizedBox(height: 12),
-        clause('24. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403) (BNS 319(3), 316(2))'),
+        clause('23. Non-Payment of Rent:', 'If the Second Party/Tenant fails to pay the rent on time, the First Party/Landlord reserves the right to take legal action to recover the outstanding amount and repossess the premises. (IPC 421, 403) (BNS 319(3), 316(2))'),
       ],
     ),
   );
 
-  // PAGE 3 (clauses 14 - 24, witness, signatures)
   pdf.addPage(
     pw.MultiPage(
       footer: (context) {
@@ -528,6 +525,8 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.fromLTRB(28, 28, 28, 28),
       build: (context) => [
+        pw.SizedBox(height: 12),
+        clause('24. Restriction on Subletting & Unauthorized Occupancy:', 'The Second Party/Tenant shall not sublet, share, transfer, or allow any third party to occupy the premises or any portion of it without the prior written consent of the First Party/Landlord. No person other than the Tenant is permitted to stay, reside, or use the premises in any manner without such written approval. Any form of unauthorized occupancy, shared accommodation, subletting, or permitting outsiders to stay whether temporary or permanent shall be treated as a violation of this Agreement and may result in immediate termination and legal action under IPC Sections 441 and 447. (BNS 329(5), 330)'),
         pw.SizedBox(height: 12),
         clause('25. Living Relationships:', 'The Tenant shall not enter into or maintain a live-in relationship in the premises without informing the Landlord in advance. If the Tenant hides such information, the Tenant will be solely responsible for any legal issues, disputes, or complaints that arise from the live-in arrangement. The Landlord will not be liable for any trouble caused due to the Tenant\'s personal relationship, and the Landlord may take necessary action, including termination of the tenancy, if such a situation creates disturbance or legal problems.'),
         pw.SizedBox(height: 12),

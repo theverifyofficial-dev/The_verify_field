@@ -331,6 +331,9 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "property_id": agreement?["property_id"] ?? "",
         "agreement_type": agreement?["agreement_type"] ?? "",
         "furniture": agreement?["furniture"] ?? "",
+        "agreement_price": agreement?["agreement_price"] ?? "",
+        "notary_price": agreement?["notary_price"] ?? "",
+
       };
 
       fields.forEach((k, v) {
@@ -520,6 +523,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                       _kv("Maintenance", agreement?["maintaince"]),
                       _kv("Parking", agreement?["parking"]),
                       _kv("Shifting Date", _formatDate(agreement?["shifting_date"]) ?? ""),
+                      _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),
+                      _kv("Notary Amount", agreement?["notary_price"] ?? 'Not Added'),
                       _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
 
                     ],

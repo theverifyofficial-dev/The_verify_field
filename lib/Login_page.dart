@@ -14,16 +14,18 @@ import 'SocialMediaHandler/video_home.dart';
 import 'constant.dart';
 
 class Catid {
+  final String ID;
   final String F_Name;
   final String F_Number;
   final String FAadharCard;
   final String FLocation;
 
   Catid(
-      {required this.F_Name, required this.F_Number, required this.FAadharCard, required this.FLocation});
+      {required this.ID,required this.F_Name, required this.F_Number, required this.FAadharCard, required this.FLocation});
 
   factory Catid.FromJson(Map<String, dynamic>json){
     return Catid(
+        ID: json['id'],
         F_Name: json['FName'],
         F_Number: json['FNumber'],
         FAadharCard: json['FAadharCard'],
@@ -254,6 +256,7 @@ class _Login_pageState extends State<Login_page> {
 
         // Save data in SharedPreferences
         SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setInt('id', user["id"]);
         prefs.setString('name', user["FName"]);
         prefs.setString('number', user["FNumber"]);
         prefs.setString('post', user["FAadharCard"]);

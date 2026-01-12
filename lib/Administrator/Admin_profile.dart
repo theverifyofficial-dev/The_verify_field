@@ -338,7 +338,7 @@ class _ProfilePageState extends State<AdminProfile> {
           _divider(),
           _infoTile(Icons.location_on, "Location", _user!.location),
           _divider(),
-          _infoTile(Icons.vertical_align_bottom, "App Version", "2.0"),
+          _infoTile(Icons.vertical_align_bottom, "App Version", "3.0"),
 
         ],
       ),

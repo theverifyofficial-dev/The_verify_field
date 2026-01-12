@@ -48,7 +48,7 @@ class _AgreementDetailsState extends State<AgreementDetails1> {
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded is Map && decoded['success'] == true) {
+        if (decoded is Map && decoded['status'] == true) {
           final data = decoded['data'];
           if (data is List) {
             setState(() {

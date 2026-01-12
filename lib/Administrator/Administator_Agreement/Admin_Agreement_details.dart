@@ -496,6 +496,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                         _kv("Maintenance", agreement!["maintaince"]),
                         _kv("Parking", agreement!["parking"] ?? ""),
                         _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
+                        _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),
+                        _kv("Notary Amount", agreement?["notary_price"] ?? 'Not Added'),
                         _furnitureList(agreement!['furniture']), // 👈 this line auto handles your furniture data
 
                       ],

@@ -4,11 +4,13 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Administrator/New_TenandDemand/redemand_detailpage.dart';
 import '../../model/demand_model.dart';
+import '../../utilities/bug_founder_fuction.dart';
 
 
 class AdminDemandDetail extends StatefulWidget {
   final String demandId;
-  const AdminDemandDetail({super.key, required this.demandId});
+  final bool fromNotification;
+  const AdminDemandDetail({super.key, required this.demandId,this.fromNotification = false,});
 
   @override
   State<AdminDemandDetail> createState() => _AdminDemandDetailState();
@@ -22,7 +24,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
   String? _selectedName;
   String? _parentId;
 
-  final List<String> _nameList = ["Saurabh Yadav"];
+  final List<String> _nameList = ["Saurabh Yadav", "Shivani Joshi",];
 
   List<TenantDemandModel> _redemands = [];
 
@@ -31,6 +33,8 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     super.initState();
     _fetchDemandDetails();
   }
+
+
 
   Future<void> _fetchDemandDetails() async {
     setState(() => _isLoading = true);
@@ -45,7 +49,6 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
             (jsonRes["data"] as List).isNotEmpty) {
           setState(() {
             _demand = Map<String, dynamic>.from(jsonRes["data"][0]);
-            _selectedOffice = _demand?["Location"];
             _isLoading = false;
             _parentId = widget.demandId;
           });
@@ -57,14 +60,26 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
         }
       } else {
         setState(() => _isLoading = false);
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text("Error fetching details: $e")));
       }
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=",
+        error: e.toString(),
+        statusCode: 500,
+      );
       setState(() => _isLoading = false);
     }
+
   }
 
   /// Fetch redemands for this parent demand.
@@ -100,6 +115,12 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
         setState(() {
           _redemands = [];
         });
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+
       }
     } catch (e) {
       setState(() {
@@ -109,6 +130,11 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text("Error loading re-demands: $e")));
       }
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_sub_id.php?subid=",
+        error: e.toString(),
+        statusCode: 500,
+      );
     }
   }
 
@@ -142,10 +168,30 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     return months[m - 1];
   }
 
+
+
+  String _resolveLocationByName(String name) {
+    switch (name.toLowerCase()) {
+      case "saurabh yadav":
+        return "Sultanpur";
+      case "shivani joshi":
+        return "Rajpur Khurd";
+      default:
+        return "Unknown";
+    }
+  }
+
+
   Future<void> _assignDemand() async {
     if (_selectedName == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Select Name")),
+      );
+      return;
+    }
+    if (_selectedOffice == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("location error")),
       );
       return;
     }
@@ -188,11 +234,23 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
           await _fetchDemandDetails();
         }
       } else {
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php",
+          error: response.body.toString(),
+          statusCode: response.statusCode ?? 0,
+        );
+
         throw Exception(result["message"] ?? "Assignment failed");
+
       }
     } catch (e) {
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text("Error: $e")));
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/assign_subadmin.php",
+        error: e.toString(),
+        statusCode: 500,
+      );
     } finally {
       if (mounted) setState(() => _assigning = false);
     }
@@ -200,6 +258,9 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
 
   Widget _buildTenantCard(bool isDark, Color accent, Map<String, dynamic> data) {
     final bool isUrgent = (data["mark"]?.toString() ?? "0") == "1";
+    final assignedBy =
+    _demand?["assigned_fieldworker_name"]?.toString().trim();
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.all(18),
@@ -259,7 +320,17 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   Text(
                     "Created: ${formatApiDate(data["created_date"] is String ? data["created_date"] : (data["created_date"]?["date"] ?? ""))}",
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-                  )
+                  ),
+
+
+                  const SizedBox(height: 3),
+                  Text('Demand ID: ${data["id"].toString()}' ?? "0",
+                      style: TextStyle(
+                          color: isDark
+                              ? Colors.white38
+                              : Colors.black45,
+                          fontSize: 13)),
+
 
                 ]),
           ),
@@ -304,7 +375,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
             (value?.isNotEmpty ?? false) ? value! : "-",
             textAlign: TextAlign.right,
             style: const TextStyle(
-                color: Colors.white,
+                color: Colors.grey,
                 fontSize: 14,
                 fontWeight: FontWeight.w500),
           ),
@@ -341,7 +412,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.4),
+                      color: Colors.redAccent.withOpacity(0.3),
                       blurRadius: 6,
                       offset: const Offset(2, 2),
                     ),
@@ -380,7 +451,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.4),
+                      color: Colors.green.withOpacity(0.4),
                       blurRadius: 6,
                       offset: const Offset(2, 2),
                     ),
@@ -419,7 +490,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.redAccent.withOpacity(0.4),
+                      color: Colors.green.withOpacity(0.4),
                       blurRadius: 6,
                       offset: const Offset(2, 2),
                     ),
@@ -445,7 +516,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => RedemandDetailPage(redemandId: d.id.toString()),
+                builder: (_) => RedemandDetailPage(redemandId: d.id.toString(), subid: d.subid.toString()),
               ),
             ).then((_) {
               _fetchRedemands();
@@ -556,7 +627,7 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("${d.location} • ${d.bhk} BHK",
+                    Text("${d.location} • ${d.bhk}",
                         style: TextStyle(
                             color: isDark ? Colors.white70 : Colors.black54,
                             fontSize: 14)),
@@ -595,6 +666,13 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
         // ----- Existing ribbons -------
         if (d.status.toLowerCase() == "disclosed")
           _buildRibbon("DISCLOSED", Colors.red.shade500, Colors.red.shade700),
+
+
+        if (d.status.toLowerCase() == "new")
+          _buildRibbon("NEW", Colors.green.shade500, Colors.green.shade700),
+
+        if (d.status.toLowerCase() == "progressing")
+          _buildRibbon("Progressing", Colors.green.shade500, Colors.green.shade700),
 
         if (d.status.toLowerCase() == "assigned to fieldworker" ||
             d.status.toLowerCase() == "assign to subadmin")
@@ -690,14 +768,16 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.55,
-          minChildSize: 0.35,
-          maxChildSize: 0.9,
-          expand: false,
-          builder: (_, controller) {
-            return Container(
+        builder: (ctx) {
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              return DraggableScrollableSheet(
+                initialChildSize: 0.55,
+                minChildSize: 0.35,
+                maxChildSize: 0.9,
+                expand: false,
+                builder: (_, controller) {
+                  return Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
               decoration: BoxDecoration(
                 color: isDark ? const Color(0xFF111217) : Colors.white,
@@ -720,40 +800,56 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   DropdownButtonFormField<String>(
                     decoration: InputDecoration(
                       labelText: "Select Name",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 10),
                     ),
                     value: _selectedName,
-                    onChanged: (v) => setState(() => _selectedName = v),
-                    items: _nameList.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+                    onChanged: (v) {
+                      setModalState(() {
+                        _selectedName = v;
+                        _selectedOffice =
+                        v == null ? null : _resolveLocationByName(v);
+                      });
+                    },
+                    items: _nameList
+                        .map(
+                          (e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(e),
+                      ),
+                    )
+                        .toList(),
                   ),
 
                   const SizedBox(height: 16),
 
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      color: accent.withOpacity(0.15),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.location_on, color: accent, size: 22),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _demand?["Location"] ?? "--",
+                  // --- AUTO LOCATION DISPLAY ---
+                  if (_selectedOffice != null)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: accent.withOpacity(0.12),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.location_on, color: accent),
+                          const SizedBox(width: 10),
+                          Text(
+                            _selectedOffice!,
                             style: TextStyle(
-                              color: isDark ? Colors.white70 : Colors.black87,
-                              fontSize: 15,
                               fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? Colors.white70
+                                  : Colors.black87,
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
 
                   const Spacer(),
 
@@ -791,6 +887,8 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
       },
     );
   }
+    );
+        }
 
   Widget _buildFinalSummarySection(bool isDark, Color accent) {
     final theme = Theme.of(context);
@@ -819,14 +917,81 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
     );
   }
 
+  Widget _fieldWorkerNotice(bool isDark) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: Colors.orange.withOpacity(isDark ? 0.15 : 0.12),
+        border: Border.all(
+          color: Colors.orange.withOpacity(0.45),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.engineering_rounded,
+            color: Colors.orange.shade700,
+            size: 26,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Field Worker Added Demand",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orange,
+                  ),
+                ),
+                SizedBox(height: 4),
+                Text(
+                  "This demand was added directly by a field worker.",
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.orangeAccent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final bool isUrgent = _demand?["mark"]?.toString() == "1";
     final Color accent = isUrgent ? Colors.redAccent : theme.colorScheme.primary;
-    final baseColor = accent;
+    final hasSubadminAssigned =
+        _demand?["assigned_subadmin_name"] != null;
+
+    final hasFieldworkerAssigned =
+        _demand?["assigned_fieldworker_name"] != null;
+
     final status = _demand?["Status"]?.toLowerCase();
+
+    bool _isAddedByFieldWorker(dynamic value) {
+      if (value == null) return false;
+      if (value is bool) return value;
+      if (value is String) return value.toLowerCase() == "true";
+      return false;
+    }
+
+    final bool addedByField =
+    _isAddedByFieldWorker(_demand?["by_field"]);
+
+
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0B0C10) : const Color(0xFFF7F5F0),
@@ -871,61 +1036,65 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
             ],
 
             // --- Parent demand at bottom (unchanged card) ---
+
+            if (addedByField) _fieldWorkerNotice(isDark),
+
+            if (status == "redemand")
+              _infoBanner(
+                icon: Icons.repeat,
+                color: Colors.blue,
+                title: "Demand Reopened",
+                message:
+                "This demand was previously disclosed, but a new redemand was created. "
+                    "The workflow is active again.",
+                isDark: isDark,
+              ),
+
             _buildTenantCard(isDark, accent, _demand!),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
 
-            if (status == "assign to subadmin") ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: Colors.green.withOpacity(0.10),
-                  border: Border.all(color: Colors.green.withOpacity(0.4)),
-                ),
-                child: Row(children: [
-                  Icon(Icons.verified_rounded, color: Colors.green, size: 26),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text("Successfully Assigned", style: TextStyle(color: Colors.green.shade700, fontSize: 15, fontWeight: FontWeight.bold)),
-                    Text("Assigned to: ${_demand!["assigned_subadmin_name"] ?? "--"}", style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                    Text("${_demand!["assigned_subadmin_role"] ?? "--"}", style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text("${_demand!["assigned_subadmin_location"] ?? "--"}", style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                      Text("Assign: ${formatApiDate(_demand!["subadmin_assigned_at"] ?? "")}", style: TextStyle(color: Colors.grey.shade500, fontSize: 13))
-                    ]),
-                  ]))
-                ]),
+
+            if (status == "progressing" || status == "disclosed" || status == "redemand")
+              _buildProgressDetailsCard(_demand!, isDark, accent),
+
+            const SizedBox(height: 10),
+
+            if (status == "disclosed" || status == "redemand")
+              _buildFinalSummarySection(isDark, accent),
+
+
+            if (hasSubadminAssigned) ...[
+              const SizedBox(height: 12),
+              _buildAssignmentCard(
+                title: "Assigned to Sub Admin",
+                name: _demand!["assigned_subadmin_name"],
+                role: _demand!["assigned_subadmin_role"],
+                location: _demand!["assigned_subadmin_location"],
+                date: _demand!["subadmin_assigned_at"],
+                accent: Colors.green,
+                isDark: isDark,
               ),
             ],
 
-            if (status == "assigned to fieldworker") ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                margin: const EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: Colors.green.withOpacity(0.10),
-                  border: Border.all(color: Colors.green.withOpacity(0.4)),
-                ),
-                child: Row(children: [
-                  Icon(Icons.verified_rounded, color: Colors.green, size: 26),
-                  const SizedBox(width: 12),
-                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Text("Successfully Assigned", style: TextStyle(color: Colors.green.shade700, fontSize: 15, fontWeight: FontWeight.bold)),
-                    Text("Assigned to: ${_demand!["assigned_fieldworker_name"] ?? "--"}", style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                    Text("${_demand!["assigned_fieldworker_role"] ?? "--"}", style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text("${_demand!["assigned_fieldworker_location"] ?? "--"}", style: TextStyle(color: Colors.green.shade600, fontSize: 13, fontWeight: FontWeight.w500)),
-                      Text("Assign: ${formatApiDate(_demand!["fieldworker_assigned_at"] ?? "")}", style: TextStyle(color: Colors.grey.shade500, fontSize: 13))
-                    ]),
-                  ]))
-                ]),
+            const Divider(thickness: 1),
+
+
+            if (hasFieldworkerAssigned) ...[
+              _buildAssignmentCard(
+                title: "Assigned to Fieldworker",
+                name: _demand!["assigned_fieldworker_name"],
+                role: _demand!["assigned_fieldworker_role"],
+                location: _demand!["assigned_fieldworker_location"],
+                date: _demand!["fieldworker_assigned_at"],
+                accent: Colors.blue,
+                isDark: isDark,
               ),
             ],
 
-            if (status == "New") ...[
+            const SizedBox(height: 15),
+
+            if (status == "new") ...[
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -939,18 +1108,439 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                   child: Text("Assign Demand", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 17)),
                 ),
               ),
+              const SizedBox(height: 14),
             ],
 
-            if (status == "progressing" || status == "disclosed")
-
-              _buildProgressDetailsCard(_demand!, isDark, accent),
-
-            if (status == "disclosed")
-              _buildFinalSummarySection(isDark, accent),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                icon: const Icon(Icons.phone_in_talk_rounded, color: Colors.white),
+                label: const Text(
+                  "Contact History",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () => _openContactSheet(context, accent, isDark),
+              ),
+            ),
 
           ],
         ),
       ),
     );
   }
+
+  Future<List<dynamic>> _fetchLogs(String id) async {
+    try {
+      final url =
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id";
+
+      print("📡 Fetching Logs: $url");
+
+      final res = await http.get(Uri.parse(url));
+
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body["success"] == true && body["data"] is List) {
+          print("📥 Logs fetched: ${body["data"].length}");
+          return body["data"];
+        }
+      }
+      else{
+        await BugLogger.log(
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+          error: res.body.toString(),
+          statusCode: res.statusCode ?? 0,
+        );
+      }
+    } catch (e) {
+      print("❌ Error fetching logs: $e");
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_api_for_calling_option_in_tenant_demand.php?subid=$id",
+        error: e.toString(),
+        statusCode: 500,
+      );
+    }
+    return [];
+  }
+
+  void _openContactSheet(BuildContext context, Color accent, bool isDark) async {
+    final number = _demand?["Tnumber"] ?? "";
+    final name = _demand?["Tname"] ?? "";
+    final id = _demand?["id"].toString() ?? "";
+
+    // FIRST LOAD LOGS
+    List<dynamic> logs = [];
+    await _fetchLogs(id).then((list) => logs = list);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            // function to reload logs live inside bottomsheet
+            Future<void> refreshLogs() async {
+              print("🔄 Refreshing Logs...");
+              final updated = await _fetchLogs(id);
+              setSheetState(() {
+                logs = updated;
+              });
+              print("✅ Logs Updated: ${logs.length}");
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF111217) : Colors.white,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // drag handle
+                  Container(
+                    width: 45,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withOpacity(0.5),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Text(
+                    "Customer History",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: accent,
+                    ),
+                  ),
+
+                  const SizedBox(height: 22),
+
+                  // CONTACT BUTTONS
+                  // Row(
+                  //   children: [
+                  //     Expanded(
+                  //       child: _contactButton(
+                  //         label: "Call",
+                  //         color: Colors.blue,
+                  //         icon: Icons.call,
+                  //         onTap: () async {
+                  //           print("☎ CALL tapped");
+                  //
+                  //           await _logContact(
+                  //               message: "Try to Call ${maskPhone(number)}", id: id);
+                  //
+                  //           print("📌 Log Inserted → Calling...");
+                  //           await refreshLogs();
+                  //
+                  //           final uri = Uri.parse("tel:$number");
+                  //           await launchUrl(uri);
+                  //         },
+                  //       ),
+                  //     ),
+                  //     const SizedBox(width: 10),
+                  //     Expanded(
+                  //       child: _contactButton(
+                  //         label: "WhatsApp",
+                  //         color: Colors.green,
+                  //         icon: Icons.chat,
+                  //         onTap: () async {
+                  //           print("💬 WhatsApp tapped");
+                  //
+                  //           await _logContact(
+                  //               message: "Try to message on WhatsApp ${maskPhone(number)}",
+                  //               id: id);
+                  //
+                  //           print("📌 Log Inserted → Opening WhatsApp...");
+                  //           await refreshLogs();
+                  //
+                  //           final phone = number.replaceAll(" ", "");
+                  //           final txt = Uri.encodeComponent(
+                  //               "Hello $name, I’m contacting regarding your request.");
+                  //           final url =
+                  //           Uri.parse("https://wa.me/$phone?text=$txt");
+                  //
+                  //           await launchUrl(url,
+                  //               mode: LaunchMode.externalApplication);
+                  //         },
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ),
+
+                  const SizedBox(height: 25),
+
+                  // LOG HEADER
+                  Row(
+                    children: [
+                      Icon(Icons.history, color: accent, size: 22),
+                      const SizedBox(width: 8),
+                      Text(
+                        "Contact Logs",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // LOG LIST
+                  SizedBox(
+                    height: 250,
+                    child: logs.isEmpty
+                        ? Center(
+                      child: Text(
+                        "No activity logs found.",
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: isDark ? Colors.white60 : Colors.black54,
+                        ),
+                      ),
+                    )
+                        : ListView.separated(
+                      itemCount: logs.length,
+                      separatorBuilder: (_, __) => Divider(
+                          color: isDark
+                              ? Colors.white12
+                              : Colors.black12),
+                      itemBuilder: (context, i) {
+                        final log = logs[i];
+                        final msg = log['message'] ?? "";
+                        final date = log['date'] ?? "";
+                        final time = log['time'] ?? "";
+                        final by = log['who_calling'] ?? "";
+
+
+                        final isCall =
+                        msg.toLowerCase().contains("call");
+                        final isWhatsapp =
+                        msg.toLowerCase().contains("whatsapp");
+
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: isCall
+                                    ? Colors.blue.withOpacity(0.15)
+                                    : isWhatsapp
+                                    ? Colors.green.withOpacity(0.15)
+                                    : Colors.grey.withOpacity(0.15),
+                              ),
+                              child: Icon(
+                                isCall
+                                    ? Icons.call
+                                    : isWhatsapp
+                                    ? Icons.chat
+                                    : Icons.info_outline,
+                                color: isCall
+                                    ? Colors.blue
+                                    : isWhatsapp
+                                    ? Colors.green
+                                    : Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment:
+                                CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    msg,
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+                                    children: [
+                                      Text(
+                                        "$date • $time",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      Text(
+                                        "by $by",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: isDark
+                                              ? Colors.white54
+                                              : Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildAssignmentCard({
+    required String title,
+    required String? name,
+    required String? role,
+    required String? location,
+    required dynamic date,
+    required Color accent,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: accent.withOpacity(0.10),
+        border: Border.all(color: accent.withOpacity(0.4)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.verified_rounded, color: accent, size: 26),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(name ?? "--",
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white70 : Colors.black87)),
+                Text(role ?? "--",
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(location ?? "--",
+                        style:
+                        TextStyle(color: Colors.grey.shade600, fontSize: 13)),
+                    Text(
+                      "Assigned: ${formatApiDate(date)}",
+                      style:
+                      TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoBanner({
+    required IconData icon,
+    required Color color,
+    required String title,
+    required String message,
+    required bool isDark,
+  }) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 18),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        color: color.withOpacity(isDark ? 0.15 : 0.12),
+        border: Border.all(color: color.withOpacity(0.45)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 26),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: color)),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "$message ",
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: isDark
+                              ? color.withOpacity(0.9)
+                              : color.withOpacity(0.85),
+                        ),
+                      ),
+                      WidgetSpan(
+                        alignment: PlaceholderAlignment.middle,
+                        child: Icon(
+                          Icons.sentiment_satisfied_alt,
+                          size: 16,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

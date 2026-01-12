@@ -293,6 +293,8 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     final url =
         'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$id';
 
+    print('multiple image subid${id}');
+
     final response = await http.get(Uri.parse(url));
 
     print('Response status: ${response.statusCode}');

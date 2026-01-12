@@ -9,6 +9,13 @@ import 'Administrator/Administator_Add_Rented_Flat_Tabbar.dart' hide Administato
 import 'Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import 'Administrator/Administator_Realestate.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
+import 'Administrator/New_TenandDemand/Admin_demand_detail.dart';
+import 'Administrator/New_TenandDemand/redemand_detailpage.dart';
+import 'Administrator/SubAdmin/Redemand_subadmin.dart';
+import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
+import 'Administrator/SubAdmin/sub_demand_details.dart';
+import 'Demand_2/Demand_detail.dart';
+import 'Demand_2/redemand_detailpage.dart';
 import 'Rent Agreement/details_agreement.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Web_query/web_query.dart';
@@ -24,11 +31,24 @@ class Routes {
   static const String fieldAgreementPending = '/fieldAgreementPending';
   static const String adminAgreementPending = '/adminAgreementPending';
   static const String administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
+  // ADMIN
+  static const String AdminDemandDetails = "/adminDemandDetail";
+  static const String AdminRedemandDetail = "/adminRedemandDetail";
+
+// SUBADMIN
+  static const String subAdminDemandDetail = "/subAdminDemandDetail";
+  static const String subAdminRedemandDetail = "/subAdminRedemandDetail";
+
+// FIELDWORKER
+  static const String FieldDemandDetail = "/fieldDemandDetail";
+  static const String FieldRedemandDetail = "/fieldRedemandDetail";
+
 
   static Map<String, WidgetBuilder> routes = {
     Splash.route: (context) => const Splash(),
     Home_Screen.route: (context) => const Home_Screen(),
     AdministratorHome_Screen.route: (context) => const AdministratorHome_Screen(),
+    SubAdminHomeScreen.route: (context) => const SubAdminHomeScreen(),
     Login_page.route: (context) => const Login_page(),
 
     // 🔸 Admin Real Estate View
@@ -101,6 +121,57 @@ class Routes {
         fromNotification: args["fromNotification"] ?? false,
         flatId: args["propertyId"]?.toString(),
         tabIndex: args["tabIndex"] ?? 0,
+      );
+    },
+    subAdminDemandDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+      return SubDemandDetails(
+        demandId: args["demandId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+    AdminDemandDetails: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+      return AdminDemandDetail(
+        demandId: args["demandId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+    AdminRedemandDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+      return RedemandDetailPage(
+        redemandId: args["demandId"],
+        fromNotification: args["fromNotification"] ?? false,
+        subid: args["demandId"],
+      );
+    },
+
+
+    subAdminRedemandDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+      return RedemandSubadmin(
+        redemandId: args["demandId"],
+        fromNotification: args["fromNotification"] ?? false,
+        demandId: '',
+      );
+    },
+
+
+    FieldDemandDetail: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
+      return DemandDetail(
+        demandId: args["demandId"],
+        fromNotification: args["fromNotification"] ?? false,
+      );
+    },
+
+    FieldRedemandDetail: (context) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
+      return field_RedemandDetailPage(
+        redemandId: args["demandId"],
+        fromNotification: args["fromNotification"] ?? false,
       );
     },
   };

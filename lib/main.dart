@@ -5,6 +5,7 @@ import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:provider/provider.dart';
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
 import 'package:verify_feild_worker/provider/Theme_provider.dart';
@@ -15,13 +16,12 @@ import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart
 import 'package:verify_feild_worker/routes.dart';
 import 'package:verify_feild_worker/splash.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
+import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import 'Controller/Show_demand_binding.dart';
+import 'Home_Screen.dart';
 import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
-
-// by lokesh
-
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -42,6 +42,11 @@ void main() async {
 
   // register FCM background handler
   FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  final model = GenerativeModel(
+    model: 'gemini-1.5-flash-latest', // or 'gemini-1.5-pro'
+    apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
+  );
 
   TenantBinding();
 
@@ -104,6 +109,27 @@ class _MyAppState extends State<MyApp> {
     _initDynamicLinks();
   }
 
+
+  void openFromNotification({
+    required String homeRoute,
+    required String detailRoute,
+    required Map<String, dynamic> arguments,
+  }) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 1️⃣ Reset stack to HOME
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        homeRoute,
+            (route) => false,
+      );
+
+      // 2️⃣ Open detail on top of HOME
+      navigatorKey.currentState?.pushNamed(
+        detailRoute,
+        arguments: arguments,
+      );
+    });
+  }
+
   /// Extract buildingId from body
   String? extractBuildingIdFromBody(String? body) {
     if (body == null) return null;
@@ -117,6 +143,10 @@ class _MyAppState extends State<MyApp> {
       final data = message.data;
       String? type = data['type']?.toString();
       String? flatId = data['flat_id']?.toString();
+      final demandId = data["demand_id"]?.toString();
+      final redemandId = data["redemand_id"]?.toString();
+
+
       String? buildingId = data['building_id']?.toString();
       String? propertyId = data['P_id']?.toString();
       // 🔹 First Payment → OPEN TAB 0
@@ -207,7 +237,12 @@ class _MyAppState extends State<MyApp> {
       }
 
       // 🔹 Handle NEW_FLAT notification → Administater_Future_Property_details
-      if (type == "NEW_FLAT" || type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
+      if (
+      (type == "NEW_FLAT" || type == "FLAT_UPDATE") &&
+          buildingId != null &&
+          flatId != null
+      )
+      {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
           if (fromTerminated) {
@@ -333,9 +368,134 @@ class _MyAppState extends State<MyApp> {
                 return;
               }
 
+      if (type == "DEMAND_ASSIGNED" && demandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.subAdminDemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": demandId,
+          },
+        );
+        return;
+      }
 
-      // 🔹 Handle Agreements (NEW, UPDATED, ACCEPTED, REJECTED)
-      if ([
+
+      if (type == "Demand_Transfer_to_subadmin" && demandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.subAdminDemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": demandId,
+          },
+        );
+        return;
+      }
+
+
+      if (type == "REDEMAND_ASSIGNED" && redemandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.subAdminRedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId,
+          },
+        );
+        return;
+      }
+
+      if (type == "ReDemand_Transfer_to_subadmin" && redemandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.subAdminRedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId,
+          },
+        );
+        return;
+      }
+
+      if (type == "DEMAND_ASSIGNED_TO_FIELD_WORKAR" && demandId != null) {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.FieldDemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": demandId,
+          },
+        );
+        return;
+      }
+
+      /// 🔒 DEMAND CLOSED → ADMIN
+      if (type == "DEMAND_UPDATE_ADMIN" && demandId != null) {
+        openFromNotification(
+          homeRoute: AdministratorHome_Screen.route,
+          detailRoute: Routes.AdminDemandDetails,
+          arguments: {
+            "fromNotification": true,
+            "demandId": demandId,
+          },
+        );
+        return;
+      }
+
+
+      /// 🔒 DEMAND CLOSED → SUBADMIN
+      if (type == "DEMAND_UPDATE_SUBADMIN" && demandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.subAdminDemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": demandId,
+          },
+        );
+        return;
+      }
+
+      if (type == "REDEMAND_ASSIGNED_TO_FIELDWORKER" && redemandId != null) {
+        openFromNotification(
+          homeRoute: Home_Screen.route,
+          detailRoute: Routes.FieldRedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId,
+          },
+        );
+        return;
+      }
+
+      if (type == "REDEMAND_CLOSED_TO_ADMIN" && redemandId != null) {
+        openFromNotification(
+          homeRoute: AdministratorHome_Screen.route,
+          detailRoute: Routes.AdminRedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId, // 👈 yes, key stays demandId
+          },
+        );
+        return;
+      }
+
+
+      if (type == "REDEMAND_CLOSED_TO_SUBADMIN" && redemandId != null) {
+        openFromNotification(
+          homeRoute: SubAdminHomeScreen.route,
+          detailRoute: Routes.subAdminRedemandDetail,
+          arguments: {
+            "fromNotification": true,
+            "demandId": redemandId,
+          },
+        );
+        return;
+      }
+
+      if (
+      [
         "NEW_AGREEMENT",
         "AGREEMENT_UPDATED",
         "AGREEMENT_ACCEPTED",
@@ -387,6 +547,7 @@ class _MyAppState extends State<MyApp> {
           print("⚠️ No matching route for agreement type: $type");
         }
 
+
         return; // ✅ stop further navigation
       }
 
@@ -423,7 +584,11 @@ class _MyAppState extends State<MyApp> {
         );
       }
       // ✅ Handle NEW_FLAT → Administater_Future_Property_details
-      else if (type == "NEW_FLAT"|| type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
+      else if (
+      (type == "NEW_FLAT" || type == "FLAT_UPDATE") &&
+          buildingId != null &&
+          flatId != null
+      ) {
         navigatorKey.currentState?.pushNamed(
           Routes.administaterFuturePropertyDetails,
           arguments: {
@@ -443,6 +608,7 @@ class _MyAppState extends State<MyApp> {
         );
       }
     }
+
   }
 
   void _toggleTheme() {
@@ -526,3 +692,5 @@ class ThemeSwitcher extends InheritedWidget {
     return oldWidget.themeMode != themeMode;
   }
 }
+
+

@@ -23,6 +23,7 @@ import '../Admin_future _property/Administater_Future_Property.dart';
 import '../Admin_upcoming.dart';
 import 'ShowTenantDemant.dart';
 import 'SubAdmin_MainRealEstate_Tabbar.dart';
+import 'SubAdmin_tabbar.dart';
 
 class SubAdminHomeScreen extends StatefulWidget {
   static const route = "/SubAdminHomeScreen";
@@ -413,7 +414,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                   'onTap': () =>
                                       Navigator.push(context, MaterialPageRoute(
                                           builder: (
-                                              context) =>  ShowTenantDemandPage())),
+                                              context) =>  SubadminTabbar())),
                                 },
                                 {
                                   "image": AppImages.realestatefeild,

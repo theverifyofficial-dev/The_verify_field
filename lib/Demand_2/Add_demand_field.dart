@@ -4,18 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
-import 'Admin_demand_detail.dart';
 
-class CustomerDemandFormPage extends StatefulWidget {
-  const CustomerDemandFormPage({super.key});
+class AddDemandField extends StatefulWidget {
+  const AddDemandField({super.key});
 
   @override
-  State<CustomerDemandFormPage> createState() => _CustomerDemandFormPageState();
+  State<AddDemandField> createState() => _CustomerDemandFormPageState();
 }
 
-class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with SingleTickerProviderStateMixin  {
+class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTickerProviderStateMixin  {
 
   final _formKey = GlobalKey<FormState>();
   final Dio _dio = Dio();
@@ -29,7 +29,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
-  final String _status = "New";
+  final String _status = "assign_to_fieldworkar";
   bool _isUrgent = false;
 
   RangeValues _buyBudget = const RangeValues(1000000, 5000000);
@@ -41,10 +41,13 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   final List<String> _buyRentOptions = ["Buy", "Rent"];
   final List<String> _referenceOptions = ["99 Acres", "Housing", "Instagram", "Youtube","facebook","Website","Other"];
   final List<String> _locationOptions = [
-    "Sultanpur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni"];
+    "Sultanpur", "Chhattarpur", "Rajpur Khurd", "Aya Nagar", "Ghitorni",""
+  ];
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
+
+
 
   @override
   void initState() {
@@ -66,67 +69,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     _messageCtrl.dispose();
     super.dispose();
   }
-
-  bool get _canSubmitRedemand {
-    if (_existingCustomer == null) return true;
-
-    final fwName = _existingCustomer?["assigned_fieldworker_name"];
-
-    // can submit only if fieldworker is assigned
-    return fwName != null && fwName.toString().trim().isNotEmpty;
-  }
-
-  Widget _redemandBlockedBanner() {
-    final theme = Theme.of(context);
-
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
-        color: Colors.red.withOpacity(0.12),
-        border: Border.all(
-          color: Colors.red.withOpacity(0.45),
-        ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.block_rounded,
-            color: Colors.red.shade700,
-            size: 26,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  "Redemand Not Allowed Yet",
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  "You can add a new demand only after the previous demand is assigned to Fieldworker.",
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.redAccent,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
 
   Future<void> _fetchCustomerByPhone(String phone) async {
     if (phone.length != 10) return;
@@ -150,7 +92,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         });
       }
     } catch (_) {
-     } finally {
+    } finally {
       if (mounted) setState(() => _fetchingCustomer = false);
     }
   }
@@ -161,7 +103,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       _nameCtrl.text = data["Tname"].toString();
     }
 
-
     // BUY / RENT
     if (_buyRent == null && data["Buy_rent"] != null) {
       _buyRent = data["Buy_rent"];
@@ -170,11 +111,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     // LOCATION
     if (_location == null && data["Location"] != null) {
       _location = data["Location"];
-    }
-
-    // Reference
-    if (_reference == null && data["Reference"] != null) {
-      _reference = data["Reference"];
     }
 
     // MESSAGE (append, don’t replace)
@@ -215,6 +151,47 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isSubmitting = true);
 
+    final prefs = await SharedPreferences.getInstance();
+    final FName = prefs.getString('name') ?? "";
+    final FLocation = prefs.getString('location') ?? "";
+    print(FName);
+    print(FLocation);
+
+    if (FName.isEmpty || FLocation.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("User info missing. Please login again.")),
+      );
+      return;
+    }
+
+
+
+    String resolveSubAdmin(String location) {
+      final loc = location.toLowerCase().trim();
+
+      if (loc.contains("sultanpur")) {
+        return "Saurabh Yadav";
+      }
+      if (loc.contains("rajpur")) {
+        return "Shivani Joshi";
+      }
+
+      return "";
+    }
+
+    final subAdminName = resolveSubAdmin(FLocation);
+
+    if (subAdminName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("No SubAdmin mapped for your location")),
+      );
+      return;
+    }
+
+    final encodedName = Uri.encodeQueryComponent(FName);
+    final encodedLoc = Uri.encodeQueryComponent(FLocation);
+
+
     final now = DateTime.now();
     final isBuy = _buyRent == "Buy";
 
@@ -229,7 +206,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       return;
     }
 
-    final formData = {
+    final formData = FormData.fromMap({
       "Tname": _nameCtrl.text.trim(),
       "Tnumber": _numberCtrl.text.trim(),
       "Buy_rent": _buyRent,
@@ -240,26 +217,30 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       "Message": _messageCtrl.text.trim(),
       "Bhk": _selectedBhks.join(", "),
       "Location": _location ?? "",
-      "Status": _status, // Always "New"
-      "mark": _isUrgent, // true / false urgent flag
-      "created_date": DateFormat('yyyy-MM-dd').format(now),
-      "Result": "", // Initially blank
-      "by_field": "false", // STRING, not bool
-    };
+      "Status": _status,
+      "mark": _isUrgent ? "1" : "0", // IMPORTANT: string
+      "Result": "",
+      "Date": DateFormat("dd-MM-yyyy").format(DateTime.now()),
+      "Time": DateFormat("HH:mm").format(DateTime.now()),
+
+      "assigned_subadmin_name": subAdminName,
+      "assigned_fieldworker_name": FName, // ❌ DO NOT encode
+      "assigned_fieldworker_location": FLocation,
+      "assigned_subadmin_location": FLocation,
+      "by_field": "true", // STRING, not bool
+    });
+    print("sending data: ${formData}");
 
     try {
       final res = await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
-        data: jsonEncode(formData),
-        options: Options(headers: {"Content-Type": "application/json"}),
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
+        data: formData,
       );
 
       print('printing response ${res.data}');
 
       if (res.statusCode == 200) {
         final data = res.data;
-
-        print(data);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -268,20 +249,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
           ),
         );
 
-        if (data["main_status"] == "redemand") {
-          final parentId = data["matched_add_demand_id"].toString();
-
-          print(parentId);
-
-
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AdminDemandDetail(demandId: parentId),
-            ),
-          );
-          return;
-        }
 
         Navigator.pop(context);
       }
@@ -294,7 +261,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         );
 
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
           error: res.data.toString(),
           statusCode: res.statusCode ?? 0,
         );
@@ -318,7 +285,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
 
         // 🔍 LOG REAL ERROR
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
           error: data.toString(),
           statusCode: status ?? 0,
         );
@@ -329,7 +296,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         errorMessage = "Network error. Check internet connection.";
 
         await BugLogger.log(
-          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/add_demand_for_fieldwokar.php",
           error: e.message ?? "Unknown Dio error",
           statusCode: 0,
         );
@@ -635,6 +602,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                   ),
                 ),
               ],
+
               const SizedBox(height: 10),
               TextFormField(
                 controller: _messageCtrl,
@@ -643,75 +611,37 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                 maxLines: 3,
               ),
               const SizedBox(height: 20),
-
-              if (_existingCustomer != null && !_canSubmitRedemand) ...[
-                _redemandBlockedBanner(),
-              ],
-              const SizedBox(height: 10),
-
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton.icon(
                   icon: _isSubmitting
                       ? const SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                      : Icon(
-                    !_canSubmitRedemand
-                        ? Icons.lock_outline
-                        : Icons.upload,
-                    color: Colors.white,
-                    size: 24,
-                  ),
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                      : const Icon(Icons.upload, color: Colors.white, size: 25),
                   label: Text(
-                    _submitButtonText,
+                    _isSubmitting ? "Submitting..." : "Submit Demand",
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                    ),
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _submitButtonColor(theme),
-                    disabledBackgroundColor:
-                    Colors.red.withOpacity(0.6), // 👈 still visible
+                    backgroundColor: theme.colorScheme.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: _canSubmitRedemand ? 6 : 0,
+                        borderRadius: BorderRadius.circular(12)),
                   ),
-                  onPressed: (_isSubmitting || !_canSubmitRedemand)
-                      ? null
-                      : _submitForm,
+                  onPressed: _isSubmitting ? null : _submitForm,
                 ),
               ),
-
             ]),
           ),
         ),
       ),
     );
-  }
-
-  String get _submitButtonText {
-    if (_isSubmitting) return "Submitting...";
-    if (!_canSubmitRedemand) return "Waiting for Assign";
-    return "Submit Demand";
-  }
-
-  Color _submitButtonColor(ThemeData theme) {
-    if (_isSubmitting) return Colors.grey.shade600;;
-
-    if (!_canSubmitRedemand) {
-      return Colors.red.shade600; // warning state
-    }
-    return theme.colorScheme.primary; // normal
   }
 
   Widget _optionBox(String label, String? value) {
@@ -739,7 +669,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ),
     );
   }
-
   void _showSelectBottomSheet({
     required String title,
     required List<String> items,
@@ -775,6 +704,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       ),
     );
   }
+
 }
 
 
@@ -950,8 +880,6 @@ class _ExistingCustomerCard extends StatelessWidget {
     }
 
 
-    final name = (data["Tname"] ?? "").toString().trim();
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -985,7 +913,11 @@ class _ExistingCustomerCard extends StatelessWidget {
                 radius: 22,
                 backgroundColor: accent.withOpacity(0.9),
                 child: Text(
-                  name.isNotEmpty ? name[0].toUpperCase() : "?",
+                  (data["Tname"] ?? "?")
+                      .toString()
+                      .trim()
+                      .substring(0, 1)
+                      .toUpperCase(),
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

@@ -475,6 +475,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                         _kv("Shifting Date",
                             _formatDate(agreement?["shifting_date"]) ?? ""),
                         _furnitureList(agreement!['furniture']),
+                        _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),
+                        _kv("Notary Amount", agreement?["notary_price"] ?? 'Not Added'),
                       ],
                     ),
 

@@ -666,6 +666,11 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
                                                     ? a['shifting_date'].toString().split('T')[0]
                                                     : (a['shifting_date']?.toString() ?? ''),
                                               ),
+
+                                              _detailRow(label: "Agreement Price", value: a['agreement_price'] != null ? '₹${a['agreement_price']}' : ''),
+                                              _detailRow(label: "Notary Amount", value: a['notary_price'] != null ? '₹${a['notary_price']}' : ''),
+
+
                                             ],
                                           ),
                                         ],

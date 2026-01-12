@@ -59,6 +59,7 @@ class AppImages{
   static const ads = 'assets/images/advertising-campaign.png';
   static const video = 'assets/images/clapperboard.png';
   static const media = 'assets/images/social-media.png';
+  static const AI = 'assets/images/gemini-color.png';
 
 
 

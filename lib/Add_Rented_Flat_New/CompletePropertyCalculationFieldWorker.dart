@@ -194,7 +194,57 @@ class Property {
     );
   }
 }
+class Tenant {
+  final int id;
+  final String status;
+  // Tenant
+  final String tenantName;
+  final String tenantNumber;
+  final String shiftingDate;
+  final String paymentModeForTenant;
 
+  // Owner
+  final String ownerName;
+  final String ownerNumber;
+  final String paymentModeForOwner;
+
+  // Visitor
+  final String vist_field_workar_name;
+  final String vist_field_workar_number;
+  // Relation
+  final String subId;
+
+  Tenant(
+      {required this.id,
+        required this.tenantName,
+        required this.tenantNumber,
+        required this.shiftingDate,
+        required this.paymentModeForTenant,
+        required this.ownerName,
+        required this.ownerNumber,
+        required this.paymentModeForOwner,
+        required this.subId,
+        required this.status,
+        required this.vist_field_workar_name,
+        required this.vist_field_workar_number});
+
+  factory Tenant.fromJson(Map<String, dynamic> json) {
+    return Tenant(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      tenantName: json['tenant_name'] ?? '',
+      tenantNumber: json['tenant_number'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      paymentModeForTenant: json['payment_mode_for_tenant'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      paymentModeForOwner: json['payment_mode_for_owner'] ?? '',
+      vist_field_workar_name: json['vist_field_workar_name'] ?? '',
+      vist_field_workar_number: json['vist_field_workar_number'] ?? '',
+      status: json['status'] ?? "",
+      subId: json['subid']?.toString() ?? '',
+    );
+  }
+}
 class PaymentStepStatus {
   final int id;
   final int subid;
@@ -317,12 +367,60 @@ class PaymentStepStatus {
     );
   }
 }
+class OwnerData {
+  int id;
+  String ownerName;
+  String ownerNumber;
+  String paymentMode;
+  String advanceAmount;
+  String rent;
+  String securitys;
+  String subid;
+  String status;
+
+  OwnerData({
+    required this.id,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.paymentMode,
+    required this.advanceAmount,
+    required this.rent,
+    required this.securitys,
+    required this.subid,
+    required this.status,
+  });
+
+  factory OwnerData.fromJson(Map<String, dynamic> json) => OwnerData(
+    id: json["id"] ?? 0,
+    ownerName: json["owner_name"] ?? "-",
+    ownerNumber: json["owner_number"] ?? "-",
+    paymentMode: json["payment_mode"] ?? "-",
+    advanceAmount: json["advance_amount"] ?? "0",
+    rent: json["rent"] ?? "0",
+    securitys: json["securitys"] ?? "0",
+    subid: json["subid"] ?? "-",
+    status: json["status"] ?? "-",
+  );
+
+
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "owner_name": ownerName,
+    "owner_number": ownerNumber,
+    "payment_mode": paymentMode,
+    "advance_amount": advanceAmount,
+    "rent": rent,
+    "securitys": securitys,
+    "subid": subid,
+    "status": status,
+  };
+}
 
 // =====================================================
 // SCREEN
 // =====================================================
 
-class PropertyCalculate extends StatefulWidget {
+class CompletePropertyCalculationFieldWorker extends StatefulWidget {
 
   final int propertyId;
   final String tenantCommission;
@@ -330,16 +428,15 @@ class PropertyCalculate extends StatefulWidget {
   final String fieldworkerName;
   final String fieldworkerNumber;
   final String flatId;
-
-  const PropertyCalculate({super.key, required this.propertyId, required this.tenantCommission, required this.ownerCommission, required this.fieldworkerName, required this.fieldworkerNumber, required this.flatId});
+  const CompletePropertyCalculationFieldWorker({super.key, required this.propertyId, required this.tenantCommission, required this.ownerCommission, required this.fieldworkerName, required this.fieldworkerNumber, required this.flatId});
 
   @override
-  State<PropertyCalculate> createState() => _PropertyCalculateState();
+  State<CompletePropertyCalculationFieldWorker> createState() => _CompletePropertyCalculationFieldWorkerState();
 }
 
-class _PropertyCalculateState extends State<PropertyCalculate> {
+class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropertyCalculationFieldWorker> {
   // Base fetch
-  late Future<Property> _futureProperty;
+  late Future<Property?> _futureProperty;
 
   // Step inputs
   final s1TenantCtl = TextEditingController();
@@ -378,8 +475,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 // toggle visitor availability (you can later bind from API)
 
 
-  static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php";
-  static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php";
+  static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_complete_page_for_admin.php";
+  static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_final_payment_api_for_complete.php";
   bool _s2Submitting = false;
 
   static const _step1Endpoint   = "https://verifyserve.social/Second%20PHP%20FILE/Payment/paymet_inset.php";
@@ -387,14 +484,12 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   static const _step2Endpoint =
       "https://verifyserve.social/Second%20PHP%20FILE/Payment/add_second_setp_amount.php";
   late double commissionBothSide;
-  final s2OwnerCtl = TextEditingController();
 
   @override
   void initState() {
     super.initState();
 
     _futureProperty = _fetchPropertyById(widget.propertyId);
-    s2OwnerCtl.addListener(_recalc);
 
     // Calculate commission safely ONCE
     commissionBothSide =
@@ -428,12 +523,38 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
     return double.tryParse(cleaned) ?? 0;
   }
+  Future<List<Tenant>> fetchTenants(int subId) async {
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Payment/"
+          "show_api_for_owner_tenant_api_for_complete_api.php?subid=$subId",
+    );
+
+    final response = await http.get(url);
+
+    // debugPrint("TENANT API URL: $url");
+    // debugPrint("TENANT API STATUS: ${response.statusCode}");
+    // debugPrint("TENANT API BODY: ${response.body}");
+
+    if (response.statusCode != 200) {
+      throw Exception("HTTP ${response.statusCode}");
+    }
+
+    final jsonResponse = json.decode(response.body);
+
+    if (jsonResponse["success"] == true &&
+        jsonResponse["data"] is List) {
+      return (jsonResponse["data"] as List)
+          .map((e) => Tenant.fromJson(e))
+          .toList();
+    }
+
+    // ✅ VERY IMPORTANT: no crash if no data
+    return [];
+  }
 
 
   @override
   void dispose() {
-    s2OwnerCtl.dispose();
-
     s1TenantCtl.dispose();
     s1GiveCtl.dispose();
     s1HoldCtl.dispose();
@@ -442,15 +563,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     s3CompanyTotalCtl.dispose();
     super.dispose();
   }
-  double get remainingAfterStep1 {
-    return (totalDue - s1Tenant).clamp(0, double.infinity);
-  }
-
-  double get remainingAfterStep2 {
-    return (totalDue - (s1Tenant + s2Tenant + s3Tenant))
-        .clamp(0, double.infinity);
-  }
-
 
   Future<Property> _fetchPropertyById(int id) async {
     final res = await http.get(Uri.parse(_propListEndpoint));
@@ -466,7 +578,65 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     final list = data.map((e) => Property.fromJson(e)).toList();
     final match = list.firstWhere(
           (p) => p.id == id,
-      orElse: () => throw Exception("Property $id not found"),
+      orElse: () => Property(
+        id: 0,
+        propertyPhoto: "",
+        locations: "",
+        flatNumber: "",
+        buyRent: "",
+        residenceCommercial: "",
+        apartmentName: "",
+        apartmentAddress: "",
+        typeOfProperty: "",
+        bhk: "",
+        showPrice: "0",
+        lastPrice: "0",
+        askingPrice: "0",
+        floor: "",
+        totalFloor: "",
+        balcony: "",
+        squarefit: "",
+        maintance: "",
+        parking: "",
+        ageOfProperty: "",
+        fieldworkarAddress: "",
+        roadSize: "",
+        metroDistance: "",
+        highwayDistance: "",
+        mainMarketDistance: "",
+        meter: "",
+        ownerName: "",
+        ownerNumber: "",
+        ownerCommission: "0",
+        currentDates: "",
+        availableDate: "",
+        kitchen: "",
+        bathroom: "",
+        lift: "",
+        facility: "",
+        furnishedUnfurnished: "",
+        fieldWorkerName: "",
+        liveUnlive: "",
+        fieldWorkerNumber: "",
+        registryAndGpa: "",
+        loan: "",
+        longitude: "",
+        latitude: "",
+        videoLink: "",
+        caretakerName: "",
+        caretakerNumber: "",
+        subid: 0,
+        rent: "0",
+        security: "0",
+        commission: "0",
+        extraExpense: "0",
+        advancePayment: "0",
+        totalBalance: "0",
+        finalAmount: "0",
+        secondAmount: "0",
+        statusForFinalPayment: "",
+        statusForSecondPayment: "",
+      ),
     );
 
     // Base numbers
@@ -486,7 +656,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   }
 
   bool _changed = false;
-  double s2OwnerReceive = 0;
+
   Future<void> _saveStep1() async {
     final t = _pc(s1TenantCtl);
     final g = _pc(s1GiveCtl);
@@ -517,51 +687,36 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     _changed = true; // mark dirty
     await _refreshStatus(widget.propertyId);
   }
-
   Future<void> _saveStep2() async {
     if (!(s1Saved || step1Done)) {
       _toast(context, "Save Step 1 first.");
       return;
     }
-
     if (_status == null || _status!.id == 0) {
-      _toast(context, "Payment record not found.");
+      _toast(context, "Cannot add Step 2: first payment record not found.");
       return;
     }
 
-    final tenantPay = _pc(s2TenantCtl);
-    final ownerGet = _pc(s2OwnerCtl);
-
-    if (tenantPay <= 0) {
-      _toast(context, "Enter tenant payment.");
+    final t = _pc(s2TenantCtl);
+    if (t <= 0) {
+      _toast(context, "Step 2: Enter a positive amount.");
       return;
     }
 
-    if (ownerGet > tenantPay) {
-      _toast(context, "Owner cannot receive more than tenant pays.");
-      return;
-    }
-
-    final ok = await _postStep2(
-      id: _status!.id,
-      midPaymentToOwner: ownerGet, // ✅ ONLY owner receive
-    );
-
+    final ok = await _postStep2(id: _status!.id, midPaymentToOwner: t);
     if (!ok) {
       _toast(context, "Step 2 save failed.");
       return;
     }
 
-    s2Tenant = tenantPay;
-    s2OwnerReceive = ownerGet;
     s2Saved = true;
-
+    s2Tenant = t;
     _recalc();
     _toast(context, "Step 2 saved.");
 
+    _changed = true; // mark dirty
     await _refreshStatus(widget.propertyId);
   }
-
   Future<void> _saveFinal() async {
     if (!(s1Saved || step1Done)) {
       _toast(context, "Save Step 1 first.");
@@ -582,9 +737,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     s3Saved = true;
     s3Tenant = t;
     _recalc();
-    final double ownerFinalSettlement =
-    (settlementPool + s3Tenant - companyCommissionTotal)
-        .clamp(0, double.infinity);
 
     final ok = await _postStep3(
       id: _status!.id,
@@ -592,8 +744,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       bothSideCompanyComition: companyCommissionTotal,
       remainingHold: settlementPool,
       remainBalanceShareToOwner: ownerFinalNow,
-      // ownerRecivedFinalAmount: s1Give + s2Tenant + ownerFinalNow,
-      ownerRecivedFinalAmount: ownerFinalSettlement,
+      ownerRecivedFinalAmount: s1Give + s2Tenant + ownerFinalNow,
       tenantTotalPay: tenantPaid,
       remainingFinalBalance: remaining,
     );
@@ -663,36 +814,21 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       s1Hold   = double.tryParse(s1HoldCtl.text) ?? 0;
     }
 
-// ---------- STEP 2 ----------
+    // Step 2 lock
     step2Done = (st.statusTwo != null && st.statusTwo!.trim().isNotEmpty);
-
     if (step2Done) {
-      // ✅ Tenant pays should come from API tenant side value ONLY
-      s2TenantCtl.text = _numOnly(
-        st.midPaymentToOwner == null
-            ? s2TenantCtl.text
-            : s2TenantCtl.text, // keep tenant unchanged
-      );
-
-      // ✅ Owner receives ONLY owner value
-      final ownerGet =
-          double.tryParse(_numOnly(st.midPaymentToOwner ?? '0')) ?? 0;
-
-      s2OwnerCtl.text = ownerGet.toStringAsFixed(0);
-
-      s2Tenant = _pc(s2TenantCtl);
-      s2OwnerReceive = ownerGet;
+      final mid = double.tryParse(_numOnly(st.midPaymentToOwner ?? '')) ?? 0;
+      s2TenantCtl.text = mid.toStringAsFixed(0);
       s2Saved = true;
+      s2Tenant = mid;
     }
-
-
-
 
     // Step 3 lock
     step3Done = (st.statusThree != null && st.statusThree!.trim().isNotEmpty);
     if (step3Done) {
       final last = double.tryParse(_numOnly(st.tenantPayLastAmount ?? '')) ?? 0;
       final comp = double.tryParse(_numOnly(st.bothsideCompanyCommission ?? '')) ?? 0;
+      s3TenantCtl.text = last.toStringAsFixed(0);
       s3CompanyTotalCtl.text = comp.toStringAsFixed(0);
       s3Saved = true;
       s3Tenant = last;
@@ -705,14 +841,12 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       if (apiVisitor > 0) {
         hasVisitor = true;
         visitorShare = apiVisitor;
-        visitorLocked = true; // 🔒 lock after API
       } else {
         hasVisitor = false;
         visitorShare = 0;
-        visitorLocked = false;
       }
 
-      _visitorInitialized = true;
+      _visitorInitialized = true; // 🔒 lock it
     }
 
     _recalc();
@@ -732,7 +866,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     _syncHold();
     _recalc();
   }
-  bool visitorLocked = false;
 
   void _logLine([String msg = ""]) => debugPrint(msg);
 
@@ -921,73 +1054,61 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   }
 
   void _recalc() {
-    // ================= STEP-1 =================
+    // STEP 1
     s1Tenant = _pc(s1TenantCtl);
     s1Give   = _pc(s1GiveCtl);
     s1Hold   = (s1Tenant - s1Give).clamp(0, double.infinity);
 
-    // ================= STEP-2 =================
-    s2Tenant        = _pc(s2TenantCtl);     // 🔒 Tenant NEVER changes
-    s2OwnerReceive  = _pc(s2OwnerCtl);
+    // STEP 2
+    s2Tenant = _pc(s2TenantCtl);
 
-    final s2Hold =
-    (s2Tenant - s2OwnerReceive).clamp(0, double.infinity);
-
-    // ================= STEP-3 =================
+    // STEP 3
     s3Tenant = _pc(s3TenantCtl);
 
-    // ================= SETTLEMENT =================
-    // ✅ STEP-1 + STEP-2 HOLD
-    settlementPool = s1Hold + s2Hold;
-
-    // ================= COMPANY COMMISSION =================
-    // ✅ CUT FROM SETTLEMENT (NOT ADDING STEP-2 HOLD)
-    final inputCommission = _pc(s3CompanyTotalCtl);
-
+    // COMMISSION (both-side)
     companyCommissionTotal =
-    inputCommission > 0
-        ? inputCommission
-        : commissionBothSide; // fallback from API/default
+        _pc(s3CompanyTotalCtl).clamp(0, double.infinity);
 
-    // ================= GST =================
-    gstAmount   = companyCommissionTotal * 0.18;
+    // GST (DISPLAY ONLY)
+    gstAmount = companyCommissionTotal * 0.18;
     netAfterGst = companyCommissionTotal - gstAmount;
 
-    companyKeepNow = companyCommissionTotal;
-
-    // ================= OWNER FINAL =================
-    ownerFinalNow =
-        (settlementPool - companyCommissionTotal)
-            .clamp(0, double.infinity);
-
-    // ================= OWNER TOTAL =================
-    ownerReceivedTotal = s1Give + s2OwnerReceive +
-            (settlementPool + s3Tenant - companyCommissionTotal).clamp(0, double.infinity);
-
-
-    // ================= TENANT TOTAL =================
-    // 🔒 NEVER TOUCH TENANT LOGIC
+    // TENANT TOTAL PAID
     tenantPaid = s1Tenant + s2Tenant + s3Tenant;
 
-    remaining =
-        (totalDue - tenantPaid).clamp(0, double.infinity);
+    // ✅ FINAL + HOLD POOL
+    settlementPool = s3Tenant + s1Hold;
 
-    // ================= DISTRIBUTION =================
-    officeFinalShare      = netAfterGst * 0.5;
+    // ✅ COMPANY GETS ONLY COMMISSION
+    companyKeepNow = companyCommissionTotal;
+
+    // ✅ OWNER FINAL SHARE FROM POOL
+    ownerFinalNow =
+        (settlementPool - companyCommissionTotal).clamp(0, double.infinity);
+
+    // ✅ OWNER TOTAL RECEIVED
+    ownerReceivedTotal =
+        s1Give + s2Tenant + ownerFinalNow;
+
+    // REMAINING (if any)
+    remaining = (totalDue - tenantPaid).clamp(0, double.infinity);
+
+    // SPLIT (DISPLAY ONLY)
+    officeFinalShare = netAfterGst * 0.5;
     fieldWorkerFinalShare = netAfterGst * 0.5;
 
     if (hasVisitor) {
       visitorShare = companyCommissionTotal * 0.15;
       fieldWorkerFinalShare =
-          (fieldWorkerFinalShare - visitorShare)
-              .clamp(0, double.infinity);
-    }
-    else {
+          (fieldWorkerFinalShare - visitorShare).clamp(0, double.infinity);
+    } else {
       visitorShare = 0;
     }
-
     _calcTick.value++;
   }
+
+
+
 
   double _toD(String v) => double.tryParse(v.replaceAll(',', '').trim()) ?? 0;
   double _pc(TextEditingController c) => double.tryParse(c.text) ?? 0;
@@ -1013,10 +1134,9 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     ) ??
         0;
   }
-  bool visitorAvailable = false; // 🔒 only from API
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php");
+        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_api_complete_page_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}");
 
     final response = await http.get(url);
     if (response.statusCode == 200) {
@@ -1032,37 +1152,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     }
     throw Exception("Failed to load data");
   }
-  Future<List<Tenant>> fetchTenants(int subId) async {
-    final response = await http.get(
-      Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_pending_rentout_api_tenant_owner.php?subid=$subId",
-      ),
-    );
-
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
-
-    if (response.statusCode == 200) {
-      final jsonResponse = json.decode(response.body);
-
-      if (jsonResponse["success"] == true) {
-        List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
-        return data.map((e) => Tenant.fromJson(e)).toList();
-      } else {
-        throw Exception("API success = false");
-      }
-    } else {
-      throw Exception("Failed to load tenants");
-    }
-  }
-  int _safeSubId(dynamic v) {
-    return int.tryParse(v?.toString() ?? '') ?? 0;
-  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return WillPopScope(
       onWillPop: () async {
@@ -1079,7 +1172,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
               Navigator.pop(context,true);
             },
             child: Icon(CupertinoIcons.back,color: Colors.white,)),
-            title: const Text("Add Billing",style: TextStyle(
+            title: const Text("Show Billing",style: TextStyle(
               fontFamily: "Poppins",
               color: Colors.white,
               fontWeight: FontWeight.w600
@@ -1087,16 +1180,17 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
             )
         ),
-        body: FutureBuilder<Property>(
+        body:FutureBuilder<Property?>(
           future: _futureProperty,
           builder: (ctx, snap) {
             if (snap.connectionState == ConnectionState.waiting) {
               return _buildLoading();
             }
 
-            if (snap.hasError) {
-              return _buildError(snap.error.toString());
+            if (snap.connectionState == ConnectionState.waiting) {
+              return _buildSkeletonUI(); // 👈 NEW
             }
+
 
             final property = snap.data!;
             commissionBothSide = _toD(widget.ownerCommission) + _toD(widget.tenantCommission);
@@ -1105,6 +1199,9 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+
+
+                  const SizedBox(height: 8),
                   _exactHeader(property),
 
                   // Header Section
@@ -1144,7 +1241,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Flat ID: ${widget.flatId}",
+                                    "Field Worker : ${widget.fieldworkerName}",
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.w600,
@@ -1153,9 +1250,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    "Field Worker: ${widget.fieldworkerName}",
+                                    "Field Worker No : ${widget.fieldworkerNumber}",
                                     style: TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
                                       color: Colors.white.withOpacity(0.9),
                                     ),
                                   ),
@@ -1217,20 +1315,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                       }
 
                       final t = snapshot.data!.first;
-                      final bool apiVisitorAvailable =
-                          t.vist_field_workar_name.trim().isNotEmpty &&
-                              t.vist_field_workar_name.trim() != "-";
-
-                      if (visitorAvailable != apiVisitorAvailable) {
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (mounted) {
-                            setState(() {
-                              visitorAvailable = apiVisitorAvailable;
-                              // ❌ hasVisitor ko yahan mat chhedo
-                            });
-                          }
-                        });
-                      }
 
                       return Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1282,6 +1366,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                       );
                     },
                   ),
+                  const SizedBox(height: 8),
 
                   // Financial Details Section
                   Padding(
@@ -1407,7 +1492,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                           "₹ ${_formatNumber(item.commission)}",
                                           context,
                                         ),
-
                                         _buildDetailRow(
                                           "Extra Expense",
                                           "₹ ${_formatNumber(item.extraExpense)}",
@@ -1552,12 +1636,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                     const SizedBox(height: 10),
                                     _buildAmountInput("Give To Owner", s1GiveCtl, !step1Done, context),
                                     const SizedBox(height: 10),
-                                    ValueListenableBuilder<int>(
-                                      valueListenable: _calcTick,
-                                      builder: (_, __, ___) {
-                                        return _buildAmountDisplay("Office Hold", s1HoldCtl.text, context);
-                                      },
-                                    ),
+                                    _buildAmountDisplay("Office Hold", s1HoldCtl.text, context),
                                     const SizedBox(height: 14),
                                     ElevatedButton(
                                       onPressed: step1Done ? null : _saveStep1,
@@ -1600,10 +1679,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                     ),
                                     const SizedBox(width: 8),
                                     const Text("Step 2: Mid Payment"),
-
                                   ],
                                 ),
-
                                 if (step2Done && _status?.statusTwo != null)
                                   Padding(
                                     padding: const EdgeInsets.only(left: 32, top: 4),
@@ -1629,37 +1706,11 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                       step1Done && !step2Done,
                                       context,
                                     ),
-
                                     const SizedBox(height: 10),
-
-                                    _buildAmountInput(
+                                    _buildAmountDisplay(
                                       "Owner Receives",
-                                      s2OwnerCtl,
-                                      step1Done && !step2Done,
+                                      _cur(s2Tenant),
                                       context,
-                                    ),
-
-                                    ValueListenableBuilder<int>(
-                                      valueListenable: _calcTick,
-                                      builder: (_, __, ___) {
-                                        final double tenantVal = _pc(s2TenantCtl);
-                                        final double ownerVal  = _pc(s2OwnerCtl);
-
-                                        final bool canCalculate =
-                                            s2TenantCtl.text.trim().isNotEmpty &&
-                                                s2OwnerCtl.text.trim().isNotEmpty &&
-                                                tenantVal > 0;
-
-                                        final double step2Hold = canCalculate
-                                            ? (tenantVal - ownerVal).clamp(0, double.infinity)
-                                            : 0;
-
-                                        return _buildSummaryItem(
-                                          "Office Hold (Step-2)",
-                                          step2Hold,
-                                          Colors.orange,
-                                        );
-                                      },
                                     ),
                                     const SizedBox(height: 14),
                                     ElevatedButton(
@@ -1677,27 +1728,27 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
                             // ================== Step 3 =================
                             Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 4),
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.black
-                                    : Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: ExpansionTile(
-                                tilePadding: EdgeInsets.zero,
-                                childrenPadding: EdgeInsets.zero,
+                                                margin: const EdgeInsets.symmetric(horizontal: 4),
+                                                decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black
+                            : Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(10),
+                                                ),
+                                                child: ExpansionTile(
+                        tilePadding: EdgeInsets.zero,
+                        childrenPadding: EdgeInsets.zero,
 
-                             // 🔥 THESE TWO LINES REMOVE ALL BORDERS
-                            shape: const RoundedRectangleBorder(
-                              side: BorderSide.none,
-                            ),
-                            collapsedShape: const RoundedRectangleBorder(
-                              side: BorderSide.none,
-                            ),
+                        // 🔥 THESE TWO LINES REMOVE ALL BORDERS
+                        shape: const RoundedRectangleBorder(
+                          side: BorderSide.none,
+                        ),
+                        collapsedShape: const RoundedRectangleBorder(
+                          side: BorderSide.none,
+                        ),
 
-                            initiallyExpanded: step1Done && !step2Done,
-                            maintainState: true,
+                        initiallyExpanded: step1Done && !step2Done,
+                        maintainState: true,
 
                         title: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1746,53 +1797,36 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                   (s1Saved || step1Done) && !step3Done,
                                   context,
                                 ),
-                                _buildSummaryItem(
-                                  "Office Hold (Step-3)",
-                                  settlementPool, // s1Hold + s2Hold
-                                  Colors.orangeAccent,
+
+                                const SizedBox(height: 12),
+
+                                // Visitor toggle
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  title: const Text("Visitor Commission"),
+                                  value: hasVisitor,
+                                  onChanged: (v) {
+                                    setState(() {
+                                      hasVisitor = v;
+                                      _recalc();
+                                    });
+                                  },
                                 ),
 
                                 const SizedBox(height: 12),
-                                // Visitor toggle
-                                // ✅ ONLY show if visitor exists
-                                if (visitorAvailable) ...[
-                                  const SizedBox(height: 12),
 
-                                  SwitchListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    title: const Text("Visitor Commission (15%)"),
-                                    value: hasVisitor,
-                                    onChanged: step3Done || visitorLocked
-                                        ? null
-                                        : (v) {
-                                      setState(() {
-                                        hasVisitor = v;
-                                        _recalc(); // 🔥 recalc commission
-                                      });
-                                    },
+                                if (hasVisitor)
+                                  _buildAmountDisplay(
+                                    "Visitor Share",
+                                    _cur(visitorShare),
+                                    context,
                                   ),
-
-                                  const SizedBox(height: 8),
-
-                                  // ✅ Amount ONLY when switch ON
-                                  if (hasVisitor)
-                                    _buildAmountDisplay(
-                                      "Visitor Share",
-                                      _cur(visitorShare),
-                                      context,
-                                    ),
-                                ]
-
-
-
                               ],
                             ),
                           ),
                         ],
-
-                              ),
-
-                            ),
+                                                ),
+                                              ),
 
                           ],
                         ),
@@ -1800,178 +1834,161 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                     ),
                   ),
                   SizedBox(height: 8,),
+                  // In your build method, replace the calculation sections with:
+                  // Office Details Section (Mixed - you decide per line)
+                  Container(
+                    margin: const EdgeInsets.all( 16),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.amber.withOpacity(0.2)),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 16,
+                              decoration: BoxDecoration(
+                                color: Colors.amber,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              "Office Detail",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Office Hold is a debit (red)
+                        _buildColoredAmountRow(
+                          "Step 1: Office Hold = ${_cur(s1Hold)}",
+                          forcePolarity: Polarity.credit, // Force debit
+                        ),
+                        const SizedBox(height: 4),
+                        // Mid transfer to owner is a debit (red) - money going out of office
+                        _buildColoredAmountRow(
+                          "Step 2: Mid Amount transfer to owner= ${_cur(s2Tenant)}",
+                          forcePolarity: Polarity.debit, // Force debit
+                        ),
+                        const SizedBox(height: 4),
+                        // Tenant final payment is a credit (green) - money coming to office
+                        _buildColoredAmountRow(
+                          "Step 3: Tenant Paid Final Amount = ${_cur(s3Tenant)}",
+                          forcePolarity: Polarity.credit, // Force credit
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Office Hold Added = ${_cur(s1Hold)}",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white60
+                                : Colors.grey.shade600,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
 
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.05),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.amber.withOpacity(0.2)),
+                              child: Text(
+                                "Total Amount = ${_cur(s3Tenant)} + ${_cur(s1Hold)}",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white60
+                                      : Colors.grey.shade600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            // Settlement pool is a credit (green) - total money with office
+
+                            Expanded(
+                              child: _buildColoredAmountRow(
+                                "= ${_cur(settlementPool)}",
+                                forcePolarity: Polarity.officeSpecial, // Force credit
+                              ),
+                            ),
+                          ],
+                        ),
+                        //
+                        // const SizedBox(height: 4),
+                        // // Company commission is a debit (red) - expense for office
+                        //
+                        // _buildColoredAmountRow(
+                        //   "Company Commission (Both Side) = ${_cur(companyCommissionTotal)}",
+                        //   forcePolarity: Polarity.debit, // Force debit
+                        // ),
+                        const SizedBox(height: 4),
+
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                "Company Cut Commission = ${_cur(settlementPool)} − ${_cur(companyCommissionTotal)}",
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.white60
+                                      : Colors.grey.shade600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            // Owner final share is a debit (red) - money going to owner
+                            Expanded(
+                              child: _buildColoredAmountRow(
+                                "= ${_cur(ownerFinalNow)}",
+                                forcePolarity: Polarity.neutral, // Force debit
+                              ),
+                            ),
+                          ],
+                        ),
+
+
+                        // const SizedBox(height: 4),
+                        Divider(),
+                        // Company gets is a credit (green) - income for office
+                        _buildColoredAmountRow(
+                          "Company Received = ${_cur(companyCommissionTotal)}",
+                          forcePolarity: Polarity.neutral, // Force credit
+                        ),
+                        const SizedBox(height: 4),
+                        // Remaining balance to owner is a debit (red) - money going to owner
+                        _buildColoredAmountRow(
+                          "Remaining Balance share to owner = ${_cur(ownerFinalNow)}",
+                          forcePolarity: Polarity.neutral, // Force debit
+                        ),
+
+                        const SizedBox(height: 4),
+                        // Remaining balance to owner is a debit (red) - money going to owner
+                        _buildColoredAmountRow(
+                          "Balance = ${_cur(remaining)}",
+                          forcePolarity: Polarity.neutral, // Force debit
+                        ),
+                      ],
+                    ),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 4,
-                            height: 16,
-                            decoration: BoxDecoration(
-                              color: Colors.amber,
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            "Office Detail",
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.amber,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-
-                      // ================= STEP HOLDS =================
-                      _buildColoredAmountRow(
-                        "Step 1: Office Hold Added = ${_cur(s1Hold)}",
-                        forcePolarity: Polarity.credit,
-                      ),
-                      const SizedBox(height: 4),
-
-                      _buildColoredAmountRow(
-                        "Step 2: Mid Amount transfer to owner = ${_cur(s2OwnerReceive)}",
-                        forcePolarity: Polarity.debit,
-                      ),
-                      _buildColoredAmountRow(
-                        "Office Hold (Step 2) = ${_cur(
-                          (s2Tenant - s2OwnerReceive).clamp(0, double.infinity),
-                        )}",
-                        forcePolarity: Polarity.credit,
-                      ),
-
-                      const SizedBox(height: 8),
-
-                      // ================= PENDING SETTLEMENT =================
-                      _buildColoredAmountRow(
-                        "Office Hold   = ${_cur(settlementPool)}",
-                        forcePolarity: Polarity.officeSpecial,
-                      ),
-
-
-                      const SizedBox(height: 8),
-
-                      // ================= STEP 3 =================
-                      _buildColoredAmountRow(
-                        "Step 3: Tenant Paid Final Amount = ${_cur(s3Tenant)}",
-                        forcePolarity: Polarity.credit,
-                      ),
-                      const Divider(height: 24),
-
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              "Total Amount = ${_cur(settlementPool)} (Office Hold Amount) + ${_cur(s3Tenant)}(Tenant Final Amount)",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white60
-                                    : Colors.grey.shade600,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildColoredAmountRow(
-                              "= ${_cur(settlementPool + s3Tenant)}",
-                              forcePolarity: Polarity.officeSpecial,
-                              showSign: false,
-                            ),
-                          ),
-                        ],
-                      ),
-
-
-                      const SizedBox(height: 8),
-
-                      // ================= COMMISSION CUT =================
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              "Company Cut Commission = ${_cur(settlementPool + s3Tenant)} − ${_cur(companyCommissionTotal)}",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white60
-                                    : Colors.grey.shade600,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildColoredAmountRow(
-                              "= ${_cur((settlementPool + s3Tenant - companyCommissionTotal).clamp(0, double.infinity))}",
-                              forcePolarity: Polarity.officeSpecial,
-                            ),
-                          ),                        ],
-                      ),
-
-                      const Divider(),
-
-                      // ================= FINAL =================
-                      _buildColoredAmountRow(
-                        "Company Received (Commission) = ${_cur(companyCommissionTotal)}",
-                        forcePolarity: Polarity.neutral,
-                      ),
-
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              "Remaining Settlement to Owner",
-                              style: TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white60
-                                    : Colors.grey.shade600,
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildColoredAmountRow(
-                              "= ${_cur(
-                                (settlementPool + s3Tenant - companyCommissionTotal)
-                                    .clamp(0, double.infinity),
-                              )}",
-                              forcePolarity: Polarity.neutral,
-                              showSign: false,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      _buildColoredAmountRow(
-                        "Balance = ${_cur(remaining)}",
-                        forcePolarity: Polarity.neutral,
-                      ),
-                    ],
-                  ),
-                ),
-                // Commission Distribution
+                  // Commission Distribution
                   Container(
                     margin: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -2126,7 +2143,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                           ),
                         ),
 
-                        // Owner Details Section (All credits/green)
+// Owner Details Section (All credits/green)
                         Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(12),
@@ -2163,17 +2180,16 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                               // All receipts are credits (green)
                               _buildColoredAmountRow(
                                 "Step 1: Received by Owner = ${_cur(s1Give)}",
-                                forcePolarity: Polarity.credit,
+                                forcePolarity: Polarity.credit, // Force credit
                               ),
                               const SizedBox(height: 4),
                               _buildColoredAmountRow(
-                                "Step 2: Received by Owner = ${_cur(s2OwnerReceive)}",
-                                forcePolarity: Polarity.credit,
+                                "Step 2: Received by Owner = ${_cur(s2Tenant)}",
+                                forcePolarity: Polarity.credit, // Force credit
                               ),
-
                               const SizedBox(height: 4),
                               _buildColoredAmountRow(
-                                "Step 3: Received by Owner = ${_cur((settlementPool + s3Tenant - companyCommissionTotal).clamp(0, double.infinity))}",
+                                "Step 3: Received by Owner = ${_cur(ownerFinalNow)}",
                                 forcePolarity: Polarity.credit, // Force credit
                               ),
                               const SizedBox(height: 4),
@@ -2182,7 +2198,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                   Expanded(
                                     flex: 2,
                                     child: Text(
-                                      "Owner Total Received = ${_cur(s1Give)} + ${_cur(s2OwnerReceive)} + ${_cur((settlementPool + s3Tenant - companyCommissionTotal).clamp(0, double.infinity))}",
+                                      "Owner Total Received = ${_cur(s1Give)} + ${_cur(s2Tenant)} + ${_cur(ownerFinalNow)}",
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
@@ -2211,6 +2227,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                       ],
                     ),
                   ),
+
                   // Final Action Button
                   Padding(
                     padding: const EdgeInsets.all(20),
@@ -2247,7 +2264,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                             Text(
                               _s3Submitting
                                   ? "Processing..."
-                                  : ("Complete Final Settlement"),
+                                  : (step3Done ? "Settlement Completed" : "Complete Final Settlement"),
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
@@ -2266,6 +2283,31 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       ),
     );
   }
+  Widget _buildSkeletonUI() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Container(height: 220, color: Colors.grey.shade300),
+          const SizedBox(height: 16),
+          _skeletonCard(),
+          _skeletonCard(),
+          _skeletonCard(),
+        ],
+      ),
+    );
+  }
+
+  Widget _skeletonCard() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      height: 120,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+
   Widget _exactHeader(Property? p) {
     return Stack(
       children: [
@@ -2284,6 +2326,144 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _simpleTitle(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _simpleRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            value.isNotEmpty ? value : "-",
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int _safeSubId(dynamic v) {
+    return int.tryParse(v?.toString() ?? '') ?? 0;
+  }
+  Widget _peopleInfoCard({
+    required String title,
+    required Color color,
+    required Map<String, String> rows,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+
+          // ---------- HEADER ----------
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          // ---------- ROWS ----------
+          ...rows.entries.map(
+                (e) => _infoRow(e.key, e.value, isDark),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _infoRow(String label, String value, bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white60 : Colors.grey.shade700,
+            ),
+          ),
+          Text(
+            value.isNotEmpty ? value : "-",
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: color,
+        ),
+      ),
     );
   }
 
@@ -2378,100 +2558,97 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       ),
     );
   }
-  String _formatDate(String? rawDate) {
-    if (rawDate == null || rawDate.isEmpty) return "-";
-    try {
-      final dt = DateFormat('yyyy-MM-dd').parse(rawDate);
-      return DateFormat('dd MMM yyyy').format(dt);
-    } catch (_) {
-      try {
-        final dt2 = DateTime.parse(rawDate);
-        return DateFormat('dd MMM yyyy').format(dt2);
-      } catch (_) {
-        return rawDate;
-      }
-    }
-
-  }
-
-  Widget _peopleInfoCard({
+  Widget _buildExpansionSection({
+    required BuildContext context,
     required String title,
-    required Color color,
-    required Map<String, String> rows,
+    required IconData icon,
+    required List<Widget> children,
+    bool initiallyExpanded = false,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: initiallyExpanded,
+            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            leading: Icon(icon, size: 18, color: Colors.blue.shade700),
+            title: Text(
+              title,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+            trailing: const Icon(Icons.expand_more, size: 16),
+            children: children,
+          ),
+        ),
+      ),
+    );
+  }
+  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, {required bool isDarkMode}) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: bgColor,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.25)),
+        border: Border.all(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
-          // ---------- HEADER ----------
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ],
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
           ),
-
           const SizedBox(height: 8),
-
-          // ---------- ROWS ----------
-          ...rows.entries.map(
-                (e) => _infoRow(e.key, e.value, isDark),
-          ),
+          ...details,
         ],
       ),
     );
   }
-  Widget _infoRow(String label, String value, bool isDark) {
+  Widget _buildPersonDetail(String label, String value, bool isDarkMode) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white60 : Colors.grey.shade700,
+          SizedBox(
+            width: 80,
+            child: Text(
+              "$label:",
+              style: TextStyle(
+                fontSize: 11,
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          Text(
-            value.isNotEmpty ? value : "-",
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white : Colors.black,
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : "Not provided",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800,
+              ),
             ),
           ),
         ],
       ),
     );
   }
-
   Widget _buildDetailRow(String label, String value, BuildContext context, {bool isTotal = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -2530,6 +2707,38 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
         ],
       ),
     );
+  }
+  Widget _statusChip(bool pending) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: pending
+            ? Colors.purple.withOpacity(0.15)
+            : Colors.green.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        pending ? "In Progress" : "Completed",
+        style: TextStyle(
+            color: pending ? Colors.purple : Colors.green,
+            fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+  String _formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return "-";
+    try {
+      final dt = DateFormat('yyyy-MM-dd').parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(dt);
+    } catch (_) {
+      try {
+        final dt2 = DateTime.parse(rawDate);
+        return DateFormat('dd MMM yyyy').format(dt2);
+      } catch (_) {
+        return rawDate;
+      }
+    }
+
   }
 
   Widget _buildStepContainer({
@@ -2728,6 +2937,151 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     );
   }
 
+  Widget _buildDateTimeStamp(String? date, String? time, BuildContext context) {
+    if (date == null || date.isEmpty || time == null || time.isEmpty) {
+      return const SizedBox();
+    }
+
+    try {
+      // Combine date + time from API
+      final rawDateTime = DateTime.parse("$date $time");
+
+      // Format to Indian standard (dd/MM/yyyy hh:mm a)
+      final formatted = DateFormat("dd/MM/yyyy  hh:mm a").format(rawDateTime);
+
+      return Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.green.withOpacity(0.15)
+              : Colors.green.shade50,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.greenAccent.withOpacity(0.4)
+                : Colors.green.shade100,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.access_time,
+              size: 14,
+              color: Colors.green.shade600,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              formatted, // 👈 IST + AM/PM
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.greenAccent
+                    : Colors.green.shade700,
+              ),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      return const SizedBox();
+    }
+  }
+
+  Widget _buildStepButton({
+    required VoidCallback onPressed,
+    required bool isSubmitting,
+    required bool isCompleted,
+    required String label,
+    required bool isEnabled,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: isEnabled ? onPressed : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: isCompleted ? Colors.green.shade500 : Colors.blue.shade600,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (isSubmitting)
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            if (isSubmitting) const SizedBox(width: 8),
+            Text(
+              isSubmitting
+                  ? "Saving..."
+                  : (isCompleted ? "✓ Completed" : label),
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCalculationSection({
+    required String title,
+    required Color color,
+    required List<String> items,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...items.map((item) => Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: _buildColoredAmountRow(item),
+          )).toList(),
+        ],
+      ),
+    );
+  }
 
   Widget _buildColoredAmountRow(
     String text, {
@@ -2803,13 +3157,13 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                 ),
               ),
             ),
-            // Text(
-            //   '= ',
-            //   style: TextStyle(
-            //     fontSize: 13,
-            //     color: isDark ? Colors.white60 : Colors.grey.shade600,
-            //   ),
-            // ),
+            Text(
+              '= ',
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white60 : Colors.grey.shade600,
+              ),
+            ),
             if (sign.isNotEmpty)
               Text(
                 sign,

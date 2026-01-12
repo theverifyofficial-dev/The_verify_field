@@ -987,6 +987,7 @@ Widget _buildTenantButton({
     ),
   );
 }
+
 /// --- Helper Row for fields
 Widget _buildDetailRow(String label, String value) {
   return Padding(

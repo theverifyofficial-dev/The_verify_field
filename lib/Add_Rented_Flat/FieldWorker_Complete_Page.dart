@@ -40,6 +40,7 @@ class Property {
   final String meter;
   final String ownerName;
   final String ownerNumber;
+  final String ownerCommission;
   final String currentDates;
   final String availableDate;
   final String kitchen;
@@ -100,6 +101,7 @@ class Property {
     required this.meter,
     required this.ownerName,
     required this.ownerNumber,
+    required this.ownerCommission,
     required this.currentDates,
     required this.availableDate,
     required this.kitchen,
@@ -160,6 +162,7 @@ class Property {
       meter: json["meter"] ?? "",
       ownerName: json["owner_name"] ?? "",
       ownerNumber: json["owner_number"] ?? "",
+      ownerCommission: json["owner_side_commition"] ?? "",
       currentDates: json["current_dates"] ?? "",
       availableDate: json["available_date"] ?? "",
       kitchen: json["kitchen"] ?? "",
@@ -194,53 +197,52 @@ class Property {
 
 class Tenant {
   final int id;
-  final String tenantName;
-  final String tenantPhoneNumber;
-  final String? flatRent;
-  final String shiftingDate;
-  final String? members;
-  final String? email;
-  final String? tenantVichalDetails;
-  final String? workProfile;
-  final String? bhk;
-  final String? typeOfProperty;
-  final int subId;
-  final String paymentMode;
   final String status;
+  // Tenant
+  final String tenantName;
+  final String tenantNumber;
+  final String shiftingDate;
+  final String paymentModeForTenant;
 
-  Tenant({
-    required this.id,
-    required this.tenantName,
-    required this.tenantPhoneNumber,
-    this.flatRent,
-    required this.shiftingDate,
-    this.members,
-    this.email,
-    this.tenantVichalDetails,
-    this.workProfile,
-    this.bhk,
-    this.typeOfProperty,
-    required this.subId,
-    required this.paymentMode,
-    required this.status,
-  });
+  // Owner
+  final String ownerName;
+  final String ownerNumber;
+  final String paymentModeForOwner;
+
+  // Visitor
+  final String vist_field_workar_name;
+  final String vist_field_workar_number;
+  // Relation
+  final String subId;
+
+  Tenant(
+      {required this.id,
+        required this.tenantName,
+        required this.tenantNumber,
+        required this.shiftingDate,
+        required this.paymentModeForTenant,
+        required this.ownerName,
+        required this.ownerNumber,
+        required this.paymentModeForOwner,
+        required this.subId,
+        required this.status,
+        required this.vist_field_workar_name,
+        required this.vist_field_workar_number});
 
   factory Tenant.fromJson(Map<String, dynamic> json) {
     return Tenant(
-      id: json['id'],
-      tenantName: json['tenant_name'] ?? "",
-      tenantPhoneNumber: json['tenant_phone_number'] ?? "",
-      flatRent: json['flat_rent']?.toString(),
-      shiftingDate: json['shifting_date'] ?? "",
-      members: json['members'],
-      email: json['email'],
-      tenantVichalDetails: json['tenant_vichal_details'],
-      workProfile: json['work_profile'],
-      bhk: json['bhk'],
-      typeOfProperty: json['type_of_property'],
-      subId: json['sub_id'],
-      paymentMode: json['payment_mode'] ?? "",
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      tenantName: json['tenant_name'] ?? '',
+      tenantNumber: json['tenant_number'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      paymentModeForTenant: json['payment_mode_for_tenant'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      paymentModeForOwner: json['payment_mode_for_owner'] ?? '',
+      vist_field_workar_name: json['vist_field_workar_name'] ?? '',
+      vist_field_workar_number: json['vist_field_workar_number'] ?? '',
       status: json['status'] ?? "",
+      subId: json['subid']?.toString() ?? '',
     );
   }
 }
@@ -937,9 +939,9 @@ class _FieldWorkerCompleteFlatsState extends State<FieldWorkerCompleteFlats> {
                                       runSpacing: 6,
                                       children: [
                                         _buildTag(tenant.tenantName, Colors.purple),
-                                        _buildTag(tenant.tenantPhoneNumber, Colors.green),
+                                        _buildTag(tenant.tenantNumber, Colors.green),
                                         _buildTag(_formatDate(tenant.shiftingDate), Colors.blue),
-                                        _buildTag(tenant.paymentMode, Colors.red),
+                                        _buildTag(tenant.paymentModeForTenant, Colors.red),
 
                                       ],
                                     ),
@@ -1440,7 +1442,7 @@ Widget _buildTag(String text, Color color) {
     ),
   );
 }
-enum Polarity { credit, debit, neutral }
+enum Polarity { credit, debit, neutral,officeSpecial }
 
 bool _isEmpty(dynamic v) => v == null || v.toString().trim().isEmpty;
 
@@ -1459,6 +1461,7 @@ Color _amtColor(BuildContext c, Polarity p) {
     case Polarity.credit: return Colors.green;
     case Polarity.debit:  return Colors.red;
     case Polarity.neutral:return Colors.black;
+    case Polarity.officeSpecial:return Colors.blue;
   }
 }
 

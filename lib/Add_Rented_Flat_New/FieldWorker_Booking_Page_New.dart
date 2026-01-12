@@ -1,0 +1,1068 @@
+import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../constant.dart';
+import 'Action_Form_New.dart';
+import 'Add_Tenent_New.dart';
+import 'FieldWorker_Booking_Page_Details_New.dart';
+import 'UpdateTenantNew.dart';
+import 'Update_Action_Form_New.dart';
+
+class Property {
+  final int pId;
+  final String propertyPhoto;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String apartmentName;
+  final String apartmentAddress;
+  final String typeOfProperty;
+  final String bhk;
+  final String showPrice;
+  final String lastPrice;
+  final String askingPrice;
+  final String floor;
+  final String totalFloor;
+  final String balcony;
+  final String squarefit;
+  final String maintance;
+  final String parking;
+  final String ageOfProperty;
+  final String fieldworkarAddress;
+  final String roadSize;
+  final String metroDistance;
+  final String highwayDistance;
+  final String mainMarketDistance;
+  final String meter;
+  final String ownerName;
+  final String ownerNumber;
+  final String currentDates;
+  final String availableDate;
+  final String kitchen;
+  final String bathroom;
+  final String lift;
+  final String facility;
+  final String furnishedUnfurnished;
+  final String fieldWorkerName;
+  final String liveUnlive;
+  final String fieldWorkerNumber;
+  final String registryAndGpa;
+  final String loan;
+  final String longitude;
+  final String latitude;
+  final String videoLink;
+  final String caretakerName;
+  final String caretakerNumber;
+  final String ownerSideCommission;
+  final int subid;
+  final String? sourceId;
+  // ✅ New fields
+  final String rent;
+  final String security;
+  final String commission;
+  final String extraExpense;
+  final String advancePayment;
+  final String totalBalance;
+  final String secondAmount;
+  final String finalAmount;
+  final String dates;
+  final String tims;
+  final String status_for_update_fields;
+
+  Property({
+    required this.pId,
+    required this.propertyPhoto,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.apartmentName,
+    required this.apartmentAddress,
+    required this.typeOfProperty,
+    required this.bhk,
+    required this.showPrice,
+    required this.lastPrice,
+    required this.askingPrice,
+    required this.floor,
+    required this.totalFloor,
+    required this.balcony,
+    required this.squarefit,
+    required this.maintance,
+    required this.parking,
+    required this.ageOfProperty,
+    required this.fieldworkarAddress,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.highwayDistance,
+    required this.mainMarketDistance,
+    required this.meter,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.currentDates,
+    required this.availableDate,
+    required this.kitchen,
+    required this.bathroom,
+    required this.lift,
+    required this.facility,
+    required this.furnishedUnfurnished,
+    required this.fieldWorkerName,
+    required this.liveUnlive,
+    required this.fieldWorkerNumber,
+    required this.registryAndGpa,
+    required this.loan,
+    required this.longitude,
+    required this.latitude,
+    required this.videoLink,
+    required this.caretakerName,
+    required this.caretakerNumber,
+    required this.subid,
+    required this.rent,
+    required this.security,
+    required this.commission,
+    required this.extraExpense,
+    required this.advancePayment,
+    required this.totalBalance,
+    required this.secondAmount,
+    required this.finalAmount,
+    required this.dates,
+    required this.ownerSideCommission,
+    required this.tims,
+    required this.sourceId,
+    required this.status_for_update_fields,
+  });
+
+  factory Property.fromJson(Map<String, dynamic> json) {
+    return Property(
+      pId: json["P_id"] ?? 0,
+      propertyPhoto: json["property_photo"] ?? "",
+      locations: json["locations"] ?? "",
+      flatNumber: json["Flat_number"] ?? "",
+      buyRent: json["Buy_Rent"] ?? "",
+      residenceCommercial: json["Residence_Commercial"] ?? "",
+      apartmentName: json["Apartment_name"] ?? "",
+      apartmentAddress: json["Apartment_Address"] ?? "",
+      typeOfProperty: json["Typeofproperty"] ?? "",
+      bhk: json["Bhk"] ?? "",
+      showPrice: json["show_Price"] ?? "",
+      lastPrice: json["Last_Price"] ?? "",
+      askingPrice: json["asking_price"] ?? "",
+      floor: json["Floor_"] ?? "",
+      totalFloor: json["Total_floor"] ?? "",
+      balcony: json["Balcony"] ?? "",
+      squarefit: json["squarefit"] ?? "",
+      maintance: json["maintance"] ?? "",
+      parking: json["parking"] ?? "",
+      ageOfProperty: json["age_of_property"] ?? "",
+      fieldworkarAddress: json["fieldworkar_address"] ?? "",
+      roadSize: json["Road_Size"] ?? "",
+      metroDistance: json["metro_distance"] ?? "",
+      highwayDistance: json["highway_distance"] ?? "",
+      mainMarketDistance: json["main_market_distance"] ?? "",
+      meter: json["meter"] ?? "",
+      ownerName: json["owner_name"] ?? "",
+      ownerNumber: json["owner_number"] ?? "",
+      ownerSideCommission: json["owner_side_commition"] ?? "",
+      currentDates: json["current_dates"] ?? "",
+      availableDate: json["available_date"] ?? "",
+      kitchen: json["kitchen"] ?? "",
+      bathroom: json["bathroom"] ?? "",
+      lift: json["lift"] ?? "",
+      facility: json["Facility"] ?? "",
+      furnishedUnfurnished: json["furnished_unfurnished"] ?? "",
+      fieldWorkerName: json["field_warkar_name"] ?? "",
+      liveUnlive: json["live_unlive"] ?? "",
+      fieldWorkerNumber: json["field_workar_number"] ?? "",
+      registryAndGpa: json["registry_and_gpa"] ?? "",
+      loan: json["loan"] ?? "",
+      longitude: json["Longitude"] ?? "",
+      latitude: json["Latitude"] ?? "",
+      videoLink: json["video_link"] ?? "",
+      caretakerName: json["care_taker_name"] ?? "",
+      caretakerNumber: json["care_taker_number"] ?? "",
+      subid: json["subid"],
+      rent: json["Rent"] ?? "",
+      security: json["Security"] ?? "",
+      commission: json["Commission"] ?? "",
+      extraExpense: json["Extra_Expense"] ?? "",
+      advancePayment: json["Advance_Payment"] ?? "",
+      totalBalance: json["Total_Balance"] ?? "",
+      secondAmount: json["second_amount"] ?? "",
+      finalAmount: json["final_amount"] ?? "",
+      dates: json["dates"] ?? "",
+      tims: json["tims"] ?? "",
+      sourceId: json["source_id"] ?? "",
+      status_for_update_fields: json["status_for_update_fields"] ?? "",
+
+    );
+  }
+}
+
+class Tenant {
+  final int id;
+  final String status;
+  // Tenant
+  final String tenantName;
+  final String tenantNumber;
+  final String shiftingDate;
+  final String paymentModeForTenant;
+
+  // Owner
+  final String ownerName;
+  final String ownerNumber;
+  final String paymentModeForOwner;
+
+  // Visitor
+  final String vist_field_workar_name;
+  final String vist_field_workar_number;
+  // Relation
+  final String subId;
+
+  Tenant({
+    required this.id,
+    required this.tenantName,
+    required this.tenantNumber,
+    required this.shiftingDate,
+    required this.paymentModeForTenant,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.paymentModeForOwner,
+    required this.subId,
+    required this.status,
+    required this.vist_field_workar_name,
+    required this.vist_field_workar_number
+  });
+
+  factory Tenant.fromJson(Map<String, dynamic> json) {
+    return Tenant(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+
+      tenantName: json['tenant_name'] ?? '',
+      tenantNumber: json['tenant_number'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      paymentModeForTenant: json['payment_mode_for_tenant'] ?? '',
+
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      paymentModeForOwner: json['payment_mode_for_owner'] ?? '',
+      vist_field_workar_name: json['vist_field_workar_name'] ?? '',
+      vist_field_workar_number: json['vist_field_workar_number'] ?? '',
+      status: json['status'] ?? "",
+      subId: json['subid']?.toString() ?? '',
+    );
+  }
+}
+
+class FieldWorkerBookingPageNew extends StatefulWidget {
+  const FieldWorkerBookingPageNew({super.key});
+
+  @override
+  State<FieldWorkerBookingPageNew> createState() => _FieldWorkerBookingPageNewState();
+}
+
+class _FieldWorkerBookingPageNewState extends State<FieldWorkerBookingPageNew> {
+
+  String _fieldworkarnumber = '';
+
+  Future<List<Property>> fetchBookingData() async {
+    final url = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=${userNumber}");
+    print("User Name :"+"${userName}");
+    print("User Number :"+"${userNumber}");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final decoded = json.decode(response.body);
+      if (decoded["success"] == true) {
+        List data = decoded["data"];
+        return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
+      }
+    }
+    throw Exception("Failed to load data");
+  }
+  Future<List<Tenant>> fetchTenants(int subId) async {
+    final response = await http.get(
+      Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId"),
+    );
+
+    if (response.statusCode == 200) {
+      final jsonResponse = json.decode(response.body);
+
+      if (jsonResponse["success"] == true) {
+        List data = jsonResponse["data"];
+        return data.map((e) => Tenant.fromJson(e)).toList();
+      } else {
+        throw Exception("API success = false");
+      }
+    } else {
+      throw Exception("Failed to load tenants");
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loaduserdata();
+    loadUserName();
+    //initializeService();
+  }
+
+  String? userName;
+  String? userNumber;
+  Future<void> loadUserName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storedName = prefs.getString('name');
+    final storedNumber = prefs.getString('number');
+
+    if (mounted) {
+      setState(() {
+        userName = storedName;
+        userNumber = storedNumber;
+      });
+    }
+  }
+  late Future<List<Property>> _bookingFuture;
+  late Future<List<Tenant>> _tenantFuture;
+  void _loadData() {
+    _bookingFuture = fetchBookingData();
+  }
+  Future<void> _onRefresh() async {
+    setState(() {
+      _loadData();
+    });
+  }
+  double _toD(dynamic v) {
+    final s = (v ?? '').toString().trim();
+    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
+  }
+
+  String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
+  @override
+  Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: Scaffold(
+        body: FutureBuilder<List<Property>>(
+          future: fetchBookingData(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text("Error: ${snapshot.error}"));
+            }
+            if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Center(
+                child: Text(
+                  "No booking data available",
+                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                ),
+              );
+            }
+
+            final bookingList = snapshot.data!;
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(8),
+              itemCount: bookingList.length,
+              itemBuilder: (context, index) {
+                final item = bookingList[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Theme(
+                    data: Theme.of(context).copyWith(
+                      dividerColor: Colors.transparent,
+                    ),
+                    child: ExpansionTile(
+                      initiallyExpanded: true,
+                      iconColor: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade700,
+                      collapsedBackgroundColor: isDarkMode ? Colors.grey.shade900 : Colors.white,
+                      backgroundColor: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      collapsedShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      leading: Container(
+                        padding: EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color:  Colors.blue.shade700,
+                        ),
+                        child: Text(
+                          "Transaction \nId : ${item.pId}",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color:  Colors.white,
+                          ),
+                        ),
+                      ),
+
+                      subtitle: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(item.buyRent, isDarkMode),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              item.buyRent ?? "Type",
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      title: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          "₹ ${item.showPrice}",
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDarkMode ? Colors.green.shade300 : Colors.green.shade700,
+                          ),
+                        ),
+                      ),
+                      children: [
+                        // Property Image
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: CachedNetworkImage(
+                              imageUrl:
+                              "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${item.propertyPhoto}",
+                              height: 120,
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) =>
+                                  Image.asset(AppImages.loading, fit: BoxFit.cover),
+                              errorWidget: (context, error, stack) =>
+                                  Image.asset(AppImages.imageNotFound, fit: BoxFit.cover),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Property Details
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: [
+                              _buildMiniChip("${item.bhk}",
+                                  isDarkMode ? Colors.blue.shade900 : Colors.blue.shade100,
+                                  isDarkMode ? Colors.blue.shade100 : Colors.blue.shade800),
+                              _buildMiniChip(item.typeOfProperty,
+                                  isDarkMode ? Colors.green.shade900 : Colors.green.shade100,
+                                  isDarkMode ? Colors.green.shade100 : Colors.green.shade800),
+                              _buildMiniChip(item.locations,
+                                  isDarkMode ? Colors.cyan.shade900 : Colors.cyan.shade100,
+                                  isDarkMode ? Colors.cyan.shade100 : Colors.cyan.shade800),
+                              _buildMiniChip(
+                                "PID: ${item.pId}",
+                                isDarkMode ? Colors.teal.shade900 : Colors.teal.shade100,
+                                isDarkMode ? Colors.teal.shade100 : Colors.teal.shade800,
+                              ),
+                              _buildMiniChip(
+                                "Building Flat ID: ${item.sourceId}",
+                                isDarkMode ? Colors.purple.shade900 : Colors.purple.shade100,
+                                isDarkMode ? Colors.purple.shade100 : Colors.purple.shade800,
+                              ),
+                              _buildMiniChip(
+                                "Building ID: ${item.subid}",
+                                isDarkMode ? Colors.indigo.shade900 : Colors.indigo.shade100,
+                                isDarkMode ? Colors.indigo.shade100 : Colors.indigo.shade800,
+                              ),
+                              _buildMiniChip(
+                                "FlatNo: ${item.flatNumber}",
+                                isDarkMode ? Colors.blue.shade900 : Colors.blue.shade100,
+                                isDarkMode ? Colors.white : Colors.blue.shade800,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Financial Details Expansion
+                        _buildExpansionSection(
+                          context: context,
+                          title: "Financial Details",
+                          icon: Icons.account_balance_wallet,
+                          children: [
+                            _buildDetailRow2("Rent", "₹ ${item.rent}", isDarkMode: isDarkMode),
+                            _buildDetailRow2("Security", "₹ ${item.security}", isDarkMode: isDarkMode),
+                            _buildDetailRow2("Company Commission from Tenant", "₹ ${item.commission}", isDarkMode: isDarkMode),
+                            _buildDetailRow2("Company Commission from Owner", "₹ ${item.ownerSideCommission}", isDarkMode: isDarkMode),
+                            _buildDetailRow2("Extra Expense", "₹ ${item.extraExpense}", isDarkMode: isDarkMode),
+                            Divider(height: 20, thickness: 0.5, color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300),
+                            _buildDetailRow2("Total Amount", "₹ ${item.totalBalance}", isBold: true,
+                                color: isDarkMode ? Colors.blue.shade300 : Colors.blue.shade800, isDarkMode: isDarkMode),
+                            _buildDetailRow2("Advance Paid", "₹ ${item.advancePayment}", isBold: true,
+                                color: isDarkMode ? Colors.green.shade300 : Colors.green.shade700, isDarkMode: isDarkMode),
+                            _buildDetailRow2("Date/Time", "${item.dates}\n${item.tims}", isDarkMode: isDarkMode),
+                            Divider(height: 20, thickness: 0.5, color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade300),
+                            _buildDetailRow2(
+                              "Remaining Balance",
+                              "₹ ${(_toD(item.totalBalance) - _toD(item.advancePayment) - _toD(item.secondAmount) - _toD(item.finalAmount)).clamp(0, double.infinity).toStringAsFixed(0)}",
+                              isBold: true,
+                              color: isDarkMode ? Colors.red.shade300 : Colors.red.shade700,
+                              isDarkMode: isDarkMode,
+                            ),
+                          ],
+                        ),
+
+                        // Tenant & Owner Info Expansion
+                        _buildExpansionSection(
+                          context: context,
+                          title: "People Details",
+                          icon: Icons.people,
+                          initiallyExpanded: false,
+                          children: [
+                            FutureBuilder<List<Tenant>>(
+                              future: fetchTenants(item.pId),
+                              builder: (context, tenantSnapshot) {
+                                if (tenantSnapshot.connectionState == ConnectionState.waiting) {
+                                  return Center(child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: isDarkMode ? Colors.blue.shade200 : Colors.blue,
+                                  ));
+                                }
+                                if (tenantSnapshot.hasError || !tenantSnapshot.hasData || tenantSnapshot.data!.isEmpty) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: Text(
+                                      "No tenant data",
+                                      style: TextStyle(color: isDarkMode ? Colors.grey.shade400 : Colors.grey),
+                                    ),
+                                  );
+                                }
+
+                                final tenants = tenantSnapshot.data!;
+                                return ListView.builder(
+                                  shrinkWrap: true,
+                                  physics: const NeverScrollableScrollPhysics(),
+                                  itemCount: tenants.length,
+                                  itemBuilder: (context, index) {
+                                    final t = tenants[index];
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        // Owner Info
+                                        _buildPersonSection(
+                                          "👤 Owner",
+                                          [
+                                            _buildPersonDetail("Name", t.ownerName, isDarkMode),
+                                            _buildPersonDetail("Phone", t.ownerNumber, isDarkMode),
+                                            _buildPersonDetail("Payment Mode", t.paymentModeForOwner, isDarkMode),
+                                          ],
+                                          isDarkMode ? Colors.white10: Colors.blue.shade50,context,
+                                          isDarkMode: isDarkMode,
+                                        ),
+                                        const SizedBox(height: 12),
+
+                                        // Tenant Info
+                                        _buildPersonSection(
+                                          "👥 Tenant",
+                                          [
+                                            _buildPersonDetail("Name", t.tenantName, isDarkMode),
+                                            _buildPersonDetail("Phone", t.tenantNumber, isDarkMode),
+                                            _buildPersonDetail("Payment Mode", t.paymentModeForTenant, isDarkMode),
+                                            _buildPersonDetail("Shifting Date", _formatDate(t.shiftingDate), isDarkMode),
+                                          ],
+                                          isDarkMode ? Colors.white10: Colors.green.shade50,context,
+                                          isDarkMode: isDarkMode,
+                                        ),
+                                        const SizedBox(height: 12),
+
+                                        // Visitor Info
+                                        _buildPersonSection(
+                                          "👁️ Visitor",
+                                          [
+                                            _buildPersonDetail("Name", t.vist_field_workar_name, isDarkMode),
+                                            _buildPersonDetail("Phone", t.vist_field_workar_number, isDarkMode),
+                                          ],
+                                          isDarkMode ? Colors.white10 : Colors.orange.shade50,context,
+                                          isDarkMode: isDarkMode,
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+
+                        // Action Buttons
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          child: Builder(
+                            builder: (context) {
+                              /// ✅ MOVE THIS OUTSIDE FutureBuilder
+                              final status = item.status_for_update_fields;
+                              final bool isUpdated =
+                                  status != null &&
+                                      status.toString().trim().isNotEmpty &&
+                                      status == "fields updated";
+
+                              return Row(
+                                children: [
+                                  /// ================= TENANT BUTTON =================
+                                  Expanded(
+                                    child: FutureBuilder<List<Tenant>>(
+                                      future: fetchTenants(item.pId),
+                                      builder: (context, tenantSnapshot) {
+                                        if (tenantSnapshot.connectionState ==
+                                            ConnectionState.waiting) {
+                                          return const SizedBox(
+                                            height: 40,
+                                            child: Center(
+                                              child: CircularProgressIndicator(strokeWidth: 2),
+                                            ),
+                                          );
+                                        }
+
+                                        final hasTenant =
+                                            tenantSnapshot.hasData &&
+                                                tenantSnapshot.data!.isNotEmpty &&
+                                                tenantSnapshot.data!.first.status != null &&
+                                                tenantSnapshot.data!.first.status!.isNotEmpty;
+
+                                        return _buildActionButton(
+                                          hasTenant ? "Update Tenant" : "Add Tenant",
+                                          hasTenant ? Icons.edit : Icons.person_add,
+                                          hasTenant ? Colors.deepOrange : Colors.green,
+                                          onPressed: () {
+                                            if (hasTenant) {
+                                              final tenant = tenantSnapshot.data!.first;
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) => UpdateTenantPageNew(
+                                                    propertyId: item.pId.toString(),
+                                                    tenentId: tenant.id.toString(),
+                                                  ),
+                                                ),
+                                              ).then((r) {
+                                                if (r == true) _onRefresh();
+                                              });
+                                            } else {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      AddTenantPageNew(id: item.pId.toString()),
+                                                ),
+                                              ).then((_) => _onRefresh());
+                                            }
+                                          },
+                                        );
+                                      },
+                                    ),
+                                  ),
+
+                                  const SizedBox(width: 8),
+
+                                  /// ================= BILL BUTTON =================
+                                  Expanded(
+                                    child: isUpdated
+                                        ? _buildActionButton(
+                                      "Update Bill",
+                                      Icons.receipt,
+                                      Colors.deepOrange,
+                                      onPressed: () {
+                                        print(item.pId.toString());
+                                        print(_fieldworkarnumber);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => UpdateActionFormNew(
+                                              userNumber: _fieldworkarnumber,
+                                              propertyId: item.pId.toString(),
+                                            ),
+                                          ),
+                                        ).then((r) {
+                                          if (r == true) _onRefresh();
+                                        });
+                                      },
+                                    )
+                                        : _buildActionButton(
+                                      "Add Bill",
+                                      Icons.receipt,
+                                      Colors.blue,
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) => ActionFormNew(
+                                              propertyId: item.pId.toString(),
+                                            ),
+                                          ),
+                                        ).then((r) {
+                                          if (r == true) _onRefresh();
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
+                          ),
+                        ),
+
+
+                        // Footer with date and action
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: isDarkMode ? Colors.grey.shade800 : Colors.grey.shade50,
+                            borderRadius: const BorderRadius.only(
+                              bottomLeft: Radius.circular(12),
+                              bottomRight: Radius.circular(12),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                _formatDate(item.currentDates),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDarkMode ? Colors.white : Colors.grey.shade600,
+                                ),
+                              ),
+                              TextButton.icon(
+                                icon: Icon(Icons.remove_red_eye,
+                                    size: 14,
+                                    color: isDarkMode ? Colors.blue : Colors.blue),
+                                label: Text("View Details",
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: isDarkMode ? Colors.blue : Colors.blue,
+                                        fontSize: 12)),
+                                style: TextButton.styleFrom(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  minimumSize: Size.zero,
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+                                    return PropertyDetailPageNew(propertyId: item.pId.toString());
+                                  }));
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ),
+    );
+  }
+  Widget _buildMiniChip(String text, Color backgroundColor, Color textColor) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 14,
+          color: textColor,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExpansionSection({
+    required BuildContext context,
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+    bool initiallyExpanded = false,
+  }) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Card(
+        margin: EdgeInsets.zero,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200, width: 1),
+        ),
+        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
+        child: Theme(
+          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+          child: ExpansionTile(
+            initiallyExpanded: initiallyExpanded,
+            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            leading: Icon(icon, size: 18,
+                color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade700),
+            title: Text(
+              title,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).colorScheme.onSurface,
+              ),
+            ),
+            trailing: Icon(Icons.expand_more, size: 16,
+                color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600),
+            children: children,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow2(String label, String value, {bool isBold = false, Color? color, required bool isDarkMode}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: isDarkMode ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              color: color ?? (isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800),
+            ),
+            textAlign: TextAlign.end,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(String text, IconData icon, Color color, {VoidCallback? onPressed}) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, size: 16),
+      label: Text(text, style: const TextStyle(fontSize: 12,fontWeight: FontWeight.w700,fontFamily:"Poppins" )),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: onPressed,
+    );
+  }
+
+  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, BuildContext context,{required bool isDarkMode}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 8),
+          ...details,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPersonDetail(String label, String value, bool isDarkMode) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              "$label:",
+              style: TextStyle(
+                fontSize: 11,
+                color: isDarkMode ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value.isNotEmpty ? value : "Not provided",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _getStatusColor(String status, bool isDarkMode) {
+    if (status.toLowerCase().contains('pending'))
+      return isDarkMode ? Colors.orange.shade700 : Colors.orange;
+    if (status.toLowerCase().contains('completed') || status.toLowerCase().contains('done'))
+      return isDarkMode ? Colors.green.shade700 : Colors.green;
+    if (status.toLowerCase().contains('rent'))
+      return isDarkMode ? Colors.purple.shade700 : Colors.purple;
+    if (status.toLowerCase().contains('buy'))
+      return isDarkMode ? Colors.blue.shade700 : Colors.blue;
+    return isDarkMode ? Colors.grey.shade600 : Colors.grey;
+  }
+  void _loaduserdata() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    setState(() {
+      _fieldworkarnumber = prefs.getString('number') ?? '';
+    });
+
+
+  }
+}
+Widget _buildTenantButton({
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: 40,
+      width: 120,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// --- Helper Row for fields
+Widget _buildDetailRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black54,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        textAlign: TextAlign.end,),
+      ],
+    ),
+  );
+}
+Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(width: 1, color: color),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Colors.black,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+  }
+  String _formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return "-";
+    try {
+      final dt = DateFormat('yyyy-MM-dd').parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(dt);
+    } catch (_) {
+      try {
+        final dt2 = DateTime.parse(rawDate);
+        return DateFormat('dd MMM yyyy').format(dt2);
+      } catch (_) {
+        return rawDate;
+      }
+    }
+
+}

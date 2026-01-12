@@ -931,28 +931,27 @@ class _PropertyCompleteDetailPageState extends State<PropertyCompleteDetailPage>
                               Colors.purple),
                           boxShadow: [
                             BoxShadow(
-                                color: Colors
-                                    .purple
-                                    .withOpacity(
-                                    0.5),
+                                color: Colors.purple.withOpacity(0.5),
                                 blurRadius: 10,
-                                offset:
-                                Offset(0, 0),
-                                blurStyle:
-                                BlurStyle
-                                    .outer),
+                                offset: Offset(0, 0),
+                                blurStyle: BlurStyle.outer),
                           ],
                         ),
-                        child: Text(
-                          "" +
-                              property
-                                  .careTakerName /*+property.Building_Name.toUpperCase()*/,
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.black,
-                              fontWeight:
-                              FontWeight.w500,
-                              letterSpacing: 0.5),
+                        child: Row(
+                          mainAxisAlignment:
+                          MainAxisAlignment
+                              .center,
+                          children: [
+                            Text(
+                              "" + property.careTakerName /*+property.Building_Name.toUpperCase()*/,
+                              style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.black,
+                                  fontWeight:
+                                  FontWeight.w500,
+                                  letterSpacing: 0.5),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(

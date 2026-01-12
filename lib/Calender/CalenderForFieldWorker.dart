@@ -12,6 +12,85 @@ import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 
+import 'dart:convert';
+
+import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
+
+CalendarAddFlatResponse calendarAddFlatResponseFromJson(String str) =>
+    CalendarAddFlatResponse.fromJson(json.decode(str));
+
+class CalendarAddFlatResponse {
+  final String status;
+  final List<CalendarAddFlat> data;
+
+  CalendarAddFlatResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory CalendarAddFlatResponse.fromJson(Map<String, dynamic> json) {
+    return CalendarAddFlatResponse(
+      status: json['status'] ?? '',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => CalendarAddFlat.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class CalendarAddFlat {
+  final int propertyId;
+  final String propertyPhoto;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String apartmentName;
+  final String bhk;
+  final String showPrice;
+  final String floor;
+  final String liveUnlive;
+  final String careTakerName;
+  final String careTakerNumber;
+  final String subId;
+
+  CalendarAddFlat({
+    required this.propertyId,
+    required this.propertyPhoto,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.apartmentName,
+    required this.bhk,
+    required this.showPrice,
+    required this.floor,
+    required this.liveUnlive,
+    required this.careTakerName,
+    required this.careTakerNumber,
+    required this.subId,
+  });
+
+  factory CalendarAddFlat.fromJson(Map<String, dynamic> json) {
+    return CalendarAddFlat(
+      propertyId: int.tryParse(json['P_id'].toString()) ?? 0,
+      propertyPhoto: json['property_photo'] ?? '',
+      locations: json['locations'] ?? '',
+      flatNumber: json['Flat_number'] ?? '',
+      buyRent: json['Buy_Rent'] ?? '',
+      residenceCommercial: json['Residence_Commercial'] ?? '',
+      apartmentName: json['Apartment_name'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      showPrice: json['show_Price'] ?? '',
+      floor: json['Floor_'] ?? '',
+      liveUnlive: json['live_unlive'] ?? '',
+      careTakerName: json['care_taker_name'] ?? '',
+      careTakerNumber: json['care_taker_number'] ?? '',
+      subId: json['subid'] ?? '',
+    );
+  }
+}
 
 /// -------- AGREEMENT MODEL --------
 class AgreementTaskResponse {
@@ -454,6 +533,37 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       });
     }
   }
+  Future<List<CalendarAddFlat>> fetchCalendarAddFlats({
+    required String date,
+    required String fieldWorkerNumber,
+  }) async {
+    final url =
+        "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+        "task_for_add_flat_in_future_property.php"
+        "?current_dates=$date&field_workar_number=$fieldWorkerNumber";
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200 && response.body.isNotEmpty) {
+      final parsed = calendarAddFlatResponseFromJson(response.body);
+      return parsed.data;
+    } else {
+      return [];
+    }
+  }
+  List<CalendarAddFlat> _calendarAddFlats = [];
+
+  Future<void> loadAddFlats(DateTime date) async {
+    final formatted =
+        "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
+
+    _calendarAddFlats = await fetchCalendarAddFlats(
+      date: formatted,
+      fieldWorkerNumber: userNumber ?? '',
+    );
+
+    setState(() {});
+  }
 
 
   String _monthName(int m) => _months[m - 1];
@@ -466,6 +576,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
     try {
+      await loadAddFlats(date);
+
       final responses = await Future.wait([
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate&Fieldwarkarnumber=${userNumber}")),
@@ -1015,7 +1127,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                       Expanded(
                         child: _buildDetailChip(
                           icon: PhosphorIcons.buildings,
-                          text: "${t.bhk} BHK",
+                          text: "${t.bhk}",
                           isDark: isDark,
                         ),
                       ),
@@ -1438,6 +1550,223 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     }
   }
 
+  Widget _buildCalendarAddFlatCard(CalendarAddFlat f, bool isDark) {
+    final statusColor = _getLiveUnliveColor(f.liveUnlive);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => underflat_futureproperty(
+              id: f.propertyId.toString(),
+              Subid: f.subId,
+            ),
+          ),
+        );
+
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (_) => Admin_underflat_futureproperty(
+        //       id: f.propertyId.toString(),
+        //       Subid: f.subId,
+        //     ),
+        //   ),
+        // );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// HEADER
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.indigo.withOpacity(0.1),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    PhosphorIcons.house_line,
+                    color: Colors.indigo,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      f.apartmentName,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      f.liveUnlive,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            /// BODY
+            Padding(
+              padding: const EdgeInsets.all(14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  /// LOCATION + FLAT
+                  Text(
+                    "Flat ${f.flatNumber} • ${f.locations}",
+                    style: TextStyle(
+                      fontSize: 13,
+                      color:
+                      isDark ? Colors.white70 : Colors.grey.shade700,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  /// PRICE + TYPE
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoRow(
+                          icon: PhosphorIcons.currency_inr,
+                          title: "Price",
+                          value: "₹${f.showPrice}",
+                          isDark: isDark,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildInfoRow(
+                          icon: PhosphorIcons.buildings,
+                          title: "Type",
+                          value: f.buyRent,
+                          isDark: isDark,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  /// CHIPS
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDetailChip(
+                              icon: PhosphorIcons.cube,
+                              text: f.bhk,
+                              isDark: isDark,
+                            ),
+                          ),
+                          SizedBox(width: 6,),
+                          Expanded(
+                            child: _buildDetailChip(
+                              icon: PhosphorIcons.star_fill,
+                              text: f.floor,
+                              isDark: isDark,
+                            ),
+                          ),
+                          SizedBox(width: 6,),
+                          Expanded(
+                            child: _buildDetailChip(
+                              icon: PhosphorIcons.briefcase,
+                              text: f.residenceCommercial,
+                              isDark: isDark,
+                            ),
+                          ),
+                        ],
+                      )
+
+                    ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  /// CARETAKER
+                  if (f.careTakerName.isNotEmpty)
+                    Row(
+                      children: [
+                        Icon(
+                          PhosphorIcons.user,
+                          size: 16,
+                          color: isDark
+                              ? Colors.white54
+                              : Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            "${f.careTakerName} • ${f.careTakerNumber}",
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: isDark
+                                  ? Colors.white70
+                                  : Colors.grey.shade800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _chip(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.indigo.shade50,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
   Widget _sectionTitle(String text, bool isDark, int count) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -1663,15 +1992,24 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     _sectionTitle("Future Properties", isDark, _futureProperties.length),
                   ..._futureProperties.map((f) => _buildFuturePropertyCard(f, isDark)),
 
-                  if (_addFlats.isNotEmpty) // Add this section
-                    _sectionTitle("Add Flats", isDark, _addFlats.length),
-                  ..._addFlats.map((f) => _buildAddFlatCard(f, isDark)),
                   if (_websiteVisits.isNotEmpty)
                     _sectionTitle("Website Visit Requests", isDark,_websiteVisits.length),
                   ..._websiteVisits.map((w) => _buildWebsiteVisitCard(w, isDark)),
 
-                  if (_agreements.isEmpty && _futureProperties.isEmpty && _addFlats.isEmpty)
+                  if (_calendarAddFlats.isNotEmpty)
+                    _sectionTitle("Add Flats", isDark, _calendarAddFlats.length),
+                  ..._calendarAddFlats.map(
+                        (f) => _buildCalendarAddFlatCard(f, isDark),
+                  ),
+
+                  if (_agreements.isEmpty &&
+                      _futureProperties.isEmpty &&
+                      _calendarAddFlats.isEmpty &&
+                      _websiteVisits.isEmpty)
                     _emptyState(isDark),
+
+
+
 
                   const SizedBox(height: 20),
                 ],

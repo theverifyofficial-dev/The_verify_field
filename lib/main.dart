@@ -20,9 +20,6 @@ import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
 
-// by lokesh
-
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 final GlobalKey<ScaffoldMessengerState> rootScaffoldMessengerKey =
@@ -113,13 +110,68 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _openNotificationPage(RemoteMessage message, {bool fromTerminated = false}) {
+    bool navigationDone = false;
     try {
       final data = message.data;
       String? type = data['type']?.toString();
       String? flatId = data['flat_id']?.toString();
       String? buildingId = data['building_id']?.toString();
       String? propertyId = data['P_id']?.toString();
-      // 🔹 First Payment → OPEN TAB 0
+      // 🔥 PAYMENT NOTIFICATION (ONLY p_id)
+
+      final String rawBody = message.notification?.body ?? "";
+      final String body = rawBody
+          .toLowerCase()
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
+
+      final String? pId =
+          data['p_id']?.toString() ?? data['P_id']?.toString();
+
+      final bool isFinalPaymentCompleted =
+          body.contains("final payment") &&
+              body.contains("completed");
+      final String title =
+          message.notification?.title?.toLowerCase() ?? "";
+      print("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
+
+      /// 🔴 FINAL PAYMENT → COMPLETE TAB
+      if (
+      type == "move_to_completed" ||
+          (body.contains("final payment") && body.contains("completed"))
+      ) {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          Routes.addRentedFlatTabbarNew,
+              (route) => false,
+          arguments: {
+            "tabIndex": 2, // ✅ COMPLETE
+            "propertyId": pId,
+          },
+        );
+        return;
+      }
+
+      /// 🟡 PAYMENT ACCEPTED / NORMAL PAYMENT → PENDING TAB
+      if (!navigationDone &&
+          (body.contains("payment accepted") || pId != null)) {
+        navigationDone = true;
+
+        print("🟡 PAYMENT → OPEN PENDING TAB");
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.addRentedFlatTabbarNew,
+                (route) => false,
+            arguments: {
+              "tabIndex": 1, // ✅ PENDING
+              "propertyId": pId,
+            },
+          );
+        });
+        return;
+      }
+
+
       if (type == "RENTED_OUT_UPDATED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -422,7 +474,8 @@ class _MyAppState extends State<MyApp> {
           },
         );
       }
-      // ✅ Handle NEW_FLAT → Administater_Future_Property_details
+
+      // ✅ Handle NEW_FLAT → Administrator_Future_Property_details
       else if (type == "NEW_FLAT"|| type == "FLAT_UPDATE" && buildingId != null && flatId != null) {
         navigatorKey.currentState?.pushNamed(
           Routes.administaterFuturePropertyDetails,

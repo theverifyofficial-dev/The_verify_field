@@ -23,6 +23,7 @@ import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
 import 'Add_Rented_Flat/Field_Worker_Target.dart';
+import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import 'Administrator/agreement_details.dart';
 import 'Calender/CalenderForFieldWorker.dart';
 import 'Demand_2/Costumer_demand.dart';
@@ -37,18 +38,32 @@ import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
 import 'Yearly_Target.dart';
 import 'add_properties_firstpage.dart';
 import 'main.dart';
+class TodayAddFlatCount {
+  final int addFlat;
+
+  TodayAddFlatCount({required this.addFlat});
+
+  factory TodayAddFlatCount.fromJson(Map<String, dynamic> json) {
+    return TodayAddFlatCount(
+      addFlat: (json['add_flat'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
 
 class TodayCounts {
   final int agreements;
   final int futureProperties;
   final int websiteVisits;
+  final int addFlats;
 
   TodayCounts({
     required this.agreements,
     required this.futureProperties,
     required this.websiteVisits,
+    required this.addFlats,
   });
 }
+
 
 class TomorrowEvent {
   final String time;
@@ -404,6 +419,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
             agreements: 0,
             futureProperties: 0,
             websiteVisits: 0,
+            addFlats: 0
           );
           todayLoading = false;
         });
@@ -463,9 +479,13 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       );
     }
 
-    int totalToday = todayCounts!.agreements +
-        todayCounts!.futureProperties +
-        todayCounts!.websiteVisits;
+    int totalToday =
+        todayCounts!.agreements +
+            todayCounts!.futureProperties +
+            todayCounts!.websiteVisits +
+            todayCounts!.addFlats;
+
+
 
     return GestureDetector(
       onTap: (){
@@ -729,6 +749,21 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             Icons.travel_explore,
                             isDark,
                           ),
+                          _enhancedCountBox(
+                            "Add Flat",
+                            todayCounts!.addFlats,
+                            LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF06B6D4), // Cyan-500
+                                Color(0xFF2563EB), // Blue-600
+                              ],
+                            ),
+                            Icons.add_home_rounded,
+                            isDark,
+                          ),
+
                         ],
                       ),
                     ),
@@ -948,6 +983,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     return "${t.year}-${t.month.toString().padLeft(2, '0')}-${t.day.toString().padLeft(2, '0')}";
   }
 
+  int todayAddFlatCount = 0;
 
   Future<void> fetchTomorrowData() async {
     final tomorrow = _tomorrowString();
@@ -1037,72 +1073,94 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     final fieldNo = number;
 
-    debugPrint("📅 Today date sent: $today");
-    debugPrint("📞 Field worker number: $fieldNo");
-
     try {
       final res = await Future.wait([
-        // AGREEMENT (date based)
+        // AGREEMENT
         http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$today&Fieldwarkarnumber=$fieldNo",
-        )).timeout(const Duration(seconds: 10)),
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+              "task_for_agreement_on_date.php"
+              "?current_dates=$today&Fieldwarkarnumber=$fieldNo",
+        )),
 
-        // ✅ CORRECT FUTURE PROPERTY API
+        // FUTURE PROPERTY
         http.get(Uri.parse(
-          "https://verifyserve.social/WebService4.asmx/show_futureproperty_by_fieldworkarnumber?current_date_=$today&fieldworkarnumber=$fieldNo",
-        )).timeout(const Duration(seconds: 10)),
+          "https://verifyserve.social/WebService4.asmx/"
+              "show_futureproperty_by_fieldworkarnumber"
+              "?current_date_=$today&fieldworkarnumber=$fieldNo",
+        )),
 
         // WEBSITE VISIT
         http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$today&field_workar_number=$fieldNo",
-        )).timeout(const Duration(seconds: 10)),
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+              "task_for_website_visit.php"
+              "?dates=$today&field_workar_number=$fieldNo",
+        )),
+
+        // ✅ ADD FLAT COUNT (CORRECT API)
+        http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+              "task_for_add_flat_in_future_property.php"
+              "?current_dates=$today&field_workar_number=$fieldNo",
+        )),
+
       ]);
 
-      // ---------------- AGREEMENT ----------------
-      debugPrint("🟢 Agreement API STATUS: ${res[0].statusCode}");
-      debugPrint("🟢 Agreement API BODY: ${res[0].body}");
-
+      // AGREEMENT
       todayAgreements =
           AgreementTaskResponse.fromRawJson(res[0].body).data;
-      debugPrint("✅ Parsed agreements count: ${todayAgreements.length}");
 
-      // ---------------- FUTURE PROPERTY ----------------
-      debugPrint("🟡 Future Property API STATUS: ${res[1].statusCode}");
-      debugPrint("🟡 Future Property API BODY: ${res[1].body}");
-
+      // FUTURE
       final allFuture =
           FuturePropertyResponse.fromRawJson(res[1].body).data;
+      todayFutureProperties =
+          allFuture.where((e) => e.date.startsWith(today)).toList();
 
-      // 🔥 FILTER ONLY TODAY
-      todayFutureProperties = allFuture.where((e) {
-        return e.date.startsWith(today);
-      }).toList();
-
-      debugPrint(
-          "✅ Parsed future properties (TODAY) count: ${todayFutureProperties.length}");
-
-      // ---------------- WEBSITE VISIT ----------------
-      debugPrint("🔵 Website Visit API STATUS: ${res[2].statusCode}");
-      debugPrint("🔵 Website Visit API BODY: ${res[2].body}");
-
+      // WEBSITE
       todayWebsiteVisits =
           WebsiteVisitResponse.fromRawJson(res[2].body).data;
-      debugPrint("✅ Parsed website visits count: ${todayWebsiteVisits.length}");
+
+      // ---------------- ADD FLAT COUNT (FIXED) ----------------
+      int addFlatCount = 0;
+      final body = res[3].body.trim();
+      //
+      // debugPrint("🟠 ADD FLAT STATUS CODE: ${res[3].statusCode}");
+      // debugPrint("🟠 ADD FLAT RAW RESPONSE:\n$body");
+
+      try {
+        final decoded = jsonDecode(body);
+
+        if (decoded is Map && decoded['data'] is List) {
+          addFlatCount = (decoded['data'] as List).length;
+        } else {
+          debugPrint("❌ Unexpected AddFlat response format");
+        }
+      } catch (e) {
+        debugPrint("❌ AddFlat parse error: $e");
+      }
+
+
 
       debugPrint(
-          "📊 FINAL COUNTS → Agreement: ${todayAgreements.length}, Future: ${todayFutureProperties.length}, Website: ${todayWebsiteVisits.length}");
+        "📊 FINAL → A:${todayAgreements.length}, "
+            "F:${todayFutureProperties.length}, "
+            "W:${todayWebsiteVisits.length}, "
+            "AddFlat:$todayWebsiteVisits.length $addFlatCount",
+      );
 
       return TodayCounts(
         agreements: todayAgreements.length,
         futureProperties: todayFutureProperties.length,
         websiteVisits: todayWebsiteVisits.length,
+        addFlats: addFlatCount,
       );
+
     } catch (e) {
-      debugPrint('🔥 Error in fetchTodayCounts(): $e');
+      debugPrint("🔥 fetchTodayCounts error: $e");
       return TodayCounts(
         agreements: 0,
         futureProperties: 0,
         websiteVisits: 0,
+        addFlats: 0,
       );
     }
   }
@@ -1445,7 +1503,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
           Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (_) => const AddRentedFlatTabbar()));
+                  builder: (_) => const AddRentedFlatTabbarNew()));
         },
         "gradient": cardGradients[5],
       },
@@ -1665,40 +1723,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 }
 
-class _GlassCircle extends StatelessWidget {
-  final Widget child;
-
-  const _GlassCircle({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.15),
-            Colors.white.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
 
 class _TargetProgressCircle extends StatefulWidget {
   final double progress;

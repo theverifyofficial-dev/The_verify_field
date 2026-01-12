@@ -5,14 +5,18 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Add_Rented_Flat/Action_Form.dart';
-import '../../Add_Rented_Flat/Add_Tenent.dart';
-import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
-import '../../constant.dart';
-import 'AdministatorPropertyDetailPage.dart';
+import '../Add_Rented_Flat/FieldWorker_Complete_Detail_Page.dart';
+import '../constant.dart';
+import 'Action_Form_New.dart';
+import 'Add_Tenent_New.dart';
+import 'FieldWorker_Booking_Finacial_Detail.dart';
+import 'FieldWorker_Booking_Page_Details_New.dart';
+import 'FieldWorker_CompletePage_transaction_details_page.dart';
+import 'UpdateTenantNew.dart';
+import 'Update_Action_Form_New.dart';
+
 class Property {
   final int pId;
-  final String? sourceId;
   final String propertyPhoto;
   final String locations;
   final String flatNumber;
@@ -40,7 +44,6 @@ class Property {
   final String meter;
   final String ownerName;
   final String ownerNumber;
-  final String ownerCommission;
   final String currentDates;
   final String availableDate;
   final String kitchen;
@@ -58,10 +61,9 @@ class Property {
   final String videoLink;
   final String caretakerName;
   final String caretakerNumber;
-  final String statusForFinalPayment;
-  final String statusForSecondPayment;
-  final dynamic subid;
-
+  final String ownerSideCommission;
+  final int subid;
+  final String? sourceId;
   // ✅ New fields
   final String rent;
   final String security;
@@ -71,10 +73,12 @@ class Property {
   final String totalBalance;
   final String secondAmount;
   final String finalAmount;
+  final String dates;
+  final String tims;
+  final String status_for_update_fields;
 
   Property({
     required this.pId,
-    required this.sourceId,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -102,7 +106,6 @@ class Property {
     required this.meter,
     required this.ownerName,
     required this.ownerNumber,
-    required this.ownerCommission,
     required this.currentDates,
     required this.availableDate,
     required this.kitchen,
@@ -127,10 +130,13 @@ class Property {
     required this.extraExpense,
     required this.advancePayment,
     required this.totalBalance,
-    required this.finalAmount,
     required this.secondAmount,
-    required this.statusForFinalPayment,
-    required this.statusForSecondPayment,
+    required this.finalAmount,
+    required this.dates,
+    required this.ownerSideCommission,
+    required this.tims,
+    required this.sourceId,
+    required this.status_for_update_fields,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -163,7 +169,7 @@ class Property {
       meter: json["meter"] ?? "",
       ownerName: json["owner_name"] ?? "",
       ownerNumber: json["owner_number"] ?? "",
-      ownerCommission: json["owner_side_commition"] ?? "",
+      ownerSideCommission: json["owner_side_commition"] ?? "",
       currentDates: json["current_dates"] ?? "",
       availableDate: json["available_date"] ?? "",
       kitchen: json["kitchen"] ?? "",
@@ -190,60 +196,13 @@ class Property {
       totalBalance: json["Total_Balance"] ?? "",
       secondAmount: json["second_amount"] ?? "",
       finalAmount: json["final_amount"] ?? "",
-      statusForSecondPayment: json["status_for_second_payment"] ?? "",
-      statusForFinalPayment: json["status_for_final_payment"] ?? "",
+      dates: json["dates"] ?? "",
+      tims: json["tims"] ?? "",
       sourceId: json["source_id"] ?? "",
+      status_for_update_fields: json["status_for_update_fields"] ?? "",
+
     );
   }
-}
-
-class OwnerData {
-  int id;
-  String ownerName;
-  String ownerNumber;
-  String paymentMode;
-  String advanceAmount;
-  String rent;
-  String securitys;
-  String subid;
-  String status;
-
-  OwnerData({
-    required this.id,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.paymentMode,
-    required this.advanceAmount,
-    required this.rent,
-    required this.securitys,
-    required this.subid,
-    required this.status,
-  });
-
-  factory OwnerData.fromJson(Map<String, dynamic> json) => OwnerData(
-    id: json["id"] ?? 0,
-    ownerName: json["owner_name"] ?? "-",
-    ownerNumber: json["owner_number"] ?? "-",
-    paymentMode: json["payment_mode"] ?? "-",
-    advanceAmount: json["advance_amount"] ?? "0",
-    rent: json["rent"] ?? "0",
-    securitys: json["securitys"] ?? "0",
-    subid: json["subid"] ?? "-",
-    status: json["status"] ?? "-",
-  );
-
-
-  Map<String, dynamic> toJson() => {
-    "id": id,
-    "owner_name": ownerName,
-    "owner_number": ownerNumber,
-    "payment_mode": paymentMode,
-    "advance_amount": advanceAmount,
-    "rent": rent,
-    "securitys": securitys,
-    "subid": subid,
-    "status": status,
-  };
 }
 
 class Tenant {
@@ -301,49 +260,49 @@ class Tenant {
   }
 }
 
-class AdministatiorFieldWorkerBookingPage extends StatefulWidget {
-  const AdministatiorFieldWorkerBookingPage({super.key});
+class NewDesginFieldWorkerBookingPageNew extends StatefulWidget {
+  const NewDesginFieldWorkerBookingPageNew({super.key});
 
   @override
-  State<AdministatiorFieldWorkerBookingPage> createState() => _AdministatiorFieldWorkerBookingPageState();
+  State<NewDesginFieldWorkerBookingPageNew> createState() => _NewDesginFieldWorkerBookingPageNewState();
 }
 
-class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorFieldWorkerBookingPage> {
+class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorkerBookingPageNew> {
 
   String _fieldworkarnumber = '';
-  static Map<dynamic, DateTime>? _lastTapTimes;
 
   Future<List<Property>> fetchBookingData() async {
+    if (userNumber == null || userNumber!.isEmpty) {
+      return [];
+    }
+
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
-    // print("User Name :"+"${userName}");
-    // print("User Number :"+"${userNumber}");
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_by_fieldworkar.php?field_workar_number=$userNumber",
+    );
+
+    debugPrint("API URL => $url");
+
     final response = await http.get(url);
+
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
       if (decoded["success"] == true) {
-        List data = decoded["data"];
-        return data.map((e) => Property.fromJson(e)).toList().reversed.toList();
+        final List data = decoded["data"];
+        return data.map((e) => Property.fromJson(e)).toList();
       }
     }
-    throw Exception("Failed to load data");
+    return [];
   }
   Future<List<Tenant>> fetchTenants(int subId) async {
     final response = await http.get(
-      Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId",
-      ),
+      Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Payment/show_tenant_and_owner_api.php?subid=$subId"),
     );
-
-    debugPrint("🔵 STATUS CODE: ${response.statusCode}");
-    debugPrint("🔵 RAW RESPONSE: ${response.body}");
 
     if (response.statusCode == 200) {
       final jsonResponse = json.decode(response.body);
 
       if (jsonResponse["success"] == true) {
         List data = jsonResponse["data"];
-        debugPrint("🟢 TENANT COUNT: ${data.length}");
         return data.map((e) => Tenant.fromJson(e)).toList();
       } else {
         throw Exception("API success = false");
@@ -356,100 +315,82 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
   @override
   void initState() {
     super.initState();
-    _loaduserdata();
-    loadUserName();
-    //initializeService();
+    _init();
   }
+
+  Future<void> _init() async {
+    await _loaduserdata();
+    await loadUserName();
+
+    // ✅ NOW userNumber is available
+    setState(() {
+      _bookingFuture = fetchBookingData();
+    });
+  }
+
 
   String? userName;
   String? userNumber;
-  String? userStoredFAadharCard;
-
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
-    final storedFAadharCard = prefs.getString('post');
-    // debugPrint("User Name: $storedName");
-    // debugPrint("User Number: $storedNumber");
-    // debugPrint("User FAadharCard: $storedFAadharCard");
+
     if (mounted) {
       setState(() {
         userName = storedName;
         userNumber = storedNumber;
-        userStoredFAadharCard = storedFAadharCard;
-
       });
     }
   }
+
+  late Future<List<Property>> _bookingFuture = Future.value([]);
+
+  void _loadData() {
+    _bookingFuture = fetchBookingData();
+  }
+
   Future<void> _onRefresh() async {
     setState(() {
-      fetchBookingData();
+      _loadData();
     });
   }
-  Future<List<OwnerData>> fetchPersonDetail(int subid) async {
-    final url = Uri.parse('https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=$subid');
-    final response = await http.get(url);
 
-    print("API Response: ${response.body}");
-
-    if (response.statusCode == 200) {
-      final decoded = json.decode(response.body);
-      if (decoded['success'] == true) {
-        final data = decoded['data'] as List<dynamic>;
-        print("Decoded Owner Data: $data"); // ✅ Check decoded list
-        return data.map((e) => OwnerData.fromJson(e)).toList();
-      } else {
-        return [];
-      }
-    } else {
-      throw Exception("Failed to fetch owner data");
-    }
-  }
-  double _toD(dynamic v) {
-    final s = (v ?? '').toString().trim();
-    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
-  }
-
-  String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
   @override
   Widget build(BuildContext context) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     return RefreshIndicator(
       onRefresh: _onRefresh,
       child: Scaffold(
         body: FutureBuilder<List<Property>>(
-          future: fetchBookingData(),
+          future: _bookingFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
+
             if (snapshot.hasError) {
               return Center(child: Text("Error: ${snapshot.error}"));
             }
+
             if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(
-                child: Text(
-                  "No booking data available",
-                  style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
-                ),
-              );
+              return const Center(child: Text("No booking data available"));
             }
 
             final bookingList = snapshot.data!;
+            final reversedList = bookingList.reversed.toList();
 
             return ListView.builder(
               padding: const EdgeInsets.only(bottom: 16),
-              itemCount: bookingList.length,
+              itemCount: reversedList.length,
               itemBuilder: (context, index) {
-                final item = bookingList[index];
+                final item = reversedList[index];
 
                 // ✅ SHOW BUY + RENT BOTH
                 final type = item.buyRent.trim().toLowerCase();
                 if (type != "buy" && type != "rent") {
                   return const SizedBox.shrink();
                 }
+
                 return bookingTransactionCard(context, item);
               },
             );
@@ -458,15 +399,44 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
       ),
     );
   }
-  double remainingAmount(Property p) {
-    double toD(String v) =>
-        double.tryParse(v.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+  Widget financialDetailButton({
+    required BuildContext context,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return (toD(p.totalBalance)
-        - toD(p.advancePayment)
-        - toD(p.secondAmount)
-        - toD(p.finalAmount))
-        .clamp(0, double.infinity);
+    return InkWell(
+      borderRadius: BorderRadius.circular(18),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.blueGrey.shade800 : Colors.blue.shade50,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.blue.shade300),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.account_balance_wallet,
+                size: 14, color: Colors.blue),
+            SizedBox(width: 6),
+            Text(
+              "Financial Details",
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.blue,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  String getPropertyImage(String path) {
+    if (path.isEmpty) return "";
+    return "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/$path";
   }
   Widget _idChip(String text, Color color, bool isDarkMode) {
     return Container(
@@ -494,17 +464,18 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
       ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final remaining = remainingAmount(item);
-    bool isEnabled = isValidItem(item);
 
     return GestureDetector(
       onTap: () {
-        print(item.pId.toString());
-        Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-          return PropertyDetailPage(propertyId: item.pId.toString());
-        }));
+        // ✅ WHOLE CARD NAVIGATION
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => PropertyDetailPageNew(propertyId: item.pId.toString()
+            ),
+          ),
+        );
       },
-
-
       child: Card(
         elevation: 2,
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -653,125 +624,76 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
 
               const SizedBox(height: 14),
 
-              // /// ===== CTA ROW =====
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.end,
-              //   children: [
-              //     GestureDetector(
-              //       onTap: () {
-              //         print(item.pId.toString());
-              //         Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-              //           return PropertyDetailPage(propertyId: item.pId.toString());
-              //         }));
-              //       },
-              //       child: Container(
-              //         padding:
-              //         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              //         decoration: BoxDecoration(
-              //           color: isDark
-              //               ? Colors.blueGrey.shade800
-              //               : Colors.blue.shade50,
-              //           borderRadius: BorderRadius.circular(20),
-              //           border: Border.all(color: Colors.blue.shade300),
-              //         ),
-              //         child: Row(
-              //           children: const [
-              //             Icon(
-              //               Icons.account_balance_wallet,
-              //               size: 14,
-              //               color: Colors.blue,
-              //             ),
-              //             SizedBox(width: 6),
-              //             Text(
-              //               "View Financial Details",
-              //               style: TextStyle(
-              //                 fontSize: 11,
-              //                 fontWeight: FontWeight.w700,
-              //                 color: Colors.blue,
-              //               ),
-              //             ),
-              //             SizedBox(width: 4),
-              //             Icon(
-              //               Icons.chevron_right,
-              //               size: 16,
-              //               color: Colors.blue,
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // const SizedBox(height: 8),
-              if(userStoredFAadharCard=="Sub Administrator")
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: isEnabled ? Colors.blue : Colors.grey,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+              /// ===== CTA ROW =====
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => FieldWorkerBookingFinancialDetailPage(
+                            propertyId: item.pId,
+                          ),
+                        ),
+                      );
+
+                    },
+                    child: Container(
+                      padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.blueGrey.shade800
+                            : Colors.blue.shade50,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.blue.shade300),
+                      ),
+                      child: Row(
+                        children: const [
+                          Icon(
+                            Icons.account_balance_wallet,
+                            size: 14,
+                            color: Colors.blue,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            "View Financial Details",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          SizedBox(width: 4),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 16,
+                            color: Colors.blue,
+                          ),
+                        ],
                       ),
                     ),
-                    onPressed: isEnabled
-                        ? () async {
-                      const int cooldownSeconds = 3;
-                      _lastTapTimes ??= {};
-
-                      DateTime now = DateTime.now();
-
-                      if (_lastTapTimes![item.pId] != null &&
-                          now.difference(_lastTapTimes![item.pId]!).inSeconds < cooldownSeconds) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text("Already submitted")),
-                        );
-                        return;
-                      }
-
-                      _lastTapTimes![item.pId] = now;
-
-                      try {
-                        final response = await http.post(
-                          Uri.parse(
-                            "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_pending_rentout_api.php",
-                          ),
-                          body: {
-                            "P_id": item.pId.toString(),
-                          },
-                        );
-
-                        if (response.statusCode == 200) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("Accepted Successfully ✅")),
-                          );
-                          _onRefresh();
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Failed: ${response.statusCode}")),
-                          );
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text("Error: $e")),
-                        );
-                      }
-                    }
-                        : null, // 🔒 disabled when data missing
-
-                    child: Text(
-                      isEnabled ? "Accept" : "Fill required fields",
-                      style: const TextStyle(fontWeight: FontWeight.w600),
-                    ),
-
                   ),
-                ),
+                ],
+              ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  double remainingAmount(Property p) {
+    double toD(String v) =>
+        double.tryParse(v.replaceAll(RegExp(r'[^\d.]'), '')) ?? 0;
+
+    return (toD(p.totalBalance)
+        - toD(p.advancePayment)
+        - toD(p.secondAmount)
+        - toD(p.finalAmount))
+        .clamp(0, double.infinity);
   }
   String formatINR(num value) {
     final f = NumberFormat.currency(
@@ -781,14 +703,6 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
     );
     return f.format(value);
   }
-  bool isValidItem(Property item) {
-    return item.rent.isNotEmpty &&
-        item.security.isNotEmpty &&
-        item.commission.isNotEmpty &&
-        item.totalBalance.isNotEmpty &&
-        item.advancePayment.isNotEmpty;
-  }
-
 
   Widget _buildMiniChip(String text, Color backgroundColor, Color textColor) {
     return Container(
@@ -863,7 +777,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
               label,
               style: TextStyle(
                 fontSize: 12,
-                fontWeight: isBold ? FontWeight.bold : FontWeight.w700,
+                fontWeight: FontWeight.w700,
                 color: isDarkMode ? Colors.white : Colors.black87,
               ),
             ),
@@ -875,13 +789,30 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               color: color ?? (isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800),
             ),
+            textAlign: TextAlign.end,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, {required bool isDarkMode}) {
+  Widget _buildActionButton(String text, IconData icon, Color color, {VoidCallback? onPressed}) {
+    return ElevatedButton.icon(
+      icon: Icon(icon, size: 16),
+      label: Text(text, style: const TextStyle(fontSize: 12,fontWeight: FontWeight.w700,fontFamily:"Poppins" )),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: onPressed,
+    );
+  }
+
+  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, BuildContext context,{required bool isDarkMode}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(12),
@@ -951,27 +882,108 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
       return isDarkMode ? Colors.blue.shade700 : Colors.blue;
     return isDarkMode ? Colors.grey.shade600 : Colors.grey;
   }
-  void _loaduserdata() async {
+  Future _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     setState(() {
       _fieldworkarnumber = prefs.getString('number') ?? '';
     });
+
+
   }
 }
+Widget _buildTenantButton({
+  required String label,
+  required Color color,
+  required VoidCallback onTap,
+}) {
+  return GestureDetector(
+    onTap: onTap,
+    child: Container(
+      height: 40,
+      width: 120,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Center(
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    ),
+  );
+}
 
-String _formatDate(String? rawDate) {
-  if (rawDate == null || rawDate.isEmpty) return "-";
-  try {
-    final dt = DateFormat('yyyy-MM-dd').parse(rawDate);
-    return DateFormat('dd MMM yyyy').format(dt);
-  } catch (_) {
-    try {
-      final dt2 = DateTime.parse(rawDate);
-      return DateFormat('dd MMM yyyy').format(dt2);
-    } catch (_) {
-      return rawDate;
-    }
+/// --- Helper Row for fields
+Widget _buildDetailRow(String label, String value) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black54,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.black,
+          ),
+        textAlign: TextAlign.end,),
+      ],
+    ),
+  );
+}
+Widget _buildTag(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+        border: Border.all(width: 1, color: color),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.5),
+            blurRadius: 10,
+            offset: const Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
+        ],
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 13,
+          color: Colors.black,
+          fontWeight: FontWeight.w500,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
   }
+  String _formatDate(String? rawDate) {
+    if (rawDate == null || rawDate.isEmpty) return "-";
+    try {
+      final dt = DateFormat('yyyy-MM-dd').parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(dt);
+    } catch (_) {
+      try {
+        final dt2 = DateTime.parse(rawDate);
+        return DateFormat('dd MMM yyyy').format(dt2);
+      } catch (_) {
+        return rawDate;
+      }
+    }
 
 }

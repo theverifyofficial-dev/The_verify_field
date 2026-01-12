@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:verify_feild_worker/Home_Screen.dart';
 import 'package:verify_feild_worker/Login_page.dart';
 import 'package:verify_feild_worker/splash.dart';
+import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import 'Administrator/Admin_future _property/Administater_Future_Property.dart';
 import 'Administrator/Admin_future _property/Future_Property_Details.dart';
 import 'Administrator/Administator_Add_Rented_Flat_Tabbar.dart' hide AdministatorAddRentedFlatTabbar;
@@ -24,6 +25,7 @@ class Routes {
   static const String fieldAgreementPending = '/fieldAgreementPending';
   static const String adminAgreementPending = '/adminAgreementPending';
   static const String administaterAddRentedFlatTabbar = "/AdministatorAddRentedFlatTabbar";
+  static const String addRentedFlatTabbarNew = "/AddRentedFlatTabbarNew";
 
   static Map<String, WidgetBuilder> routes = {
     Splash.route: (context) => const Splash(),
@@ -41,6 +43,14 @@ class Routes {
     },
 
     administaterWebQuery: (context) => WebQueryPage(),
+
+    addRentedFlatTabbarNew: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
+
+      return AddRentedFlatTabbarNew(
+        tabIndex: args["tabIndex"] ?? 2,
+      );
+    },
 
     // 🔸 Admin Future Property List
     administaterShowFutureProperty: (context) {

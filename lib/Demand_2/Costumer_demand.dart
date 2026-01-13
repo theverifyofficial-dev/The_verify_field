@@ -335,7 +335,22 @@ class _TenantDemandState extends State<CostumerDemand> {
 
               const SizedBox(height: 16),
               Expanded(
-                child: ListView(
+                child:  (_filteredParent.isEmpty)
+                ? Center(
+                child: Text(
+                "No demands found",
+                style: TextStyle(
+                color: isDark ? Colors.white70 : Colors.grey.shade700,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                ),
+                ),
+                )
+                    : RefreshIndicator(
+                onRefresh: _loadDemands,
+                color: theme.colorScheme.primary,
+                child:
+                ListView(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   children: [
 
@@ -351,7 +366,8 @@ class _TenantDemandState extends State<CostumerDemand> {
                     ],
                   ],
                 ),
-              )            ],
+              )            ),
+              ]
           ),
 
         ],

@@ -26,6 +26,8 @@ class _TargetScreenState extends State<TargetScreen> {
   bool isMonthly = true;
   bool loading = true;
   String? error;
+  DateTime? periodStart;
+  DateTime? periodEnd;
 
   final String fieldWorkerNumber = "11";
 
@@ -119,8 +121,62 @@ class _TargetScreenState extends State<TargetScreen> {
     if (list.isNotEmpty) {
       bookRentDone = int.tryParse(list[0]["rent_count"].toString()) ?? 0;
       bookBuyDone = int.tryParse(list[0]["buy_count"].toString()) ?? 0;
+      // ✅ PERIOD DATES
+      periodStart = DateTime.tryParse(
+        list[0]["period_start"]["date"],
+      );
+
+      periodEnd = DateTime.tryParse(
+        list[0]["period_end"]["date"],
+      );
     }
   }
+  String _formatDate(DateTime? date) {
+    if (date == null) return "--";
+    return "${date.day.toString().padLeft(2, '0')}-"
+        "${date.month.toString().padLeft(2, '0')}-"
+        "${date.year}";
+  }
+
+  Widget _buildPeriodBanner(bool isDark) {
+    if (periodStart == null || periodEnd == null) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black45 : Colors.black12,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "Period",
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+          Text(
+            "${_formatDate(periodStart)}  →  ${_formatDate(periodEnd)}",
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Future<void> _fetchBookYearly() async {
     final uri = Uri.parse(
@@ -403,6 +459,9 @@ class _TargetScreenState extends State<TargetScreen> {
           const SizedBox(height: 12),
           _buildTabs(isDark),
           const SizedBox(height: 12),
+          if (isMonthly)
+            _buildPeriodBanner(isDark),
+          const SizedBox(height: 12),
 
           if (loading)
              Expanded(
@@ -429,7 +488,6 @@ class _TargetScreenState extends State<TargetScreen> {
     );
   }
 
-  // ================= GRIDS =================
 
   Widget _buildMonthlyGrid() {
     return _grid([

@@ -54,7 +54,6 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
     super.initState();
     _fetchDemandDetails();
     _loadUser();
-
   }
 
 
@@ -65,18 +64,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
         .toLowerCase() ??
         "";
 
-    final String myName = _myName ?? "";
-
-    final baseList = loc.contains("sultanpur")
-        ? _nameList
-        : _nameList2;
-
-    // ensure subadmin can assign to self
-    if (myName.isNotEmpty && !baseList.contains(myName)) {
-      return [myName, ...baseList];
-    }
-
-    return baseList;
+    return loc.contains("sultanpur") ? _nameList : _nameList2;
   }
 
   Future<void> _fetchDemandDetails() async {
@@ -616,7 +604,7 @@ class _SubDemandDetailsState extends State<SubDemandDetails> {
                 icon: const Icon(Icons.swap_horiz, color: Colors.white),
                 label: const Text(
                   "Transfer to Another Office",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,color: Colors.white ),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,

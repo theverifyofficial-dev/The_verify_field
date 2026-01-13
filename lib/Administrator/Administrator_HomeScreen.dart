@@ -72,7 +72,6 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     }
   }
 
-
   @override
   void dispose() {
     _shineController.dispose();

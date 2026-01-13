@@ -499,7 +499,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
     if (todayLoading || todayCounts == null) {
       return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
+        // margin: const EdgeInsets.symmetric(horizontal: 16),
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -554,7 +554,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
       },
       child: Container(
-        margin:  EdgeInsets.symmetric(horizontal: 16),
+        // margin:  EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
@@ -1713,7 +1713,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
 
                     const SizedBox(height: 8),
 
-                    Divider(thickness: 2,color: Colors.grey,),
+                    Divider(thickness: 1,color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,),
 
                     const SizedBox(height: 8),
 

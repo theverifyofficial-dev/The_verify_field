@@ -58,12 +58,15 @@ class _TargetState extends State<Target> {
   String? error;
   String? userRole;
   String? userLocation;
+  DateTime? periodStart;
+  DateTime? periodEnd;
 
 
   final List<Map<String, String>> allUsers = [
     {"name": "Sumit", "number": "9711775300", "location": "Sultanpur"},
     {"name": "Ravi Kumar", "number": "9711275300", "location": "Sultanpur"},
     {"name": "Faizan Khan", "number": "9971172204", "location": "Sultanpur"},
+    // {"name": "avjit", "number": "11", "location": "Sultanpur"},
     {"name": "Manish", "number": "8130209217", "location": "Rajpur Khurd"},
     {"name": "Abhay", "number": "9675383184", "location": "Rajpur Khurd"},
   ];
@@ -98,7 +101,6 @@ class _TargetState extends State<Target> {
   void initState() {
     super.initState();
     _loadUserAndFilter();
-
   }
 
   Future<void> _loadUserAndFilter() async {
@@ -139,6 +141,10 @@ class _TargetState extends State<Target> {
       userData.clear();
 
       final List<Future> allFutures = [];
+
+      if (activeTab == "Monthly" && users.isNotEmpty) {
+        await _fetchMonthlyPeriod(); // ✅ PERIOD FETCHED ONCE
+      }
 
       for (final u in users) {
         final String num = u["number"]!;
@@ -252,6 +258,39 @@ class _TargetState extends State<Target> {
 
   /* ================= APIs (MONTHLY) ================= */
 
+  Future<void> _fetchMonthlyPeriod() async {
+    for (final u in users) {
+      final number = u["number"]!;
+      print("📡 Trying period from $number");
+
+      final uri = Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number",
+      );
+
+      final res = await http.get(uri);
+      if (res.statusCode != 200) continue;
+
+      final decoded = jsonDecode(res.body);
+      final List list = decoded["data"] ?? [];
+
+      if (list.isNotEmpty) {
+        periodStart = DateTime.tryParse(
+          list[0]["period_start"]["date"],
+        );
+        periodEnd = DateTime.tryParse(
+          list[0]["period_end"]["date"],
+        );
+
+        print("✅ Period FOUND from $number");
+        return; // 🔥 STOP once found
+      }
+    }
+
+    print("❌ Period not found for any user");
+  }
+
+
+
   Future<void> _fetchBookMonthly(String number) async {
     final uri = Uri.parse(
         "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/book_monthly_show.php?field_workar_number=$number");
@@ -262,6 +301,51 @@ class _TargetState extends State<Target> {
       userData[number]!.bookBuy =
           int.tryParse(list[0]["buy_count"].toString()) ?? 0;
     }
+  }
+  String _formatDate(DateTime? date) {
+    if (date == null) return "--";
+    return "${date.day.toString().padLeft(2, '0')}-"
+        "${date.month.toString().padLeft(2, '0')}-"
+        "${date.year}";
+  }
+
+  Widget _buildPeriodBanner(bool isDark) {
+    if (periodStart == null || periodEnd == null) return const SizedBox();
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1F2937) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black45 : Colors.black12,
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            "Period",
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.black87,
+            ),
+          ),
+          Text(
+            "${_formatDate(periodStart)}  →  ${_formatDate(periodEnd)}",
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _fetchLiveMonthly(String number) async {
@@ -366,6 +450,10 @@ class _TargetState extends State<Target> {
           const SizedBox(height: 12),
           _buildTabs(isDark),
           const SizedBox(height: 12),
+          const SizedBox(height: 10),
+          if (activeTab == "Monthly")
+            _buildPeriodBanner(isDark),
+          const SizedBox(height: 10),
 
           if (loading)
             Expanded(

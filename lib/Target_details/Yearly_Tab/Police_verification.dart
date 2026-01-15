@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/constant.dart';
 
 import 'Target_Under_Details_/Yearly_police_verification.dart';
@@ -124,12 +125,13 @@ class PoliceyearlyModel {
     );
   }
 }
-/// =======================
-/// API FETCH
-/// =======================
+
 Future<List<PoliceyearlyModel>> fetchPoliceYearly() async {
+  final prefs = await SharedPreferences.getInstance();
+  final FNumber = prefs.getString('number') ?? "";
+  print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=11",
+    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_yearly.php?Fieldwarkarnumber=$FNumber",
   );
 
   final res = await http.get(url);

@@ -17,6 +17,8 @@ class AddDemandField extends StatefulWidget {
 
 class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTickerProviderStateMixin  {
 
+  String? _selectedBudgetLabel;
+  bool _showCustomSlider = false;
   final _formKey = GlobalKey<FormState>();
   final Dio _dio = Dio();
   final _nameCtrl = TextEditingController();
@@ -24,13 +26,19 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
   final _messageCtrl = TextEditingController();
   bool _fetchingCustomer = false;
   Map<String, dynamic>? _existingCustomer;
-
-
-
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
   final String _status = "assign_to_fieldworkar";
   bool _isUrgent = false;
+
+  void _resetBudgetState() {
+    _selectedBudgetLabel = null;
+    _showCustomSlider = false;
+
+    // Optional: reset ranges to defaults
+    _buyBudget = const RangeValues(1000000, 5000000);
+    _rentBudget = const RangeValues(5000, 20000);
+  }
 
   RangeValues _buyBudget = const RangeValues(1000000, 5000000);
 
@@ -46,6 +54,8 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
 
   late final AnimationController _pulseController;
   late final Animation<double> _pulseAnimation;
+
+
 
 
 
@@ -68,6 +78,14 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     _numberCtrl.dispose();
     _messageCtrl.dispose();
     super.dispose();
+  }
+
+  String _extractLast10Digits(String input) {
+    final digitsOnly = input.replaceAll(RegExp(r'\D'), '');
+    if (digitsOnly.length >= 10) {
+      return digitsOnly.substring(digitsOnly.length - 10);
+    }
+    return "";
   }
 
   Future<void> _fetchCustomerByPhone(String phone) async {
@@ -128,6 +146,8 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     }
 
     // PRICE → BUDGET
+    _resetBudgetState();
+
     if (data["Price"] != null) {
       final parts = data["Price"].toString().split("-");
       if (parts.length == 2) {
@@ -493,6 +513,7 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
                 controller: _numberCtrl,
                 enabled: _existingCustomer == null,
                 decoration: _inputStyle("Phone Number", Icons.phone).copyWith(
+                  hintText: "Enter number (e.g. +91XXXXXXXXXX)",
                   suffixIcon: _fetchingCustomer
                       ? const Padding(
                     padding: EdgeInsets.all(12),
@@ -505,14 +526,24 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
                       : null,
                 ),
                 keyboardType: TextInputType.phone,
-                maxLength: 10,
-                onChanged: (v) {
-                  if (v.length == 10) {
-                    _fetchCustomerByPhone(v);
+                maxLength: 14, // ✅ allow +91 / spaces
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'[0-9+]')),
+                ],
+                onChanged: (value) {
+                  final last10 = _extractLast10Digits(value);
+
+                  if (last10.length == 10 && !_fetchingCustomer) {
+                    _fetchCustomerByPhone(last10); // 🔥 ONLY 10 DIGITS SENT
                   }
                 },
-                validator: (v) =>
-                v!.length != 10 ? "Enter valid 10-digit number" : null,
+                validator: (value) {
+                  final last10 = _extractLast10Digits(value ?? "");
+                  if (last10.length != 10) {
+                    return "Enter valid 10-digit mobile number";
+                  }
+                  return null;
+                },
               ),
 
               TextFormField(
@@ -526,8 +557,16 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
                 onTap: () => _showSelectBottomSheet(
                   title: "Select Type (Buy or Rent)",
                   items: _buyRentOptions,
-                  onSelect: (v) => setState(() => _buyRent = v),
+                  onSelect: (v) {
+                    if (_buyRent != v) {
+                      setState(() {
+                        _buyRent = v;
+                        _resetBudgetState(); // 🔥 FIX
+                      });
+                    }
+                  },
                 ),
+
                 child: _optionBox("Buy / Rent", _buyRent),
               ),
               GestureDetector(
@@ -558,12 +597,9 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      BudgetSelector(
+                      budgetDropdown(
                         type: _buyRent!,
-                        buyBudget: _buyBudget,
-                        rentBudget: _rentBudget,
-                        onBuyChange: (v) => setState(() => _buyBudget = v),
-                        onRentChange: (v) => setState(() => _rentBudget = v),
+                        theme: theme,
                       ),
 
                       const SizedBox(height: 12),
@@ -705,6 +741,92 @@ class _CustomerDemandFormPageState extends State<AddDemandField> with SingleTick
     );
   }
 
+
+  final List<Map<String, RangeValues>> buyBudgetPresets = [
+    {"₹20L – ₹40L": const RangeValues(2000000, 4000000)},
+    {"₹40L – ₹80L": const RangeValues(4000000, 8000000)},
+    {"₹80L – ₹1.2Cr": const RangeValues(8000000, 12000000)},
+    {"₹1.2Cr – ₹2Cr": const RangeValues(12000000, 20000000)},
+    {"Custom Range": const RangeValues(0, 0)},
+  ];
+
+  final List<Map<String, RangeValues>> rentBudgetPresets = [
+    {"₹8k – ₹12k": const RangeValues(8000, 12000)},
+    {"₹12k – ₹20k": const RangeValues(12000, 20000)},
+    {"₹20k – ₹30k": const RangeValues(20000, 30000)},
+    {"₹30k+": const RangeValues(30000, 60000)},
+    {"Custom Range": const RangeValues(0, 0)},
+  ];
+
+  Widget budgetDropdown({
+    required String type, // Buy / Rent
+    required ThemeData theme,
+  }) {
+    final presets = type == "Buy" ? buyBudgetPresets : rentBudgetPresets;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          type == "Buy" ? "Budget Range" : "Monthly Rent Budget",
+          style: theme.textTheme.titleSmall!.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 6),
+
+        DropdownButtonFormField<String>(
+          value: _selectedBudgetLabel,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.2),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+          ),
+          hint: const Text("Select budget range"),
+          items: presets.map((p) {
+            final label = p.keys.first;
+            return DropdownMenuItem(
+              value: label,
+              child: Text(label),
+            );
+          }).toList(),
+          onChanged: (label) {
+            setState(() {
+              _selectedBudgetLabel = label;
+              final range =
+                  presets.firstWhere((p) => p.keys.first == label).values.first;
+
+              if (label == "Custom Range") {
+                _showCustomSlider = true;
+              } else {
+                _showCustomSlider = false;
+                if (type == "Buy") {
+                  _buyBudget = range;
+                } else {
+                  _rentBudget = range;
+                }
+              }
+            });
+          },
+        ),
+
+        if (_showCustomSlider) ...[
+          const SizedBox(height: 12),
+          BudgetSelector(
+            type: type,
+            buyBudget: _buyBudget,
+            rentBudget: _rentBudget,
+            onBuyChange: (v) => setState(() => _buyBudget = v),
+            onRentChange: (v) => setState(() => _rentBudget = v),
+          ),
+        ],
+      ],
+    );
+  }
+
 }
 
 
@@ -736,17 +858,6 @@ class BudgetSelector extends StatelessWidget {
     final theme = Theme.of(context);
     final bool isBuy = type == "Buy";
 
-    final presets = isBuy
-        ? [
-      const RangeValues(2000000, 4000000),
-      const RangeValues(4000000, 8000000),
-      const RangeValues(8000000, 12000000),
-    ]
-        : [
-      const RangeValues(8000, 12000),
-      const RangeValues(12000, 20000),
-      const RangeValues(20000, 30000),
-    ];
 
     final current = isBuy ? buyBudget : rentBudget;
 
@@ -767,6 +878,18 @@ class BudgetSelector extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // TITLE
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Custom Range Amount",
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
+
           Text(
             isBuy ? "Buy Budget" : "Monthly Rent Budget",
             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -784,24 +907,6 @@ class BudgetSelector extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 12),
-
-          // PRESET CHIPS
-          Wrap(
-            spacing: 8,
-            children: presets.map((r) {
-              final label = isBuy
-                  ? "${_formatAmount(r.start)} - ${_formatAmount(r.end)}"
-                  : "₹${r.start.toInt()} - ₹${r.end.toInt()}";
-
-              return ChoiceChip(
-                label: Text(label),
-                selected: false,
-                onSelected: (_) =>
-                isBuy ? onBuyChange(r) : onRentChange(r),
-              );
-            }).toList(),
-          ),
 
           const SizedBox(height: 12),
 

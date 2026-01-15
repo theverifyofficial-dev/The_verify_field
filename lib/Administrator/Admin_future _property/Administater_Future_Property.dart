@@ -433,12 +433,12 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       "Caretaker Number": i.caretakerNumber,
       "Place": i.place,
       "Buy/Rent": i.buyRent,
-      "Type of Property": i.typeOfProperty,
-      "BHK": i.selectBhk,
-      "Floor Number": i.floorNumber,
-      "Square Feet": i.squareFeet,
+      // "Type of Property": i.typeOfProperty,
+      // "BHK": i.selectBhk,
+      // "Floor Number": i.floorNumber,
+      // "Square Feet": i.squareFeet,
       "Property Name/Address": i.propertyNameAddress,
-      "Building Facilities": i.buildingInformationFacilities,
+      // "Building Facilities": i.buildingInformationFacilities,
       "Address (Fieldworker)": i.propertyAddressForFieldworker,
       "Owner Vehicle Number": i.ownerVehicleNumber,
       "Your Address": i.yourAddress,
@@ -635,7 +635,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       },
       child: Card(
         key: _cardKeys[property.id.toString()] ??= GlobalKey(),
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
         elevation: isDark ? 0 : 6,
         color: theme.cardColor,
         shape: RoundedRectangleBorder(
@@ -686,7 +686,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
                               ),
                               const SizedBox(height: 12),
                               ...detailRows,
-                              const Spacer(),
+                              const SizedBox(height: 14),
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: _DetailRow(

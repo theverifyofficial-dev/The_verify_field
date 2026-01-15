@@ -6,41 +6,25 @@ import 'package:animated_analog_clock/animated_analog_clock.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
-import 'package:verify_feild_worker/Administrator/SubAdmin/ShowTenantDemant.dart';
-import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Add_commercial_property.dart';
 import 'package:verify_feild_worker/Home_Screen_click/live_tabbar.dart';
-import 'package:verify_feild_worker/Monthly_Target.dart';
-import 'package:verify_feild_worker/Statistics/Target_MainPage.dart';
-import 'package:verify_feild_worker/Target_details/Target_details.dart';
+import 'package:verify_feild_worker/Target_details/Yearly_Target.dart';
 import 'package:verify_feild_worker/Upcoming/Parent_Upcoming.dart';
 import 'package:verify_feild_worker/profile.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
-import 'Add_Rented_Flat/Add_Rented_Flat_Tabbar.dart';
-import 'Add_Rented_Flat/Field_Worker_Target.dart';
 import 'Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
-import 'Administrator/agreement_details.dart';
 import 'Calender/CalenderForFieldWorker.dart';
-import 'Demand_2/Costumer_demand.dart';
 import 'Demand_2/Tabbar.dart';
 import 'Demand_card.dart';
 import 'Future_Property_OwnerDetails_section/Future_Property.dart';
-import 'Home_Screen_click/New_Real_Estate.dart';
 import 'Propert_verigication_Document/Show_tenant.dart';
-import 'Rent Agreement/Dashboard_screen.dart';
 import 'Rent Agreement/history_tab.dart';
 import 'Social_Media_links.dart';
+import 'Target_details/Monthly_target.dart';
 import 'Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
-import 'Web_query/web_query.dart' hide SlideAnimation, ScaleAnimation;
-import 'Yearly_Target.dart';
-import 'add_properties_firstpage.dart';
-import 'main.dart';
 
 class TodayCounts {
   final int agreements;
@@ -1499,17 +1483,17 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         ),
         "gradient": cardGradients[2],
       },
-      // {
-      //   "image": AppImages.tenant,
-      //   "title": "Tenant Demands",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const MainPage_TenandDemand()));
-      //   },
-      //   "gradient": cardGradients[3],
-      // },
+      {
+        "image": AppImages.tenant,
+        "title": "Tenant Demands",
+        "onTap": () {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (_) => const MainPage_TenandDemand()));
+        },
+        "gradient": cardGradients[3],
+      },
       {
         "image": AppImages.agreement,
         "title": "Property Agreement",
@@ -1529,17 +1513,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[5],
       },
-      {
-        "image": AppImages.target,
-        "title": "Target",
-        "onTap": () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => const TargetScreen()));
-        },
-        "gradient": cardGradients[6],
-      },
+
       {
         "image": AppImages.realestatefeild,
         "title": "Upcoming Flats",
@@ -1551,39 +1525,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
         },
         "gradient": cardGradients[7],
       },
-      // {
-      //   "image": AppImages.calendar,
-      //   "title": "Task Calendar",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const CalendarTaskPage()));
-      //   },
-      //   "gradient": cardGradients[8],
-      // },
-      // {
-      //   "image": AppImages.demand_2,
-      //   "title": "Costumer Demands 2.O",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const Tabbar()));
-      //   },
-      //   "gradient": cardGradients[9],
-      // },
-      // {
-      //   "image": AppImages.AI,
-      //   "title": "Gemini AI",
-      //   "onTap": () {
-      //     Navigator.push(
-      //         context,
-      //         MaterialPageRoute(
-      //             builder: (_) => const GeminiChatScreen()));
-      //   },
-      //   "gradient": cardGradients[10],
-      // },
     ];
 
     return Scaffold(
@@ -1667,26 +1608,26 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             alignment: WrapAlignment.spaceEvenly,
                             children: [
                               _TargetProgressCircle(
-                                progress: monthlyProgress,
-                                percentage: '${(monthlyProgress * 100).toInt()}%',
+                                // progress: monthlyProgress,
+                                // percentage: '${(monthlyProgress * 100).toInt()}%',
                                 title: 'Monthly Target',
                                 icon: Icons.track_changes_rounded,
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => const Target_Monthly()),
+                                    MaterialPageRoute(builder: (_) => const MonthlyTargetScreen()),
                                   );
                                 },
                               ),
                               _TargetProgressCircle(
-                                progress: yearlyProgress,
-                                percentage: '${(yearlyProgress * 100).toInt()}%',
+                                // progress: yearlyProgress,
+                                // percentage: '${(yearlyProgress * 100).toInt()}%',
                                 title: 'Yearly Target',
                                 icon: Icons.calendar_today_rounded,
                                 onTap: () {
                                   Navigator.push(
                                     context,
-                                    MaterialPageRoute(builder: (_) => const Target_Yearly()),
+                                    MaterialPageRoute(builder: (_) => const YearlyTargetScreen()),
                                   );
                                 },
                               ),
@@ -1837,15 +1778,15 @@ class _GlassCircle extends StatelessWidget {
 }
 
 class _TargetProgressCircle extends StatefulWidget {
-  final double progress;
-  final String percentage;
+  // final double progress;
+  // final String percentage;
   final String title;
   final IconData icon;
   final VoidCallback onTap;
 
   const _TargetProgressCircle({
-    required this.progress,
-    required this.percentage,
+    // required this.progress,
+    // required this.percentage,
     required this.title,
     required this.icon,
     required this.onTap,
@@ -1890,7 +1831,7 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
 
     // Enhanced dynamic sizing for premium feel
     final double baseSize = screenWidth < 360 ? 70.0 : screenWidth < 500 ? 85.0 : 100.0;
-    final double iconSize = baseSize * 0.22;
+    final double iconSize = baseSize * 0.40;
     final double textSize = baseSize * 0.18;
     final double titleSize = (screenWidth * 0.032).clamp(11.0, 13.0);
 
@@ -2013,17 +1954,17 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
                                   ),
                                 ),
                                 // Foreground progress ring with gradient sweep
-                                SizedBox(
-                                  width: baseSize - 8,
-                                  height: baseSize - 8,
-                                  child: CustomPaint(
-                                    painter: _ProgressPainter(
-                                      progress: widget.progress,
-                                      strokeWidth: baseSize * 0.08,
-                                      gradient: progressGradient,
-                                    ),
-                                  ),
-                                ),
+                                // SizedBox(
+                                //   width: baseSize - 8,
+                                //   height: baseSize - 8,
+                                //   child: CustomPaint(
+                                //     painter: _ProgressPainter(
+                                //       progress: widget.progress,
+                                //       strokeWidth: baseSize * 0.08,
+                                //       gradient: progressGradient,
+                                //     ),
+                                //   ),
+                                // ),
                                 // Inner content with glassmorphism
                                 Container(
                                   width: baseSize * 0.75,
@@ -2066,24 +2007,24 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
                                         ],
                                       ),
                                       SizedBox(height: baseSize * 0.04),
-                                      FittedBox(
-                                        fit: BoxFit.scaleDown,
-                                        child: Text(
-                                          widget.percentage,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            fontSize: textSize,
-                                            fontWeight: FontWeight.bold,
-                                            shadows: [
-                                              Shadow(
-                                                color: Colors.black.withOpacity(0.3),
-                                                blurRadius: 2,
-                                                offset: const Offset(0, 1),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
+                                      // FittedBox(
+                                      //   fit: BoxFit.scaleDown,
+                                      //   child: Text(
+                                      //     widget.percentage,
+                                      //     style: TextStyle(
+                                      //       color: Colors.white,
+                                      //       fontSize: textSize,
+                                      //       fontWeight: FontWeight.bold,
+                                      //       shadows: [
+                                      //         Shadow(
+                                      //           color: Colors.black.withOpacity(0.3),
+                                      //           blurRadius: 2,
+                                      //           offset: const Offset(0, 1),
+                                      //         ),
+                                      //       ],
+                                      //     ),
+                                      //   ),
+                                      // ),
                                     ],
                                   ),
                                 ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/constant.dart';
 
 import 'Monthly_under_detail/Police_Monthly_Detail.dart';
@@ -172,8 +173,11 @@ class PoliceMonthlyModel {
 /// API FETCH
 /// =======================
 Future<List<PoliceMonthlyModel>> fetchPoliceMonthly() async {
+  final prefs = await SharedPreferences.getInstance();
+  final FNumber = prefs.getString('number') ?? "";
+  print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=11",
+    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=$FNumber",
   );
 
   final res = await http.get(url);

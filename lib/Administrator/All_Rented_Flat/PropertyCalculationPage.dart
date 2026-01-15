@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../Add_Rented_Flat/FieldWorker_Complete_Page.dart';
 
@@ -392,6 +393,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   @override
   void initState() {
     super.initState();
+    loadUserPost();
+
 
     _futureProperty = _fetchPropertyById(widget.propertyId);
     s2OwnerCtl.addListener(_recalc);
@@ -841,6 +844,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     }
   }
   bool _s3Submitting = false;
+  String? userStoredFAadharCard;
+
 
   static const _step3Endpoint =
       "https://verifyserve.social/Second%20PHP%20FILE/Payment/third_setp_payment.php";
@@ -906,6 +911,19 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     }
   }
 
+  Future<void> loadUserPost() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    final storedFAadharCard = prefs.getString('post');
+
+    debugPrint("User FAadharCard: $storedFAadharCard");
+    if (mounted) {
+      setState(() {
+
+        userStoredFAadharCard = storedFAadharCard;
+
+      });
+    }
+  }
 
 
 
@@ -977,7 +995,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     fieldWorkerFinalShare = netAfterGst * 0.5;
 
     if (hasVisitor) {
-      visitorShare = companyCommissionTotal * 0.15;
+      visitorShare = fieldWorkerFinalShare * 0.15;
       fieldWorkerFinalShare =
           (fieldWorkerFinalShare - visitorShare)
               .clamp(0, double.infinity);
@@ -1751,40 +1769,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                   settlementPool, // s1Hold + s2Hold
                                   Colors.orangeAccent,
                                 ),
-
-                                const SizedBox(height: 12),
-                                // Visitor toggle
-                                // ✅ ONLY show if visitor exists
-                                if (visitorAvailable) ...[
-                                  const SizedBox(height: 12),
-
-                                  SwitchListTile(
-                                    contentPadding: EdgeInsets.zero,
-                                    title: const Text("Visitor Commission (15%)"),
-                                    value: hasVisitor,
-                                    onChanged: step3Done || visitorLocked
-                                        ? null
-                                        : (v) {
-                                      setState(() {
-                                        hasVisitor = v;
-                                        _recalc(); // 🔥 recalc commission
-                                      });
-                                    },
-                                  ),
-
-                                  const SizedBox(height: 8),
-
-                                  // ✅ Amount ONLY when switch ON
-                                  if (hasVisitor)
-                                    _buildAmountDisplay(
-                                      "Visitor Share",
-                                      _cur(visitorShare),
-                                      context,
-                                    ),
-                                ]
-
-
-
                               ],
                             ),
                           ),
@@ -1971,7 +1955,38 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                     ],
                   ),
                 ),
-                // Commission Distribution
+                  const SizedBox(height: 12),
+                  // Visitor toggle
+                  // ✅ ONLY show if visitor exists
+                  if (visitorAvailable) ...[
+
+
+                    const SizedBox(height: 12),
+
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text("Visitor Commission (15%)"),
+                      value: hasVisitor,
+                      onChanged: step3Done || visitorLocked
+                          ? null
+                          : (v) {
+                        setState(() {
+                          hasVisitor = v;
+                          _recalc(); // 🔥 recalc commission
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 8),
+
+                    // ✅ Amount ONLY when switch ON
+                    if (hasVisitor)
+                      _buildAmountDisplay(
+                        "Visitor Share",
+                        _cur(visitorShare),
+                        context,
+                      ),
+                  ],
                   Container(
                     margin: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -2212,6 +2227,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                     ),
                   ),
                   // Final Action Button
+                  if(userStoredFAadharCard == "Sub Administrator") ...[
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: SizedBox(
@@ -2258,6 +2274,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                       ),
                     ),
                   ),
+            ],
                 ],
               ),
             );

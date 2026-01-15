@@ -27,7 +27,7 @@ class _RedemandFormState  extends State<RedemandForm>
   String? _familyStructure;
   String? _familyMember;
   String? _religion;
-  RangeValues _rentBudget = const RangeValues(12000, 25000);
+  // RangeValues _rentBudget = const RangeValues(12000, 25000);
   int _adultCount = 1;
   int _childrenCount = 0;
   Map<String, int> _selectedFurniture = {}; // e.g., {'Sofa': 2, 'Bed': 1}
@@ -38,7 +38,7 @@ class _RedemandFormState  extends State<RedemandForm>
   final TextEditingController _vehicleNoCtrl = TextEditingController();
   String? _vehicleType;
 
-  RangeValues _buyBudget = const RangeValues(1000000, 5000000);
+  // RangeValues _buyBudget = const RangeValues(1000000, 5000000);
 
 
   final Set<String> _floor = {};
@@ -103,28 +103,28 @@ class _RedemandFormState  extends State<RedemandForm>
 
     _buyRent = d["Buy_rent"]?.toString();
 
-    final price = d["Price"]?.toString() ?? "";
-    if (_buyRent == "Buy") {
-      final parts = price.split('-');
-      if (parts.length == 2) {
-        try {
-          _buyBudget = RangeValues(
-            double.parse(parts[0]),
-            double.parse(parts[1]),
-          );
-        } catch (_) {}
-      }
-    } else if (_buyRent == "Rent") {
-      final parts = price.split('-');
-      if (parts.length == 2) {
-        try {
-          _rentBudget = RangeValues(
-            double.parse(parts[0]),
-            double.parse(parts[1]),
-          );
-        } catch (_) {}
-      }
-    }
+    // final price = d["Price"]?.toString() ?? "";
+    // if (_buyRent == "Buy") {
+    //   final parts = price.split('-');
+    //   if (parts.length == 2) {
+    //     try {
+    //       _buyBudget = RangeValues(
+    //         double.parse(parts[0]),
+    //         double.parse(parts[1]),
+    //       );
+    //     } catch (_) {}
+    //   }
+    // } else if (_buyRent == "Rent") {
+    //   final parts = price.split('-');
+    //   if (parts.length == 2) {
+    //     try {
+    //       _rentBudget = RangeValues(
+    //         double.parse(parts[0]),
+    //         double.parse(parts[1]),
+    //       );
+    //     } catch (_) {}
+    //   }
+    // }
 
 
     if (d["floor"] != null) {
@@ -284,32 +284,12 @@ class _RedemandFormState  extends State<RedemandForm>
 
     String? error;
 
-    if (_furnished == null || _furnished!.isEmpty) {
-      error = "Please select furnishing type";
-    } else if (_familyStructure == null || _familyStructure!.isEmpty) {
-      error = "Please select family structure";
-    } else if (_familyMember == null || _familyMember!.isEmpty) {
-      error = "Please enter family member count";
-    } else if (_floor.isEmpty) {
-      error = "Please select at least one floor";
-    } else if (_buyRent == null || _buyRent!.isEmpty) {
-      error = "Please select Buy or Rent";
-    }
 
-    if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(backgroundColor: Colors.redAccent, content: Text(error)),
-      );
-      setState(() => _isUpdating = false);
-      return;
-    }
-
-    final total = int.tryParse(_familyMember!) ?? 0;
-    if (_adultCount + _childrenCount != total) {
+    if (_shiftingDate == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           backgroundColor: Colors.redAccent,
-          content: Text("Adult + Child count must equal total family members"),
+          content: Text("Please select shifting date"),
         ),
       );
       setState(() => _isUpdating = false);
@@ -320,29 +300,44 @@ class _RedemandFormState  extends State<RedemandForm>
 
     final payload = {
       "id": widget.demand["id"].toString(),
-      "parking": _parking ?? "",
-      "lift": _lift ?? "",
-      "furnished_unfurnished": _furnished ?? "",
-      "family_structur": _familyStructure,
-      "family_member": _familyMember,
-      "count_of_person": "${_adultCount}A-${_childrenCount}C",
-      "religion": _religion ?? "",
+
+      "parking": _parking ?? widget.demand["parking"] ?? "",
+      "lift": _lift ?? widget.demand["lift"] ?? "",
+      "furnished_unfurnished": _furnished ?? widget.demand["furnished_unfurnished"] ?? "",
+      "family_structur": _familyStructure ?? widget.demand["family_structur"] ?? "",
+      "family_member": _familyMember ?? widget.demand["family_member"] ?? "",
+      "count_of_person": (_familyMember != null)
+          ? "${_adultCount}A-${_childrenCount}C"
+          : widget.demand["count_of_person"] ?? "",
+
+      "religion": _religion ?? widget.demand["religion"] ?? "",
+
+      // 🔥 ONLY REQUIRED FIELD
+      "shifting_date": DateFormat("yyyy-MM-dd").format(_shiftingDate!),
+
       "visiting_dates": _visitingDate == null
-          ? ""
+          ? widget.demand["visiting_dates"] ?? ""
           : DateFormat("yyyy-MM-dd").format(_visitingDate!),
-      "vichle_no": _vehicleNoCtrl.text.trim(),
-      "vichle_type": _vehicleType ?? "",
-      "floor": _floor.join(','),
-      "shifting_date": _shiftingDate == null
-          ? ""
-          : DateFormat("yyyy-MM-dd").format(_shiftingDate!),
-      "Price": _buyRent == "Buy"
-          ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-      "Message": _messageCtrl.text.trim(),
-      "Buy_rent": _buyRent ?? "",
-      "furnished_item":
-      _selectedFurniture.isEmpty ? "" : jsonEncode(_selectedFurniture),
+
+      "vichle_no": _vehicleNoCtrl.text.isNotEmpty
+          ? _vehicleNoCtrl.text.trim()
+          : widget.demand["vichle_no"] ?? "",
+
+      "vichle_type": _vehicleType ?? widget.demand["vichle_type"] ?? "",
+
+      "floor": _floor.isNotEmpty
+          ? _floor.join(',')
+          : widget.demand["floor"] ?? "",
+
+      "Message": _messageCtrl.text.isNotEmpty
+          ? _messageCtrl.text.trim()
+          : widget.demand["Message"] ?? "",
+
+      "Buy_rent": _buyRent ?? widget.demand["Buy_rent"] ?? "",
+
+      "furnished_item": _selectedFurniture.isNotEmpty
+          ? jsonEncode(_selectedFurniture)
+          : widget.demand["furnished_item"] ?? "",
     };
 
     print("📦 REQUEST PAYLOAD:");
@@ -446,10 +441,9 @@ class _RedemandFormState  extends State<RedemandForm>
             children: [
               Align(
                 alignment: Alignment.center,
-                child: Text(
-                  "Update ReDemand Details",
-                  style: theme.textTheme.titleLarge!
-                      .copyWith(fontWeight: FontWeight.bold),
+                child:Text(
+                  "   Update ReDemand Details\n (Only Shifting Date Required)",
+                  style: theme.textTheme.titleLarge!.copyWith(fontWeight: FontWeight.bold,fontSize: 16,color: Colors.red),
                 ),
               ),
               const SizedBox(height: 12),
@@ -683,52 +677,52 @@ class _RedemandFormState  extends State<RedemandForm>
               ),
               const SizedBox(height: 6),
 
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(14),
-                  color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _buyRent == "Buy"
-                          ? "${_formatAmount(_buyBudget.start)} – ${_formatAmount(_buyBudget.end)}"
-                          : "₹${_rentBudget.start.toInt()} – ₹${_rentBudget.end.toInt()} / month",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-
-                    RangeSlider(
-                      values: _buyRent == "Buy" ? _buyBudget : _rentBudget,
-                      min: _buyRent == "Buy" ? 500000 : 5000,
-                      max: _buyRent == "Buy" ? 20000000 : 100000,
-                      divisions: _buyRent == "Buy" ? 40 : 19,
-                      labels: _buyRent == "Buy"
-                          ? RangeLabels(
-                        _formatAmount(_buyBudget.start),
-                        _formatAmount(_buyBudget.end),
-                      )
-                          : RangeLabels(
-                        "₹${_rentBudget.start.toInt()}",
-                        "₹${_rentBudget.end.toInt()}",
-                      ),
-                      onChanged: (range) {
-                        setState(() {
-                          if (_buyRent == "Buy") {
-                            _buyBudget = range;
-                          } else {
-                            _rentBudget = range;
-                          }
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
+              // Container(
+              //   padding: const EdgeInsets.all(14),
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(14),
+              //     color: theme.colorScheme.surfaceVariant.withOpacity(0.1),
+              //   ),
+              //   child: Column(
+              //     crossAxisAlignment: CrossAxisAlignment.start,
+              //     children: [
+              //       Text(
+              //         _buyRent == "Buy"
+              //             ? "${_formatAmount(_buyBudget.start)} – ${_formatAmount(_buyBudget.end)}"
+              //             : "₹${_rentBudget.start.toInt()} – ₹${_rentBudget.end.toInt()} / month",
+              //         style: const TextStyle(
+              //           fontSize: 16,
+              //           fontWeight: FontWeight.bold,
+              //         ),
+              //       ),
+              //
+              //       RangeSlider(
+              //         values: _buyRent == "Buy" ? _buyBudget : _rentBudget,
+              //         min: _buyRent == "Buy" ? 500000 : 5000,
+              //         max: _buyRent == "Buy" ? 20000000 : 100000,
+              //         divisions: _buyRent == "Buy" ? 40 : 19,
+              //         labels: _buyRent == "Buy"
+              //             ? RangeLabels(
+              //           _formatAmount(_buyBudget.start),
+              //           _formatAmount(_buyBudget.end),
+              //         )
+              //             : RangeLabels(
+              //           "₹${_rentBudget.start.toInt()}",
+              //           "₹${_rentBudget.end.toInt()}",
+              //         ),
+              //         onChanged: (range) {
+              //           setState(() {
+              //             if (_buyRent == "Buy") {
+              //               _buyBudget = range;
+              //             } else {
+              //               _rentBudget = range;
+              //             }
+              //           });
+              //         },
+              //       ),
+              //     ],
+              //   ),
+              // ),
 
               Text(
                 "Select Floor",

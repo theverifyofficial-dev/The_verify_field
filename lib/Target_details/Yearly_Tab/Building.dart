@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/ui_decoration_tools/app_images.dart';
 import 'Target_Under_Details_/Building_Details.dart';
 
@@ -118,8 +119,11 @@ class BuildingModel {
 
 
 Future<List<BuildingModel>> fetchBuildings() async {
+  final prefs = await SharedPreferences.getInstance();
+  final FNumber = prefs.getString('number') ?? "";
+  print(FNumber);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=11",
+    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/building_data_yearly.php?fieldworkarnumber=$FNumber",
   );
 
   final res = await http.get(url);

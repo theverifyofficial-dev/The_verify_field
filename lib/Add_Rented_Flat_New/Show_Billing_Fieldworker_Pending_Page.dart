@@ -1569,89 +1569,122 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                   ),
 
                   // Payment Process Steps
-              FutureBuilder<PaymentRecord?>(
-                future: _fetchPaymentStatusBySubId(widget.propertyId),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Padding(
-                      padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(),
-                    );
-                  }
+                  FutureBuilder<PaymentRecord?>(
+                    future: _fetchPaymentStatusBySubId(widget.propertyId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(24),
+                          child: CircularProgressIndicator(),
+                        );
+                      }
 
-                  if (!snapshot.hasData) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: Container(
-                        margin: const EdgeInsets.all( 16),
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: Colors.orange.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.orange.withOpacity(0.3)),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.info_outline,
-                              color: Colors.orange.shade700,
-                              size: 22,
+                      if (!snapshot.hasData) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Container(
+                            margin: const EdgeInsets.all( 16),
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.orange.withOpacity(0.3)),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                "Payment details are not available yet.\nPlease complete the payment steps to view records.",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.orange.shade800,
+                            child: Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  color: Colors.orange.shade700,
+                                  size: 22,
                                 ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    "Payment details are not available yet.\nPlease complete the payment steps to view records.",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.orange.shade800,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+
+                      final p = snapshot.data!;
+
+                      return Container(
+
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+
+                            // ================= STEP 1 =================
+                            Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
+                                ],
+                              ),
+                              child: Column(
+                                children: [
+                                  _stepTitle("Step 1 : Advance Payment", completed: true),
+                                  _buildAmountDisplay("Tenant Advance", _cur(p.tenantAdvance), context),
+                                  _buildAmountDisplay("Give To Owner", _cur(p.giveToOwnerAdvance), context),
+                                  _buildAmountDisplay("Office Hold", _cur(p.officeHold), context),
+                                  _savedButton(),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                              child: Divider(height: 32),
+                            ),
+                            if (p.midPaymentToOwner > 0)
+                            // ================= STEP 2 =================
+                              Column(
+                                children: [
+                                  Container(
+                                    margin: const EdgeInsets.all(16),
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).cardColor,
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
+                                      ],
+                                    ),
+                                    child: Column(
+                                      children: [
+                                        _stepTitle("Step 2 : Mid Payment", completed: true),
+                                        _buildAmountDisplay(
+                                          "Mid Payment to Owner",
+                                          _cur(p.midPaymentToOwner),
+                                          context,
+                                        ),
+                                        _savedButton(),
+                                      ],
+                                    ),
+                                  ),
+
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 18.0),
+                                    child: Divider(height: 32),
+                                  ),
+                                ],
+                              ),
 
 
-                  final p = snapshot.data!;
-
-                  return Container(
-
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-
-                        // ================= STEP 1 =================
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 16),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              _stepTitle("Step 1 : Advance Payment", completed: true),
-                              _buildAmountDisplay("Tenant Advance", _cur(p.tenantAdvance), context),
-                              _buildAmountDisplay("Give To Owner", _cur(p.giveToOwnerAdvance), context),
-                              _buildAmountDisplay("Office Hold", _cur(p.officeHold), context),
-                              _savedButton(),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                          child: Divider(height: 32),
-                        ),
-                        if (p.midPaymentToOwner > 0)
-                          // ================= STEP 2 =================
-                          Column(
-                            children: [
+                            // ================= STEP 3 =================
+                            if (p.tenantPayLastAmount > 0 && p.companyCommission > 0)
                               Container(
                                 margin: const EdgeInsets.all(16),
                                 padding: const EdgeInsets.all(16),
@@ -1664,448 +1697,415 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                 ),
                                 child: Column(
                                   children: [
-                                    _stepTitle("Step 2 : Mid Payment", completed: true),
+                                    _stepTitle("Step 3 : Final Settlement", completed: true),
                                     _buildAmountDisplay(
-                                      "Mid Payment to Owner",
-                                      _cur(p.midPaymentToOwner),
+                                      "Tenant Final Payment",
+                                      _cur(p.tenantPayLastAmount),
                                       context,
                                     ),
-                                    _savedButton(),
+                                    _buildAmountDisplay(
+                                      "Company Commission",
+                                      _cur(p.companyCommission),
+                                      context,
+                                    ),
+
+                                    SizedBox(height: 6,),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          "Visitor Commission",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        Text(
+                                          hasVisitor ? "YES" : "NO",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w700,
+                                            color: hasVisitor ? Colors.green : Colors.red,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    _buildAmountDisplay(
+                                      "Commission",
+                                      _cur(p.visitorShare),
+                                      context,
+                                    ),
                                   ],
                                 ),
                               ),
-
-                              Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 18.0),
-                                child: Divider(height: 32),
-                              ),
-                            ],
-                          ),
-
-
-                        // ================= STEP 3 =================
-                        if (p.tenantPayLastAmount > 0 && p.companyCommission > 0)
-                        Container(
-                          margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              _stepTitle("Step 3 : Final Settlement", completed: true),
-                              _buildAmountDisplay(
-                                "Tenant Final Payment",
-                                _cur(p.tenantPayLastAmount),
-                                context,
-                              ),
-                              _buildAmountDisplay(
-                                "Company Commission",
-                                _cur(p.companyCommission),
-                                context,
-                              ),
-
-                              SizedBox(height: 6,),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    "Visitor Commission",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  Text(
-                                    hasVisitor ? "YES" : "NO",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: hasVisitor ? Colors.green : Colors.red,
-                                    ),
+                            // Commission Distribution
+                            Container(
+                              margin: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.05),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
-                              _buildAmountDisplay(
-                                "Commission",
-                                _cur(p.visitorShare),
-                                context,
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Commission Distribution
-                        Container(
-                          margin: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Same header styling
-                                Row(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: 4,
-                                      height: 16,
-                                      decoration: BoxDecoration(
-                                        color: Colors.deepOrange,
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
+                                    // Same header styling
+                                    Row(
+                                      children: [
+                                        Container(
+                                          width: 4,
+                                          height: 16,
+                                          decoration: BoxDecoration(
+                                            color: Colors.deepOrange,
+                                            borderRadius: BorderRadius.circular(2),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          "Commission Distribution",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.deepOrange,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "Commission Distribution",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.deepOrange,
-                                      ),
+                                    const SizedBox(height: 8),
+                                    _buildColoredAmountRow(
+                                      "Company Commission (Total) = ${_cur(p.companyCommission)}",
+                                      forcePolarity: Polarity.credit, // or debit based on your logic
                                     ),
+                                    const SizedBox(height: 4),
+                                    _buildColoredAmountRow(
+                                      "GST (18%) = ${_cur(p.officeGst)}",
+                                      forcePolarity: Polarity.debit,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    _buildColoredAmountRow(
+                                      "After GST = ${_cur(p.afterGstAmount)}",
+                                      forcePolarity: Polarity.credit,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    _buildColoredAmountRow(
+                                      "Office Share (50%) = ${_cur(p.officeShare)}",
+                                      forcePolarity: Polarity.officeSpecial,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    _buildColoredAmountRow(
+                                      "Field Worker Share = ${_cur(p.fieldWorkerShare)}",
+                                      forcePolarity: Polarity.officeSpecial,
+                                    ),
+                                    if (hasVisitor) ...[
+                                      const SizedBox(height: 4),
+                                      _buildColoredAmountRow(
+                                        "Visitor Share (15%) = ${_cur(p.visitorShare)}",
+                                        forcePolarity: Polarity.officeSpecial,
+                                      ),
+                                    ],
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                _buildColoredAmountRow(
-                                  "Company Commission (Total) = ${_cur(p.companyCommission)}",
-                                  forcePolarity: Polarity.credit, // or debit based on your logic
-                                ),
-                                const SizedBox(height: 4),
-                                _buildColoredAmountRow(
-                                  "GST (18%) = ${_cur(p.officeGst)}",
-                                  forcePolarity: Polarity.debit,
-                                ),
-                                const SizedBox(height: 4),
-                                _buildColoredAmountRow(
-                                  "After GST = ${_cur(p.afterGstAmount)}",
-                                  forcePolarity: Polarity.credit,
-                                ),
-                                const SizedBox(height: 4),
-                                _buildColoredAmountRow(
-                                  "Office Share (50%) = ${_cur(p.officeShare)}",
-                                  forcePolarity: Polarity.officeSpecial,
-                                ),
-                                const SizedBox(height: 4),
-                                _buildColoredAmountRow(
-                                  "Field Worker Share = ${_cur(p.fieldWorkerShare)}",
-                                  forcePolarity: Polarity.officeSpecial,
-                                ),
-                                if (hasVisitor) ...[
-                                  const SizedBox(height: 4),
+                              ),
+                            ),
+                            SizedBox(height: 8,),
+                            Container(
+                              margin: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.amber.withOpacity(0.2)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // HEADER
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 4,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: Colors.amber,
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Text(
+                                        "Office Detail",
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.amber,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const SizedBox(height: 8),
+
+                                  // STEP 1
                                   _buildColoredAmountRow(
-                                    "Visitor Share (15%) = ${_cur(p.visitorShare)}",
+                                    "Step 1: Office Hold = ${_cur(p.officeHold)}",
+                                    forcePolarity: Polarity.credit,
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  // STEP 2
+                                  _buildColoredAmountRow(
+                                    "Step 2: Mid Amount transfer to owner = ${_cur(p.midPaymentToOwner)}",
+                                    forcePolarity: Polarity.debit,
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  // STEP 3
+                                  _buildColoredAmountRow(
+                                    "Step 3: Tenant Paid Final Amount = ${_cur(p.tenantPayLastAmount)}",
+                                    forcePolarity: Polarity.credit,
+                                  ),
+
+                                  const SizedBox(height: 6),
+
+                                  // SETTLEMENT POOL (API LOGIC)
+                                  Text(
+                                    "Settlement Pool = ${p.officeHold}+ ${p.tenantPayLastAmount}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Theme.of(context).brightness == Brightness.dark
+                                          ? Colors.white60
+                                          : Colors.grey.shade600,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+
+                                  _buildColoredAmountRow(
+                                    "= ${_cur(p.officeHold + p.tenantPayLastAmount)}",
                                     forcePolarity: Polarity.officeSpecial,
                                   ),
+
+                                  const Divider(),
+
+                                  // COMPANY COMMISSION
+                                  _buildColoredAmountRow(
+                                    "Company Commission = ${_cur(p.companyKeepCommission)}",
+                                    forcePolarity: Polarity.debit,
+                                  ),
+
+                                  const SizedBox(height: 4),
+
+                                  // OWNER FINAL SHARE
+                                  _buildColoredAmountRow(
+                                    "Owner Final Share = ${_cur(p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission)}",
+                                    forcePolarity: Polarity.credit,
+                                  ),
+
+
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                        ),
-                        SizedBox(height: 8,),
-                        Container(
-                          margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.amber.withOpacity(0.05),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.amber.withOpacity(0.2)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // HEADER
-                              Row(
+                            // Calculation Breakdown
+                            Padding(
+                              padding: const EdgeInsets.all(20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calculate,
+                                        color: Colors.blue.shade700,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "Calculation Breakdown",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Theme.of(context).colorScheme.onBackground,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
                                   Container(
-                                    width: 4,
-                                    height: 16,
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: Colors.amber,
-                                      borderRadius: BorderRadius.circular(2),
+                                      color: Colors.cyan.withOpacity(0.05),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.cyan.withOpacity(0.2)),
                                     ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    "Office Detail",
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.amber,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(height: 8),
-
-                              // STEP 1
-                              _buildColoredAmountRow(
-                                "Step 1: Office Hold = ${_cur(p.officeHold)}",
-                                forcePolarity: Polarity.credit,
-                              ),
-
-                              const SizedBox(height: 4),
-
-                              // STEP 2
-                              _buildColoredAmountRow(
-                                "Step 2: Mid Amount transfer to owner = ${_cur(p.midPaymentToOwner)}",
-                                forcePolarity: Polarity.debit,
-                              ),
-
-                              const SizedBox(height: 4),
-
-                              // STEP 3
-                              _buildColoredAmountRow(
-                                "Step 3: Tenant Paid Final Amount = ${_cur(p.tenantPayLastAmount)}",
-                                forcePolarity: Polarity.credit,
-                              ),
-
-                              const SizedBox(height: 6),
-
-                              // SETTLEMENT POOL (API LOGIC)
-                              Text(
-                                "Settlement Pool = ${p.officeHold}+ ${p.tenantPayLastAmount}",
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Theme.of(context).brightness == Brightness.dark
-                                      ? Colors.white60
-                                      : Colors.grey.shade600,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-
-                              _buildColoredAmountRow(
-                                "= ${_cur(p.officeHold + p.tenantPayLastAmount)}",
-                                forcePolarity: Polarity.officeSpecial,
-                              ),
-
-                              const Divider(),
-
-                              // COMPANY COMMISSION
-                              _buildColoredAmountRow(
-                                "Company Commission = ${_cur(p.companyKeepCommission)}",
-                                forcePolarity: Polarity.debit,
-                              ),
-
-                              const SizedBox(height: 4),
-
-                              // OWNER FINAL SHARE
-                              _buildColoredAmountRow(
-                                "Owner Final Share = ${_cur(p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission)}",
-                                forcePolarity: Polarity.credit,
-                              ),
-
-
-                            ],
-                          ),
-                        ),
-                        // Calculation Breakdown
-                        Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.calculate,
-                                    color: Colors.blue.shade700,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Calculation Breakdown",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Theme.of(context).colorScheme.onBackground,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.cyan.withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.cyan.withOpacity(0.2)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          width: 4,
-                                          height: 16,
-                                          decoration: BoxDecoration(
-                                            color: Colors.cyan,
-                                            borderRadius: BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Text(
-                                          "Tenant Detail",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.cyan,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    _buildColoredAmountRow(
-                                      "Step 1: Tenant Paid Advance = ${_cur(p.tenantAdvance)}",
-                                      forcePolarity: Polarity.debit,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    _buildColoredAmountRow(
-                                      "Step 2: Tenant Paid Mid Amount = ${_cur(p.midPaymentToOwner)}",
-                                      forcePolarity: Polarity.debit,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    _buildColoredAmountRow(
-                                      "Step 3: Tenant Paid Last Amount = ${_cur(p.tenantPayLastAmount)}",
-                                      forcePolarity: Polarity.debit,
-                                    ),
-                                    const SizedBox(height: 4),
-
-                                    // TENANT TOTAL
-                                    _buildColoredAmountRow(
-                                      "Tenant Total Paid = ${_cur(p.totalPayTenant)}",
-                                      forcePolarity: Polarity.neutral,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.greenAccent.withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: Colors.greenAccent.withOpacity(0.2)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Container(
-                                          width: 4,
-                                          height: 16,
-                                          decoration: BoxDecoration(
-                                            color: Colors.greenAccent,
-                                            borderRadius: BorderRadius.circular(2),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        const Text(
-                                          "Owner Detail",
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.greenAccent,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    _buildColoredAmountRow(
-                                      "Step 1: Received by Owner = ${_cur(p.giveToOwnerAdvance)}",
-                                      forcePolarity: Polarity.credit,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    _buildColoredAmountRow(
-                                      "Step 2: Received by Owner = ${_cur(p.midPaymentToOwner)}",
-                                      forcePolarity: Polarity.credit,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    _buildColoredAmountRow(
-                                      "Step 3: Received by Owner = ${_cur(p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission)}",
-                                      forcePolarity: Polarity.credit,
-                                    ),
-                                    const SizedBox(height: 6),
-
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          flex: 2,
-                                          child: Text(
-                                            "Owner Total Received = ${_cur(p.giveToOwnerAdvance)} + ${_cur(p.midPaymentToOwner)} + ${_cur(p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission)}",
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context).brightness == Brightness.dark
-                                                  ? Colors.white60
-                                                  : Colors.grey.shade600,
-                                              fontStyle: FontStyle.italic,
+                                        Row(
+                                          children: [
+                                            Container(
+                                              width: 4,
+                                              height: 16,
+                                              decoration: BoxDecoration(
+                                                color: Colors.cyan,
+                                                borderRadius: BorderRadius.circular(2),
+                                              ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 8),
+                                            const Text(
+                                              "Tenant Detail",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.cyan,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Expanded(
-                                          child: _buildColoredAmountRow(
-                                            "= ${_cur(
-                                                p.giveToOwnerAdvance +
-                                                    p.midPaymentToOwner +
-                                                    p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission
-                                            )}",
-                                            forcePolarity: Polarity.officeSpecial,
-                                          ),
+                                        const SizedBox(height: 8),
+
+                                        _buildColoredAmountRow(
+                                          "Step 1: Tenant Paid Advance = ${_cur(p.tenantAdvance)}",
+                                          forcePolarity: Polarity.debit,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        _buildColoredAmountRow(
+                                          "Step 2: Tenant Paid Mid Amount = ${_cur(p.midPaymentToOwner)}",
+                                          forcePolarity: Polarity.debit,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        _buildColoredAmountRow(
+                                          "Step 3: Tenant Paid Last Amount = ${_cur(p.tenantPayLastAmount)}",
+                                          forcePolarity: Polarity.debit,
+                                        ),
+                                        const SizedBox(height: 4),
+
+                                        // TENANT TOTAL
+                                        _buildColoredAmountRow(
+                                          "Tenant Total Paid = ${_cur(p.totalPayTenant)}",
+                                          forcePolarity: Polarity.neutral,
                                         ),
                                       ],
                                     ),
-                                  ],
+                                  ),
+                                  Container(
+                                    margin: const EdgeInsets.only(bottom: 16),
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: Colors.greenAccent.withOpacity(0.05),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(color: Colors.greenAccent.withOpacity(0.2)),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              width: 4,
+                                              height: 16,
+                                              decoration: BoxDecoration(
+                                                color: Colors.greenAccent,
+                                                borderRadius: BorderRadius.circular(2),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Text(
+                                              "Owner Detail",
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.greenAccent,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+
+                                        _buildColoredAmountRow(
+                                          "Step 1: Received by Owner = ${_cur(p.giveToOwnerAdvance)}",
+                                          forcePolarity: Polarity.credit,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        _buildColoredAmountRow(
+                                          "Step 2: Received by Owner = ${_cur(p.midPaymentToOwner)}",
+                                          forcePolarity: Polarity.credit,
+                                        ),
+                                        const SizedBox(height: 4),
+                                        _buildColoredAmountRow(
+                                          "Step 3: Received by Owner = ${_cur(p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission)}",
+                                          forcePolarity: Polarity.credit,
+                                        ),
+                                        const SizedBox(height: 6),
+
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: Text(
+                                                "Owner Total Received = ${_cur(p.giveToOwnerAdvance)} + ${_cur(p.midPaymentToOwner)} + ${_cur(p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission)}",
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w500,
+                                                  color: Theme.of(context).brightness == Brightness.dark
+                                                      ? Colors.white60
+                                                      : Colors.grey.shade600,
+                                                  fontStyle: FontStyle.italic,
+                                                ),
+                                              ),
+                                            ),
+                                            Expanded(
+                                              child: _buildColoredAmountRow(
+                                                "= ${_cur(
+                                                    p.giveToOwnerAdvance +
+                                                        p.midPaymentToOwner +
+                                                        p.officeHold + p.tenantPayLastAmount-p.companyKeepCommission
+                                                )}",
+                                                forcePolarity: Polarity.officeSpecial,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if(p.statusFinal!=null && p.statusFinal.isNotEmpty)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(16),
+                                margin: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                      color: Colors.green.withOpacity(0.4)),
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    p.statusFinal,
+                                    style: const TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.w600),
+                                  ),
                                 ),
                               ),
-                            ],
-                          ),
+                            SizedBox(height: 10,)
+                          ],
                         ),
-                        if(p.statusFinal!=null && p.statusFinal.isNotEmpty)
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(16),
-                          margin: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                                color: Colors.green.withOpacity(0.4)),
-                          ),
-                          child: Center(
-                            child: Text(
-                              p.statusFinal,
-                              style: const TextStyle(
-                                  color: Colors.green,
-                                  fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        SizedBox(height: 10,)
-                      ],
-                    ),
-                  );
-                },
-              ),
+                      );
+                    },
+                  ),
 
 
 

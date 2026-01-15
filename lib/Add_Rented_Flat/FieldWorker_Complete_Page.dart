@@ -1469,7 +1469,7 @@ Widget _buildTag(String text, Color color) {
     ),
   );
 }
-enum Polarity { credit, debit, neutral }
+enum Polarity { credit, debit, neutral, officeSpecial }
 
 bool _isEmpty(dynamic v) => v == null || v.toString().trim().isEmpty;
 
@@ -1488,6 +1488,9 @@ Color _amtColor(BuildContext c, Polarity p) {
     case Polarity.credit: return Colors.green;
     case Polarity.debit:  return Colors.red;
     case Polarity.neutral:return Colors.black;
+    case Polarity.officeSpecial:return Colors.amberAccent;
+      // TODO: Handle this case.
+      throw UnimplementedError();
   }
 }
 

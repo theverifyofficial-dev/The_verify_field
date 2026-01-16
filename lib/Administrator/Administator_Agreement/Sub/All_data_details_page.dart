@@ -299,6 +299,63 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     }
   }
 
+  Future<void> _updatePaymentOfficeStatus({
+    int? payment,
+    int? officeReceived,
+  })
+  async {
+    try {
+      final body = {
+        "id": widget.agreementId,
+      };
+
+      if (payment != null) {
+        body["payment"] = payment.toString();
+        body["payment_at"] =
+            DateTime.now().toIso8601String();
+      }
+
+      if (officeReceived != null) {
+        body["office_received"] = officeReceived.toString();
+        body["office_received_at"] =
+            DateTime.now().toIso8601String();
+      }
+
+      final response = await http.post(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/update_payment_field.php",
+        ),
+        body: body,
+      );
+
+      debugPrint("📄 Response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        final decoded = jsonDecode(response.body);
+
+        if (decoded["status"] == true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Status updated successfully"),
+              backgroundColor: Colors.green,
+            ),
+          );
+          _fetchAgreementDetail(); // refresh
+        } else {
+          throw decoded["message"];
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Update failed: $e"),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
     final isDark = Theme
         .of(context)
@@ -428,6 +485,14 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
   @override
   Widget build(BuildContext context) {
     final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+    final withPolice= agreement?['is_Police']?.toString() == "true";
+
+    final bool paymentDone =
+        agreement?["payment"]?.toString() == "1";
+
+    final bool officeReceived =
+        agreement?["office_received"]?.toString() == "1";
+
 
     return Scaffold(
       appBar: AppBar(
@@ -443,6 +508,57 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
+            Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.spaceEvenly,
+                children: [
+
+                  _statusCard(
+                    title: "Payment Status",
+                    value: paymentDone ? "Paid" : "Pending",
+                    isPositive: paymentDone,
+                    dateTime: agreement?["payment_at"],
+
+                  ),
+
+                  _statusCard(
+                    title: "Office Received",
+                    value: officeReceived ? "Yes" : "No",
+                    isPositive: officeReceived,
+                    dateTime: agreement?["office_received_at"],
+                  ),
+                ],
+            ),
+
+            SizedBox(height: 20,),
+            if (withPolice)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.redAccent),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.info_outline, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Note: Police verification must be created by Admin for this agreement.',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            SizedBox(height: 20,),
 
             if (propertyCard != null) propertyCard!,
 
@@ -544,6 +660,8 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
               ),
             ),
 
+
+
             if (isPolice)
               _sectionCard(
                 title: "Property Address",
@@ -619,6 +737,59 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
                   ),
               ],
             ),
+
+            const SizedBox(height: 20),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+
+                // 💰 PAYMENT BUTTON
+                ElevatedButton(
+                  onPressed: paymentDone
+                      ? null
+                      : () => _updatePaymentOfficeStatus(payment: 1),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                    paymentDone ? Colors.green : Colors.orange,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    paymentDone ? "Payment Done" : "Mark Payment Done",
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+
+                // 🏢 OFFICE RECEIVED BUTTON
+                ElevatedButton(
+                  onPressed: officeReceived
+                      ? null
+                      : () => _updatePaymentOfficeStatus(
+                    officeReceived: 1,
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor:
+                    officeReceived ? Colors.green : Colors.blue,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                  ),
+                  child: Text(
+                    officeReceived
+                        ? "Office Received"
+                        : "Mark Office Received",
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                ),
+              ],
+            ),
+
 
 
             const SizedBox(height: 12),
@@ -893,6 +1064,81 @@ class _AgreementDetailPageState extends State<AllDataDetailsPage> {
     );
   }
 
+}
+
+Widget _statusCard({
+  required String title,
+  required String value,
+  required bool isPositive,
+  String? dateTime, // 👈 NEW (ISO string from API)
+}) {
+  String formattedTime = "";
+
+  if (dateTime != null && dateTime.isNotEmpty) {
+    try {
+      final dt = DateTime.parse(dateTime).toLocal();
+      formattedTime =
+      "${dt.day.toString().padLeft(2, '0')} "
+          "${_monthName(dt.month)} "
+          "${dt.year}, "
+          "${dt.hour.toString().padLeft(2, '0')}:"
+          "${dt.minute.toString().padLeft(2, '0')}";
+    } catch (_) {
+      formattedTime = "";
+    }
+  }
+
+  return Container(
+    constraints: const BoxConstraints(minWidth: 160),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: Colors.grey),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: isPositive ? Colors.green : Colors.red,
+          ),
+        ),
+
+        // 🕒 TIME (only if available)
+        if (formattedTime.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            formattedTime,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white70,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
+}
+
+String _monthName(int month) {
+  const months = [
+    "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+    "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+  ];
+  return months[month - 1];
 }
 
 class ElevatedGradientButton extends StatelessWidget {

@@ -333,6 +333,7 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
         "furniture": agreement?["furniture"] ?? "",
         "agreement_price": agreement?["agreement_price"] ?? "",
         "notary_price": agreement?["notary_price"] ?? "",
+        "is_Police": agreement?["is_Police"] ?? "",
 
       };
 
@@ -485,6 +486,9 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
   @override
   Widget build(BuildContext context) {
     final bool isPolice = agreement?["agreement_type"] == "Police Verification";
+    final withPolice= agreement?['is_Police']?.toString() == "true";
+
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details'),
@@ -586,6 +590,34 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                 ],
               ),
             ),
+
+            SizedBox(height: 20,),
+            if (withPolice)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.redAccent),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.info_outline, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Note: Police verification must be created by Admin for this agreement.',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            SizedBox(height: 20,),
 
             if (agreement!["agreement_type"] == "Police Verification")
               _sectionCard(title: "Property Residential Address ", children: [

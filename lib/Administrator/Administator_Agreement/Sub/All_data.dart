@@ -222,6 +222,10 @@ class _AgreementDetailsState extends State<AllData> {
                   final renewalDate = _getRenewalDate(item.shiftingDate);
                   final bool isPolice = item.agreementType == "Police Verification";
 
+                  final bool paymentDone = item.payment.toString() == "1";
+                  final bool officeReceived = item.recieved.toString() == "1";
+                  final withPolice= item.withPolice.toString() == "true";
+
 
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
@@ -316,6 +320,26 @@ class _AgreementDetailsState extends State<AllData> {
                             ],
 
                             const Divider(height: 20, color: Colors.white30),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _statusTick(
+                                  label: "Payment",
+                                  done: paymentDone,
+                                  activeColor: Colors.lightBlueAccent,
+                                ),
+                                _statusTick(
+                                  label: "Office",
+                                  done: officeReceived,
+                                  activeColor: Colors.greenAccent,
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 10),
+
+
 
                             // 🧩 Fieldworker and Floor
                             Row(
@@ -485,4 +509,34 @@ class _MissingBadge extends StatelessWidget {
   }
 
 }
+
+Widget _statusTick({
+  required String label,
+  required bool done,
+  required Color activeColor,
+}) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(
+        Icons.verified_rounded,
+        size: 16,
+        color: done
+            ? activeColor
+            : Colors.white.withOpacity(0.25),
+      ),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: done ? Colors.white : Colors.white60,
+        ),
+      ),
+    ],
+  );
+}
+
+
 

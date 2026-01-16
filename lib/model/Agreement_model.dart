@@ -36,6 +36,9 @@ class AgreementModel {
   final String policeVerificationPdf;
   final String bhk;
   final String floor;
+  final String withPolice;
+  final String payment;
+  final String recieved;
   final String? agreementType;
 
   AgreementModel({
@@ -76,6 +79,9 @@ class AgreementModel {
     required this.policeVerificationPdf,
     required this.bhk,
     required this.floor,
+    required this.withPolice,
+    required this.payment,
+    required this.recieved,
     required this.agreementType,
   });
 
@@ -121,7 +127,10 @@ class AgreementModel {
       notaryImg: json['notry_img'] ?? '',
       policeVerificationPdf: json['police_verification_pdf'] ?? '',
       bhk: json['Bhk'] ?? '',
+      withPolice: json['is_Police'] ?? '',
       floor: json['floor'] ?? '',
+      payment: json['payment'] ?? '',
+      recieved: json['office_received'] ?? '',
       agreementType: json['agreement_type'],
     );
   }

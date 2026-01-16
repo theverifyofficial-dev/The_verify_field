@@ -302,22 +302,15 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
               (item.caretakerName ?? '').toLowerCase().contains(query) ||
               (item.place ?? '').toLowerCase().contains(query) ||
               (item.buyRent ?? '').toLowerCase().contains(query) ||
-              (item.typeOfProperty ?? '').toLowerCase().contains(query) ||
-              (item.selectBhk ?? '').toLowerCase().contains(query) ||
-              (item.floorNumber ?? '').toLowerCase().contains(query) ||
-              (item.squareFeet ?? '').toLowerCase().contains(query) ||
               (item.propertyNameAddress ?? '').toLowerCase().contains(query) ||
               (item.residenceCommercial ?? '').toLowerCase().contains(query) ||
               (item.ownerNumber ?? '').toLowerCase().contains(query) ||
               (item.ownerVehicleNumber ?? '').toLowerCase().contains(query) ||
-              (item.buildingInformationFacilities ?? '').toLowerCase().contains(query) ||
               (item.propertyAddressForFieldworker ?? '').toLowerCase().contains(query) ||
               (item.yourAddress ?? '').toLowerCase().contains(query) ||
               (item.fieldWorkerName ?? '').toLowerCase().contains(query) ||
               (item.fieldWorkerNumber ?? '').toLowerCase().contains(query) ||
               (item.currentDate ?? '').toLowerCase().contains(query) ||
-              (item.longitude ?? '').toLowerCase().contains(query) ||
-              (item.latitude ?? '').toLowerCase().contains(query) ||
               (item.roadSize ?? '').toLowerCase().contains(query) ||
               (item.metroDistance ?? '').toLowerCase().contains(query) ||
               (item.metroName ?? '').toLowerCase().contains(query) ||
@@ -348,12 +341,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
       "Caretaker Number": i.caretakerNumber,
       "Place": i.place,
       "Buy/Rent": i.buyRent,
-      "Type of Property": i.typeOfProperty,
-      "BHK": i.selectBhk,
-      "Floor Number": i.floorNumber,
-      "Square Feet": i.squareFeet,
       "Property Name/Address": i.propertyNameAddress,
-      "Building Facilities": i.buildingInformationFacilities,
       "Address (Fieldworker)": i.propertyAddressForFieldworker,
       "Owner Vehicle Number": i.ownerVehicleNumber,
       "Your Address": i.yourAddress,

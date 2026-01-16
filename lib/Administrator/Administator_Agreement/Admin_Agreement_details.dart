@@ -411,6 +411,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
 
   @override
   Widget build(BuildContext context) {
+    final withPolice= agreement?['is_Police']?.toString() == "true";
+
     return Scaffold(
       appBar: AppBar(
         title: Text('${agreement?["agreement_type"] ?? "Agreement"} Details',style: TextStyle(fontSize: 18),),
@@ -427,6 +429,34 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
           children: [
 
             if (propertyCard != null) propertyCard!,
+
+            SizedBox(height: 20,),
+            if (withPolice)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.redAccent),
+                ),
+                child: Row(
+                  children: const [
+                    Icon(Icons.info_outline, color: Colors.redAccent),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Note: Police verification must be created by Admin for this agreement.',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            SizedBox(height: 20,),
 
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,

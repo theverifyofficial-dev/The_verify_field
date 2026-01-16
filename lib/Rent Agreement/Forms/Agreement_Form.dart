@@ -46,6 +46,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   File? tenantAadhaarFront;
   File? tenantAadhaarBack;
   File? tenantImage;
+
+  bool isPolice = false;
+
+
   Map<String, dynamic>? fetchedData;
 
 
@@ -100,14 +104,18 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
   Future<void> _fetchAgreementDetails(String id) async {
     final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id");
+      "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/agreemet_details_page.php?id=$id",
+    );
 
     final response = await http.get(url);
+
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
 
-      if (decoded["status"] == "success" && decoded["data"] != null && decoded["data"].isNotEmpty) {
-        final data = decoded["data"][0]; // 👈 Get first record
+      if (decoded["status"] == "success" &&
+          decoded["data"] != null &&
+          decoded["data"].isNotEmpty) {
+        final data = decoded["data"][0];
 
         debugPrint("✅ Parsed Agreement Data: $data");
 
@@ -115,51 +123,80 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
           // 🔹 Owner
           ownerName.text = data["owner_name"] ?? "";
           ownerRelation = data["owner_relation"] ?? "S/O";
-          ownerRelationPerson.text = data["relation_person_name_owner"] ?? "";
-          ownerAddress.text = data["parmanent_addresss_owner"] ?? "";
+          ownerRelationPerson.text =
+              data["relation_person_name_owner"] ?? "";
+          ownerAddress.text =
+              data["parmanent_addresss_owner"] ?? "";
           ownerMobile.text = data["owner_mobile_no"] ?? "";
           ownerAadhaar.text = data["owner_addhar_no"] ?? "";
 
           // 🔹 Tenant
           tenantName.text = data["tenant_name"] ?? "";
           tenantRelation = data["tenant_relation"] ?? "S/O";
-          tenantRelationPerson.text = data["relation_person_name_tenant"] ?? "";
-          tenantAddress.text = data["permanent_address_tenant"] ?? "";
+          tenantRelationPerson.text =
+              data["relation_person_name_tenant"] ?? "";
+          tenantAddress.text =
+              data["permanent_address_tenant"] ?? "";
           tenantMobile.text = data["tenant_mobile_no"] ?? "";
           tenantAadhaar.text = data["tenant_addhar_no"] ?? "";
 
-          // 🔹 Agreement
+          // 🔹 Property / Agreement
           propertyID.text = data["property_id"]?.toString() ?? "";
           Bhk.text = data["Bhk"] ?? "";
           floor.text = data["floor"] ?? "";
           Address.text = data["rented_address"] ?? "";
-          rentAmount.text = data["monthly_rent"]?.toString() ?? "";
-          securityAmount.text = data["securitys"]?.toString() ?? "";
-          installmentAmount.text = data["installment_security_amount"]?.toString() ?? "";
+          rentAmount.text =
+              data["monthly_rent"]?.toString() ?? "";
+          securityAmount.text =
+              data["securitys"]?.toString() ?? "";
+          installmentAmount.text =
+              data["installment_security_amount"]?.toString() ?? "";
 
           meterInfo = data["meter"] ?? "As per Govt. Unit";
-          customUnitAmount.text = data["custom_meter_unit"] ?? "";
+          customUnitAmount.text =
+              data["custom_meter_unit"]?.toString() ?? "";
+
           maintenance = data["maintaince"] ?? "Including";
-          customMaintanceAmount.text = data["custom_maintenance_charge"]?.toString() ?? "";
+          customMaintanceAmount.text =
+              data["custom_maintenance_charge"]?.toString() ?? "";
+
           parking = data["parking"] ?? "Car";
+
+          // 🔹 Pricing inputs
           Notary_price = data["notary_price"] ?? "10 rupees";
-          Agreement_price.text = data["agreement_price"] ?? "";
-          shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
+
+          // 🔹 Police verification (IMPORTANT)
+          isPolice = data["is_Police"] == "true";
+
+          print("hello : ${isPolice}");
+
+          // 🔹 Date
+          shiftingDate = (data["shifting_date"] != null &&
+              data["shifting_date"].toString().isNotEmpty)
               ? DateTime.tryParse(data["shifting_date"])
               : null;
 
           // 🔹 Documents
-          ownerAadharFrontUrl = data["owner_aadhar_front"] ?? "";
-          ownerAadharBackUrl  = data["owner_aadhar_back"] ?? "";
-          tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
-          tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
-          tenantPhotoUrl       = data["tenant_image"] ?? "";
+          ownerAadharFrontUrl =
+              data["owner_aadhar_front"] ?? "";
+          ownerAadharBackUrl =
+              data["owner_aadhar_back"] ?? "";
+          tenantAadharFrontUrl =
+              data["tenant_aadhar_front"] ?? "";
+          tenantAadharBackUrl =
+              data["tenant_aadhar_back"] ?? "";
+          tenantPhotoUrl =
+              data["tenant_image"] ?? "";
         });
+
+        // 🔁 Recalculate agreement price AFTER state restore
+        updateAgreementPrice();
       } else {
         debugPrint("⚠️ No agreement data found");
       }
     } else {
-      debugPrint("❌ Failed to load agreement details: ${response.body}");
+      debugPrint(
+          "❌ Failed to load agreement details: ${response.body}");
     }
   }
 
@@ -213,6 +250,32 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       }
     });
   }
+
+  int getNotaryAmount(String value) {
+    switch (value) {
+      case '10 rupees':
+        return 150;
+      case '20 rupees':
+        return 170;
+      case '50 rupees':
+        return 200;
+      case '100 rupees':
+        return 250;
+      default:
+        return 150;
+    }
+  }
+
+  void updateAgreementPrice() {
+    int notaryAmount = getNotaryAmount(Notary_price ?? '10 rupees');
+    int policeCharge = isPolice ? 50 : 0;
+
+    int total = notaryAmount + policeCharge;
+
+    Agreement_price.text = total.toString();
+    AgreementAmountInWords = convertToWords(total);
+  }
+
 
   void _goNext() {
     bool valid = false;
@@ -405,7 +468,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     }
   }
 
-  /// Wrappers for owner/tenant
   _fetchOwnerData() {
     _fetchUserData(
       isOwner: true,
@@ -421,8 +483,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       mobile: tenantMobile.text,
     );
   }
-
-
 
   Future<void> _submitAll() async {
     print("🔹 _submitAll called");
@@ -475,8 +535,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
-        "agreement_price": Agreement_price.text,
+        "agreement_price": Agreement_price.text ?? "150",
         "notary_price": Notary_price ?? '10 rupees',
+        "is_Police": isPolice,
         "agreement_type": "Rental Agreement",
       };
 
@@ -613,6 +674,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
         "agreement_price": Agreement_price.text,
+        "is_Police": isPolice,
         "notary_price": Notary_price ?? '10 rupees',
       };
 
@@ -749,6 +811,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     void Function(String)? onFieldSubmitted,
     List<TextInputFormatter>? inputFormatters,
     void Function(String)? onChanged,  // <- add this
+    // 🔒 NEW (for system-generated fields)
+    bool readOnly = false,
+    bool enabled = true,
 
     bool showInWords = false, // ✅ define default here
   }) {
@@ -1043,7 +1108,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
                 const SizedBox(height: 10),
 
-                // ⚡ Meter + 🚗 Parking
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1873,55 +1937,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             ),
             _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
             const SizedBox(height: 10),
-            Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: Notary_price,
-                      items: const [
-                        '10 rupees',
-                        '50 rupees',
-                        '100 rupees',
-                        '200 rupees'
-                      ].map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          e,
-                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
-                        ),
-                      ))
-                          .toList(),
-                      onChanged: (v) => setState(() => Notary_price = v ?? '10 rupees'),
-                      decoration: _fieldDecoration('Notary price').copyWith(
-                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        ),
-                      ),
-                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                      style: const TextStyle(color: Colors.black), // ✅ selected text black
-                    ),
 
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                      child:
-                      _glowTextField(controller: Agreement_price, label: 'Agreement price', keyboard: TextInputType.number,  showInWords: true,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                          onChanged: (v) {
-                            setState(() {
-                              AgreementAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                            });
-                          },
-                          validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                      ]),
 
             Row(
                 children: [
@@ -2098,6 +2114,83 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                   return null;
                 },
               ),
+            const SizedBox(height: 12),
+
+
+            Row(
+                children: [
+
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: Notary_price,
+                      items: const [
+                        '10 rupees',
+                        '20 rupees',
+                        '50 rupees',
+                        '100 rupees'
+                      ].map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e,
+                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                        ),
+                      ))
+                          .toList(),
+                      onChanged: (v) {
+                        setState(() {
+                          Notary_price = v ?? '10 rupees';
+                          updateAgreementPrice();
+                        });
+                      },
+                      decoration: _fieldDecoration('Notary price').copyWith(
+                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        ),
+                      ),
+                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                      style: const TextStyle(color: Colors.black), // ✅ selected text black
+                    ),
+
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child:
+                    _agreementPriceBox(
+                      amount: int.tryParse(Agreement_price.text) ?? 150,
+                      amountInWords: AgreementAmountInWords,
+                    ),
+                  ),
+                ]),
+
+            CheckboxListTile(
+              value: isPolice,
+              onChanged: (v) {
+                setState(() {
+                  isPolice = v ?? false;
+                  updateAgreementPrice();
+                });
+              },
+              title: const Text(
+                'Including Police Verification',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              activeColor: Colors.redAccent,
+              checkColor: Colors.white,
+              side: const BorderSide(color: Colors.black54, width: 1.5),
+            ),
+
 
             const SizedBox(height: 12),
 
@@ -2115,6 +2208,8 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       ]),
     );
   }
+
+
 
   Widget _previewStep() {
     return _glassContainer(
@@ -2222,6 +2317,44 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       ]),
     );
   }
+
+  Widget _agreementPriceBox({
+    required int amount,
+    required String amountInWords,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black, width: 1.2),
+        color: Colors.grey.shade50,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Agreement Price',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '₹ $amount',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _sectionCard({required String title, required List<Widget> children}) {
     return Padding(

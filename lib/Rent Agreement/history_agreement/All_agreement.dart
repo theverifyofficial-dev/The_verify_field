@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
-import '../../Administrator/Administator_Agreement/Sub/All_data_details_page.dart';
 import '../All_detailpage.dart';
 
 class AllAgreement extends StatefulWidget {
@@ -253,6 +252,11 @@ class _AllAgreementState extends State<AllAgreement> {
                     final renewal = _getRenewalDate(item.shiftingDate);
                     final isPolice = item.agreementType == "Police Verification";
 
+                    final bool paymentDone = item.payment.toString() == "1";
+                    final bool officeReceived = item.recieved.toString() == "1";
+                    final withPolice= item.withPolice.toString() == "true";
+
+
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
@@ -348,8 +352,21 @@ class _AllAgreementState extends State<AllAgreement> {
                               // Floor (hide for police)
                               if (!isPolice)
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
+
+                                        _statusTick(
+                                          label: "Payment",
+                                          done: paymentDone,
+                                          activeColor: Colors.lightBlueAccent,
+                                        ),
+                                        _statusTick(
+                                          label: "Office",
+                                          done: officeReceived,
+                                          activeColor: Colors.greenAccent,
+                                        ),
+
+
                                     Text(
                                       "Floor: ${item.floor}",
                                       style: const TextStyle(
@@ -360,6 +377,21 @@ class _AllAgreementState extends State<AllAgreement> {
                                     ),
                                   ],
                                 ),
+
+                              const SizedBox(height: 10),
+
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 6,
+                                children: [
+                                  if (item.policeVerificationPdf.isEmpty ||
+                                      item.policeVerificationPdf == 'null')
+                                    _MissingBadge(label: "Police Verification Missing"),
+                                  if (!isPolice)
+                                    if (item.notaryImg.isEmpty || item.notaryImg == 'null')
+                                      _MissingBadge(label: "Notary Image Missing"),
+                                ],
+                              ),
 
                             ],
                           ),
@@ -406,3 +438,66 @@ Widget _InfoRow({required String title, required String value, Color? valueColor
     ),
   );
 }
+
+Widget _statusTick({
+  required String label,
+  required bool done,
+  required Color activeColor,
+}) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(
+        Icons.verified_rounded,
+        size: 16,
+        color: done
+            ? activeColor
+            : Colors.white.withOpacity(0.25),
+      ),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+          color: done ? Colors.white : Colors.white60,
+        ),
+      ),
+    ],
+  );
+}
+class _MissingBadge extends StatelessWidget {
+  final String label;
+  const _MissingBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.red.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.redAccent, width: 0.8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 16),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.redAccent,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+}
+
+
+

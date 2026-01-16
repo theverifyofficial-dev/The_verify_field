@@ -47,6 +47,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   File? tenantAadhaarFront;
   File? tenantAadhaarBack;
   File? tenantImage;
+  bool isPolice = false;
+
   Map<String, dynamic>? fetchedData;
 
 
@@ -196,7 +198,10 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           customMaintanceAmount.text = data["custom_maintenance_charge"]?.toString() ?? "";
           parking = data["parking"] ?? "Car";
           Notary_price = data["notary_price"] ?? "10 rupees";
-          Agreement_price.text = data["agreement_price"] ?? "";
+
+          // 🔹 Police verification (IMPORTANT)
+          isPolice = data["is_Police"] == "true";
+
 
           shiftingDate = (data["shifting_date"] != null && data["shifting_date"].toString().isNotEmpty)
               ? DateTime.tryParse(data["shifting_date"])
@@ -209,6 +214,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
           tenantPhotoUrl       = data["tenant_image"] ?? "";
         });
+        // 🔁 Recalculate agreement price AFTER state restore
+        updateAgreementPrice();
       } else {
         debugPrint("⚠️ No agreement data found");
       }
@@ -216,7 +223,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
       debugPrint("❌ Failed to load agreement details: ${response.body}");
     }
   }
-
 
   @override
   void dispose() {
@@ -266,6 +272,31 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           break;
       }
     });
+  }
+
+  int getNotaryAmount(String value) {
+    switch (value) {
+      case '10 rupees':
+        return 150;
+      case '20 rupees':
+        return 170;
+      case '50 rupees':
+        return 200;
+      case '100 rupees':
+        return 250;
+      default:
+        return 150;
+    }
+  }
+
+  void updateAgreementPrice() {
+    int notaryAmount = getNotaryAmount(Notary_price ?? '10 rupees');
+    int policeCharge = isPolice ? 50 : 0;
+
+    int total = notaryAmount + policeCharge;
+
+    Agreement_price.text = total.toString();
+    AgreementAmountInWords = convertToWords(total);
   }
 
   void _goNext() {
@@ -531,8 +562,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
-        "agreement_price": Agreement_price.text,
+        "agreement_price": Agreement_price.text ?? "150",
         "notary_price": Notary_price ?? '10 rupees',
+        "is_Police": isPolice,
         "agreement_type": "External Rental Agreement",
       };
 
@@ -664,6 +696,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "agreement_price": Agreement_price.text,
+        "is_Police": isPolice,
         "notary_price": Notary_price ?? '10 rupees',
       };
 
@@ -799,6 +832,9 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     void Function(String)? onFieldSubmitted,
     List<TextInputFormatter>? inputFormatters,
     void Function(String)? onChanged,  // <- add this
+    // 🔒 NEW (for system-generated fields)
+    bool readOnly = false,
+    bool enabled = true,
 
     bool showInWords = false, // ✅ define default here
   }) {
@@ -1568,55 +1604,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
             const SizedBox(height: 10),
             Row(
                 children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: Notary_price,
-                      items: const [
-                        '10 rupees',
-                        '50 rupees',
-                        '100 rupees',
-                        '200 rupees'
-                      ].map((e) => DropdownMenuItem(
-                        value: e,
-                        child: Text(
-                          e,
-                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
-                        ),
-                      ))
-                          .toList(),
-                      onChanged: (v) => setState(() => Notary_price = v ?? '10 rupees'),
-                      decoration: _fieldDecoration('Notary price').copyWith(
-                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
-                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
-                        ),
-                      ),
-                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
-                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
-                      style: const TextStyle(color: Colors.black), // ✅ selected text black
-                    ),
-
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                      child:
-                      _glowTextField(controller: Agreement_price, label: 'Agreement price', keyboard: TextInputType.number,  showInWords: true,
-                          inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                          onChanged: (v) {
-                            setState(() {
-                              AgreementAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                            });
-                          },
-                          validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
-                ]),
-            Row(
-                children: [
                   Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
                       inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
                       onChanged: (v) {
@@ -1751,6 +1738,85 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
             const SizedBox(height: 12),
 
+            Row(
+                children: [
+
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      value: Notary_price,
+                      items: const [
+                        '10 rupees',
+                        '20 rupees',
+                        '50 rupees',
+                        '100 rupees'
+                      ].map((e) => DropdownMenuItem(
+                        value: e,
+                        child: Text(
+                          e,
+                          style: TextStyle(color: Colors.black), // ✅ dropdown text black
+                        ),
+                      ))
+                          .toList(),
+                      onChanged: (v) {
+                        setState(() {
+                          Notary_price = v ?? '10 rupees';
+                          updateAgreementPrice();
+                        });
+                      },
+                      decoration: _fieldDecoration('Notary price').copyWith(
+                        labelStyle: const TextStyle(color: Colors.black), // ✅ label text black
+                        hintStyle: const TextStyle(color: Colors.black54), // ✅ hint text dark gray
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black), // ✅ border black
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.black, width: 1.5),
+                        ),
+                      ),
+                      iconEnabledColor: Colors.black, // ✅ dropdown arrow black
+                      dropdownColor: Colors.white, // ✅ menu background white (good contrast)
+                      style: const TextStyle(color: Colors.black), // ✅ selected text black
+                    ),
+
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child:
+                    _agreementPriceBox(
+                      amount: int.tryParse(Agreement_price.text) ?? 150,
+                      amountInWords: AgreementAmountInWords,
+                    ),
+
+                  ),
+                ]),
+
+
+            CheckboxListTile(
+              value: isPolice,
+              onChanged: (v) {
+                setState(() {
+                  isPolice = v ?? false;
+                  updateAgreementPrice();
+                });
+              },
+              title: const Text(
+                'Including Police Verification',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+              activeColor: Colors.redAccent,
+              checkColor: Colors.white,
+              side: const BorderSide(color: Colors.black54, width: 1.5),
+            ),
+
+
+            const SizedBox(height: 12),
+
             const Text(
               'Tip: These values will appear in the final agreement preview.',
               style: TextStyle(
@@ -1880,6 +1946,42 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
     );
   }
 
+  Widget _agreementPriceBox({
+    required int amount,
+    required String amountInWords,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 3, vertical: 2),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.black, width: 1.2),
+        color: Colors.grey.shade50,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Agreement Price',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '₹ $amount',
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _sectionCard({required String title, required List<Widget> children}) {
     return Padding(

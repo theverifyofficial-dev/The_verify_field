@@ -29,6 +29,11 @@ class AdminAllAgreementModel {
   final String current_date;
   final String bhk;
   final String floor;
+  final String notaryImg;
+  final String policeVerificationPdf;
+  final String withPolice;
+  final String payment;
+  final String recieved;
   final String? agreementType;
 
   AdminAllAgreementModel( {
@@ -54,6 +59,8 @@ class AdminAllAgreementModel {
     required this.ownerAadharFront,
     required this.ownerAadharBack,
     required this.tenantAadharFront,
+    required this.notaryImg,
+    required this.policeVerificationPdf,
     required this.tenantAadharBack,
     required this.agreementPdf,
     required this.installmentSecurityAmount,
@@ -62,6 +69,9 @@ class AdminAllAgreementModel {
     required this. current_date,
     required this.bhk,
     required this.floor,
+    required this.withPolice,
+    required this.payment,
+    required this.recieved,
     required this.agreementType,
   });
   factory AdminAllAgreementModel.fromJson(Map<String, dynamic> json) {
@@ -94,8 +104,13 @@ class AdminAllAgreementModel {
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
       current_date: json['current_dates']?['date'] ?? '', // ✅ FIX
+      notaryImg: json['notry_img'] ?? '',
+      policeVerificationPdf: json['police_verification_pdf'] ?? '',
       bhk: json['Bhk'] ?? '',
+      withPolice: json['is_Police'] ?? '',
       floor: json['floor'] ?? '',
+      payment: json['payment'] ?? '',
+      recieved: json['office_received'] ?? '',
       agreementType: json['agreement_type'],
     );
   }

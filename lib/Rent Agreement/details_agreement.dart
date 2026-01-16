@@ -443,6 +443,8 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
     final bool isDirector = hasGST || hasPAN;
     final String personLabel = isDirector ? 'Director' : 'Tenant';
     final isRejected = (a?['status']?.toString().toLowerCase().contains('reject') ?? false);
+    final withPolice= a?['is_Police']?.toString() == "true";
+
 
     // Top-level gradient that matches card visuals (green -> black/white)
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -503,6 +505,34 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
                       padding: const EdgeInsets.all(16),
                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         // badges row
+                        SizedBox(height: 20,),
+                        if (withPolice)
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.redAccent),
+                            ),
+                            child: Row(
+                              children: const [
+                                Icon(Icons.info_outline, color: Colors.redAccent),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Note: Police verification must be created by Admin for this agreement.',
+                                    style: TextStyle(
+                                      color: Colors.redAccent,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        SizedBox(height: 20,),
+
                         Wrap(spacing: 10, runSpacing: 10, children: [
                           if ((a['agreement_type'] ?? '').toString().isNotEmpty) _badge(a['agreement_type'].toString(), icon: Icons.description_outlined),
                           if ((a['Bhk'] ?? '').toString().isNotEmpty) _badge('${a['Bhk']}', icon: Icons.home_outlined),

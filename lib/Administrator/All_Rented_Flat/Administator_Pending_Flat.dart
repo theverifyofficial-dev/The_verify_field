@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../Add_Rented_Flat/Action_Form.dart';
 import '../../Add_Rented_Flat/Add_Tenent.dart';
 import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import 'AdministatorPropertyDetailPage.dart';
 import 'Pending_Add _Property_Form.dart';
 import 'Pending_Property_Update_Form.dart';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import 'ShowTenantDemant.dart';
 import 'SubAdmin_disclose.dart';
 

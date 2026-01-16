@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import '../number_repeat_page/number_repeat_page.dart';
 import 'Add_Assign_Demand_form.dart';
 import 'Edit_Asign_Demand.dart';
@@ -431,33 +431,35 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
                                           Row(
                                             children: [
                                               SizedBox(width: 10,),
-                                              Container(
-                                                padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                                decoration: BoxDecoration(
-                                                  borderRadius: BorderRadius.circular(5),
-                                                  border: Border.all(width: 1, color: Colors.blueAccent),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                        color: Colors.blueAccent.withOpacity(0.5),
-                                                        blurRadius: 10,
-                                                        offset: Offset(0, 0),
-                                                        blurStyle: BlurStyle.outer
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  children: [
-                                                    // Icon(Iconsax.sort_copy,size: 15,),
-                                                    //w SizedBox(width: 10,),
-                                                    Text(""+abc.data![len].demand_name/*+abc.data![len].Building_Name.toUpperCase()*/,
-                                                      style: TextStyle(
-                                                          fontSize: 14,
-                                                          color: Colors.black,
-                                                          fontWeight: FontWeight.w500,
-                                                          letterSpacing: 0.5
+                                              Expanded(
+                                                child: Container(
+                                                  padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
+                                                  decoration: BoxDecoration(
+                                                    borderRadius: BorderRadius.circular(5),
+                                                    border: Border.all(width: 1, color: Colors.blueAccent),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                          color: Colors.blueAccent.withOpacity(0.5),
+                                                          blurRadius: 10,
+                                                          offset: Offset(0, 0),
+                                                          blurStyle: BlurStyle.outer
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
+                                                  child: Row(
+                                                    children: [
+                                                      // Icon(Iconsax.sort_copy,size: 15,),
+                                                      //w SizedBox(width: 10,),
+                                                      Text(""+abc.data![len].demand_name/*+abc.data![len].Building_Name.toUpperCase()*/,
+                                                        style: TextStyle(
+                                                            fontSize: 14,
+                                                            color: Colors.black,
+                                                            fontWeight: FontWeight.w500,
+                                                            letterSpacing: 0.5
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
 

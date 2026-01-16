@@ -5,32 +5,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:verify_feild_worker/Model.dart';
-import 'package:verify_feild_worker/property_preview.dart';
+import 'package:verify_feild_worker/Custom_Widget/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
-import 'Add_image_under_property.dart';
-import 'Add_images_in_Realestate.dart';
-import 'Delete_Image.dart';
-import 'Edit_Page_Realestate.dart';
-import 'Add_multi_image_in_Realestate.dart';
-import 'Edit_Property_SecondPage.dart';
-import 'Real-Estate.dart';
-import 'package:xml/xml.dart' as xml;
-import 'Reverse_in_Futureproperty.dart';
-import 'Update_realEstate_form.dart';
+
 class Catid {
   final int id;
   final String propertyPhoto;
@@ -185,12 +171,14 @@ class Catid {
     );
   }
 }
+
 class AllViewDetails extends StatefulWidget {
   final int id;
   const AllViewDetails({super.key, required this.id});
   @override
   State<AllViewDetails> createState() => _View_DetailsState();
 }
+
 class _View_DetailsState extends State<AllViewDetails> {
   Future<List<RealEstateSlider>> fetchCarouselData(int subid) async {
     final url = 'https://verifyserve.social/WebService4.asmx/show_multiple_image_in_main_realestate?subid=$subid';
@@ -1453,12 +1441,14 @@ class _View_DetailsState extends State<AllViewDetails> {
     );
   }
 }
+
 class VideoPlayerWidget extends StatefulWidget {
   final String videoUrl;
   const VideoPlayerWidget({super.key, required this.videoUrl});
   @override
   _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
 }
+
 class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   late YoutubePlayerController _controller;
   bool _isYouTube = false;
@@ -1515,6 +1505,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     );
   }
 }
+
 void openWhatsApp(String phoneNumber) {
   if (defaultTargetPlatform == TargetPlatform.android) {
     final cleanNumber =

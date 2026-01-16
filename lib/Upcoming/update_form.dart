@@ -19,7 +19,7 @@ import 'package:verify_feild_worker/provider/multile_image_upload_provider.dart'
 import 'package:verify_feild_worker/provider/real_Estate_Show_Data_provider.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Administrator/Add_Assign_Tenant_Demand/Feild_Workers_Bylocation.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import '../model/realestateSlider.dart';
 
 import 'dart:convert';

@@ -8,7 +8,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:verify_feild_worker/constant.dart';
+import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 import 'plot_detail.dart'; // PlotPropertyData model
 
 class PropertyListingPage extends StatefulWidget {

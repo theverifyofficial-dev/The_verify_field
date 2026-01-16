@@ -9,7 +9,7 @@ import '../../Add_Rented_Flat/Action_Form.dart';
 import '../../Add_Rented_Flat/Add_Tenent.dart';
 import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
 import '../../Add_Rented_Flat/FieldWorker_Complete_Detail_Page.dart';
-import '../../constant.dart';
+import '../Custom_Widget/constant.dart';
 import '../Administrator/All_Rented_Flat/CompletePropertyCalculationPage.dart';
 import 'CompletePropertyCalculationFieldWorker.dart';
 import 'FieldWorker_CompletePage_transaction_details_page.dart';

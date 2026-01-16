@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'package:animated_flip_counter/animated_flip_counter.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;

@@ -9,7 +9,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../model/realestateSlider.dart';
-import '../../property_preview.dart';
+import '../../Custom_Widget/property_preview.dart';
 import 'Edit_flat.dart';
 import 'add_image_under_futureproperty.dart'; // Note: Fix filename if 'Futureproipoerty' is a typo
 import 'add_tenant_infutureproperty.dart';

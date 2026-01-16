@@ -13,7 +13,7 @@ import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 
 
 class AddComingFlats extends StatefulWidget {

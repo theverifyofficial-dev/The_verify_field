@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:verify_feild_worker/Accountant/Company%20expense/Company_screen.dart';
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import 'Annually.dart';
 
 class TabbarControl extends StatefulWidget {

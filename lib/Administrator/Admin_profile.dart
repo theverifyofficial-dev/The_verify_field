@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:verify_feild_worker/Administrator/Account_registeration.dart';
 
-import '../Login_page.dart';
+import '../Z-Screen/Login_page.dart';
 import '../model/Profile_model.dart';
 
 class AdminProfile extends StatefulWidget {

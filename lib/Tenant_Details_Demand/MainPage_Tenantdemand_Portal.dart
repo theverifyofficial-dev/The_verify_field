@@ -8,7 +8,7 @@ import '../Home_Screen_click/Real-Estate.dart';
 import 'ALl_Demands.dart';
 import 'Assigned_Tenant_Demand.dart';
 import '../Police_Verification/Tenant_Details.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'Calendar.dart';
 import 'Feild_Accpte_TenantDemand.dart';
 import 'Parent_class_TenantDemand.dart';

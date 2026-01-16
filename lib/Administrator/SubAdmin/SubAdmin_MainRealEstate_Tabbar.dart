@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 
 import '../../administrator/Administator_Realestate.dart';
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import 'SubAdmin_All_Property.dart';
 
 class SubAdminRealEstateTabbar extends StatefulWidget {

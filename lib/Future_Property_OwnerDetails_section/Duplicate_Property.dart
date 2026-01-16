@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'New_Update/add_image_under_futureproperty.dart';
 import 'New_Update/flat_edit_model.dart';
 

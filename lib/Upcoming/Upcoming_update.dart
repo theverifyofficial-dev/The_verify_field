@@ -15,7 +15,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../provider/property_id_for_multipleimage_provider.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'package:geocoding/geocoding.dart';
 
 class Catid {

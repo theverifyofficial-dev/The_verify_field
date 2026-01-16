@@ -1,20 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-
 import '../Home_Screen_click/All_view_details.dart';
 import '../Home_Screen_click/New_Real_Estate.dart';
-import '../Propert_verigication_Document/Show_tenant.dart';
-import '../add_properties_firstpage.dart';
-import '../profile.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'VideoSubmitPage.dart';
 

@@ -11,12 +11,10 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../Future_Property_OwnerDetails_section/add_flat_form.dart';
-import '../../constant.dart';
-import '../../model/futureProperty_Slideer.dart';
-import '../../property_preview.dart';
+import '../../Custom_Widget/constant.dart';
+import '../../Custom_Widget/property_preview.dart';
 import 'Admin_under_flats.dart';
 import '../Update_Future_Property.dart';
-import 'package:intl/intl.dart';
 
 class FutureProperty2 {
   final int id;

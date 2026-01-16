@@ -13,7 +13,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import '../model/realestateModel.dart';
 import 'Add_Tenant_Visit.dart';
 import 'Edit_TenantDemand.dart';

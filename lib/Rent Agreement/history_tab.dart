@@ -5,7 +5,7 @@ import 'package:verify_feild_worker/Rent%20Agreement/Dashboard_screen.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/All_agreement.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/request_agreement.dart';
 
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'history_agreement/Accept_agreement.dart';
 
 class HistoryTab extends StatefulWidget {

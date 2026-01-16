@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:cached_network_image/cached_network_image.dart';
-import '../constant.dart';
-import '../property_preview.dart';
+import '../Custom_Widget/constant.dart';
+import '../Custom_Widget/property_preview.dart';
 import 'package:shimmer/shimmer.dart';
 
 class UpcomingPropertyImage {

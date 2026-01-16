@@ -10,7 +10,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../ui_decoration_tools/app_images.dart';
 import '../../../model/realestateSlider.dart';
-import '../../property_preview.dart';
+import '../../Custom_Widget/property_preview.dart';
 
 class Property {
   final int pId;

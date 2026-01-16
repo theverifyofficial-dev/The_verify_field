@@ -5,7 +5,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 
 class UpdateOwnerPage extends StatefulWidget {
   final String propertyId;

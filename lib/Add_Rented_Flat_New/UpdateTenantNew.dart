@@ -4,7 +4,7 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 
 class UpdateTenantPageNew extends StatefulWidget {
   final String propertyId;

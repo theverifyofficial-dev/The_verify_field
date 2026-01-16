@@ -13,7 +13,6 @@ import '../Administrator/Admin_future _property/Future_Property_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 
 
-/// -------- AGREEMENT MODEL --------
 class AgreementTaskResponse {
   final String status;
   final List<AgreementTask> data;

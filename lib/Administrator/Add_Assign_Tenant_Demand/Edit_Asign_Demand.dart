@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import '../Administater_Parent_TenantDemand.dart';
 import 'Show_Unexpected_Demand.dart';
 
@@ -32,7 +32,7 @@ class _Edit_Optionin_DemandState extends State<Edit_Optionin_Demand> {
   final TextEditingController _Refrence = TextEditingController();
 
   String? _selectedItem;
-  final List<String> _items = ['Buy','Rent','Lease'];
+  final List<String> _items = ['Buy','Rent','Lease','null'];
 
   String _location = '';
 

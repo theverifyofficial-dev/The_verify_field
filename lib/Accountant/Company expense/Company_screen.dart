@@ -8,8 +8,8 @@ import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/intl.dart';
 
-import '../../constant.dart';
-import '../../property_preview.dart';
+import '../../Custom_Widget/constant.dart';
+import '../../Custom_Widget/property_preview.dart';
 import 'Add_expenses.dart';
 import 'expenses_details.dart';
 

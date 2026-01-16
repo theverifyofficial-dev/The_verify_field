@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:verify_feild_worker/Accountant/Salaray%20expense/Salary_home.dart';
-import '../../constant.dart';
+import '../../Custom_Widget/constant.dart';
 import 'Annually.dart';
 
 class Salary_TabbarControl extends StatefulWidget {

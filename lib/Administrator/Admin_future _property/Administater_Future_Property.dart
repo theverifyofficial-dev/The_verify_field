@@ -635,7 +635,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
       },
       child: Card(
         key: _cardKeys[property.id.toString()] ??= GlobalKey(),
-        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 30),
+        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 20),
         elevation: isDark ? 0 : 6,
         color: theme.cardColor,
         shape: RoundedRectangleBorder(

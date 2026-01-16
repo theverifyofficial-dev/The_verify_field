@@ -7,8 +7,8 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 
-import '../../constant.dart';
-import '../../property_preview.dart';
+import '../../Custom_Widget/constant.dart';
+import '../../Custom_Widget/property_preview.dart';
 class PropertyDetail {
   final String id;
   final String propertyPhoto;

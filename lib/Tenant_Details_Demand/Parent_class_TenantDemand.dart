@@ -7,7 +7,7 @@ import '../Home_Screen_click/Filter_Options.dart';
 import 'ALl_Demands.dart';
 import 'Assigned_Tenant_Demand.dart';
 import '../Police_Verification/Tenant_Details.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'Feild_Accpte_TenantDemand.dart';
 import 'Perant_Class_Accpte_Demand.dart';
 import 'Show_TenantDemands.dart';

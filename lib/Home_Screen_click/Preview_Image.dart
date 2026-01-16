@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:async';
 
-import 'package:verify_feild_worker/constant.dart';
+import 'package:verify_feild_worker/Custom_Widget/constant.dart';
 
 class ImageSliderWithDots extends StatefulWidget {
   final List<String> imageUrls;

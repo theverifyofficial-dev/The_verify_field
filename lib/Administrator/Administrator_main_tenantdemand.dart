@@ -11,7 +11,7 @@ import '../Home_Screen_click/Add_RealEstate.dart';
 import '../Tenant_Details_Demand/ALl_Demands.dart';
 import '../Tenant_Details_Demand/Add_tenantdemand_num.dart';
 import '../Tenant_Details_Demand/Tenant_demands_details.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 class Catid {
   final int id;
   final String V_name;

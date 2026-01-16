@@ -4,7 +4,7 @@ import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 
 class AccountRegisteration extends StatefulWidget {
   static const route = "/SignUp_page";

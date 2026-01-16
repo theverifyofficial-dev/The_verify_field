@@ -1,31 +1,20 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:carousel_slider/carousel_slider.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 import '../ui_decoration_tools/app_images.dart';
-import '../doctenantdetailsSlider.dart';
-import 'Add_images_in_Realestate.dart';
 import 'Delete_Image.dart';
-import 'Edit_Page_Realestate.dart';
-import 'Edit_Property_SecondPage.dart';
 import 'Real-Estate.dart';
-import 'View_All_Details.dart';
-import 'package:geolocator/geolocator.dart';
 
 class Catid {
   final String property_num;

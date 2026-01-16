@@ -1,23 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
-import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
-
-import '../Propert_verigication_Document/Show_tenant.dart';
 import '../SocialMediaHandler/VideoSubmitPage.dart';
-import '../add_properties_firstpage.dart';
 import '../ui_decoration_tools/app_images.dart';
-import 'Add_New_Property.dart';
-import 'Add_RealEstate.dart';
-import 'Add_image_under_property.dart';
-import 'Commercial_property_Filter.dart';
-import 'Filter_Options.dart';
 import 'View_All_Details.dart';
 
 class NewRealEstateShowDateModel {

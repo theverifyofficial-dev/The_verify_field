@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../Police_Verification/Tenant_Details.dart';
 import '../Tenant_Details_Demand/Show_TenantDemands.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
 import 'Add_Assign_Tenant_Demand/Show_Unexpected_Demand.dart';
 import 'Administater_TenanDemand.dart';
 import 'Administrator_main_tenantdemand.dart';

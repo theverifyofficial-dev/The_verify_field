@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Upcoming/update_form.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../Home_Screen_click/Reverse_in_Futureproperty.dart';
-import '../constant.dart';
-import '../property_preview.dart';
+import '../Custom_Widget/constant.dart';
+import '../Custom_Widget/property_preview.dart';
 import 'package:shimmer/shimmer.dart';
 import 'multi_img.dart';
 

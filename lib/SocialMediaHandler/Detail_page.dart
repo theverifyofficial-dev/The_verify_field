@@ -12,7 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:verify_feild_worker/property_preview.dart';
+import 'package:verify_feild_worker/Custom_Widget/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../ui_decoration_tools/app_images.dart';

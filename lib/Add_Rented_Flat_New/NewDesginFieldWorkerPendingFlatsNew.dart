@@ -2,20 +2,8 @@ import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Add_Rented_Flat/Action_Form.dart';
-import '../../Add_Rented_Flat/Add_Tenent.dart';
-import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
-import '../../constant.dart';
 import '../Administrator/All_Rented_Flat/AdministatorPropertyDetailPage.dart';
-import '../Administrator/All_Rented_Flat/Pending_Add _Property_Form.dart';
-import '../Administrator/All_Rented_Flat/Pending_Property_Update_Form.dart';
-import '../Administrator/All_Rented_Flat/PropertyCalculationPage.dart';
-import 'All_finacial_New.dart';
-import 'CompletePropertyCalculationFieldWorker.dart';
 import 'Show_Billing_Fieldworker_Pending_Page.dart';
 class Property {
   final int pId;
@@ -600,10 +588,20 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
   @override
   void initState() {
     super.initState();
-    _loaduserdata();
-    loadUserName();
-    //initializeService();
+    _init();
   }
+
+  Future<void> _init() async {
+    await loadUserName(); // ensures userNumber is ready
+
+    if (mounted) {
+      setState(() {
+        _bookingFuture = fetchBookingData();
+      });
+    }
+  }
+
+  late Future<List<Property>> _bookingFuture;
 
   String? userName;
   String? userNumber;
@@ -620,11 +618,15 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
       });
     }
   }
+  Key _listKey = UniqueKey();
+
   Future<void> _onRefresh() async {
     setState(() {
-      fetchBookingData();
+      _listKey = UniqueKey();
+      _bookingFuture = fetchBookingData();
     });
   }
+
   double _toD(dynamic v) {
     final s = (v ?? '').toString().trim();
     return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
@@ -641,7 +643,7 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
       onRefresh: _onRefresh,
       child: Scaffold(
         body: FutureBuilder<List<Property>>(
-          future: fetchBookingData(),
+          future: _bookingFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -661,12 +663,18 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
             final bookingList = snapshot.data!;
 
             return ListView.builder(
+              key: _listKey,
               padding: const EdgeInsets.all(12),
               itemCount: bookingList.length,
               itemBuilder: (context, index) {
                 final item = bookingList[index];
 
-                return _transactionCard(context, item, isDarkMode);
+                return _transactionCard(
+                  context,
+                  item,
+                  isDarkMode,
+                  _onRefresh, // ✅ PASS STATE METHOD
+                );
               },
             );
 
@@ -682,7 +690,7 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
     });
   }
 }
-Widget _transactionCard(BuildContext context, Property item, bool isDarkMode) {
+Widget _transactionCard(BuildContext context, Property item, bool isDarkMode, VoidCallback onRefresh,) {
   return Container(
     margin: const EdgeInsets.only(bottom: 12),
     decoration: BoxDecoration(
@@ -890,6 +898,10 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode) {
                               double.tryParse(item.advancePayment) ?? 0,
                               double.tryParse(item.secondAmount) ?? 0,
                               double.tryParse(item.finalAmount) ?? 0,
+                                  () {
+                                onRefresh();
+                              },
+
                             );
 
                           },
@@ -914,6 +926,9 @@ Widget _transactionCard(BuildContext context, Property item, bool isDarkMode) {
                               double.tryParse(item.advancePayment) ?? 0,
                               double.tryParse(item.secondAmount) ?? 0,
                               double.tryParse(item.finalAmount) ?? 0,
+                                  () {
+                                onRefresh(); // ✅ SAFE REFRESH
+                              },
                             );
                           },
                         ),
@@ -937,6 +952,7 @@ void _openAmountSheet(
     double advanceAmount,
     double secondAmount,
     double finalAmount,
+    VoidCallback onUpdated,
     ) {
   final TextEditingController controller = TextEditingController();
 
@@ -1003,9 +1019,18 @@ void _openAmountSheet(
             const SizedBox(height: 20),
 
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                _sendAmount(context, pId, apiUrl, fieldName, controller.text);
+
+                await _sendAmount(
+                  context,
+                  pId,
+                  apiUrl,
+                  fieldName,
+                  controller.text,
+                );
+
+                Future.microtask(onUpdated);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               child: const Text("Save"),
@@ -1030,37 +1055,17 @@ Future<void> _sendAmount(
       body: {"P_id": pId.toString(), fieldName: amount},
     );
 
-    String message;
-
     if (resp.statusCode == 200) {
-      try {
-        final data = json.decode(resp.body);
-        message = data["message"]?.toString() ??
-            data["status"]?.toString() ??
-            resp.body.toString();
-      } catch (_) {
-        message = resp.body.toString();
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("✅ Update Successfully",style: TextStyle(color: Colors.white),),
+        const SnackBar(
+          content: Text(
+            "✅ Update Successfully",
+            style: TextStyle(color: Colors.white),
+          ),
           backgroundColor: Colors.green,
-          duration: const Duration(seconds: 4),
+          duration: Duration(seconds: 4),
         ),
       );
-
-      // ---- REFRESH PAGE ----
-      if (context.mounted) {
-        // re-call your refresh or rebuild function here
-        if (context.findAncestorStateOfType<_NewDesginFieldWorkerPendingFlatsNewState>() != null) {
-          final parentState =
-          context.findAncestorStateOfType<_NewDesginFieldWorkerPendingFlatsNewState>();
-          parentState?._onRefresh();
-
-        }
-      }
-
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

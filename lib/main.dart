@@ -152,57 +152,57 @@ class _MyAppState extends State<MyApp> {
       String? propertyId = data['P_id']?.toString();
       // 🔥 PAYMENT NOTIFICATION (ONLY p_id)
 
-      final String rawBody = message.notification?.body ?? "";
-      final String body = rawBody
-          .toLowerCase()
-          .replaceAll(RegExp(r'\s+'), ' ')
-          .trim();
+      // final String rawBody = message.notification?.body ?? "";
+      // final String body = rawBody
+      //     .toLowerCase()
+      //     .replaceAll(RegExp(r'\s+'), ' ')
+      //     .trim();
 
-      final String? pId =
-          data['p_id']?.toString() ?? data['P_id']?.toString();
+      // final String? pId =
+      //     data['p_id']?.toString() ?? data['P_id']?.toString();
 
-      final bool isFinalPaymentCompleted =
-          body.contains("final payment") &&
-              body.contains("completed");
-      final String title =
-          message.notification?.title?.toLowerCase() ?? "";
-      print("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
-
-      /// 🔴 FINAL PAYMENT → COMPLETE TAB
-      if (
-      type == "move_to_completed" ||
-          (body.contains("final payment") && body.contains("completed"))
-      ) {
-        navigatorKey.currentState?.pushNamedAndRemoveUntil(
-          Routes.addRentedFlatTabbarNew,
-              (route) => false,
-          arguments: {
-            "tabIndex": 2, // ✅ COMPLETE
-            "propertyId": pId,
-          },
-        );
-        return;
-      }
-
-      /// 🟡 PAYMENT ACCEPTED / NORMAL PAYMENT → PENDING TAB
-      if (!navigationDone &&
-          (body.contains("payment accepted") || pId != null)) {
-        navigationDone = true;
-
-        print("🟡 PAYMENT → OPEN PENDING TAB");
-
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            Routes.addRentedFlatTabbarNew,
-                (route) => false,
-            arguments: {
-              "tabIndex": 1, // ✅ PENDING
-              "propertyId": pId,
-            },
-          );
-        });
-        return;
-      }
+      // final bool isFinalPaymentCompleted =
+      //     body.contains("final payment") &&
+      //         body.contains("completed");
+      // final String title =
+      //     message.notification?.title?.toLowerCase() ?? "";
+      // print("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
+      //
+      // /// 🔴 FINAL PAYMENT → COMPLETE TAB
+      // if (
+      // type == "move_to_completed" ||
+      //     (body.contains("final payment") && body.contains("completed"))
+      // ) {
+      //   navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      //     Routes.addRentedFlatTabbarNew,
+      //         (route) => false,
+      //     arguments: {
+      //       "tabIndex": 2, // ✅ COMPLETE
+      //       "propertyId": pId,
+      //     },
+      //   );
+      //   return;
+      // }
+      //
+      // /// 🟡 PAYMENT ACCEPTED / NORMAL PAYMENT → PENDING TAB
+      // if (!navigationDone &&
+      //     (body.contains("payment accepted") || pId != null)) {
+      //   navigationDone = true;
+      //
+      //   print("🟡 PAYMENT → OPEN PENDING TAB");
+      //
+      //   WidgetsBinding.instance.addPostFrameCallback((_) {
+      //     navigatorKey.currentState?.pushNamedAndRemoveUntil(
+      //       Routes.addRentedFlatTabbarNew,
+      //           (route) => false,
+      //       arguments: {
+      //         "tabIndex": 1, // ✅ PENDING
+      //         "propertyId": pId,
+      //       },
+      //     );
+      //   });
+      //   return;
+      // }
 
 
       if (type == "RENTED_OUT_UPDATED") {

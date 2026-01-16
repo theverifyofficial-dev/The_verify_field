@@ -124,15 +124,15 @@ class Routes {
     },
 
     // 🔥 NEW — Admin Rented Flat Tabbar (Booking/Pending/Complete)
-    administaterAddRentedFlatTabbar: (context) {
-      final args = ModalRoute.of(context)?.settings.arguments as Map? ?? {};
-
-      return AdministatorAddRentedFlatTabbar(
-        fromNotification: args["fromNotification"] ?? false,
-        flatId: args["propertyId"]?.toString(),
-        tabIndex: args["tabIndex"] ?? 0,
-      );
-    },
+    // administaterAddRentedFlatTabbar: (context) {
+    //   final args = ModalRoute.of(context)?.settings.arguments as Map? ?? {};
+    //
+    //   return AdministatorAddRentedFlatTabbar(
+    //     fromNotification: args["fromNotification"] ?? false,
+    //     flatId: args["propertyId"]?.toString(),
+    //     tabIndex: args["tabIndex"] ?? 0,
+    //   );
+    // },
     subAdminDemandDetail: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
       return SubDemandDetails(

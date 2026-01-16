@@ -907,30 +907,44 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
     // SPLIT (DISPLAY ONLY)
     officeFinalShare = netAfterGst * 0.5;
     fieldWorkerFinalShare = netAfterGst * 0.5;
-
     if (hasVisitor) {
-      visitorShare = companyCommissionTotal * 0.15;
+      visitorShare = fieldWorkerFinalShare * 0.15;
       fieldWorkerFinalShare =
-          (fieldWorkerFinalShare - visitorShare).clamp(0, double.infinity);
-    } else {
+          (fieldWorkerFinalShare - visitorShare)
+              .clamp(0, double.infinity);
+    }
+    else {
       visitorShare = 0;
     }
     _calcTick.value++;
   }
-
-
-
-
   double _toD(String v) => double.tryParse(v.replaceAll(',', '').trim()) ?? 0;
   double _pc(TextEditingController c) => double.tryParse(c.text) ?? 0;
   String _cur(num value) {
+    final bool hasDecimal = value % 1 != 0;
+
     final formatter = NumberFormat.currency(
       locale: 'en_IN',
       symbol: '₹ ',
-      decimalDigits: 0,
+      decimalDigits: hasDecimal ? 2 : 0,
     );
+
     return formatter.format(value);
   }
+  String _inr(num value) {
+    final num rounded = num.parse(value.toStringAsFixed(2));
+
+    final bool hasDecimal = rounded % 1 != 0;
+
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: hasDecimal ? 2 : 0,
+    );
+
+    return formatter.format(rounded);
+  }
+
   String _intStr(num v) => v.toStringAsFixed(0);
   String _numOnly(String s) {
     final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
@@ -993,6 +1007,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return WillPopScope(
       onWillPop: () async {
@@ -1822,7 +1837,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-
+                          // Same header styling
                           Row(
                             children: [
                               Container(
@@ -1846,35 +1861,156 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                           ),
                           const SizedBox(height: 8),
                           _buildColoredAmountRow(
-                            "Company Commission (Total) = ${_cur(companyCommissionTotal)}",
-                            forcePolarity: Polarity.credit,
+                            "Company Commission (Total) = - ${_inr(companyCommissionTotal)}",
+                            forcePolarity: Polarity.credit, // or debit based on your logic
                           ),
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "GST (18%) = ${_cur(gstAmount)}",
-                            forcePolarity: Polarity.debit,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "GST (18%)",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "- ${_inr(gstAmount)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 4),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "After GST",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "+ ${_inr(netAfterGst)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "After GST = ${_cur(netAfterGst)}",
-                            forcePolarity: Polarity.credit,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Office Share (50%)",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "${_inr(officeFinalShare)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "Office Share (50%) = ${_cur(officeFinalShare)}",
-                            forcePolarity: Polarity.officeSpecial,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Field Worker Share",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "${_inr(fieldWorkerFinalShare)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "Field Worker Share = ${_cur(fieldWorkerFinalShare)}",
-                            forcePolarity: Polarity.officeSpecial,
-                          ),
+
+
                           if (hasVisitor) ...[
                             const SizedBox(height: 4),
-                            _buildColoredAmountRow(
-                              "Visitor Share (15%) = ${_cur(visitorShare)}",
-                              forcePolarity: Polarity.officeSpecial,
-                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "Visitor Share (15%)",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "${_inr(visitorShare)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+
                           ],
                         ],
                       ),

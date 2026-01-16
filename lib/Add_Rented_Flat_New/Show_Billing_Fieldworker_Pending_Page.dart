@@ -1100,6 +1100,15 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     );
     return formatter.format(value);
   }
+  String _inr(num value) {
+    return NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: 2, // ALWAYS show .00
+    ).format(value);
+  }
+
+
   String _intStr(num v) => v.toStringAsFixed(0);
   String _numOnly(String s) {
     final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
@@ -1760,7 +1769,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Same header styling
+                                /// HEADER
                                 Row(
                                   children: [
                                     Container(
@@ -1772,7 +1781,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                       ),
                                     ),
                                     const SizedBox(width: 8),
-                                    Text(
+                                    const Text(
                                       "Commission Distribution",
                                       style: TextStyle(
                                         fontSize: 14,
@@ -1782,95 +1791,44 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 8),
-                                _buildColoredAmountRow(
-                                  "Company Commission (Total) = ${_cur(p.companyCommission)}",
-                                  forcePolarity: Polarity.credit, // or debit based on your logic
-                                ),
-                                const SizedBox(height: 4),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 2),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Text(
-                                              "GST (18%)",
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w500,
-                                                color: Theme.of(context).brightness==Brightness.dark?
-                                                Colors.white70
-                                                    : Colors.grey.shade700,
-                                              ),
-                                            ),
-                                          ),
 
-                                          Text(
-                                            "- ₹ ${p.officeGst % 1 != 0
-                                                ? p.officeGst.toStringAsFixed(2)
-                                                : p.officeGst.toStringAsFixed(0)}",
-                                            // uses your existing ₹ formatter
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w700,
-                                              color: Colors.red,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
+                                const SizedBox(height: 12),
 
-                                const SizedBox(height: 4),
                                 _buildColoredAmountRow(
-                                  "After GST = ${_cur(p.afterGstAmount)}",
+                                  "Company Commission (Total) = ${_inr(p.companyCommission)}",
                                   forcePolarity: Polarity.credit,
                                 ),
+
                                 const SizedBox(height: 4),
                                 _buildColoredAmountRow(
-                                  "Office Share (50%) = ${_cur(p.officeShare)}",
-                                  forcePolarity: Polarity.officeSpecial,
+                                  "GST (18%) = ${_inr(p.officeGst)}",
+                                  forcePolarity: Polarity.debit,
                                 ),
+
                                 const SizedBox(height: 4),
                                 _buildColoredAmountRow(
-                                  "Field Worker Share = ${_cur(p.fieldWorkerShare)}",
+                                  "After GST = ${_inr(p.afterGstAmount)}",
+                                  forcePolarity: Polarity.credit,
+                                ),
+
+                                const SizedBox(height: 4),
+                                _buildColoredAmountRow(
+                                  "Office Share (50%) = ${_inr(p.officeShare)}",
                                   forcePolarity: Polarity.officeSpecial,
                                 ),
+
+                                const SizedBox(height: 4),
+                                _buildColoredAmountRow(
+                                  "Field Worker Share = ${_inr(p.fieldWorkerShare)}",
+                                  forcePolarity: Polarity.officeSpecial,
+                                ),
+
                                 if (hasVisitor) ...[
                                   const SizedBox(height: 4),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 2),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            "Visitor Share (15%)",
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w500,
-                                              color: Theme.of(context).brightness==Brightness.dark?
-                                              Colors.white70
-                                                  : Colors.grey.shade700,
-                                            ),
-                                          ),
-                                        ),
-
-                                        Text(
-                                          "₹ ${p.visitorShare % 1 != 0
-                                              ? p.visitorShare.toStringAsFixed(2)
-                                              : p.visitorShare.toStringAsFixed(0)}",
-                                          // uses your existing ₹ formatter
-                                          style: TextStyle(
-                                            fontSize: 13,
-                                            fontWeight: FontWeight.w700,
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                  _buildColoredAmountRow(
+                                    "Visitor Share (15%) = ${_inr(p.visitorShare)}",
+                                    forcePolarity: Polarity.officeSpecial,
                                   ),
-
                                 ],
                               ],
                             ),
@@ -3026,37 +2984,19 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
       }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Regex supports ₹12,34,567 and ₹123456
-    final match = RegExp(r'₹\s*([\d,]+)').firstMatch(text);
+    // ✅ FIXED REGEX (supports decimals)
+    final match =
+    RegExp(r'₹\s*([\d,]+(?:\.\d+)?)').firstMatch(text);
 
     if (match != null) {
       final rawAmount = match.group(1)!.replaceAll(',', '');
       final amount = double.tryParse(rawAmount) ?? 0;
 
-      // Split label and value safely
       final parts = text.split('=');
       final label = parts.first.trim();
 
-      // -------- Determine polarity ----------
-      Polarity polarity;
+      Polarity polarity = forcePolarity ?? Polarity.neutral;
 
-      if (forcePolarity != null) {
-        polarity = forcePolarity;
-      } else if (text.contains('Paid') ||
-          text.contains('Hold') ||
-          text.contains('Commission') ||
-          text.contains('Gets') ||
-          text.contains('Share') && !text.contains('Received')) {
-        polarity = Polarity.debit;
-      } else if (text.contains('Received') ||
-          text.contains('Balance') ||
-          text.contains('Total')) {
-        polarity = Polarity.credit;
-      } else {
-        polarity = Polarity.neutral;
-      }
-
-      // -------- Color & Sign ----------
       Color amountColor;
       String sign = '';
 
@@ -3071,10 +3011,11 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
           break;
         case Polarity.officeSpecial:
           amountColor = Colors.blue;
-          sign = showSign ? '' : '';
+          sign = '';
           break;
         case Polarity.neutral:
-          amountColor = isDark ? Colors.white70 : Colors.grey.shade700;
+          amountColor =
+          isDark ? Colors.white70 : Colors.grey.shade700;
           sign = '';
           break;
       }
@@ -3089,22 +3030,19 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white70 : Colors.grey.shade700,
+                  color: isDark
+                      ? Colors.white70
+                      : Colors.grey.shade700,
                 ),
               ),
             ),
-
             if (sign.isNotEmpty)
-              Text(
-                sign,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: amountColor,
-                ),
-              ),
+              Text(sign,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: amountColor)),
             Text(
-              _cur(amount), // uses your existing ₹ formatter
+              _inr(amount), // ✅ ALWAYS shows .00
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -3116,21 +3054,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
       );
     }
 
-    // -------- Non-amount / formula lines ----------
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
-          fontStyle: text.contains('+') || text.contains('−')
-              ? FontStyle.italic
-              : FontStyle.normal,
-          color: isDark ? Colors.white60 : Colors.grey.shade600,
-        ),
-      ),
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildSummaryItem(String label, double amount, Color color) {

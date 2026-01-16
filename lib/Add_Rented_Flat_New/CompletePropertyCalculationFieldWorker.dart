@@ -488,8 +488,9 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
   @override
   void initState() {
     super.initState();
-
     _futureProperty = _fetchPropertyById(widget.propertyId);
+
+    _paymentStatusFuture = _fetchPaymentStatusBySubId(widget.propertyId);
 
     // Calculate commission safely ONCE
     commissionBothSide =
@@ -510,6 +511,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
     s1GiveCtl.addListener(_syncHold);
   }
 
+  Future<PaymentStepStatus?>? _paymentStatusFuture;
 
   double _safeDouble(dynamic value) {
     if (value == null) return 0;
@@ -794,6 +796,12 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
     return PaymentStepStatus.fromJson(data.last as Map<String, dynamic>);
   }
   bool _visitorInitialized = false;
+  double _toDouble(String? v) {
+    if (v == null) return 0;
+    return double.tryParse(
+      v.replaceAll(RegExp(r'[^0-9.]'), ''),
+    ) ?? 0;
+  }
 
   // -----------------------------------------------------
   // APPLY STATUS TO UI
@@ -1120,6 +1128,16 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
     );
     return formatter.format(value);
   }
+  String _inr(num value) {
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: 2, // 🔥 ALWAYS 2 decimals
+    );
+
+    return formatter.format(value);
+  }
+
   String _intStr(num v) => v.toStringAsFixed(0);
   String _numOnly(String s) {
     final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
@@ -1989,83 +2007,157 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
                     ),
                   ),
                   // Commission Distribution
-                  Container(
-                    margin: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).cardColor,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Same header styling
-                          Row(
+                  FutureBuilder<PaymentStepStatus?>(
+                    future: _paymentStatusFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return const SizedBox();
+                      }
+
+                      final data = snapshot.data!;
+
+                      final double companyCommissionTotal =
+                      _toDouble(data.bothsideCompanyCommission);
+                      final double gstAmount =
+                      _toDouble(data.officeGst);
+                      final double netAfterGst =
+                      _toDouble(data.afterGstAmount);
+                      final double officeFinalShare =
+                      _toDouble(data.officeShareFiftyPercent);
+                      final double fieldWorkerFinalShare =
+                      _toDouble(data.fieldWorkerShareFiftyPercent);
+                      final double visitorShare =
+                      _toDouble(data.visitorShare);
+
+                      final bool hasVisitor = visitorShare > 0;
+                      final bool isDark = Theme.of(context).brightness == Brightness.dark;
+
+                      Widget amountRow(
+                          String label,
+                          String value, {
+                            Color? color,
+                          }) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Row(
                             children: [
-                              Container(
-                                width: 4,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: Colors.deepOrange,
-                                  borderRadius: BorderRadius.circular(2),
+                              Expanded(
+                                child: Text(
+                                  label,
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               Text(
-                                "Commission Distribution",
+                                value,
                                 style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.deepOrange,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  color: color ?? (isDark ? Colors.white : Colors.black),
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          _buildColoredAmountRow(
-                            "Company Commission (Total) = ${_cur(companyCommissionTotal)}",
-                            forcePolarity: Polarity.credit, // or debit based on your logic
-                          ),
-                          const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "GST (18%) = ${_cur(gstAmount)}",
-                            forcePolarity: Polarity.debit,
-                          ),
-                          const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "After GST = ${_cur(netAfterGst)}",
-                            forcePolarity: Polarity.credit,
-                          ),
-                          const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "Office Share (50%) = ${_cur(officeFinalShare)}",
-                            forcePolarity: Polarity.officeSpecial,
-                          ),
-                          const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "Field Worker Share = ${_cur(fieldWorkerFinalShare)}",
-                            forcePolarity: Polarity.officeSpecial,
-                          ),
-                          if (hasVisitor) ...[
-                            const SizedBox(height: 4),
-                            _buildColoredAmountRow(
-                              "Visitor Share (15%) = ${_cur(visitorShare)}",
-                              forcePolarity: Polarity.officeSpecial,
+                        );
+                      }
+
+                      return Container(
+                        margin: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
                             ),
                           ],
-                        ],
-                      ),
-                    ),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              /// HEADER
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 4,
+                                    height: 16,
+                                    decoration: BoxDecoration(
+                                      color: Colors.deepOrange,
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  const Text(
+                                    "Commission Distribution",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.deepOrange,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              amountRow(
+                                "Company Commission (Total)",
+                                _inr(companyCommissionTotal),
+                                color: Colors.green,
+                              ),
+
+                              amountRow(
+                                "GST (18%)",
+                                "- ${_inr(gstAmount)}",
+                                color: Colors.red,
+                              ),
+
+                              amountRow(
+                                "After GST",
+                                "+ ${_inr(netAfterGst)}",
+                                color: Colors.green,
+                              ),
+
+                              amountRow(
+                                "Office Share (50%)",
+                                _inr(officeFinalShare),
+                                color: Colors.blue,
+                              ),
+
+                              amountRow(
+                                "Field Worker Share",
+                                _inr(fieldWorkerFinalShare),
+                                color: Colors.blue,
+                              ),
+
+                              if (hasVisitor) ...[
+                                amountRow(
+                                  "Visitor Share (15%)",
+                                  _inr(visitorShare),
+                                  color: Colors.blue,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  // Calculation Breakdown
+                // Calculation Breakdown
                   Padding(
                     padding: const EdgeInsets.all(20),
                     child: Column(

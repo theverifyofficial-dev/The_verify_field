@@ -576,7 +576,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     _recalc();
     final double ownerFinalSettlement =
     (settlementPool + s3Tenant - companyCommissionTotal)
-        .clamp(0, double.infinity);
+        .clamp(2, double.infinity);
 
     final ok = await _postStep3(
       id: _status!.id,
@@ -841,19 +841,19 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
         Uri.parse(_step3Endpoint),
       )
         ..fields['id'] = id.toString()
-        ..fields['tenant_pay_last_amount'] = _intStr(tenantPayLastAmount)
-        ..fields['bothside_company_comition'] = _intStr(bothSideCompanyComition)
-        ..fields['remaining_hold'] = _intStr(remainingHold)
-        ..fields['company_keep_comition'] = _intStr(companyKeepNow)
-        ..fields['remain_balance_share_to_owner'] = _intStr(remainBalanceShareToOwner)
-        ..fields['final_recived_amount_owner'] = _intStr(ownerRecivedFinalAmount)
+        ..fields['tenant_pay_last_amount'] = _doubleStr(tenantPayLastAmount)
+        ..fields['bothside_company_comition'] = _doubleStr(bothSideCompanyComition)
+        ..fields['remaining_hold'] = _doubleStr(remainingHold)
+        ..fields['company_keep_comition'] = _doubleStr(companyKeepNow)
+        ..fields['remain_balance_share_to_owner'] = _doubleStr(remainBalanceShareToOwner)
+        ..fields['final_recived_amount_owner'] = _doubleStr(ownerRecivedFinalAmount)
         ..fields['total_pay_tenant'] = _intStr(tenantTotalPay)
-        ..fields['remaing_final_balance'] = _intStr(remainingFinalBalance)
-        ..fields['visiter_share'] = _intStr(visitorShare)
-        ..fields['office_gst'] = _intStr(gstAmount)
-        ..fields['after_gst_amount'] = _intStr(netAfterGst)
-        ..fields['office_share_fifty_percent'] = _intStr(officeFinalShare)
-        ..fields['field_workar_share_fifity_percent'] = _intStr(fieldWorkerFinalShare)
+        ..fields['remaing_final_balance'] = _doubleStr(remainingFinalBalance)
+        ..fields['visiter_share'] = _doubleStr(visitorShare)
+        ..fields['office_gst'] = _doubleStr(gstAmount)
+        ..fields['after_gst_amount'] = _doubleStr(netAfterGst)
+        ..fields['office_share_fifty_percent'] = _doubleStr(officeFinalShare)
+        ..fields['field_workar_share_fifity_percent'] = _doubleStr(fieldWorkerFinalShare)
 
         ..fields['dates_3rd'] = _date(now)
         ..fields['times_3rd'] = _time(now);
@@ -879,6 +879,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     } finally {
       if (mounted) setState(() => _s3Submitting = false);
     }
+  }
+  String _doubleStr(num? v, {int fixed = 2}) {
+    if (v == null) return "0";
+    return v.toStringAsFixed(fixed);
   }
 
   Future<void> loadUserPost() async {
@@ -961,7 +965,10 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   double _toD(String v) => double.tryParse(v.replaceAll(',', '').trim()) ?? 0;
   double _pc(TextEditingController c) => double.tryParse(c.text) ?? 0;
   String _cur(num value) {
-    final bool hasDecimal = value % 1 != 0;
+    // Round to 2 decimals first
+    final num rounded = num.parse(value.toStringAsFixed(2));
+
+    final bool hasDecimal = rounded % 1 != 0;
 
     final formatter = NumberFormat.currency(
       locale: 'en_IN',
@@ -969,8 +976,23 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       decimalDigits: hasDecimal ? 2 : 0,
     );
 
-    return formatter.format(value);
-  }  String _intStr(num v) => v.toStringAsFixed(0);
+    return formatter.format(rounded);
+  }
+  String _inr(num value) {
+    final num rounded = num.parse(value.toStringAsFixed(2));
+
+    final bool hasDecimal = rounded % 1 != 0;
+
+    final formatter = NumberFormat.currency(
+      locale: 'en_IN',
+      symbol: '₹ ',
+      decimalDigits: hasDecimal ? 2 : 0,
+    );
+
+    return formatter.format(rounded);
+  }
+
+  String _intStr(num v) => v.toStringAsFixed(0);
   String _numOnly(String s) {
     final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
     final d = double.tryParse(cleaned) ?? 0;
@@ -1995,7 +2017,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                           ),
                           const SizedBox(height: 8),
                           _buildColoredAmountRow(
-                            "Company Commission (Total) = ${_cur(companyCommissionTotal)}",
+                            "Company Commission (Total) = - ${_inr(companyCommissionTotal)}",
                             forcePolarity: Polarity.credit, // or debit based on your logic
                           ),
                           const SizedBox(height: 4),
@@ -2016,9 +2038,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(vertical: 2),
                                   child: Text(
-                                    "- ₹ ${gstAmount % 1 != 0
-                                        ? gstAmount.toStringAsFixed(2)
-                                        : gstAmount.toStringAsFixed(0)}",
+                                    "- ${_inr(gstAmount)}",
                                     style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w700,
@@ -2029,25 +2049,96 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                               ],
                             ),
                           ),
-                          // _buildColoredAmountRow(
-                          //   "GST (18%) = ${_cur(gstAmount)}",
-                          //   forcePolarity: Polarity.debit,
-                          // ),
+
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "After GST = ${_cur(netAfterGst)}",
-                            forcePolarity: Polarity.credit,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "After GST",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "+ ${_inr(netAfterGst)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "Office Share (50%) = ${_cur(officeFinalShare)}",
-                            forcePolarity: Polarity.officeSpecial,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Office Share (50%)",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "${_inr(officeFinalShare)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "Field Worker Share = ${_cur(fieldWorkerFinalShare)}",
-                            forcePolarity: Polarity.officeSpecial,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "Field Worker Share",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "${_inr(fieldWorkerFinalShare)}",
+                                   style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+
+
                           if (hasVisitor) ...[
                             const SizedBox(height: 4),
                             Padding(
@@ -2065,9 +2156,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                                     ),
                                   ),
                                     Text(
-                                      "₹ ${visitorShare % 1 != 0
-                                          ? visitorShare.toStringAsFixed(2)
-                                          : visitorShare.toStringAsFixed(0)}",
+                                      "${_inr(visitorShare)}",
                                       style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,

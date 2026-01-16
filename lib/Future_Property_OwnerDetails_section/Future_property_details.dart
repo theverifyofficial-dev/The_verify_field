@@ -8,7 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
-import '../property_preview.dart';
+import '../Custom_Widget/property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_FutureProperty_Images.dart';
 import 'Duplicate_Property.dart';

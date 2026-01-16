@@ -4,16 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'FieldWorker_Complete_Detail_Page.dart';
-import '../constant.dart';
-import 'Action_Form_New.dart';
-import 'Add_Tenent_New.dart';
 import 'FieldWorker_Booking_Finacial_Detail.dart';
 import 'FieldWorker_Booking_Page_Details_New.dart';
-import 'FieldWorker_CompletePage_transaction_details_page.dart';
-import 'UpdateTenantNew.dart';
-import 'Update_Action_Form_New.dart';
+
 
 class Property {
   final int pId;

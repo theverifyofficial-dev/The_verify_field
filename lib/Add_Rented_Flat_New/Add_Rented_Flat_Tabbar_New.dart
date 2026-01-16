@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
+import '../Home_Screen.dart';
 import 'NewDesginFieldWorkerPendingFlatsNew.dart';
 import 'NewDesgin_FieldWorker_Booking_Page_New.dart';
 import 'NewDesgin_FieldWorker_Complete_Page_New.dart';
@@ -55,7 +56,15 @@ class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
         leading: InkWell(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            } else {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (_) => Home_Screen()),
+              );
+            }
+          },
           child: const Icon(
             PhosphorIcons.caret_left_bold,
             color: Colors.white,

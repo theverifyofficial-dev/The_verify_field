@@ -2,16 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
-import 'package:verify_feild_worker/Login_page.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
-import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
-import '../Social_Media_links.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
-import '../administrator/Administator_Realestate.dart';
+import '../Z-Screen/Social_Media_links.dart';
 import '../main.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'AdminRealEstateTabbar.dart';
@@ -21,9 +17,7 @@ import 'Administater_Parent_TenantDemand.dart';
 import 'All_Rented_Flat/Administator_Add_Rented_Flat_Tabbar.dart';
 import 'Administator_Agreement/Admin_dashboard.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-
 import 'New_TenandDemand/Admin_tabbar.dart';
-import 'New_TenandDemand/Tenant_demand.dart';
 
 class AdministratorHome_Screen extends StatefulWidget {
   static const route = "/AdministratorHome_Screen";

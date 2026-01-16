@@ -1730,9 +1730,12 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                   ),
                                 ],
                               ),
+
                               _buildAmountDisplay(
                                 "Commission",
-                                _cur(p.visitorShare),
+                                  p.visitorShare % 1 != 0
+                                    ?    p.visitorShare.toStringAsFixed(2)
+                                    :    p.visitorShare.toStringAsFixed(0),
                                 context,
                               ),
                             ],
@@ -1785,10 +1788,39 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                   forcePolarity: Polarity.credit, // or debit based on your logic
                                 ),
                                 const SizedBox(height: 4),
-                                _buildColoredAmountRow(
-                                  "GST (18%) = ${_cur(p.officeGst)}",
-                                  forcePolarity: Polarity.debit,
-                                ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 2),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              "GST (18%)",
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w500,
+                                                color: Theme.of(context).brightness==Brightness.dark?
+                                                Colors.white70
+                                                    : Colors.grey.shade700,
+                                              ),
+                                            ),
+                                          ),
+
+                                          Text(
+                                            "- ₹ ${p.officeGst % 1 != 0
+                                                ? p.officeGst.toStringAsFixed(2)
+                                                : p.officeGst.toStringAsFixed(0)}",
+                                            // uses your existing ₹ formatter
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
                                 const SizedBox(height: 4),
                                 _buildColoredAmountRow(
                                   "After GST = ${_cur(p.afterGstAmount)}",
@@ -1806,10 +1838,39 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                 ),
                                 if (hasVisitor) ...[
                                   const SizedBox(height: 4),
-                                  _buildColoredAmountRow(
-                                    "Visitor Share (15%) = ${_cur(p.visitorShare)}",
-                                    forcePolarity: Polarity.officeSpecial,
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 2),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            "Visitor Share (15%)",
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                              color: Theme.of(context).brightness==Brightness.dark?
+                                              Colors.white70
+                                                  : Colors.grey.shade700,
+                                            ),
+                                          ),
+                                        ),
+
+                                        Text(
+                                          "₹ ${p.visitorShare % 1 != 0
+                                              ? p.visitorShare.toStringAsFixed(2)
+                                              : p.visitorShare.toStringAsFixed(0)}",
+                                          // uses your existing ₹ formatter
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
+
                                 ],
                               ],
                             ),
@@ -3032,13 +3093,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                 ),
               ),
             ),
-            Text(
-              '= ',
-              style: TextStyle(
-                fontSize: 13,
-                color: isDark ? Colors.white60 : Colors.grey.shade600,
-              ),
-            ),
+
             if (sign.isNotEmpty)
               Text(
                 sign,

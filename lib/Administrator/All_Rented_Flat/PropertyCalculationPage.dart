@@ -961,14 +961,16 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   double _toD(String v) => double.tryParse(v.replaceAll(',', '').trim()) ?? 0;
   double _pc(TextEditingController c) => double.tryParse(c.text) ?? 0;
   String _cur(num value) {
+    final bool hasDecimal = value % 1 != 0;
+
     final formatter = NumberFormat.currency(
       locale: 'en_IN',
       symbol: '₹ ',
-      decimalDigits: 0,
+      decimalDigits: hasDecimal ? 2 : 0,
     );
+
     return formatter.format(value);
-  }
-  String _intStr(num v) => v.toStringAsFixed(0);
+  }  String _intStr(num v) => v.toStringAsFixed(0);
   String _numOnly(String s) {
     final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
     final d = double.tryParse(cleaned) ?? 0;
@@ -1906,36 +1908,49 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                     ],
                   ),
                 ),
-                  const SizedBox(height: 12),
                   // Visitor toggle
                   // ✅ ONLY show if visitor exists
                   if (visitorAvailable) ...[
 
-
-                    const SizedBox(height: 12),
-
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: const Text("Visitor Commission (15%)"),
-                      value: hasVisitor,
-                      onChanged: step3Done || visitorLocked
-                          ? null
-                          : (v) {
-                        setState(() {
-                          hasVisitor = v;
-                          _recalc(); // 🔥 recalc commission
-                        });
-                      },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text("Visitor Commission (15%)"),
+                        value: hasVisitor,
+                        onChanged: step3Done || visitorLocked
+                            ? null
+                            : (v) {
+                          setState(() {
+                            hasVisitor = v;
+                            _recalc(); // 🔥 recalc commission
+                          });
+                        },
+                      ),
                     ),
 
-                    const SizedBox(height: 8),
 
                     // ✅ Amount ONLY when switch ON
                     if (hasVisitor)
-                      _buildAmountDisplay(
-                        "Visitor Share",
-                        _cur(visitorShare),
-                        context,
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: _buildAmountDisplay(
+                          "Visitor Share",
+                          visitorShare.toStringAsFixed(2),
+                          context,
+                        ),
                       ),
                   ],
                   Container(
@@ -1984,10 +1999,40 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                             forcePolarity: Polarity.credit, // or debit based on your logic
                           ),
                           const SizedBox(height: 4),
-                          _buildColoredAmountRow(
-                            "GST (18%) = ${_cur(gstAmount)}",
-                            forcePolarity: Polarity.debit,
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 2),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    "GST (18%)",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2),
+                                  child: Text(
+                                    "- ₹ ${gstAmount % 1 != 0
+                                        ? gstAmount.toStringAsFixed(2)
+                                        : gstAmount.toStringAsFixed(0)}",
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.red,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
+                          // _buildColoredAmountRow(
+                          //   "GST (18%) = ${_cur(gstAmount)}",
+                          //   forcePolarity: Polarity.debit,
+                          // ),
                           const SizedBox(height: 4),
                           _buildColoredAmountRow(
                             "After GST = ${_cur(netAfterGst)}",
@@ -2005,10 +2050,34 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                           ),
                           if (hasVisitor) ...[
                             const SizedBox(height: 4),
-                            _buildColoredAmountRow(
-                              "Visitor Share (15%) = ${_cur(visitorShare)}",
-                              forcePolarity: Polarity.officeSpecial,
-                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      "Visitor Share (15%)",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: isDark ? Colors.white70 : Colors.grey.shade700,
+                                      ),
+                                    ),
+                                  ),
+                                    Text(
+                                      "₹ ${visitorShare % 1 != 0
+                                          ? visitorShare.toStringAsFixed(2)
+                                          : visitorShare.toStringAsFixed(0)}",
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            )
+
                           ],
                         ],
                       ),
@@ -2087,6 +2156,11 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                               _buildColoredAmountRow(
                                 "Step 3: Tenant Paid last Amount = ${_cur(s3Tenant)}",
                                 forcePolarity: Polarity.debit, // Force debit
+                              ),
+                              const SizedBox(height: 4),
+                              _buildColoredAmountRow(
+                                "Tenant Total Paid = ${_cur(s1Tenant+s2Tenant+s3Tenant)}",
+                                forcePolarity: Polarity.neutral,
                               ),
                             ],
                           ),

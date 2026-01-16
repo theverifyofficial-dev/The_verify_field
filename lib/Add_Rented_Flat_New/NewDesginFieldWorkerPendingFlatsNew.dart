@@ -510,7 +510,9 @@ class NewDesginFieldWorkerPendingFlatsNew extends StatefulWidget {
   State<NewDesginFieldWorkerPendingFlatsNew> createState() => _NewDesginFieldWorkerPendingFlatsNewState();
 }
 
-class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWorkerPendingFlatsNew> {
+class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWorkerPendingFlatsNew> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
 
   static Map<dynamic, DateTime>? _lastTapTimes;
 
@@ -591,17 +593,15 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
     _init();
   }
 
+  Future<List<Property>>? _bookingFuture;
+
   Future<void> _init() async {
-    await loadUserName(); // ensures userNumber is ready
+    await loadUserName();
 
-    if (mounted) {
-      setState(() {
-        _bookingFuture = fetchBookingData();
-      });
-    }
+    _bookingFuture = fetchBookingData();
+
+    if (mounted) setState(() {});
   }
-
-  late Future<List<Property>> _bookingFuture;
 
   String? userName;
   String? userNumber;
@@ -618,6 +618,7 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
       });
     }
   }
+
   Key _listKey = UniqueKey();
 
   Future<void> _onRefresh() async {
@@ -637,16 +638,24 @@ class _NewDesginFieldWorkerPendingFlatsNewState extends State<NewDesginFieldWork
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
     return RefreshIndicator(
       onRefresh: _onRefresh,
       child: Scaffold(
-        body: FutureBuilder<List<Property>>(
+        body:  _bookingFuture == null
+            ? const Center(child: CircularProgressIndicator(
+          color: Colors.blue,
+        ))
+            :
+        FutureBuilder<List<Property>>(
           future: _bookingFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(child: CircularProgressIndicator(
+                color: Colors.blue,
+              ));
             }
             if (snapshot.hasError) {
               return Center(child: Text("Error: ${snapshot.error}"));

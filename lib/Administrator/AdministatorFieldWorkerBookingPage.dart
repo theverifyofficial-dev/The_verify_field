@@ -5,7 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Add_Rented_Flat_New/FieldWorker_Booking_Page_Details.dart';
-import '../constant.dart';
+import '../Custom_Widget/constant.dart';
+
 class Property {
   final int id;
   final String propertyPhoto;

@@ -1608,8 +1608,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                             alignment: WrapAlignment.spaceEvenly,
                             children: [
                               _TargetProgressCircle(
-                                // progress: monthlyProgress,
-                                // percentage: '${(monthlyProgress * 100).toInt()}%',
+
                                 title: 'Monthly Target',
                                 icon: Icons.track_changes_rounded,
                                 onTap: () {
@@ -1620,8 +1619,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                                 },
                               ),
                               _TargetProgressCircle(
-                                // progress: yearlyProgress,
-                                // percentage: '${(yearlyProgress * 100).toInt()}%',
+
                                 title: 'Yearly Target',
                                 icon: Icons.calendar_today_rounded,
                                 onTap: () {
@@ -1674,28 +1672,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
                     ),
 
                     const SizedBox(height: 10),
-
-
-                    // Padding(
-                    //     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    //     child: GeminiAISearchBar(
-                    //       width: screenWidth,
-                    //       onTap: () {
-                    //         void showGeminiBottomSheet(BuildContext context) {
-                    //           showModalBottomSheet(
-                    //             context: context,
-                    //             isScrollControlled: true,
-                    //             backgroundColor: Colors.transparent,
-                    //             barrierColor: Colors.black54,
-                    //             builder: (_) {
-                    //               return const GeminiChatBottomSheet();
-                    //             },
-                    //           );
-                    //         }
-                    //         showGeminiBottomSheet(context);
-                    //       },
-                    //     ),
-                    //   ),
 
                     // Feature Grid
                     GridView.builder(

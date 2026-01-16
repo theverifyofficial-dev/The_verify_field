@@ -8,7 +8,7 @@ class TenantController extends GetxController {
   var tenantList = <Cat_id>[].obs;
 
   var _num = ''.obs;
-  String get number => _num.value; // 👈 Public getter
+  String get number => _num.value;
 
   var _na = ''.obs;
   var searchText = ''.obs;

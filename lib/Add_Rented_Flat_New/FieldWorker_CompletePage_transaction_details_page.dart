@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../Add_Rented_Flat/FieldWorker_Complete_Page.dart';
+import 'FieldWorker_Complete_Page.dart';
 
 class TransactionDetailsPage extends StatefulWidget {
   final int propertyId;

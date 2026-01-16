@@ -4,8 +4,6 @@ import '../../Custom_Widget/constant.dart';
 import 'ShowTenantDemant.dart';
 import 'SubAdmin_disclose.dart';
 
-
-
 class SubadminTabbar extends StatefulWidget {
   const SubadminTabbar({super.key});
 

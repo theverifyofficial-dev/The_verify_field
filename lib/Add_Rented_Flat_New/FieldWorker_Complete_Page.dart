@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../Add_Rented_Flat/Action_Form.dart';
-import '../../Add_Rented_Flat/Add_Tenent.dart';
-import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
-import '../../Add_Rented_Flat/FieldWorker_Complete_Detail_Page.dart';
-import '../Custom_Widget/constant.dart';
+import 'FieldWorker_Booking_Page_Details.dart';
+import 'FieldWorker_Complete_Detail_Page.dart';
+import '../../constant.dart';
 
 class Property {
   final int id;

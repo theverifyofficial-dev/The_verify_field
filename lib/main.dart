@@ -48,7 +48,7 @@ void main() async {
     apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
   );
 
-  TenantBinding();
+  // TenantBinding();
 
   runApp(
     MultiProvider(

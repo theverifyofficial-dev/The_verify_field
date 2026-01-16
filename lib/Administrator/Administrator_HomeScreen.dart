@@ -4,12 +4,12 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Administrator/Admin_upcoming.dart';
-import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
+import 'package:verify_feild_worker/Login_page.dart';
 import '../Adminisstrator_Target_details/Targets.dart';
 import '../Calender/CalenderForAdmin.dart';
 import '../Dashboard/AllFieldWorkers.dart';
 import '../Dashboard/Dashoard.dart';
-import '../Z-Screen/Social_Media_links.dart';
+import '../Social_Media_links.dart';
 import '../Web_query/web_query.dart' hide SlideAnimation;
 import '../administrator/Administator_Realestate.dart';
 import '../main.dart';
@@ -93,9 +93,7 @@ class _AdministratorHome_ScreenState extends State<AdministratorHome_Screen> wit
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
     final storedFAadharCard = prefs.getString('post');
-    // debugPrint("User Name: $storedName");
-    // debugPrint("User Number: $storedNumber");
-    // debugPrint("User FAadharCard: $storedFAadharCard");
+
     if (mounted) {
       setState(() {
         userName = storedName;

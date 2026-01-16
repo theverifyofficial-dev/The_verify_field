@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Add_Rented_Flat/FieldWorker_Complete_Page.dart';
+import 'FieldWorker_Complete_Page.dart';
 
 // =====================================================
 // MODELS

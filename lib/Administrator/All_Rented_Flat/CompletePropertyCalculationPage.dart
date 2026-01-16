@@ -1,15 +1,10 @@
 import 'dart:convert';
-import 'dart:ui' show FontFeature;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
-import '../../Add_Rented_Flat/FieldWorker_Complete_Page.dart';
-
-// =====================================================
-// MODELS
-// =====================================================
+import '../../Add_Rented_Flat_New/FieldWorker_Complete_Page.dart';
 
 class Property {
   final int id;
@@ -995,15 +990,14 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
   int _safeSubId(dynamic v) {
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return WillPopScope(
       onWillPop: () async {
-        // returning true here just allows the pop; but pass a result:
-        Navigator.pop(context, s3Saved); // true if saved, else null/false
-        return false; // we've handled it
+        Navigator.pop(context, s3Saved);
+        return false;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -1042,7 +1036,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                 children: [
                   const SizedBox(height: 8),
                   _exactHeader(property),
-                  // Header Section
+
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
@@ -1101,7 +1095,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                         ),
                         const SizedBox(height: 16),
 
-                        // Summary Cards
                         Row(
                           children: [
                             Expanded(
@@ -1433,7 +1426,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                             tilePadding: EdgeInsets.zero,
                             childrenPadding: EdgeInsets.zero,
 
-                            shape: const Border(),           // ⬅ removes expanded divider
+                            shape: const Border(),
                             collapsedShape: const Border(),
                           initiallyExpanded: !step1Done,
                             maintainState: true,
@@ -1671,8 +1664,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                     ),
                   ),
                   SizedBox(height: 8,),
-                  // In your build method, replace the calculation sections with:
-                  // Office Details Section (Mixed - you decide per line)
+
                   Container(
                     margin: const EdgeInsets.all( 16),
                     padding: const EdgeInsets.all(12),
@@ -1706,19 +1698,16 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                           ],
                         ),
                         const SizedBox(height: 8),
-                        // Office Hold is a debit (red)
                         _buildColoredAmountRow(
                           "Step 1: Office Hold = ${_cur(s1Hold)}",
                           forcePolarity: Polarity.credit, // Force debit
                         ),
                         const SizedBox(height: 4),
-                        // Mid transfer to owner is a debit (red) - money going out of office
                         _buildColoredAmountRow(
                           "Step 2: Mid Amount transfer to owner= ${_cur(s2Tenant)}",
                           forcePolarity: Polarity.debit, // Force debit
                         ),
                         const SizedBox(height: 4),
-                        // Tenant final payment is a credit (green) - money coming to office
                         _buildColoredAmountRow(
                           "Step 3: Tenant Paid Final Amount = ${_cur(s3Tenant)}",
                           forcePolarity: Polarity.credit, // Force credit
@@ -1754,7 +1743,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Settlement pool is a credit (green) - total money with office
 
                             Expanded(
                               child: _buildColoredAmountRow(
@@ -1764,14 +1752,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                             ),
                           ],
                         ),
-                        //
-                        // const SizedBox(height: 4),
-                        // // Company commission is a debit (red) - expense for office
-                        //
-                        // _buildColoredAmountRow(
-                        //   "Company Commission (Both Side) = ${_cur(companyCommissionTotal)}",
-                        //   forcePolarity: Polarity.debit, // Force debit
-                        // ),
+
                         const SizedBox(height: 4),
 
                         Row(
@@ -1791,7 +1772,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                               ),
                             ),
                             const SizedBox(height: 4),
-                            // Owner final share is a debit (red) - money going to owner
+
                             Expanded(
                               child: _buildColoredAmountRow(
                                 "= ${_cur(ownerFinalNow)}",
@@ -1801,23 +1782,20 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                           ],
                         ),
 
-
-                        // const SizedBox(height: 4),
                         Divider(),
-                        // Company gets is a credit (green) - income for office
                         _buildColoredAmountRow(
                           "Company Received = ${_cur(companyCommissionTotal)}",
                           forcePolarity: Polarity.neutral, // Force credit
                         ),
                         const SizedBox(height: 4),
-                        // Remaining balance to owner is a debit (red) - money going to owner
+
                         _buildColoredAmountRow(
                           "Remaining Balance share to owner = ${_cur(ownerFinalNow)}",
                           forcePolarity: Polarity.neutral, // Force debit
                         ),
 
                         const SizedBox(height: 4),
-                        // Remaining balance to owner is a debit (red) - money going to owner
+
                         _buildColoredAmountRow(
                           "Balance = ${_cur(remaining)}",
                           forcePolarity: Polarity.neutral, // Force debit
@@ -1844,7 +1822,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Same header styling
+
                           Row(
                             children: [
                               Container(
@@ -1869,7 +1847,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                           const SizedBox(height: 8),
                           _buildColoredAmountRow(
                             "Company Commission (Total) = ${_cur(companyCommissionTotal)}",
-                            forcePolarity: Polarity.credit, // or debit based on your logic
+                            forcePolarity: Polarity.credit,
                           ),
                           const SizedBox(height: 4),
                           _buildColoredAmountRow(
@@ -1980,7 +1958,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                           ),
                         ),
 
-// Owner Details Section (All credits/green)
                         Container(
                           margin: const EdgeInsets.only(bottom: 16),
                           padding: const EdgeInsets.all(12),
@@ -2014,20 +1991,20 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              // All receipts are credits (green)
+
                               _buildColoredAmountRow(
                                 "Step 1: Received by Owner = ${_cur(s1Give)}",
-                                forcePolarity: Polarity.credit, // Force credit
+                                forcePolarity: Polarity.credit,
                               ),
                               const SizedBox(height: 4),
                               _buildColoredAmountRow(
                                 "Step 2: Received by Owner = ${_cur(s2Tenant)}",
-                                forcePolarity: Polarity.credit, // Force credit
+                                forcePolarity: Polarity.credit,
                               ),
                               const SizedBox(height: 4),
                               _buildColoredAmountRow(
                                 "Step 3: Received by Owner = ${_cur(ownerFinalNow)}",
-                                forcePolarity: Polarity.credit, // Force credit
+                                forcePolarity: Polarity.credit,
                               ),
                               const SizedBox(height: 4),
                               Row(
@@ -2050,16 +2027,14 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                                   Expanded(
                                     child: _buildColoredAmountRow(
                                       "= ${_cur(ownerReceivedTotal)}",
-                                      forcePolarity: Polarity.officeSpecial, // Force credit
+                                      forcePolarity: Polarity.officeSpecial,
                                     ),
                                   ),
                                 ],
                               ),
-
                             ],
                           ),
                         ),
-
 
                       ],
                     ),
@@ -2387,83 +2362,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
     );
   }
 
-  Widget _buildStepContainer({
-    required int step,
-    required String title,
-    required bool isCompleted,
-    required Widget child,
-    String? status,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade200,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: isCompleted ? Colors.green.shade500 : Colors.grey.shade300,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    step.toString(),
-                    style: TextStyle(
-                      color: isCompleted ? Colors.white : Colors.grey.shade700,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isCompleted ? Colors.green.shade700 :Theme.of(context).brightness==Brightness.dark?Colors.white: Colors.grey.shade800,
-                  ),
-                ),
-              ),
-              if (isCompleted)
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green.shade500,
-                  size: 20,
-                ),
-            ],
-          ),
-          if (status != null && status.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4, left: 40),
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.green.shade600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-
   Widget _buildAmountInput(String label, TextEditingController controller, bool enabled, BuildContext context, {String? hintText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2583,152 +2481,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
     );
   }
 
-  Widget _buildDateTimeStamp(String? date, String? time, BuildContext context) {
-    if (date == null || date.isEmpty || time == null || time.isEmpty) {
-      return const SizedBox();
-    }
-
-    try {
-      // Combine date + time from API
-      final rawDateTime = DateTime.parse("$date $time");
-
-      // Format to Indian standard (dd/MM/yyyy hh:mm a)
-      final formatted = DateFormat("dd/MM/yyyy  hh:mm a").format(rawDateTime);
-
-      return Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.green.withOpacity(0.15)
-              : Colors.green.shade50,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.greenAccent.withOpacity(0.4)
-                : Colors.green.shade100,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.access_time,
-              size: 14,
-              color: Colors.green.shade600,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              formatted, // 👈 IST + AM/PM
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.greenAccent
-                    : Colors.green.shade700,
-              ),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      return const SizedBox();
-    }
-  }
-
-  Widget _buildStepButton({
-    required VoidCallback onPressed,
-    required bool isSubmitting,
-    required bool isCompleted,
-    required String label,
-    required bool isEnabled,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: isEnabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: isCompleted ? Colors.green.shade500 : Colors.blue.shade600,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (isSubmitting)
-              const SizedBox(
-                width: 16,
-                height: 16,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-            if (isSubmitting) const SizedBox(width: 8),
-            Text(
-              isSubmitting
-                  ? "Saving..."
-                  : (isCompleted ? "✓ Completed" : label),
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCalculationSection({
-    required String title,
-    required Color color,
-    required List<String> items,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 4,
-                height: 16,
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ...items.map((item) => Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
-            child: _buildColoredAmountRow(item),
-          )).toList(),
-        ],
-      ),
-    );
-  }
-
   Widget _buildColoredAmountRow(
     String text, {
     Polarity? forcePolarity,
@@ -2736,14 +2488,12 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    // Regex supports ₹12,34,567 and ₹123456
     final match = RegExp(r'₹\s*([\d,]+)').firstMatch(text);
 
     if (match != null) {
       final rawAmount = match.group(1)!.replaceAll(',', '');
       final amount = double.tryParse(rawAmount) ?? 0;
 
-      // Split label and value safely
       final parts = text.split('=');
       final label = parts.first.trim();
 
@@ -2820,7 +2570,7 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
                 ),
               ),
             Text(
-              _cur(amount), // uses your existing ₹ formatter
+              _cur(amount),
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -2832,7 +2582,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
       );
     }
 
-    // -------- Non-amount / formula lines ----------
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Text(
@@ -2845,33 +2594,6 @@ class _CompletePropertyCalculateState extends State<CompletePropertyCalculate> {
               : FontStyle.normal,
           color: isDark ? Colors.white60 : Colors.grey.shade600,
         ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(String label, double amount, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: color,
-            ),
-          ),
-          Text(
-            _cur(amount),
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }

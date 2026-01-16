@@ -43,7 +43,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
     _fetchOwnerData();
   }
 
-  /// Attach formatter to number fields
   void _addFormatListener(TextEditingController controller) {
     controller.addListener(() {
       final text = controller.text.replaceAll(',', '');
@@ -61,7 +60,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
     });
   }
 
-  /// Fetch owner details using propertyId
   Future<void> _fetchOwnerData() async {
     final url = Uri.parse(
         "https://verifyserve.social/PHP_Files/owner_tenant_api.php?subid=${widget.propertyId}");
@@ -94,7 +92,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
     }
   }
 
-  /// Update owner
   Future<void> _updateOwner() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -126,7 +123,7 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
           );
 
           await Future.delayed(const Duration(seconds: 1));
-          Navigator.pop(context, true); // ✅ return true to refresh previous page
+          Navigator.pop(context, true);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -157,7 +154,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
       setState(() => _isSubmitting = false);
     }
   }
-
   Widget _buildInputField(String label, TextEditingController controller,
       {TextInputType inputType = TextInputType.text, IconData? icon}) {
     return Material(
@@ -202,7 +198,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
         validator: (value) {
           if (value == null || value.isEmpty) return "$label is required";
 
-          // ✅ Special case for phone number
           if (label == "Owner Number" && value.length != 10) {
             return "Owner Number must be exactly 10 digits";
           }
@@ -222,16 +217,6 @@ class _UpdateOwnerPageState extends State<UpdateOwnerPage> {
               : Colors.white,
         ),
       ),
-    );
-  }
-
-  Widget _buildCurrencyField(
-      String label, TextEditingController controller, IconData icon) {
-    return _buildInputField(
-      label,
-      controller,
-      inputType: TextInputType.number,
-      icon: icon,
     );
   }
 

@@ -199,7 +199,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        elevation: 0, // Make sure there's no shadow
+        elevation: 0,
         surfaceTintColor: Colors.black,
         backgroundColor: Colors.black,
         title: Image.asset(AppImages.verify, height: 75),
@@ -220,7 +220,6 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
             ],
           ),
         ),
-        // centerTitle: true,
       ),
       body: FutureBuilder<PropertyDetail>(
         future: propertyDetail,
@@ -366,8 +365,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                               ),
                               child: Row(
                                 children: [
-                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                  //w SizedBox(width: 10,),
+
                                   Text("" + property.typeOfProperty /*+abc.data![len].Building_Name.toUpperCase()*/,
                                     style: TextStyle(
                                         fontSize: 13,
@@ -403,8 +401,6 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                               ),
                               child: Row(
                                 children: [
-                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                  //w SizedBox(width: 10,),
                                   Text(
                                     "" + property.floor /*+abc.data![len].Building_Name.toUpperCase()*/,
                                     style: TextStyle(
@@ -641,8 +637,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                               ),
                               child: Row(
                                 children: [
-                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                  //SizedBox(width: 10,),
+
                                   Text(
                                     "" +
                                         property
@@ -700,8 +695,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                               ),
                               child: Row(
                                 children: [
-                                  // Icon(Iconsax.sort_copy,size: 15,),
-                                  //w SizedBox(width: 10,),
+
                                   Text(
                                     "" +
                                         property
@@ -777,8 +771,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                           MainAxisAlignment
                               .center,
                           children: [
-                            // Icon(Iconsax.sort_copy,size: 15,),
-                            //SizedBox(width: 10,),
+
                             Text(
                               "" +
                                   property
@@ -875,8 +868,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                             MainAxisAlignment
                                 .center,
                             children: [
-                              // Icon(Iconsax.sort_copy,size: 15,),
-                              //SizedBox(width: 10,),
+
                               Text(
                                 "" +
                                     property
@@ -1033,8 +1025,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                             MainAxisAlignment
                                 .center,
                             children: [
-                              // Icon(Iconsax.sort_copy,size: 15,),
-                              //SizedBox(width: 10,),
+
                               Text(
                                 "" +
                                     property
@@ -1414,8 +1405,7 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                         ),
                         child: Row(
                           children: [
-                            // Icon(Iconsax.sort_copy,size: 15,),
-                            //w SizedBox(width: 10,),
+
                             Text(
                               "Property Id = " +
                                   property
@@ -1491,12 +1481,11 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                           MainAxisAlignment
                               .center,
                           children: [
-                            // Icon(Iconsax.sort_copy,size: 15,),
-                            //SizedBox(width: 10,),
+
                             Text(
                               "" +
                                   property
-                                      .fieldWarkarName /*+property.Building_Name.toUpperCase()*/,
+                                      .fieldWarkarName,
                               style: TextStyle(
                                   fontSize: 13,
                                   color: Colors
@@ -1547,12 +1536,11 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
                           MainAxisAlignment
                               .center,
                           children: [
-                            // Icon(Iconsax.sort_copy,size: 15,),
-                            //SizedBox(width: 10,),
+
                             Text(
                               "" +
                                   property
-                                      .fieldWorkarNumber /*+property.Building_Name.toUpperCase()*/,
+                                      .fieldWorkarNumber,
                               style: TextStyle(
                                   fontSize: 13,
                                   color: Colors
@@ -1825,24 +1813,5 @@ class _AdministatorPropertyDetailPageState extends State<AdministatorPropertyDet
     );
   }
 
-  Widget _infoChip(String title, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-          color: color.withOpacity(0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color)),
-      child: Text(
-        "$title: $value",
-        style: TextStyle(color: color, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
 
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-    );
-  }
 }

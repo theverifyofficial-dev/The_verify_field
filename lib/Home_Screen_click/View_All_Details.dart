@@ -5,23 +5,38 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:verify_feild_worker/Custom_Widget/property_preview.dart';
+import 'package:verify_feild_worker/Model.dart';
+import 'package:verify_feild_worker/property_preview.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import '../Add_Rented_Flat/Book_Flat_For_FieldWorker.dart';
+
+import '../Add_Rented_Flat_New/Book_Flat_For_FieldWorker.dart';
 import '../Future_Property_OwnerDetails_section/Future_property_details.dart';
+import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
+import 'Add_image_under_property.dart';
+import 'Add_images_in_Realestate.dart';
+import 'Delete_Image.dart';
+import 'Edit_Page_Realestate.dart';
+import 'Add_multi_image_in_Realestate.dart';
+import 'Edit_Property_SecondPage.dart';
 import 'Real-Estate.dart';
+import 'package:android_intent_plus/android_intent.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
+import 'package:xml/xml.dart' as xml;
 
+import 'Reverse_in_Futureproperty.dart';
+import 'Update_realEstate_form.dart';
 
 class Catid {
   final int id;

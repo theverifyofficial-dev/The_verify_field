@@ -6,11 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../Add_Rented_Flat/FieldWorker_Complete_Page.dart';
-
-// =====================================================
-// MODELS
-// =====================================================
+import '../../Add_Rented_Flat_New/FieldWorker_Complete_Page.dart';
 
 class Property {
   final int id;
@@ -319,10 +315,6 @@ class PaymentStepStatus {
   }
 }
 
-// =====================================================
-// SCREEN
-// =====================================================
-
 class PropertyCalculate extends StatefulWidget {
 
   final int propertyId;
@@ -348,9 +340,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   final s1HoldCtl = TextEditingController();
   final s2TenantCtl = TextEditingController();
   final s3TenantCtl = TextEditingController();
-  final s3CompanyTotalCtl = TextEditingController(); // total company commission input
+  final s3CompanyTotalCtl = TextEditingController();
 
-  // Locks and flags
   bool s1Saved = false, s2Saved = false, s3Saved = false;
   bool _s1Submitting = false;
   bool _loadingStatus = false;
@@ -376,8 +367,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 // Visitor control
   bool hasVisitor = false;
   final visitorAmountCtl = TextEditingController();
-// toggle visitor availability (you can later bind from API)
-
 
   static const _propListEndpoint = "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_admin.php";
   static const _statusEndpoint  = "https://verifyserve.social/Second%20PHP%20FILE/Payment/show_payment1_base_on_sub_id.php";
@@ -547,7 +536,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
     final ok = await _postStep2(
       id: _status!.id,
-      midPaymentToOwner: ownerGet, // ✅ ONLY owner receive
+      midPaymentToOwner: ownerGet,
     );
 
     if (!ok) {
@@ -595,7 +584,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       bothSideCompanyComition: companyCommissionTotal,
       remainingHold: settlementPool,
       remainBalanceShareToOwner: ownerFinalNow,
-      // ownerRecivedFinalAmount: s1Give + s2Tenant + ownerFinalNow,
       ownerRecivedFinalAmount: ownerFinalSettlement,
       tenantTotalPay: tenantPaid,
       remainingFinalBalance: remaining,
@@ -608,10 +596,8 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
 
     _toast(context, "Step 3 saved.");
 
-    // optional: refresh local screen state before leaving
     await _refreshStatus(widget.propertyId);
 
-    // tell previous page to refresh
     if (mounted) Navigator.pop(context, true);
   }
   Future<void> _refreshStatus(int subid) async {
@@ -621,7 +607,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       if (st != null) {
         _applyStatus(st);
       } else {
-        // No status: everything starts editable as prefilled above
+
         step1Done = step2Done = step3Done = false;
         s1Saved = s2Saved = s3Saved = false;
         _recalc();
@@ -642,18 +628,13 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     final List data = body['data'] as List;
     if (data.isEmpty) return null;
 
-    // use the latest row
     return PaymentStepStatus.fromJson(data.last as Map<String, dynamic>);
   }
   bool _visitorInitialized = false;
 
-  // -----------------------------------------------------
-  // APPLY STATUS TO UI
-  // -----------------------------------------------------
   void _applyStatus(PaymentStepStatus st) {
     _status = st;
 
-    // Step 1 lock
     step1Done = (st.statusFirst?.toLowerCase().contains('first payment done') ?? false);
     if (step1Done) {
       s1TenantCtl.text = _numOnly(st.tenantAdvance);
@@ -666,18 +647,16 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       s1Hold   = double.tryParse(s1HoldCtl.text) ?? 0;
     }
 
-// ---------- STEP 2 ----------
     step2Done = (st.statusTwo != null && st.statusTwo!.trim().isNotEmpty);
 
     if (step2Done) {
-      // ✅ Tenant pays should come from API tenant side value ONLY
+
       s2TenantCtl.text = _numOnly(
         st.midPaymentToOwner == null
             ? s2TenantCtl.text
-            : s2TenantCtl.text, // keep tenant unchanged
+            : s2TenantCtl.text,
       );
 
-      // ✅ Owner receives ONLY owner value
       final ownerGet =
           double.tryParse(_numOnly(st.midPaymentToOwner ?? '0')) ?? 0;
 
@@ -688,9 +667,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       s2Saved = true;
     }
 
-
-
-
     // Step 3 lock
     step3Done = (st.statusThree != null && st.statusThree!.trim().isNotEmpty);
     if (step3Done) {
@@ -700,7 +676,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       s3Saved = true;
       s3Tenant = last;
     }
-// ---------- VISITOR SHARE FROM API ----------
     if (!_visitorInitialized) {
       final apiVisitor =
           double.tryParse(st.visitorShare ?? '0') ?? 0;
@@ -724,11 +699,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   }
   final ValueNotifier<int> _calcTick = ValueNotifier(0);
 
-  // -----------------------------------------------------
-  // PREFILL FROM PROPERTY (initial hints)
-  // -----------------------------------------------------
   void _prefillFromProperty(Property p) {
-    // Only prefill tenant payments; office-hold is derived from Step1 fields.
     s1TenantCtl.text = _numOnly(p.advancePayment);
     s2TenantCtl.text = _numOnly(p.secondAmount);
     s3TenantCtl.text = _numOnly(p.finalAmount);
@@ -745,7 +716,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     data.forEach((k, v) => _logLine("  $k: $v"));
     _logLine("—" * 50);
   }
-// --- tiny helpers: no intl needed
   String _two(int n) => n.toString().padLeft(2, '0');
   String _date(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
   String _time(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}:${_two(d.second)}';
@@ -925,11 +895,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     }
   }
 
-
-
-  // -----------------------------------------------------
-  // CALC & HELPERS
-  // -----------------------------------------------------
   void _syncHold() {
     final t = _pc(s1TenantCtl);
     final g = _pc(s1GiveCtl);
@@ -939,58 +904,44 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   }
 
   void _recalc() {
-    // ================= STEP-1 =================
     s1Tenant = _pc(s1TenantCtl);
     s1Give   = _pc(s1GiveCtl);
     s1Hold   = (s1Tenant - s1Give).clamp(0, double.infinity);
 
-    // ================= STEP-2 =================
     s2Tenant        = _pc(s2TenantCtl);     // 🔒 Tenant NEVER changes
     s2OwnerReceive  = _pc(s2OwnerCtl);
 
     final s2Hold =
     (s2Tenant - s2OwnerReceive).clamp(0, double.infinity);
 
-    // ================= STEP-3 =================
     s3Tenant = _pc(s3TenantCtl);
 
-    // ================= SETTLEMENT =================
-    // ✅ STEP-1 + STEP-2 HOLD
     settlementPool = s1Hold + s2Hold;
 
-    // ================= COMPANY COMMISSION =================
-    // ✅ CUT FROM SETTLEMENT (NOT ADDING STEP-2 HOLD)
     final inputCommission = _pc(s3CompanyTotalCtl);
 
     companyCommissionTotal =
     inputCommission > 0
         ? inputCommission
-        : commissionBothSide; // fallback from API/default
+        : commissionBothSide;
 
-    // ================= GST =================
     gstAmount   = companyCommissionTotal * 0.18;
     netAfterGst = companyCommissionTotal - gstAmount;
 
     companyKeepNow = companyCommissionTotal;
 
-    // ================= OWNER FINAL =================
     ownerFinalNow =
         (settlementPool - companyCommissionTotal)
             .clamp(0, double.infinity);
 
-    // ================= OWNER TOTAL =================
     ownerReceivedTotal = s1Give + s2OwnerReceive +
             (settlementPool + s3Tenant - companyCommissionTotal).clamp(0, double.infinity);
 
-
-    // ================= TENANT TOTAL =================
-    // 🔒 NEVER TOUCH TENANT LOGIC
     tenantPaid = s1Tenant + s2Tenant + s3Tenant;
 
     remaining =
         (totalDue - tenantPaid).clamp(0, double.infinity);
 
-    // ================= DISTRIBUTION =================
     officeFinalShare      = netAfterGst * 0.5;
     fieldWorkerFinalShare = netAfterGst * 0.5;
 
@@ -2283,6 +2234,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       ),
     );
   }
+
   Widget _exactHeader(Property? p) {
     return Stack(
       children: [
@@ -2304,7 +2256,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     );
   }
 
-  // Helper Widget Methods
   Widget _buildLoading() {
     return Center(
       child: Column(
@@ -2395,6 +2346,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       ),
     );
   }
+
   String _formatDate(String? rawDate) {
     if (rawDate == null || rawDate.isEmpty) return "-";
     try {
@@ -2462,6 +2414,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       ),
     );
   }
+
   Widget _infoRow(String label, String value, bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -2544,83 +2497,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
               color: Colors.grey.shade900,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStepContainer({
-    required int step,
-    required String title,
-    required bool isCompleted,
-    required Widget child,
-    String? status,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).brightness==Brightness.dark?Colors.white:Colors.grey.shade200,
-            width: 1,
-          ),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 28,
-                height: 28,
-                decoration: BoxDecoration(
-                  color: isCompleted ? Colors.green.shade500 : Colors.grey.shade300,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    step.toString(),
-                    style: TextStyle(
-                      color: isCompleted ? Colors.white : Colors.grey.shade700,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: isCompleted ? Colors.green.shade700 :Theme.of(context).brightness==Brightness.dark?Colors.white: Colors.grey.shade800,
-                  ),
-                ),
-              ),
-              if (isCompleted)
-                Icon(
-                  Icons.check_circle,
-                  color: Colors.green.shade500,
-                  size: 20,
-                ),
-            ],
-          ),
-          if (status != null && status.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 4, left: 40),
-              child: Text(
-                status,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.green.shade600,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-          child,
         ],
       ),
     );
@@ -2745,7 +2621,6 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
     );
   }
 
-
   Widget _buildColoredAmountRow(
     String text, {
     Polarity? forcePolarity,
@@ -2820,13 +2695,7 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                 ),
               ),
             ),
-            // Text(
-            //   '= ',
-            //   style: TextStyle(
-            //     fontSize: 13,
-            //     color: isDark ? Colors.white60 : Colors.grey.shade600,
-            //   ),
-            // ),
+
             if (sign.isNotEmpty)
               Text(
                 sign,

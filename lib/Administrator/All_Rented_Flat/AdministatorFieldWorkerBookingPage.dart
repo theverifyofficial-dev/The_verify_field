@@ -4,12 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../Add_Rented_Flat_New/FieldWorker_Booking_Page_Details.dart';
 
-import '../../Add_Rented_Flat/Action_Form.dart';
-import '../../Add_Rented_Flat/Add_Tenent.dart';
-import '../../Add_Rented_Flat/FieldWorker_Booking_Page_Details.dart';
-import '../../Custom_Widget/constant.dart';
-import 'AdministatorPropertyDetailPage.dart';
 class Property {
   final int pId;
   final String? sourceId;
@@ -316,8 +312,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_book_flat_for_admin.php");
-    // print("User Name :"+"${userName}");
-    // print("User Number :"+"${userNumber}");
+
     final response = await http.get(url);
     if (response.statusCode == 200) {
       final decoded = json.decode(response.body);
@@ -358,7 +353,6 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
     super.initState();
     _loaduserdata();
     loadUserName();
-    //initializeService();
   }
 
   String? userName;
@@ -370,9 +364,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
     final storedFAadharCard = prefs.getString('post');
-    // debugPrint("User Name: $storedName");
-    // debugPrint("User Number: $storedNumber");
-    // debugPrint("User FAadharCard: $storedFAadharCard");
+
     if (mounted) {
       setState(() {
         userName = storedName;
@@ -406,12 +398,7 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
       throw Exception("Failed to fetch owner data");
     }
   }
-  double _toD(dynamic v) {
-    final s = (v ?? '').toString().trim();
-    return double.tryParse(s.replaceAll(RegExp(r'[^\d\.-]'), '')) ?? 0;
-  }
 
-  String _cur(num n) => "₹ ${n.toStringAsFixed(0)}";
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
@@ -652,57 +639,6 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
               ),
 
               const SizedBox(height: 14),
-
-              // /// ===== CTA ROW =====
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.end,
-              //   children: [
-              //     GestureDetector(
-              //       onTap: () {
-              //         print(item.pId.toString());
-              //         Navigator.of(context).push(MaterialPageRoute(builder: (context) {
-              //           return PropertyDetailPage(propertyId: item.pId.toString());
-              //         }));
-              //       },
-              //       child: Container(
-              //         padding:
-              //         const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              //         decoration: BoxDecoration(
-              //           color: isDark
-              //               ? Colors.blueGrey.shade800
-              //               : Colors.blue.shade50,
-              //           borderRadius: BorderRadius.circular(20),
-              //           border: Border.all(color: Colors.blue.shade300),
-              //         ),
-              //         child: Row(
-              //           children: const [
-              //             Icon(
-              //               Icons.account_balance_wallet,
-              //               size: 14,
-              //               color: Colors.blue,
-              //             ),
-              //             SizedBox(width: 6),
-              //             Text(
-              //               "View Financial Details",
-              //               style: TextStyle(
-              //                 fontSize: 11,
-              //                 fontWeight: FontWeight.w700,
-              //                 color: Colors.blue,
-              //               ),
-              //             ),
-              //             SizedBox(width: 4),
-              //             Icon(
-              //               Icons.chevron_right,
-              //               size: 16,
-              //               color: Colors.blue,
-              //             ),
-              //           ],
-              //         ),
-              //       ),
-              //     ),
-              //   ],
-              // ),
-              // const SizedBox(height: 8),
               if(userStoredFAadharCard=="Sub Administrator")
                 SizedBox(
                   width: double.infinity,
@@ -788,169 +724,6 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
         item.totalBalance.isNotEmpty &&
         item.advancePayment.isNotEmpty;
   }
-
-
-  Widget _buildMiniChip(String text, Color backgroundColor, Color textColor) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 14,
-          color: textColor,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildExpansionSection({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-    bool initiallyExpanded = false,
-  }) {
-    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200, width: 1),
-        ),
-        color: isDarkMode ? Colors.grey.shade900 : Colors.white,
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            initiallyExpanded: initiallyExpanded,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            leading: Icon(icon, size: 18,
-                color: isDarkMode ? Colors.blue.shade200 : Colors.blue.shade700),
-            title: Text(
-              title,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            trailing: Icon(Icons.expand_more, size: 16,
-                color: isDarkMode ? Colors.grey.shade400 : Colors.grey.shade600),
-            children: children,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow2(String label, String value, {bool isBold = false, Color? color, required bool isDarkMode}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Flexible(
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: isBold ? FontWeight.bold : FontWeight.w700,
-                color: isDarkMode ? Colors.white : Colors.black87,
-              ),
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              color: color ?? (isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, {required bool isDarkMode}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...details,
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPersonDetail(String label, String value, bool isDarkMode) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              "$label:",
-              style: TextStyle(
-                fontSize: 11,
-                color: isDarkMode ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value.isNotEmpty ? value : "Not provided",
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status, bool isDarkMode) {
-    if (status.toLowerCase().contains('pending'))
-      return isDarkMode ? Colors.orange.shade700 : Colors.orange;
-    if (status.toLowerCase().contains('completed') || status.toLowerCase().contains('done'))
-      return isDarkMode ? Colors.green.shade700 : Colors.green;
-    if (status.toLowerCase().contains('rent'))
-      return isDarkMode ? Colors.purple.shade700 : Colors.purple;
-    if (status.toLowerCase().contains('buy'))
-      return isDarkMode ? Colors.blue.shade700 : Colors.blue;
-    return isDarkMode ? Colors.grey.shade600 : Colors.grey;
-  }
   void _loaduserdata() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
@@ -960,18 +733,3 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
   }
 }
 
-String _formatDate(String? rawDate) {
-  if (rawDate == null || rawDate.isEmpty) return "-";
-  try {
-    final dt = DateFormat('yyyy-MM-dd').parse(rawDate);
-    return DateFormat('dd MMM yyyy').format(dt);
-  } catch (_) {
-    try {
-      final dt2 = DateTime.parse(rawDate);
-      return DateFormat('dd MMM yyyy').format(dt2);
-    } catch (_) {
-      return rawDate;
-    }
-  }
-
-}

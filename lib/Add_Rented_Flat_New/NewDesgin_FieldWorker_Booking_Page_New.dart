@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../Add_Rented_Flat/FieldWorker_Complete_Detail_Page.dart';
-import '../Custom_Widget/constant.dart';
+import 'FieldWorker_Complete_Detail_Page.dart';
+import '../constant.dart';
 import 'Action_Form_New.dart';
 import 'Add_Tenent_New.dart';
 import 'FieldWorker_Booking_Finacial_Detail.dart';

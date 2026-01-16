@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // ✅ for Indian number format
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddOwnerPage extends StatefulWidget {
   final String propertyId;
@@ -26,7 +26,7 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
   String? _selectedPaymentMode;
   final List<String> paymentModes = ["Online", "Cash"];
 
-  final _formatter = NumberFormat.decimalPattern('hi_IN'); // ✅ Indian format
+  final _formatter = NumberFormat.decimalPattern('hi_IN');
   String _fieldworkarnumber = '';
 
   void _loaduserdata() async {
@@ -42,12 +42,11 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
     super.initState();
     _fetchAdvanceAmount();
     _loaduserdata();
-
-    // Add format listeners to amount fields
     _addFormatListener(_advanceController);
     _addFormatListener(_sendtoOwnerController);
     _addFormatListener(_totalAmountController);
   }
+
   Future<void> _fetchAdvanceAmount() async {
     try {
       final response = await http.get(Uri.parse(
@@ -92,7 +91,6 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
     });
   }
 
-  /// API Call to Insert Owner
   Future<void> _submitOwner() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -128,7 +126,6 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
     }
   }
 
-  /// Custom Input Field
   Widget _buildInputField(String label, TextEditingController controller,
       {TextInputType inputType = TextInputType.text}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -159,10 +156,6 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
     );
   }
 
-  /// Number input field
-  Widget _buildNumberField(String label, TextEditingController controller) {
-    return _buildInputField(label, controller, inputType: TextInputType.number);
-  }
   Widget _buildPhoneField(
       String label,
       TextEditingController controller, {
@@ -180,7 +173,6 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
         validator: (value) {
           if (value == null || value.isEmpty) return "$label is required";
 
-          // ✅ Special case for phone number
           if (label == "Owner Number" && value.length != 10) {
             return "Owner Number must be exactly 10 digits";
           }
@@ -237,7 +229,6 @@ class _AddOwnerPageState extends State<AddOwnerPage> {
 
               const SizedBox(height: 24),
 
-              /// Submit Button
               SizedBox(
                 width: double.infinity,
                 height: 50,

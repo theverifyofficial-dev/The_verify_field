@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
-
-import '../Custom_Widget/constant.dart';
-import 'FieldWorkerPendingFlatsNew.dart';
-import 'FieldWorker_Booking_Page_New.dart';
-import 'FieldWorker_Booking_Page_Details_New.dart';
-import 'FieldWorker_Complete_Detail_Page_New.dart';
-import 'FieldWorker_Complete_Page_New.dart';
+import '../constant.dart';
 import 'NewDesginFieldWorkerPendingFlatsNew.dart';
 import 'NewDesgin_FieldWorker_Booking_Page_New.dart';
 import 'NewDesgin_FieldWorker_Complete_Page_New.dart';
@@ -99,11 +93,8 @@ class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
       body: TabBarView(
         controller: _tabController,
         children: [
-          // FieldWorkerBookingPageNew(),
           NewDesginFieldWorkerBookingPageNew(),
-          // FieldWorkerPendingFlatsNew(),
           NewDesginFieldWorkerPendingFlatsNew(),
-          // FieldWorkerCompleteFlatsNew(),
           NewDesignFieldWorkerCompleteFlatsNew(),
         ],
       ),

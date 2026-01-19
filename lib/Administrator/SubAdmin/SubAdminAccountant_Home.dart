@@ -360,7 +360,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: userNumber == "9711779003"? 4:3,
+                            itemCount: userNumber == "9711779003"|| userNumber=="9315016461" ? 4:3,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -383,7 +383,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                 //           builder: (
                                 //               context) => const Administater_parent_TenandDemand())),
                                 // },
-                                if (userNumber == "9711779003")
+                                if (userNumber == "9711779003" || userNumber=="9315016461")
 
                                   {
                                   'image': AppImages.police,

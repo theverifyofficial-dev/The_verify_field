@@ -119,7 +119,7 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
     final ownerSideCommission = ownerController.text.replaceAll(',', '');
     final extraExpense = extraExpenseController.text.replaceAll(',', '');
     final advance = advanceController.text.replaceAll(',', '');
-    final totalBalance = balanceController.text.replaceAll('₹', '').replaceAll(',', '').trim();
+    final totalBalance = _finalBalance.toInt().toString();
 
     // Get current date and time
     final now = DateTime.now();
@@ -208,13 +208,9 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
                 const SizedBox(height: 16),
                 _buildInputField("Extra Expense", "e.g. 5000", extraExpenseController, Icons.money_off, isOptional: true, ),// optional parameter),
                 const SizedBox(height: 16),
-                _buildInputField("Total Amount", "Auto calculated", balanceController, Icons.account_balance_wallet_outlined),
-                const SizedBox(height: 16),
                 Card(
-
                   elevation: 2,
                   color: Theme.of(context).brightness==Brightness.dark?Colors.grey[900] :Colors.white,
-
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -250,11 +246,6 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
                         ),
                         const SizedBox(height: 6),
 
-                        Text(
-                          "= ${_indianFormat.format(addPart)}",
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 6),
 
                         Row(
                           children: [
@@ -280,6 +271,9 @@ class _UpdateActionFormNewState extends State<UpdateActionFormNew> {
                   ),
                 ),
                 const SizedBox(height: 16),
+                _buildInputField("Owner Commission", "e.g. 2000", ownerController, Icons.percent_rounded),
+                const SizedBox(height: 16),
+
                 _buildInputField("Advance Payment", "e.g. 10000", advanceController, Icons.payments),
 
 

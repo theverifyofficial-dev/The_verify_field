@@ -460,14 +460,15 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
 
     return GestureDetector(
       onTap: () {
-        // ✅ WHOLE CARD NAVIGATION
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => PropertyDetailPageNew(propertyId: item.pId.toString()
+            builder: (_) => FieldWorkerBookingFinancialDetailPage(
+              propertyId: item.pId,
             ),
           ),
         );
+
       },
       child: Card(
         elevation: 2,
@@ -525,7 +526,7 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
                           children: [
                             Expanded(
                               child: Text(
-                                "${item.bhk} ${item.typeOfProperty ?? ""}",
+                                "${item.bhk} ${item.typeOfProperty}",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
@@ -549,7 +550,7 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
 
                         /// LOCATION
                         Text(
-                          item.locations ?? "",
+                          item.locations,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -626,12 +627,10 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => FieldWorkerBookingFinancialDetailPage(
-                            propertyId: item.pId,
+                          builder: (_) => PropertyDetailPageNew(propertyId: item.pId.toString()
                           ),
                         ),
                       );
-
                     },
                     child: Container(
                       padding:
@@ -652,7 +651,7 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
                           ),
                           SizedBox(width: 6),
                           Text(
-                            "View Financial Details",
+                            "View Details",
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,

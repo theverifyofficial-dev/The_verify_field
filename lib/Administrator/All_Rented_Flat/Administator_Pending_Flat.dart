@@ -942,6 +942,7 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                         const SizedBox(height: 10),
 
                         /// ---------------- PAYMENT BUTTONS ----------------
+                        if(userStoredFAadharCard=="Sub Administrator")
                         Row(
                           children: [
                             if (item.statusForSecondPayment == "2nd payment pending")

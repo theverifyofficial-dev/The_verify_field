@@ -1262,20 +1262,30 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                             Expanded(
                               child: _buildSummaryCard(
                                 title: "Total Due",
-                                amount: totalDue,
+                                amount: totalDue.toString(),
                                 color: Colors.white,
                                 icon: Icons.account_balance_wallet,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            SizedBox(width: 5,),
                             Expanded(
                               child: _buildSummaryCard(
-                                title: "Commission",
-                                amount: commissionBothSide,
-                                color: Colors.amber.shade100,
-                                icon: Icons.percent,
+                                title: "Owner Commission",
+                                amount: "${widget.ownerCommission}",
+                                color: Colors.white,
+                                icon: Icons.account_balance_wallet,
                               ),
                             ),
+                            SizedBox(width: 5,),
+                            Expanded(
+                              child: _buildSummaryCard(
+                                title: "Tenant Commission",
+                                amount: "${widget.tenantCommission}",
+                                color: Colors.white,
+                                icon: Icons.account_balance_wallet,
+                              ),
+                            ),
+
                           ],
                         ),
                       ],
@@ -2126,11 +2136,6 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                 },
               ),
 
-
-
-
-
-
                 ],
               ),
             );
@@ -2268,44 +2273,6 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
           ),
         ),
       ],
-    );
-  }
-
-  Widget _simpleTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-
-  Widget _simpleRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          Text(
-            value.isNotEmpty ? value : "-",
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -2459,12 +2426,12 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
   Widget _buildSummaryCard({
     required String title,
-    required double amount,
+    required String amount,
     required Color color,
     required IconData icon,
   }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(8),
@@ -2474,22 +2441,27 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Icon(icon, size: 16, color: color),
               const SizedBox(width: 6),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: color,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: color,
+                  ),
+                  maxLines: 1,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 4),
           Text(
-            _cur(amount),
+            _cur(double.tryParse(amount) ?? 0),
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w700,
@@ -2500,97 +2472,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
       ),
     );
   }
-  Widget _buildExpansionSection({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-    bool initiallyExpanded = false,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      child: Card(
-        margin: EdgeInsets.zero,
-        elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: BorderSide(color: Colors.grey.shade200, width: 1),
-        ),
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            initiallyExpanded: initiallyExpanded,
-            tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            leading: Icon(icon, size: 18, color: Colors.blue.shade700),
-            title: Text(
-              title,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-            trailing: const Icon(Icons.expand_more, size: 16),
-            children: children,
-          ),
-        ),
-      ),
-    );
-  }
-  Widget _buildPersonSection(String title, List<Widget> details, Color bgColor, {required bool isDarkMode}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: isDarkMode ? Colors.grey.shade700 : Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 8),
-          ...details,
-        ],
-      ),
-    );
-  }
-  Widget _buildPersonDetail(String label, String value, bool isDarkMode) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              "$label:",
-              style: TextStyle(
-                fontSize: 11,
-                color: isDarkMode ? Colors.white : Colors.black87,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value.isNotEmpty ? value : "Not provided",
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isDarkMode ? Colors.grey.shade200 : Colors.grey.shade800,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
   Widget _buildDetailRow(String label, String value, BuildContext context, {bool isTotal = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),

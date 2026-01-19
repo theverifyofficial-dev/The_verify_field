@@ -146,64 +146,35 @@ class _MyAppState extends State<MyApp> {
       String? flatId = data['flat_id']?.toString();
       final demandId = data["demand_id"]?.toString();
       final redemandId = data["redemand_id"]?.toString();
-
-
       String? buildingId = data['building_id']?.toString();
       String? propertyId = data['P_id']?.toString();
-      // 🔥 PAYMENT NOTIFICATION (ONLY p_id)
 
-      // final String rawBody = message.notification?.body ?? "";
-      // final String body = rawBody
-      //     .toLowerCase()
-      //     .replaceAll(RegExp(r'\s+'), ' ')
-      //     .trim();
+      final String rawBody = message.notification?.body ?? "";
+      final String body = rawBody
+          .toLowerCase()
+          .replaceAll(RegExp(r'\s+'), ' ')
+          .trim();
 
-      // final String? pId =
-      //     data['p_id']?.toString() ?? data['P_id']?.toString();
+      final String? pId =
+          data['p_id']?.toString() ?? data['P_id']?.toString();
 
-      // final bool isFinalPaymentCompleted =
-      //     body.contains("final payment") &&
-      //         body.contains("completed");
-      // final String title =
-      //     message.notification?.title?.toLowerCase() ?? "";
-      // print("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
-      //
-      // /// 🔴 FINAL PAYMENT → COMPLETE TAB
-      // if (
-      // type == "move_to_completed" ||
-      //     (body.contains("final payment") && body.contains("completed"))
-      // ) {
-      //   navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      //     Routes.addRentedFlatTabbarNew,
-      //         (route) => false,
-      //     arguments: {
-      //       "tabIndex": 2, // ✅ COMPLETE
-      //       "propertyId": pId,
-      //     },
-      //   );
-      //   return;
-      // }
-      //
-      // /// 🟡 PAYMENT ACCEPTED / NORMAL PAYMENT → PENDING TAB
-      // if (!navigationDone &&
-      //     (body.contains("payment accepted") || pId != null)) {
-      //   navigationDone = true;
-      //
-      //   print("🟡 PAYMENT → OPEN PENDING TAB");
-      //
-      //   WidgetsBinding.instance.addPostFrameCallback((_) {
-      //     navigatorKey.currentState?.pushNamedAndRemoveUntil(
-      //       Routes.addRentedFlatTabbarNew,
-      //           (route) => false,
-      //       arguments: {
-      //         "tabIndex": 1, // ✅ PENDING
-      //         "propertyId": pId,
-      //       },
-      //     );
-      //   });
-      //   return;
-      // }
+      final bool isFinalPaymentCompleted =
+          body.contains("final payment") &&
+              body.contains("completed");
 
+      print("🔍 isFinalPaymentCompleted: $isFinalPaymentCompleted");
+
+      if (type == "move_to_completed") {
+        navigatorKey.currentState?.pushNamedAndRemoveUntil(
+          Routes.addRentedFlatTabbarNew,
+              (route) => false,
+          arguments: {
+            "tabIndex": 2,
+            "propertyId": pId,
+          },
+        );
+        return;
+      }
 
       if (type == "RENTED_OUT_UPDATED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -221,7 +192,22 @@ class _MyAppState extends State<MyApp> {
       }
 
       // 🔹 Second Payment → OPEN TAB 1
-      if (type == "SECOND_PAYMENT_ADDED") {
+      if (type == "SECOND_PAYMENT_ACCEPTED") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterShowFutureProperty,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "propertyId": propertyId,
+              "tabIndex": 1,
+            },
+          );
+        });
+        return;
+      }
+
+      if (type == "SECOND_PAYMENT_ADDED"||type == "FINAL_PAYMENT_ADDED" || type == "FINAL_PAYMENT_ACCEPTED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
             Routes.administaterAddRentedFlatTabbar,
@@ -235,20 +221,7 @@ class _MyAppState extends State<MyApp> {
         });
         return;
       }
-      if (type == "FINAL_PAYMENT_ADDED") {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            Routes.administaterAddRentedFlatTabbar,
-                (route) => false,
-            arguments: {
-              "fromNotification": true,
-              "propertyId": propertyId,
-              "tabIndex": 1,
-            },
-          );
-        });
-        return;
-      }
+
       // ✅ Nested payload handling
       final nestedPayload = data['payload'];
       if (nestedPayload != null) {

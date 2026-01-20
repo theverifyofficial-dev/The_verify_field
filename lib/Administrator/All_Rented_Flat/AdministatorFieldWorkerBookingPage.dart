@@ -571,17 +571,18 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                         const SizedBox(height: 4),
 
                         /// LOCATION
-                        Text(
-                          item.locations ?? "",
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: "Poppins",
-                            color: isDark
-                                ? Colors.grey.shade400
-                                : Colors.grey.shade600,
-                          ),
-                        ),
+
+                            Text(
+                              item.locations ?? "",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: "Poppins",
+                                color: isDark
+                                    ? Colors.grey.shade400
+                                    : Colors.grey.shade600,
+                              ),
+                            ),
 
                         const SizedBox(height: 8),
 
@@ -616,25 +617,46 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
 
               const SizedBox(height: 10),
 
-              /// ===== REMAINING ROW =====
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              Column(
                 children: [
-                  const Text(
-                    "Remaining Balance",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  _amountRow("Rent", parseNum(item.rent)),
+                  _amountRow("Security", parseNum(item.security)),
+                  _amountRow("Tenant Commission", parseNum(item.commission)),
+
+                  _amountRow(
+                    "Advance Payment",
+                    -parseNum(item.advancePayment),
+                    amountColor: Colors.green,
                   ),
-                  Text(
-                    formatINR(remaining),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.red,
-                      fontWeight: FontWeight.w700,
-                    ),
+
+                  /// ===== REMAINING ROW =====
+                  const SizedBox(height: 6),
+                  const Divider(height: 1),
+                  const SizedBox(height: 6),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Remaining Balance",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        formatINR(remaining),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.red,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
+                  _amountRow("Owner Commission", parseNum(item.ownerCommission)),
+
                 ],
               ),
 
@@ -709,14 +731,51 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
       ),
     );
   }
+  Widget _amountRow(
+      String title,
+      num amount, {
+        Color? amountColor,
+        bool isBold = false,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
+              color: Colors.grey.shade400,
+            ),
+          ),
+          Text(
+            formatINR(amount), // ✅ formatting here
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+              color: amountColor ?? Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  num parseNum(String? value) {
+    return num.tryParse(value ?? "0") ?? 0;
+  }
+
+
   String formatINR(num value) {
     final f = NumberFormat.currency(
       locale: 'en_IN',
       symbol: '₹',
-      decimalDigits: 0,
+      decimalDigits: 2, // 👈 THIS IS THE FIX
     );
     return f.format(value);
   }
+
   bool isValidItem(Property item) {
     return item.rent.isNotEmpty &&
         item.security.isNotEmpty &&

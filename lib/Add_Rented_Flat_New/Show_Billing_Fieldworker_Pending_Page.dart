@@ -1144,6 +1144,139 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     throw Exception("API success=false");
   }
+  Widget _summaryBlock({
+    required String title,
+    required double total,
+    required double paid,
+    required Color color,
+  }) {
+    final remaining = (total - paid).clamp(0, double.infinity);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          _summaryLine("Total", total),
+          _summaryLine("Paid", paid, valueColor: Colors.green),
+          _summaryLine("Remain", remaining.toDouble(), valueColor: Colors.red),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverallPaymentSummaryCard() {
+    final ownerTotal =
+        ownerFinalNow + s1Give + s2Tenant;
+
+    final officeTotal = companyCommissionTotal;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.account_balance, size: 18, color: Colors.blue),
+              SizedBox(width: 8),
+              Text(
+                "Overall Payment Summary",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+          const Divider(),
+
+          /// TENANT
+          Row(
+            children:[
+              Expanded(
+                child: _summaryBlock(
+                title: "Tenant",
+                total: totalDue,
+                paid: tenantPaid,
+                color: Colors.blue,
+                ),
+              ),
+              SizedBox(width: 5,),
+              /// OWNER
+              Expanded(
+                child: _summaryBlock(
+                  title: "Owner",
+                  total: ownerTotal,
+                  paid: ownerReceivedTotal,
+                  color: Colors.green,
+                ),
+              ),
+         ] ),
+
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryLine(
+      String label,
+      double value, {
+        Color? valueColor,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            _inr(value),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1270,17 +1403,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                             SizedBox(width: 5,),
                             Expanded(
                               child: _buildSummaryCard(
-                                title: "Owner Commission",
-                                amount: "${widget.ownerCommission}",
-                                color: Colors.white,
-                                icon: Icons.account_balance_wallet,
-                              ),
-                            ),
-                            SizedBox(width: 5,),
-                            Expanded(
-                              child: _buildSummaryCard(
-                                title: "Tenant Commission",
-                                amount: "${widget.tenantCommission}",
+                                title: "Commission",
+                                amount: "${commissionBothSide}",
                                 color: Colors.white,
                                 icon: Icons.account_balance_wallet,
                               ),
@@ -1382,7 +1506,6 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                     },
                   ),
                   const SizedBox(height: 8),
-
                   // Financial Details Section
                   Padding(
                     padding: const EdgeInsets.all(20),
@@ -1586,11 +1709,17 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                       ],
                     ),
                   ),
+                  ValueListenableBuilder<int>(
+                    valueListenable: _calcTick,
+                    builder: (_, __, ___) {
+                      return _buildOverallPaymentSummaryCard();
+                    },
+                  ),
 
                   // Payment Process Steps
               FutureBuilder<PaymentRecord?>(
-                future: _fetchPaymentStatusBySubId(widget.propertyId),
-                builder: (context, snapshot) {
+                future: _fetchPaymentStatusBySubId(_subId!),
+                  builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Padding(
                       padding: EdgeInsets.all(24),

@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -53,10 +54,12 @@ class CalendarAddFlat {
   final String liveUnlive;
   final String careTakerName;
   final String careTakerNumber;
+  final String datesForRightAvailable;
   final String subId;
 
   CalendarAddFlat({
     required this.propertyId,
+    required this.datesForRightAvailable,
     required this.propertyPhoto,
     required this.locations,
     required this.flatNumber,
@@ -87,6 +90,7 @@ class CalendarAddFlat {
       liveUnlive: json['live_unlive'] ?? '',
       careTakerName: json['care_taker_name'] ?? '',
       careTakerNumber: json['care_taker_number'] ?? '',
+      datesForRightAvailable: json['dates_for_right_avaiable'] ?? '',
       subId: json['subid'] ?? '',
     );
   }
@@ -487,6 +491,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   ];
   late int _selectedYear;
   late int _selectedMonth;
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  String _calendarView = "Month"; // for dropdown text
 
   @override
   void initState() {
@@ -1549,7 +1555,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         return Colors.grey;
     }
   }
-
+  String formatDate(String date) {
+    try {
+      final parsed = DateTime.parse(date);
+      return DateFormat('dd MMM yyyy').format(parsed);
+    } catch (e) {
+      return date; // fallback if API date is invalid
+    }
+  }
   Widget _buildCalendarAddFlatCard(CalendarAddFlat f, bool isDark) {
     final statusColor = _getLiveUnliveColor(f.liveUnlive);
 
@@ -1565,15 +1578,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         );
 
-        // Navigator.push(
-        //   context,
-        //   MaterialPageRoute(
-        //     builder: (_) => Admin_underflat_futureproperty(
-        //       id: f.propertyId.toString(),
-        //       Subid: f.subId,
-        //     ),
-        //   ),
-        // );
       },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1610,7 +1614,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      f.apartmentName,
+                      formatDate(f.datesForRightAvailable),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1889,12 +1893,35 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               ),
             ),
           ) ,
-
           IconButton(
             icon: const Icon(PhosphorIcons.arrow_clockwise),
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
             tooltip: "Refresh",
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              setState(() {
+                _calendarView = value;
+                _calendarFormat =
+                value == "Month" ? CalendarFormat.month : CalendarFormat.week;
+              });
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: "Month", child: Text("Month")),
+              PopupMenuItem(value: "Week", child: Text("Week")),
+            ],
+            child: Row(
+              children: [
+                Text(
+                  _calendarView,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const Icon(Icons.arrow_drop_down),
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
+
         ],
       ),
       body: Column(
@@ -1923,8 +1950,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     firstDay: DateTime(2023),
                     lastDay: DateTime(2030),
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    calendarFormat: CalendarFormat.month,
+                    calendarFormat: _calendarFormat,
                     headerVisible: false,
+                    daysOfWeekVisible: _calendarFormat == CalendarFormat.month,
+                    rowHeight: _calendarFormat == CalendarFormat.week ? 80 : 48,
+
                     daysOfWeekStyle: DaysOfWeekStyle(
                       weekdayStyle: TextStyle(
                         fontWeight: FontWeight.w600,
@@ -1934,40 +1964,47 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                         fontWeight: FontWeight.w600,
                         color: Colors.red.shade400,
                       ),
+                    ), calendarStyle: CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: Colors.orange.shade400,
+                      shape: BoxShape.circle,
                     ),
-                    calendarStyle: CalendarStyle(
-                      todayDecoration: BoxDecoration(
-                        color: Colors.orange.shade400,
-                        shape: BoxShape.circle,
-                      ),
-                      selectedDecoration: BoxDecoration(
-                        color: Colors.indigo.shade400,
-                        shape: BoxShape.circle,
-                      ),
-                      defaultTextStyle: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.grey.shade900,
-                      ),
-                      weekendTextStyle: TextStyle(
-                        fontSize: 14,
-                        color: Colors.red.shade400,
-                      ),
+                    selectedDecoration: BoxDecoration(
+                      color: Colors.indigo.shade400,
+                      shape: BoxShape.circle,
+                    ), defaultTextStyle: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.grey.shade900,
+                  ),
+                    weekendTextStyle: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red.shade400,
                     ),
+                  ),
+                    calendarBuilders: CalendarBuilders(
+                      defaultBuilder: (context, day, focusedDay) {
+                        return _calendarFormat == CalendarFormat.week
+                            ? _weekDayTile(day, false)
+                            : null;
+                      },
+
+                      selectedBuilder: (context, day, focusedDay) {
+                        return _calendarFormat == CalendarFormat.week
+                            ? _weekDayTile(day, true)
+                            : null;
+                      },
+                    ),
+
                     onDaySelected: (selected, focused) {
                       setState(() {
                         _selectedDay = selected;
                         _focusedDay = focused;
-                        _selectedMonth = focused.month;
-                        _selectedYear = focused.year;
                       });
                       _fetchData(selected);
                     },
+
                     onPageChanged: (focused) {
-                      setState(() {
-                        _focusedDay = focused;
-                        _selectedMonth = focused.month;
-                        _selectedYear = focused.year;
-                      });
+                      _focusedDay = focused;
                     },
                   ),
                 ],
@@ -2020,4 +2057,50 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
+  Widget _weekDayTile(DateTime day, bool isSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: 35,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: isSelected
+            ? Colors.blue
+            : (isDark ? Colors.transparent : Colors.transparent),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            _weekDayName(day),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.6, // 🔥 crisp text
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            day.day.toString(),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white : Colors.black),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  String _weekDayName(DateTime date) {
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return days[date.weekday % 7];
+  }
+
 }

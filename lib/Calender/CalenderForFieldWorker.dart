@@ -457,6 +457,465 @@ class WebsiteVisit {
   }
 }
 
+PendingAgreementResponse pendingAgreementResponseFromJson(String str) =>
+    PendingAgreementResponse.fromJson(json.decode(str));
+
+class PendingAgreementResponse {
+  final String status;
+  final List<PendingAgreement> data;
+
+  PendingAgreementResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory PendingAgreementResponse.fromJson(Map<String, dynamic> json) {
+    return PendingAgreementResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => PendingAgreement.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class PendingAgreement {
+  final int id;
+  final String ownerName;
+  final String ownerRelation;
+  final String ownerRelationPerson;
+  final String ownerPermanentAddress;
+  final String ownerMobile;
+  final String ownerAadhar;
+
+  final String tenantName;
+  final String tenantRelation;
+  final String tenantRelationPerson;
+  final String tenantPermanentAddress;
+  final String tenantMobile;
+  final String tenantAadhar;
+
+  final String rentedAddress;
+  final String monthlyRent;
+  final String security;
+  final String meter;
+  final DateTime? shiftingDate;
+  final String maintenance;
+
+  final String? ownerAadharFront;
+  final String? ownerAadharBack;
+  final String? tenantAadharFront;
+  final String? tenantAadharBack;
+  final String? tenantImage;
+
+  final String installmentSecurityAmount;
+  final DateTime? currentDate;
+
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  final String propertyId;
+  final String parking;
+  final String status;
+  final String? messages;
+
+  final String bhk;
+  final String floor;
+  final String agreementType;
+
+  final String? companyName;
+  final String? gstNo;
+  final String? panNo;
+  final String? panPhoto;
+  final String? sqft;
+  final String? gstPhoto;
+  final String? furniture;
+
+  final String agreementPrice;
+  final String notaryPrice;
+  final bool isPolice;
+
+  PendingAgreement({
+    required this.id,
+    required this.ownerName,
+    required this.ownerRelation,
+    required this.ownerRelationPerson,
+    required this.ownerPermanentAddress,
+    required this.ownerMobile,
+    required this.ownerAadhar,
+    required this.tenantName,
+    required this.tenantRelation,
+    required this.tenantRelationPerson,
+    required this.tenantPermanentAddress,
+    required this.tenantMobile,
+    required this.tenantAadhar,
+    required this.rentedAddress,
+    required this.monthlyRent,
+    required this.security,
+    required this.meter,
+    required this.shiftingDate,
+    required this.maintenance,
+    required this.ownerAadharFront,
+    required this.ownerAadharBack,
+    required this.tenantAadharFront,
+    required this.tenantAadharBack,
+    required this.tenantImage,
+    required this.installmentSecurityAmount,
+    required this.currentDate,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    required this.propertyId,
+    required this.parking,
+    required this.status,
+    required this.messages,
+    required this.bhk,
+    required this.floor,
+    required this.agreementType,
+    required this.companyName,
+    required this.gstNo,
+    required this.panNo,
+    required this.panPhoto,
+    required this.sqft,
+    required this.gstPhoto,
+    required this.furniture,
+    required this.agreementPrice,
+    required this.notaryPrice,
+    required this.isPolice,
+  });
+
+  factory PendingAgreement.fromJson(Map<String, dynamic> json) {
+    return PendingAgreement(
+      id: json['id'] ?? 0,
+      ownerName: json['owner_name'] ?? '',
+      ownerRelation: json['owner_relation'] ?? '',
+      ownerRelationPerson: json['relation_person_name_owner'] ?? '',
+      ownerPermanentAddress: json['parmanent_addresss_owner'] ?? '',
+      ownerMobile: json['owner_mobile_no'] ?? '',
+      ownerAadhar: json['owner_addhar_no'] ?? '',
+
+      tenantName: json['tenant_name'] ?? '',
+      tenantRelation: json['tenant_relation'] ?? '',
+      tenantRelationPerson: json['relation_person_name_tenant'] ?? '',
+      tenantPermanentAddress: json['permanent_address_tenant'] ?? '',
+      tenantMobile: json['tenant_mobile_no'] ?? '',
+      tenantAadhar: json['tenant_addhar_no'] ?? '',
+
+      rentedAddress: json['rented_address'] ?? '',
+      monthlyRent: json['monthly_rent'] ?? '',
+      security: json['securitys'] ?? '',
+      meter: json['meter'] ?? '',
+      shiftingDate: json['shifting_date'] != null
+          ? DateTime.tryParse(json['shifting_date'])
+          : null,
+      maintenance: json['maintaince'] ?? '',
+
+      ownerAadharFront: json['owner_aadhar_front'],
+      ownerAadharBack: json['owner_aadhar_back'],
+      tenantAadharFront: json['tenant_aadhar_front'],
+      tenantAadharBack: json['tenant_aadhar_back'],
+      tenantImage: json['tenant_image'],
+
+      installmentSecurityAmount: json['installment_security_amount'] ?? '',
+      currentDate: json['current_dates'] != null
+          ? DateTime.tryParse(json['current_dates'])
+          : null,
+
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
+
+      propertyId: json['property_id'] ?? '',
+      parking: json['parking'] ?? '',
+      status: json['status'] ?? '',
+      messages: json['messages'],
+
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      agreementType: json['agreement_type'] ?? '',
+
+      companyName: json['company_name'],
+      gstNo: json['gst_no'],
+      panNo: json['pan_no'],
+      panPhoto: json['pan_photo'],
+      sqft: json['Sqft'],
+      gstPhoto: json['gst_photo'],
+      furniture: json['furniture'],
+
+      agreementPrice: json['agreement_price'] ?? '',
+      notaryPrice: json['notary_price'] ?? '',
+      isPolice: json['is_Police'] == "true",
+    );
+  }
+}
+
+AcceptedAgreementResponse acceptedAgreementResponseFromJson(String str) =>
+    AcceptedAgreementResponse.fromJson(json.decode(str));
+
+class AcceptedAgreementResponse {
+  final String status;
+  final List<AcceptedAgreement> data;
+
+  AcceptedAgreementResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory AcceptedAgreementResponse.fromJson(Map<String, dynamic> json) {
+    return AcceptedAgreementResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => AcceptedAgreement.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class AcceptedAgreement {
+  final int id;
+  final String ownerName;
+  final String ownerRelation;
+  final String ownerRelationPerson;
+  final String ownerPermanentAddress;
+  final String ownerMobile;
+  final String ownerAadhar;
+
+  final String tenantName;
+  final String tenantRelation;
+  final String tenantRelationPerson;
+  final String tenantPermanentAddress;
+  final String tenantMobile;
+  final String tenantAadhar;
+
+  final String rentedAddress;
+  final String monthlyRent;
+  final String security;
+  final String meter;
+  final DateTime? shiftingDate;
+  final String maintenance;
+
+  final String? ownerAadharFront;
+  final String? ownerAadharBack;
+  final String? tenantAadharFront;
+  final String? tenantAadharBack;
+  final String? tenantImage;
+
+  final String installmentSecurityAmount;
+  final DateTime? currentDate;
+
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  final String propertyId;
+  final String parking;
+  final String status;
+  final String? messages;
+
+  final String bhk;
+  final String floor;
+  final String agreementType;
+
+  final String? companyName;
+  final String? gstNo;
+  final String? panNo;
+  final String? panPhoto;
+  final String? sqft;
+  final String? gstPhoto;
+  final String? furniture;
+
+  final String agreementPrice;
+  final String notaryPrice;
+  final bool isPolice;
+
+  AcceptedAgreement({
+    required this.id,
+    required this.ownerName,
+    required this.ownerRelation,
+    required this.ownerRelationPerson,
+    required this.ownerPermanentAddress,
+    required this.ownerMobile,
+    required this.ownerAadhar,
+    required this.tenantName,
+    required this.tenantRelation,
+    required this.tenantRelationPerson,
+    required this.tenantPermanentAddress,
+    required this.tenantMobile,
+    required this.tenantAadhar,
+    required this.rentedAddress,
+    required this.monthlyRent,
+    required this.security,
+    required this.meter,
+    required this.shiftingDate,
+    required this.maintenance,
+    required this.ownerAadharFront,
+    required this.ownerAadharBack,
+    required this.tenantAadharFront,
+    required this.tenantAadharBack,
+    required this.tenantImage,
+    required this.installmentSecurityAmount,
+    required this.currentDate,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    required this.propertyId,
+    required this.parking,
+    required this.status,
+    required this.messages,
+    required this.bhk,
+    required this.floor,
+    required this.agreementType,
+    required this.companyName,
+    required this.gstNo,
+    required this.panNo,
+    required this.panPhoto,
+    required this.sqft,
+    required this.gstPhoto,
+    required this.furniture,
+    required this.agreementPrice,
+    required this.notaryPrice,
+    required this.isPolice,
+  });
+
+  factory AcceptedAgreement.fromJson(Map<String, dynamic> json) {
+    return AcceptedAgreement(
+      id: json['id'] ?? 0,
+      ownerName: json['owner_name'] ?? '',
+      ownerRelation: json['owner_relation'] ?? '',
+      ownerRelationPerson:
+      json['relation_person_name_owner'] ?? '',
+      ownerPermanentAddress:
+      json['parmanent_addresss_owner'] ?? '',
+      ownerMobile: json['owner_mobile_no'] ?? '',
+      ownerAadhar: json['owner_addhar_no'] ?? '',
+
+      tenantName: json['tenant_name'] ?? '',
+      tenantRelation: json['tenant_relation'] ?? '',
+      tenantRelationPerson:
+      json['relation_person_name_tenant'] ?? '',
+      tenantPermanentAddress:
+      json['permanent_address_tenant'] ?? '',
+      tenantMobile: json['tenant_mobile_no'] ?? '',
+      tenantAadhar: json['tenant_addhar_no'] ?? '',
+
+      rentedAddress: json['rented_address'] ?? '',
+      monthlyRent: json['monthly_rent'] ?? '',
+      security: json['securitys'] ?? '',
+      meter: json['meter'] ?? '',
+      shiftingDate: json['shifting_date'] != null
+          ? DateTime.tryParse(json['shifting_date'])
+          : null,
+      maintenance: json['maintaince'] ?? '',
+
+      ownerAadharFront: json['owner_aadhar_front'],
+      ownerAadharBack: json['owner_aadhar_back'],
+      tenantAadharFront: json['tenant_aadhar_front'],
+      tenantAadharBack: json['tenant_aadhar_back'],
+      tenantImage: json['tenant_image'],
+
+      installmentSecurityAmount:
+      json['installment_security_amount'] ?? '',
+      currentDate: json['current_dates'] != null
+          ? DateTime.tryParse(json['current_dates'])
+          : null,
+
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
+
+      propertyId: json['property_id'] ?? '',
+      parking: json['parking'] ?? '',
+      status: json['status'] ?? '',
+      messages: json['messages'],
+
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      agreementType: json['agreement_type'] ?? '',
+
+      companyName: json['company_name'],
+      gstNo: json['gst_no'],
+      panNo: json['pan_no'],
+      panPhoto: json['pan_photo'],
+      sqft: json['Sqft'],
+      gstPhoto: json['gst_photo'],
+      furniture: json['furniture'],
+
+      agreementPrice: json['agreement_price'] ?? '',
+      notaryPrice: json['notary_price'] ?? '',
+      isPolice: json['is_Police'] == "true",
+    );
+  }
+}
+TenantDemandResponse tenantDemandResponseFromJson(String str) =>
+    TenantDemandResponse.fromJson(json.decode(str));
+
+class TenantDemandResponse {
+  final String status;
+  final List<TenantDemand> data;
+
+  TenantDemandResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory TenantDemandResponse.fromJson(Map<String, dynamic> json) {
+    return TenantDemandResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => TenantDemand.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class TenantDemand {
+  final int id;
+  final String name;
+  final String number;
+  final String buyRent;
+  final String reference;
+  final String price;
+  final String message;
+  final String bhk;
+  final String location;
+  final String status;
+  final String date;
+  final String time;
+  final String fieldWorkerName;
+
+  TenantDemand({
+    required this.id,
+    required this.name,
+    required this.number,
+    required this.buyRent,
+    required this.reference,
+    required this.price,
+    required this.message,
+    required this.bhk,
+    required this.location,
+    required this.status,
+    required this.date,
+    required this.time,
+    required this.fieldWorkerName,
+  });
+
+  factory TenantDemand.fromJson(Map<String, dynamic> json) {
+    return TenantDemand(
+      id: json['id'] ?? 0,
+      name: json['Tname'] ?? '',
+      number: json['Tnumber'] ?? '',
+      buyRent: json['Buy_rent'] ?? '',
+      reference: json['Reference'] ?? '',
+      price: json['Price'] ?? '',
+      message: json['Message'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      location: json['Location'] ?? '',
+      status: json['Status'] ?? '',
+      date: json['Date'] ?? '',
+      time: json['Time'] ?? '',
+      fieldWorkerName: json['assigned_fieldworker_name'] ?? '',
+    );
+  }
+}
+
 /// -------- MAIN PAGE --------
 class CalendarTaskPage extends StatefulWidget {
   const CalendarTaskPage({super.key});
@@ -472,6 +931,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   List<AgreementTask> _agreements = [];
   List<FutureProperty> _futureProperties = [];
   List<AddFlat> _addFlats = [];
+  List<TenantDemand> _tenantDemands = [];
 
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
@@ -491,8 +951,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   ];
   late int _selectedYear;
   late int _selectedMonth;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
-  String _calendarView = "Month"; // for dropdown text
+  CalendarFormat _calendarFormat = CalendarFormat.week;
+  String _calendarView = "Week";
+  List<PendingAgreement> _pendingAgreements = [];
+  List<AcceptedAgreement> _acceptedAgreements = [];
 
   @override
   void initState() {
@@ -587,16 +1049,32 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       final responses = await Future.wait([
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_agreement_on_date.php?current_dates=$formattedDate&Fieldwarkarnumber=${userNumber}")),
-        http.get(Uri.parse(
+       http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_building.php?current_date_=$formattedDate&fieldworkarnumber=${userNumber}")),
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate&field_workar_number=${userNumber}")),
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_task.php?current_dates=$formattedDate&Fieldwarkarnumber=$userNumber")),
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_task.php"
+                "?current_dates=$formattedDate&Fieldwarkarnumber=$userNumber"
+        )),
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+                "tenant_demand_for_field_task.php"
+                "?fieldworker_assigned_at=$formattedDate"
+                "&assigned_fieldworker_name=${userName ?? ''}"
+        )),
       ]);
       print(userName);
       print(userNumber);
+      print(formattedDate);
       AgreementTaskResponse? a;
       FuturePropertyResponse? f;
       WebsiteVisitResponse? w;
+      PendingAgreementResponse? p;
+      AcceptedAgreementResponse? aa;
+      TenantDemandResponse? td;
 
       // ✅ Handle Agreement API safely
       if (responses[0].statusCode == 200 && responses[0].body.isNotEmpty) {
@@ -632,29 +1110,60 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           debugPrint("WebsiteVisit parse error: $e");
           w = WebsiteVisitResponse(status: "error", data: []);
         }
-      } else {
+      }
+      else {
         debugPrint("WebsiteVisit API failed (${responses[2].statusCode})");
         w = WebsiteVisitResponse(status: "error", data: []);
+      }
+      if (responses[3].statusCode == 200 && responses[3].body.isNotEmpty) {
+        try {
+          p = pendingAgreementResponseFromJson(responses[3].body);
+        } catch (e) {
+          debugPrint("Pending Agreement parse error: $e");
+          p = PendingAgreementResponse(status: "error", data: []);
+        }
+      }
+      else {
+        debugPrint("Pending Agreement API failed (${responses[3].statusCode})");
+        p = PendingAgreementResponse(status: "error", data: []);
+      }
+      if (responses[4].statusCode == 200 && responses[4].body.isNotEmpty) {
+        try {
+          aa = acceptedAgreementResponseFromJson(responses[4].body);
+        } catch (e) {
+          debugPrint("Accepted Agreement parse error: $e");
+          aa = AcceptedAgreementResponse(status: "error", data: []);
+        }
+      }
+
+      if (responses[5].statusCode == 200 && responses[5].body.isNotEmpty) {
+        try {
+          td = tenantDemandResponseFromJson(responses[5].body);
+        } catch (e) {
+          debugPrint("Tenant Demand parse error: $e");
+          td = TenantDemandResponse(status: "error", data: []);
+        }
+      }
+
+    else {
+        debugPrint("Accept API failed (${responses[4].statusCode})");
+        p = PendingAgreementResponse(status: "error", data: []);
       }
 
       if (!mounted) return;
 
       setState(() {
         _agreements = a?.data ?? [];
+        _pendingAgreements = p?.data ?? [];
+        _tenantDemands = td?.data ?? [];
+        _acceptedAgreements = aa?.data ?? [];
         _futureProperties = f?.data ?? [];
         _websiteVisits = w?.data ?? [];
         _isLoading = false;
       });
 
-      // ✅ Show friendly message when everything is empty
       if (_agreements.isEmpty && _futureProperties.isEmpty && _websiteVisits.isEmpty) {
-        // ScaffoldMessenger.of(context).showSnackBar(
-        //   const SnackBar(
-        //     content: Text("No tasks, properties, or visits found for this date."),
-        //     behavior: SnackBarBehavior.floating,
-        //     duration: Duration(seconds: 2),
-        //   ),
-        // );
+
       }
     } catch (e) {
       debugPrint("❌ Exception fetching data: $e");
@@ -662,6 +1171,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       setState(() {
         _agreements = [];
         _futureProperties = [];
+        _pendingAgreements = [];
+        _tenantDemands=[];
+        _acceptedAgreements=[];
         _websiteVisits = [];
         _isLoading = false;
       });
@@ -783,236 +1295,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       },
     );
   }
-// Enhanced Add Flat Card
-  Widget _buildAddFlatCard(AddFlat f, bool isDark) {
-    Color statusColor = _getLiveUnliveColor(f.liveUnlive);
-
-    return GestureDetector(
-
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => Admin_underflat_futureproperty(
-              id: '${f.propertyId}',
-              Subid: '${f.subId}',
-            ),
-          ),
-        );
-      },
-
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4)
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.purple.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    PhosphorIcons.house_line,
-                    color: Colors.purple,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          f.apartmentName,
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Flat ${f.flatNumber} • ${f.locations}",
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: isDark ? Colors.white70 : Colors.grey.shade700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      f.liveUnlive,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Price & Type
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.currency_inr,
-                          title: "Price",
-                          value: "₹${f.showPrice}",
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.buildings,
-                          title: "Type",
-                          value: f.buyRent,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Property Details
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDetailChip(
-                          icon: PhosphorIcons.cube,
-                          text: f.bhk,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildDetailChip(
-                          icon: PhosphorIcons.star_fill,
-                          text: f.floor,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildDetailChip(
-                          icon: PhosphorIcons.ruler,
-                          text: "${f.squareFit} sq ft",
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Location & Facilities
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.map_pin,
-                          title: "Address",
-                          value: f.apartmentAddress,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Additional Details
-                  if (f.facility.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Facilities:",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : Colors.grey.shade800,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          f.facility,
-                          style: TextStyle(
-                            color: isDark ? Colors.white60 : Colors.grey.shade600,
-                            fontSize: 13,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-
-                  const SizedBox(height: 8),
-
-                  // Caretaker Info
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.user,
-                          title: "Caretaker",
-                          value: f.careTakerName,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.phone,
-                          title: "Contact",
-                          value: f.careTakerNumber,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
 // Helper method for live/unlive status color
   Color _getLiveUnliveColor(String status) {
@@ -1027,343 +1309,711 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         return Colors.grey;
     }
   }
-  // Enhanced Agreement Card with better design
-  Widget _buildAgreementCard(AgreementTask t, bool isDark) {
-    Color statusColor = _getStatusColor(t.status);
+  Widget _buildAcceptedAgreementCard(AcceptedAgreement t, bool isDark) {
+    final Color statusColor = Colors.green;
 
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
       onTap: () {
         Navigator.push(
-            context,
-            MaterialPageRoute(
-                builder: (_) => AdminAgreementDetails(agreementId: t.id.toString())));
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                AdminAgreementDetails(agreementId: t.id.toString()),
+          ),
+        );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4)
-            )
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with status
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+            /// ✅ HEADER
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    t.agreementType,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
                 ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      t.agreementType,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
+                  child: Text(
+                    "Accepted",
+                    style: TextStyle(
                       color: statusColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      t.status,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                ],
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 👤 OWNER → TENANT
+            Text(
+              "${t.ownerName}  →  ${t.tenantName}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
               ),
             ),
 
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Owner & Tenant
-                  _buildInfoRow(
-                    icon: PhosphorIcons.user,
-                    title: "Owner",
-                    value: t.ownerName,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(
-                    icon: PhosphorIcons.users,
-                    title: "Tenant",
-                    value: t.tenantName,
-                    isDark: isDark,
-                  ),
+            const SizedBox(height: 8),
 
-                  const SizedBox(height: 12),
+            /// 💰 MINI CHIPS
+            Row(
+              children: [
+                _miniChip(
+                  icon: PhosphorIcons.currency_inr,
+                  text: "₹${t.monthlyRent}",
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.buildings,
+                  text: t.bhk,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${t.floor}F",
+                  isDark: isDark,
+                ),
+              ],
+            ),
 
-                  // Property Details
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDetailChip(
-                          icon: PhosphorIcons.currency_inr,
-                          text: "₹${t.monthlyRent}",
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildDetailChip(
-                          icon: PhosphorIcons.buildings,
-                          text: "${t.bhk}",
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _buildDetailChip(
-                          icon: PhosphorIcons.star_fill,
-                          text: "${t.floor} Floor",
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
+            const SizedBox(height: 8),
+
+            /// 📍 ADDRESS
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.map_pin,
+                  size: 14,
+                  color: isDark ? Colors.white54 : Colors.grey.shade600,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    t.rentedAddress,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                      isDark ? Colors.white60 : Colors.grey.shade700,
+                    ),
                   ),
-
-                  const SizedBox(height: 12),
-
-                  // Address
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        PhosphorIcons.map_pin,
-                        size: 16,
-                        color: isDark ? Colors.white54 : Colors.grey.shade600,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          t.rentedAddress,
-                          style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.grey.shade700,
-                            fontSize: 13,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
       ),
     );
   }
+  Widget _buildTenantDemandCard(TenantDemand t, bool isDark) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// 🔶 HEADER
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  t.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+              ),
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: Colors.orange.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: const Text(
+                  "Demand",
+                  style: TextStyle(
+                    color: Colors.orange,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
+          ),
 
-  // Enhanced Future Property Card
-  Widget _buildFuturePropertyCard(FutureProperty f, bool isDark) {
-    return GestureDetector(
-        onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (_) => Administater_Future_Property_details
-                    (buildingId: f.id.toString())));
-        },
+          const SizedBox(height: 6),
+
+          /// 📞 CONTACT + 📍 LOCATION
+          Text(
+            "${t.number}  •  ${t.location}",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.grey.shade800,
+            ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 💰 CHIPS
+          Row(
+            children: [
+              _miniChip(
+                icon: PhosphorIcons.buildings,
+                text: t.bhk,
+                isDark: isDark,
+              ),
+              const SizedBox(width: 6),
+              _miniChip(
+                icon: PhosphorIcons.currency_inr,
+                text: formatIndianCurrency(t.price),
+                isDark: isDark,
+              ),
+            ],
+          ),
+
+          if (t.message.isNotEmpty) ...[
+            const SizedBox(height: 8),
+
+            /// 📝 MESSAGE
+            Text(
+              t.message,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white60 : Colors.grey.shade700,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+  String formatIndianCurrency(String value) {
+    try {
+      // Handle ranges like "987500-20000000"
+      if (value.contains('-')) {
+        final parts = value.split('-');
+        final start = NumberFormat.currency(
+          locale: 'en_IN',
+          symbol: '₹',
+          decimalDigits: 0,
+        ).format(double.parse(parts[0]));
+
+        final end = NumberFormat.currency(
+          locale: 'en_IN',
+          symbol: '₹',
+          decimalDigits: 0,
+        ).format(double.parse(parts[1]));
+
+        return "$start – $end";
+      }
+
+      final number = double.parse(value);
+      return NumberFormat.currency(
+        locale: 'en_IN',
+        symbol: '₹',
+        decimalDigits: 0,
+      ).format(number);
+    } catch (e) {
+      return value; // fallback if parsing fails
+    }
+  }
+
+  // Enhanced Agreement Card with better design
+  Widget _buildAgreementCard(AgreementTask t, bool isDark) {
+    final Color statusColor = _getStatusColor(t.status);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                AdminAgreementDetails(agreementId: t.id.toString()),
+          ),
+        );
+      },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4)
-            )
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+            /// 🔹 HEADER
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    t.agreementType,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    t.status,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 👤 OWNER → TENANT
+            Text(
+              "${t.ownerName}  →  ${t.tenantName}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 💰 CHIPS
+            Row(
+              children: [
+                _miniChip(
+                  icon: PhosphorIcons.currency_inr,
+                  text: "₹${t.monthlyRent}",
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.buildings,
+                  text: t.bhk,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${t.floor}F",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 📍 ADDRESS
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.map_pin,
+                  size: 14,
+                  color: isDark ? Colors.white54 : Colors.grey.shade600,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    t.rentedAddress,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                      isDark ? Colors.white60 : Colors.grey.shade700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _buildPendingAgreementCard(PendingAgreement t, bool isDark) {
+    final Color statusColor = Colors.orange;
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AdminAgreementDetails(
+              agreementId: t.id.toString(),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔶 HEADER ROW
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    t.agreementType,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    "Pending",
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 👤 OWNER → TENANT (INLINE)
+            Text(
+              "${t.ownerName}  →  ${t.tenantName}",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 💰 CHIPS ROW
+            Row(
+              children: [
+                _miniChip(
+                  icon: PhosphorIcons.currency_inr,
+                  text: "₹${t.monthlyRent}",
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.buildings,
+                  text: t.bhk,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${t.floor}F",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 📍 ADDRESS
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.map_pin,
+                  size: 14,
+                  color: isDark ? Colors.white54 : Colors.grey.shade600,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    t.rentedAddress,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                      isDark ? Colors.white60 : Colors.grey.shade700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  Widget _miniChip({
+    required IconData icon,
+    required String text,
+    required bool isDark,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 12,
+            color: isDark ? Colors.white60 : Colors.grey.shade600,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.grey.shade800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  // Enhanced Future Property Card
+  Widget _buildFuturePropertyCard(FutureProperty f, bool isDark) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                Administater_Future_Property_details(
+                  buildingId: f.id.toString(),
+                ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔹 TITLE + BUY/RENT
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.buildings,
+                  size: 16,
+                  color: Colors.blue,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    f.propertyName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    f.buyRent,
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 📍 LOCATION + TYPE
+            Text(
+              "${f.place}  •  ${f.residenceType}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 🚆 METRO + FLOORS (CHIPS)
+            Row(
+              children: [
+                if (f.metroName.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text: "${f.metroName} ${f.metroDistance}",
+                    isDark: isDark,
+                  ),
+                if (f.metroName.isNotEmpty) const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${f.totalFloor} Floors",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            /// 👤 CARETAKER (OPTIONAL)
+            if (f.caretakerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${f.caretakerName} • ${f.caretakerNumber}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white60 : Colors.grey.shade700,
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    PhosphorIcons.buildings,
-                    color: Colors.blue,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      f.propertyName,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      f.buyRent,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+            ],
+
+            /// 🏢 FACILITY (OPTIONAL)
+            if (f.facility.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                f.facility,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white54 : Colors.grey.shade600,
+                ),
               ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Location & Type
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.map_pin,
-                          title: "Location",
-                          value: f.place,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.house,
-                          title: "Type",
-                          value: f.residenceType,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Metro & Floors
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.train,
-                          title: "Metro",
-                          value: "${f.metroName} (${f.metroDistance})",
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.star_fill,
-                          title: "Floors",
-                          value: f.totalFloor,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Caretaker
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.user,
-                          title: "Caretaker",
-                          value: f.caretakerName,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.phone,
-                          title: "Contact",
-                          value: f.caretakerNumber,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Facilities
-                  if (f.facility.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Facilities:",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : Colors.grey.shade800,
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          f.facility,
-                          style: TextStyle(
-                            color: isDark ? Colors.white60 : Colors.grey.shade600,
-                            fontSize: 13,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
+            ],
           ],
         ),
       ),
@@ -1566,207 +2216,148 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   Widget _buildCalendarAddFlatCard(CalendarAddFlat f, bool isDark) {
     final statusColor = _getLiveUnliveColor(f.liveUnlive);
 
-    return GestureDetector(
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
       onTap: () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => underflat_futureproperty(
+            builder: (_) => underflat_futureproperty(
               id: f.propertyId.toString(),
               Subid: f.subId,
             ),
           ),
         );
-
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            )
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// HEADER
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.indigo.withOpacity(0.1),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
+            /// 🏠 DATE + STATUS
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.house_line,
+                  size: 16,
+                  color: Colors.indigo,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    formatDate(f.datesForRightAvailable),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    f.liveUnlive,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 📍 FLAT + LOCATION
+            Text(
+              "Flat ${f.flatNumber}  •  ${f.locations}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 💰 PRICE + TYPE (CHIPS)
+            Row(
+              children: [
+                _miniChip(
+                  icon: PhosphorIcons.currency_inr,
+                  text: "₹${f.showPrice}",
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.briefcase,
+                  text: f.buyRent,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 🧱 BHK / FLOOR / USE
+            Row(
+              children: [
+                _miniChip(
+                  icon: PhosphorIcons.cube,
+                  text: f.bhk,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: f.floor,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.buildings,
+                  text: f.residenceCommercial,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            /// 👤 CARETAKER (OPTIONAL)
+            if (f.careTakerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${f.careTakerName} • ${f.careTakerNumber}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white60 : Colors.grey.shade700,
                 ),
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    PhosphorIcons.house_line,
-                    color: Colors.indigo,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      formatDate(f.datesForRightAvailable),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      f.liveUnlive,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            /// BODY
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  /// LOCATION + FLAT
-                  Text(
-                    "Flat ${f.flatNumber} • ${f.locations}",
-                    style: TextStyle(
-                      fontSize: 13,
-                      color:
-                      isDark ? Colors.white70 : Colors.grey.shade700,
-                    ),
-                  ),
-
-                  const SizedBox(height: 10),
-
-                  /// PRICE + TYPE
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.currency_inr,
-                          title: "Price",
-                          value: "₹${f.showPrice}",
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.buildings,
-                          title: "Type",
-                          value: f.buyRent,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  /// CHIPS
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDetailChip(
-                              icon: PhosphorIcons.cube,
-                              text: f.bhk,
-                              isDark: isDark,
-                            ),
-                          ),
-                          SizedBox(width: 6,),
-                          Expanded(
-                            child: _buildDetailChip(
-                              icon: PhosphorIcons.star_fill,
-                              text: f.floor,
-                              isDark: isDark,
-                            ),
-                          ),
-                          SizedBox(width: 6,),
-                          Expanded(
-                            child: _buildDetailChip(
-                              icon: PhosphorIcons.briefcase,
-                              text: f.residenceCommercial,
-                              isDark: isDark,
-                            ),
-                          ),
-                        ],
-                      )
-
-                    ],
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  /// CARETAKER
-                  if (f.careTakerName.isNotEmpty)
-                    Row(
-                      children: [
-                        Icon(
-                          PhosphorIcons.user,
-                          size: 16,
-                          color: isDark
-                              ? Colors.white54
-                              : Colors.grey.shade600,
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            "${f.careTakerName} • ${f.careTakerNumber}",
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: isDark
-                                  ? Colors.white70
-                                  : Colors.grey.shade800,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
+            ],
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _chip(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.indigo.shade50,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
       ),
     );
   }
@@ -1903,7 +2494,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               setState(() {
                 _calendarView = value;
                 _calendarFormat =
-                value == "Month" ? CalendarFormat.month : CalendarFormat.week;
+                value == "Week" ? CalendarFormat.week : CalendarFormat.month;
               });
             },
             itemBuilder: (_) => const [
@@ -2024,6 +2615,24 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   if (_agreements.isNotEmpty)
                     _sectionTitle("Agreements", isDark, _agreements.length),
                   ..._agreements.map((a) => _buildAgreementCard(a, isDark)),
+                  if (_pendingAgreements.isNotEmpty)
+                    _sectionTitle("Pending Agreements", isDark, _pendingAgreements.length),
+
+                  ..._pendingAgreements.map(
+                        (p) => _buildPendingAgreementCard(p, isDark),
+                  ),
+                  if (_acceptedAgreements.isNotEmpty)
+                    _sectionTitle("Accepted Agreements", isDark, _acceptedAgreements.length),
+
+                  ..._acceptedAgreements.map(
+                        (a) => _buildAcceptedAgreementCard(a, isDark),
+                  ),
+                  if (_tenantDemands.isNotEmpty)
+                    _sectionTitle("Tenant Demands", isDark, _tenantDemands.length),
+
+                  ..._tenantDemands.map(
+                        (t) => _buildTenantDemandCard(t, isDark),
+                  ),
 
                   if (_futureProperties.isNotEmpty)
                     _sectionTitle("Future Properties", isDark, _futureProperties.length),
@@ -2062,7 +2671,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
-      width: 35,
+      width: 50,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
         color: isSelected

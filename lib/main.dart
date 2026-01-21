@@ -81,7 +81,6 @@ class _MyAppState extends State<MyApp> {
       print("🔑 FCM Token: $token");
     });
 
-    // ✅ Foreground notification (app open, just show or log, not navigate)
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("📩 Foreground: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
@@ -92,7 +91,7 @@ class _MyAppState extends State<MyApp> {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        _openNotificationPage(message); // 👈 use your old function
+        _openNotificationPage(message);
       });
     });
 

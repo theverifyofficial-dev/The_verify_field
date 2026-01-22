@@ -8,7 +8,7 @@ import '../../Custom_Widget/constant.dart';
 import '../Administater_Realestate_Details.dart';
 import 'package:intl/intl.dart';
 
-class Catid {
+class SeeALLModel {
   final int id;
   final String propertyPhoto;
   final String locations;
@@ -58,7 +58,7 @@ class Catid {
   final int subid;
   final String? sourceId; // NEW, nullable
 
-  const Catid({
+  const SeeALLModel({
     required this.id,
     required this.propertyPhoto,
     required this.locations,
@@ -110,8 +110,8 @@ class Catid {
 
   });
 
-  factory Catid.fromJson(Map<String, dynamic> json) {
-    return Catid(
+  factory SeeALLModel.fromJson(Map<String, dynamic> json) {
+    return SeeALLModel(
       id: json['P_id'] is int
           ? json['P_id']
           : int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
@@ -348,12 +348,12 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       int asInt(dynamic v) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? 0);
       list.sort((a, b) => asInt(b['P_id']).compareTo(asInt(a['P_id'])));
 
-      final items = list.map((m) => Catid.fromJson(m)).toList();
+      final items = list.map((m) => SeeALLModel.fromJson(m)).toList();
 
       if (!mounted) return;
       setState(() {
         _allData = items;
-        _filteredData = List<Catid>.from(_allData);
+        _filteredData = List<SeeALLModel>.from(_allData);
       });
     } catch (e) {
       debugPrint("fetchData error: $e");
@@ -369,8 +369,8 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     }
   }
   TextEditingController _searchController = TextEditingController();
-  List<Catid> _allData = [];   // full fetched data
-  List<Catid> _filteredData = []; // filtered list
+  List<SeeALLModel> _allData = [];   // full fetched data
+  List<SeeALLModel> _filteredData = []; // filtered list
   final Map<int, int> _liveCountMap = {}; // subid -> live count
   final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
 
@@ -430,7 +430,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
 
   bool _blank(String? s) => s == null || s.trim().isEmpty;
 
-  List<String> _missingFieldsFor(Catid i) {
+  List<String> _missingFieldsFor(SeeALLModel i) {
     final m = <String>[];
     final checks = <String, String?>{
       "Photo": i.propertyPhoto,
@@ -439,9 +439,6 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
       "Buy/Rent": i.buyRent,
       "Residence/Commercial": i.residenceCommercial,
       "Apartment Address": i.apartmentAddress,
-      "BHK": i.bhk,
-      "Floor": i.floor,
-      "Sqft": i.squareFit,
       "Owner Name": i.ownerName,
       "Owner Number": i.ownerNumber,
       "Available Date": i.availableDate,
@@ -452,7 +449,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     return m;
   }
 
-  bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
+  bool _hasMissing(SeeALLModel i) => _missingFieldsFor(i).isNotEmpty;
 
   String formatDate(String s) {
     if (s.isEmpty) return '-';
@@ -638,29 +635,11 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     return Stack(
       children: [
         imageWidget,
-        // Positioned( // Commented out live/unlive badge
-        //   top: 4,
-        //   right: 4,
-        //   child: Container(
-        //     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-        //     decoration: BoxDecoration(
-        //       color: liveColor.withOpacity(0.8),
-        //       borderRadius: BorderRadius.circular(10),
-        //     ),
-        //     child: Text(
-        //       liveLabel,
-        //       style: theme.textTheme.labelSmall?.copyWith(
-        //         color: Colors.white,
-        //         fontWeight: FontWeight.bold,
-        //       ),
-        //     ),
-        //   ),
-        // ),
       ],
     );
   }
 
-  List<String> _buildMultipleImages(Catid p) {
+  List<String> _buildMultipleImages(SeeALLModel p) {
     final List<String> imgs = [];
     if (p.propertyPhoto != null && p.propertyPhoto.isNotEmpty) {
       imgs.add('https://verifyserve.social/Second%20PHP%20FILE/main_realestate/${p.propertyPhoto}');
@@ -668,7 +647,7 @@ class _See_All_RealestateState extends State<See_All_Realestate> {
     return imgs;
   }
 
-  Widget _buildCard(Catid property, int displayIndex, bool isDarkMode) {
+  Widget _buildCard(SeeALLModel property, int displayIndex, bool isDarkMode) {
     final bool isHighlighted = false; // No highlighting in this screen
     final theme = Theme.of(context);
     final cs = theme.colorScheme;

@@ -6,18 +6,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../Home_Screen_click/View_All_Details.dart';
 import 'PAYMENT_DETAILS.dart';
 
-class Catid {
+class Doc {
   final int id;
   final String document_type;
   final String looking_type;
   final String amount;
   final String Subid;
 
-  Catid(
+  Doc(
       {required this.id,required this.document_type,required this.looking_type,required this.amount,required this.Subid});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['id'],
+  factory Doc.FromJson(Map<String, dynamic>json){
+    return Doc(id: json['id'],
         looking_type: json['looking_type'],
         document_type: json['document_type'],
         amount: json['amount'],
@@ -34,13 +34,13 @@ class Cancelled_Document extends StatefulWidget {
 
 class _Cancelled_DocumentState extends State<Cancelled_Document> {
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<Doc>> fetchData() async {
     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_data_by_looking_property_police_verifycation_document?building_subid=Cancelled');
     final response = await http.get(url);
     if (response.statusCode == 200) {
       //await Future.delayed(Duration(seconds: 1));
       final List result = json.decode(response.body);
-      return result.map((data) => Catid.FromJson(data)).toList();
+      return result.map((data) => Doc.FromJson(data)).toList();
     } else {
       throw Exception('Failed to load data');
     }
@@ -55,7 +55,7 @@ class _Cancelled_DocumentState extends State<Cancelled_Document> {
           margin: EdgeInsets.only(top: 20),
           child: Column(
             children: [
-              FutureBuilder<List<Catid>>(
+              FutureBuilder<List<Doc>>(
                 future: fetchData(),
                 builder: (context, snapshot) {
                   if(snapshot.connectionState == ConnectionState.waiting){

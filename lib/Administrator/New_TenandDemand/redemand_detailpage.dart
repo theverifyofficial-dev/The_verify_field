@@ -4,6 +4,8 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 
 import '../../utilities/bug_founder_fuction.dart';
+import 'Add_demand.dart';
+
 
 class RedemandDetailPage extends StatefulWidget {
   final String redemandId;
@@ -55,6 +57,7 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
     return nameLocationMap[name.toLowerCase()] ?? "Unknown";
   }
   Future<void> _fetchRedemandDetails() async {
+    print(" redemand id from detail page : ${widget.redemandId}");
     setState(() => _isLoading = true);
     try {
       // NOTE: details API uses id = redemand id
@@ -553,7 +556,6 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
     final status = _redemand?["Status"]?.toLowerCase();
     final hasSubadminAssigned =
         _redemand?["assigned_subadmin_name"] != null;
-
     final hasFieldworkerAssigned =
         _redemand?["assigned_fieldworker_name"] != null;
     return Scaffold(
@@ -595,6 +597,20 @@ class _RedemandDetailPageState extends State<RedemandDetailPage> {
                                 : Colors.black45,
                             fontSize: 13)),
                   ]),
+
+                  Spacer(),
+
+                  IconButton(
+                    icon: const Icon(Icons.edit_rounded),
+                    tooltip: "Edit",
+                    onPressed: () =>
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) =>  CustomerDemandFormPage(mode: DemandEditMode.updateRedemand, redemandId: widget.redemandId,)),
+                    ).then((_) => _fetchRedemandDetails()),
+
+                  ),
+
           if (_redemand?["mark"] == "1") ...[
             Spacer(),
             Container(

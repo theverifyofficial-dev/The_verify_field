@@ -6,117 +6,12 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../model/future_property_model.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_futureProperty.dart';
 import 'Future_property_details.dart';
 import 'package:intl/intl.dart';
 
-class Catid {
-  final int id;
-  final String? images;
-  final String? ownerName;
-  final String? ownerNumber;
-  final String? caretakerName;
-  final String? caretakerNumber;
-  final String? place;
-  final String? buyRent;
-  final String? typeOfProperty;
-  final String? selectBhk;
-  final String? floorNumber;
-  final String? squareFeet;
-  final String? propertyNameAddress;
-  final String? buildingInformationFacilities;
-  final String? propertyAddressForFieldworker;
-  final String? ownerVehicleNumber;
-  final String? yourAddress;
-  final String? fieldWorkerName;
-  final String? fieldWorkerNumber;
-  final String? currentDate;
-  final String? longitude;
-  final String? latitude;
-  final String? roadSize;
-  final String? metroDistance;
-  final String? metroName;
-  final String? mainMarketDistance;
-  final String? ageOfProperty;
-  final String? lift;
-  final String? parking;
-  final String? totalFloor;
-  final String? residenceCommercial;
-  final String? facility;
-
-  Catid({
-    required this.id,
-    required this.images,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.caretakerName,
-    required this.caretakerNumber,
-    required this.place,
-    required this.buyRent,
-    required this.typeOfProperty,
-    required this.selectBhk,
-    required this.floorNumber,
-    required this.squareFeet,
-    required this.propertyNameAddress,
-    required this.buildingInformationFacilities,
-    required this.propertyAddressForFieldworker,
-    required this.ownerVehicleNumber,
-    required this.yourAddress,
-    required this.fieldWorkerName,
-    required this.fieldWorkerNumber,
-    required this.currentDate,
-    required this.longitude,
-    required this.latitude,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.metroName,
-    required this.mainMarketDistance,
-    required this.ageOfProperty,
-    required this.lift,
-    required this.parking,
-    required this.totalFloor,
-    required this.residenceCommercial,
-    required this.facility,
-  });
-
-  factory Catid.FromJson(Map<String, dynamic> json) {
-    return Catid(
-      id: json['id'] ?? 0,
-      images: json['images'],
-      ownerName: json['ownername'],
-      ownerNumber: json['ownernumber'],
-      caretakerName: json['caretakername'],
-      caretakerNumber: json['caretakernumber'],
-      place: json['place'],
-      buyRent: json['buy_rent'],
-      typeOfProperty: json['typeofproperty'],
-      selectBhk: json['select_bhk'],
-      floorNumber: json['floor_number'],
-      squareFeet: json['sqyare_feet'],
-      propertyNameAddress: json['propertyname_address'],
-      buildingInformationFacilities: json['building_information_facilitys'],
-      propertyAddressForFieldworker: json['property_address_for_fieldworkar'],
-      ownerVehicleNumber: json['owner_vehical_number'],
-      yourAddress: json['your_address'],
-      fieldWorkerName: json['fieldworkarname'],
-      fieldWorkerNumber: json['fieldworkarnumber'],
-      currentDate: json['current_date_'],
-      longitude: json['longitude'],
-      latitude: json['latitude'],
-      roadSize: json['Road_Size'],
-      metroDistance: json['metro_distance'],
-      metroName: json['metro_name'],
-      mainMarketDistance: json['main_market_distance'],
-      ageOfProperty: json['age_of_property'],
-      lift: json['lift'],
-      parking: json['parking'],
-      totalFloor: json['total_floor'],
-      residenceCommercial: json['Residence_commercial'],
-      facility: json['facility'],
-    );
-  }
-}
 
 class FrontPage_FutureProperty extends StatefulWidget {
   const FrontPage_FutureProperty({super.key});
@@ -130,8 +25,8 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
   String _number = '';
   String _SUbid = '';
 
-  List<Catid> _allProperties = [];
-  List<Catid> _filteredProperties = [];
+  List<PropertyModel> _allProperties = [];
+  List<PropertyModel> _filteredProperties = [];
   bool _isLoading = true;
   TextEditingController _searchController = TextEditingController();
   Timer? _debounce;
@@ -171,7 +66,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     _debounce = Timer(const Duration(milliseconds: 400), () {
       String query = _searchController.text.toLowerCase().trim();
 
-      List<Catid> filtered;
+      List<PropertyModel> filtered;
 
       if (query.isEmpty) {
         filtered = List.from(_allProperties);
@@ -319,7 +214,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
         listResponse.sort((a, b) => b['id'].compareTo(a['id']));
 
         _allProperties = listResponse
-            .map((data) => Catid.FromJson(data))
+            .map((data) => PropertyModel.FromJson(data))
             .toList();
 
         _filteredProperties = _allProperties; // show all initially
@@ -394,7 +289,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
     }
   }
 
-  List<Catid> filtered = [];
+  List<PropertyModel> filtered = [];
 
   Future<void> fetchTotalFlats() async {
     try {
@@ -537,7 +432,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                         onChanged: (value) async {
                           String query = value.toLowerCase();
 
-                          List<Catid> filtered = _allProperties.where((item) {
+                          List<PropertyModel> filtered = _allProperties.where((item) {
                             return (item.propertyNameAddress?.toLowerCase().contains(query) ?? false) ||
                                 (item.place?.toLowerCase().contains(query) ?? false) ||
                                 (item.buyRent?.toLowerCase().contains(query) ?? false) ||
@@ -554,7 +449,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                                   (item.caretakerName == null || item.caretakerName!.trim().isEmpty);
                             }).toList();
                           } else if (selectedLabel == 'Live' || selectedLabel == 'Unlive') {
-                            List<Catid> temp = [];
+                            List<PropertyModel> temp = [];
                             for (var item in filtered) {
                               try {
                                 final res = await http.get(Uri.parse(
@@ -616,7 +511,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                               _searchController.clear(); // clear search when button tapped
                               _debounce?.cancel();       // cancel any ongoing debounce
 
-                              List<Catid> filtered = [];
+                              List<PropertyModel> filtered = [];
 
                               if (label == 'Missing Field') {
                                 // ✅ Missing field logic
@@ -665,7 +560,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                                 }).toList();
 
                                 final results = await Future.wait(futures);
-                                filtered = results.whereType<Catid>().toList();
+                                filtered = results.whereType<PropertyModel>().toList();
                               }
 
                               else if (label == 'Rent' || label == 'Buy' || label == 'Commercial') {
@@ -709,7 +604,7 @@ class _FrontPage_FuturePropertyState extends State<FrontPage_FutureProperty> {
                                 }).toList();
 
                                 final results = await Future.wait(futures);
-                                filtered = results.whereType<Catid>().toList();
+                                filtered = results.whereType<PropertyModel>().toList();
                               }
 
                               setState(() {

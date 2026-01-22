@@ -9,115 +9,10 @@ import 'package:intl/intl.dart';
 import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Future_Property_OwnerDetails_section/Future_property_details.dart';
+import '../../model/future_property_model.dart';
 import '../../ui_decoration_tools/app_images.dart';
 import 'Future_Property_Details.dart';
 
-class Catid {
-  final int id;
-  final String? images;
-  final String? ownerName;
-  final String? ownerNumber;
-  final String? caretakerName;
-  final String? caretakerNumber;
-  final String? place;
-  final String? buyRent;
-  final String? typeOfProperty;
-  final String? selectBhk;
-  final String? floorNumber;
-  final String? squareFeet;
-  final String? propertyNameAddress;
-  final String? buildingInformationFacilities;
-  final String? propertyAddressForFieldworker;
-  final String? ownerVehicleNumber;
-  final String? yourAddress;
-  final String? fieldWorkerName;
-  final String? fieldWorkerNumber;
-  final String? currentDate;
-  final String? longitude;
-  final String? latitude;
-  final String? roadSize;
-  final String? metroDistance;
-  final String? metroName;
-  final String? mainMarketDistance;
-  final String? ageOfProperty;
-  final String? lift;
-  final String? parking;
-  final String? totalFloor;
-  final String? residenceCommercial;
-  final String? facility;
-
-  Catid({
-    required this.id,
-    required this.images,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.caretakerName,
-    required this.caretakerNumber,
-    required this.place,
-    required this.buyRent,
-    required this.typeOfProperty,
-    required this.selectBhk,
-    required this.floorNumber,
-    required this.squareFeet,
-    required this.propertyNameAddress,
-    required this.buildingInformationFacilities,
-    required this.propertyAddressForFieldworker,
-    required this.ownerVehicleNumber,
-    required this.yourAddress,
-    required this.fieldWorkerName,
-    required this.fieldWorkerNumber,
-    required this.currentDate,
-    required this.longitude,
-    required this.latitude,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.metroName,
-    required this.mainMarketDistance,
-    required this.ageOfProperty,
-    required this.lift,
-    required this.parking,
-    required this.totalFloor,
-    required this.residenceCommercial,
-    required this.facility,
-  });
-
-  factory Catid.fromJson(Map<String, dynamic> json) {
-    return Catid(
-      id: json['id'] ?? 0,
-      images: json['images'],
-      ownerName: json['ownername'],
-      ownerNumber: json['ownernumber'],
-      caretakerName: json['caretakername'],
-      caretakerNumber: json['caretakernumber'],
-      place: json['place'],
-      buyRent: json['buy_rent'],
-      typeOfProperty: json['typeofproperty'],
-      selectBhk: json['select_bhk'],
-      floorNumber: json['floor_number'],
-      squareFeet: json['sqyare_feet'],
-      propertyNameAddress: json['propertyname_address'],
-      buildingInformationFacilities: json['building_information_facilitys'],
-      propertyAddressForFieldworker: json['property_address_for_fieldworkar'],
-      ownerVehicleNumber: json['owner_vehical_number'],
-      yourAddress: json['your_address'],
-      fieldWorkerName: json['fieldworkarname'],
-      fieldWorkerNumber: json['fieldworkarnumber'],
-      currentDate: json['current_date_'],
-      longitude: json['longitude'],
-      latitude: json['latitude'],
-      roadSize: json['Road_Size'],
-      metroDistance: json['metro_distance'],
-      metroName: json['metro_name'],
-      mainMarketDistance: json['main_market_distance'],
-      ageOfProperty: json['age_of_property'],
-      lift: json['lift'],
-      parking: json['parking'],
-      totalFloor: json['total_floor'],
-      residenceCommercial: json['Residence_commercial'],
-      facility: json['facility'],
-    );
-  }
-}
 
 class _DetailRow extends StatelessWidget {
   final IconData icon;
@@ -204,8 +99,8 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
   final Map<int, int> _liveCountMap = {}; // subid -> live count
   final Map<int, String> _totalFlatsMap = {}; // subid -> total flats count as String
   bool _prefetching = false;
-  List<Catid> _allProperties = [];
-  List<Catid> _filteredProperties = [];
+  List<PropertyModel> _allProperties = [];
+  List<PropertyModel> _filteredProperties = [];
   Timer? _debounce;
   final TextEditingController _searchController = TextEditingController();
   String selectedLabel = '';
@@ -290,7 +185,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
       String query = _searchController.text.toLowerCase().trim();
-      List<Catid> filtered;
+      List<PropertyModel> filtered;
       if (query.isEmpty) {
         filtered = List.from(_allProperties);
         selectedLabel = ''; // optional reset
@@ -331,7 +226,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
 
   bool _blank(String? s) => s == null || s.trim().isEmpty;
 
-  List<String> _missingFieldsFor(Catid i) {
+  List<String> _missingFieldsFor(PropertyModel i) {
     final m = <String>[];
     final checks = <String, String?>{
       "Image": i.images,
@@ -365,7 +260,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     return m;
   }
 
-  bool _hasMissing(Catid i) => _missingFieldsFor(i).isNotEmpty;
+  bool _hasMissing(PropertyModel i) => _missingFieldsFor(i).isNotEmpty;
 
   // ✅ Fetch API only once
   Future<void> fetchData() async {
@@ -377,7 +272,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
         List listResponse = json.decode(response.body);
         listResponse.sort((a, b) => b['id'].compareTo(a['id']));
         setState(() {
-          _allProperties = listResponse.map((data) => Catid.fromJson(data)).toList();
+          _allProperties = listResponse.map((data) => PropertyModel.FromJson(data)).toList();
           _filteredProperties = _allProperties;
           propertyCount = _allProperties.length;
           _isLoading = false;
@@ -659,7 +554,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
     );
   }
 
-  List<String> _buildMultipleImages(Catid p) {
+  List<String> _buildMultipleImages(PropertyModel p) {
     final List<String> imgs = [];
     if (p.images != null && p.images!.isNotEmpty) {
       imgs.add('https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/${p.images}');
@@ -807,7 +702,7 @@ class _SeeAll_FuturePropertyState extends State<SeeAll_FutureProperty> {
                                   setState(() => _prefetching = false);
                                 }
                               }
-                              List<Catid> filtered = List.from(_allProperties);
+                              List<PropertyModel> filtered = List.from(_allProperties);
                               switch (label) {
                                 case 'Commercial':
                                   filtered = filtered

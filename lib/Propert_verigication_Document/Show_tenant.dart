@@ -18,7 +18,7 @@ import 'Property_Verification.dart';
 import 'ViewAll_Details.dart';
 
 
-class Catid {
+class T_model {
   final int tup_id;
   final String Reelestate_Image;
   final String Address_;
@@ -33,12 +33,12 @@ class Catid {
   final String Bhk_Squarefit;
   final String Subid;
 
-  Catid(
+  T_model(
       {required this.tup_id,required this.Reelestate_Image,required this.Address_,required this.Place_,required this.floor_,required this.flat_,
         required this.Tenant_Rented_Amount,required this.Tenant_Rented_Date,required this.Owner_number,required this.Tenant_number,required this.maintence,required this.Bhk_Squarefit,required this.Subid});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(tup_id: json['TUP_id'],Address_: json['Property_Number'],
+  factory T_model.FromJson(Map<String, dynamic>json){
+    return T_model(tup_id: json['TUP_id'],Address_: json['Property_Number'],
         Reelestate_Image: json['Property_Image'],Place_: json['PropertyAddress'],
         floor_: json['FLoorr'], flat_: json['Flat'],
         Tenant_Rented_Amount: json['Tenant_Rented_Amount'], Tenant_Rented_Date: json['Tenant_Rented_Date'],
@@ -138,7 +138,7 @@ class _ShowPropertyState extends State<ShowProperty> {
   // late DocumentationBloc bloc;
   List<String> tittle = ["All Properties","Add Tenants"];
   int? pageIndex=0;
-  late Future<List<Catid>> _futureCatid;
+  late Future<List<T_model>> _futureCatid;
   late Future<List<Catid_real>> _futureCatidReal;
   @override
   void initState() {
@@ -153,13 +153,13 @@ class _ShowPropertyState extends State<ShowProperty> {
   String _Owner_Number = '';
   String _number = '';
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<T_model>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_Tenant_Table_by_Feildworker_Number_?fieldworkarnumber=$_number");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['TUP_id'].compareTo(a['TUP_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => T_model.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -298,7 +298,7 @@ class _ShowPropertyState extends State<ShowProperty> {
               Expanded(
                 child: Container(
                   margin: EdgeInsets.only(top: 10),
-                  child: FutureBuilder<List<Catid>>(
+                  child: FutureBuilder<List<T_model>>(
                     future: fetchData(),
                     builder: (context, abc) {
                       if(abc.connectionState == ConnectionState.waiting) {

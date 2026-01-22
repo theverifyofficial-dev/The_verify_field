@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:verify_feild_worker/Administrator/New_TenandDemand/redemand_detailpage.dart';
 import '../../model/demand_model.dart';
 import '../../utilities/bug_founder_fuction.dart';
+import 'Add_demand.dart';
 
 
 class AdminDemandDetail extends StatefulWidget {
@@ -313,9 +314,13 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
                           fontWeight: FontWeight.bold,
                           color: isDark ? Colors.white : Colors.black)),
                   const SizedBox(height: 3),
-                  Text(data["Tnumber"] ?? "-",
-                      style:
-                      TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                  Row(
+                    children: [
+                      Text(data["Tnumber"] ?? "-",
+                          style:
+                          TextStyle(color: Colors.grey.shade500, fontSize: 14)),
+                    ],
+                  ),
 
                   Text(
                     "Created: ${formatApiDate(data["created_date"] is String ? data["created_date"] : (data["created_date"]?["date"] ?? ""))}",
@@ -334,6 +339,17 @@ class _AdminDemandDetailState extends State<AdminDemandDetail> {
 
                 ]),
           ),
+
+          IconButton(
+            icon: const Icon(Icons.edit_rounded),
+            tooltip: "Edit",
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) =>  CustomerDemandFormPage(mode: DemandEditMode.updateDemand, demandId: widget.demandId,)),
+            ).then((_) => _fetchDemandDetails()),
+
+          ),
+
           if (isUrgent)
             Container(
               width: 10,

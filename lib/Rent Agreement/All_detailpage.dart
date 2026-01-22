@@ -287,7 +287,7 @@ class _AgreementDetailPageState extends State<AllDetailpage> {
 
                 _statusCard(
                   title: "Office Received",
-                  value: officeReceived ? "Yes" : "No",
+                  value: officeReceived ? "Delivered" : "Not Delivered",
                   isPositive: officeReceived,
                   dateTime: agreement?["office_received_at"],
                 ),

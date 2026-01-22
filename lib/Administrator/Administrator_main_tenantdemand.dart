@@ -12,7 +12,7 @@ import '../Tenant_Details_Demand/ALl_Demands.dart';
 import '../Tenant_Details_Demand/Add_tenantdemand_num.dart';
 import '../Tenant_Details_Demand/Tenant_demands_details.dart';
 import '../Custom_Widget/constant.dart';
-class Catid {
+class TenantModel {
   final int id;
   final String V_name;
   final String V_number;
@@ -31,14 +31,14 @@ class Catid {
   final String Family_Members;
   final String buyrent;
 
-  Catid(
+  TenantModel(
       {required this.id, required this.V_name, required this.V_number, required this.bhk, required this.budget,
         required this.place, required this.floor_option, required this.Additional_Info, required this.Shifting_date,required this.Current_date,
         required this.Parking, required this.Gadi_Number, required this.FeildWorker_Name, required this.FeildWorker_Number,
         required this.Current__Date,required this.Family_Members,required this.buyrent});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['VTD_id'],
+  factory TenantModel.FromJson(Map<String, dynamic>json){
+    return TenantModel(id: json['VTD_id'],
         V_name: json['V_name'],
         V_number: json['V_number'],
         bhk: json['bhk'],
@@ -67,21 +67,21 @@ class Administrator_Tenant_demands extends StatefulWidget {
 
 class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_demands> {
 
-  Future<List<Catid>> fetchData(id) async {
+  Future<List<TenantModel>> fetchData(id) async {
     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/filter_tenant_demand_by_feildworkar_number_?FeildWorker_Number=$_num');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => TenantModel.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
     }
   }
-  late Future<List<Catid>> _futureData;
-  List<Catid> _allData = [];
-  List<Catid> _filteredData = [];
+  late Future<List<TenantModel>> _futureData;
+  List<TenantModel> _allData = [];
+  List<TenantModel> _filteredData = [];
   final TextEditingController _searchController = TextEditingController();
   String _num = '';
   String _na = '';
@@ -201,7 +201,7 @@ class _Administrator_Tenant_demandsState extends State<Administrator_Tenant_dema
             //   ),
             // ),
             Expanded(
-              child: FutureBuilder<List<Catid>>(
+              child: FutureBuilder<List<TenantModel>>(
                 future: fetchData("" + 1.toString()), // your API call
                 builder: (context, abc) {
                   if (abc.connectionState == ConnectionState.waiting) {

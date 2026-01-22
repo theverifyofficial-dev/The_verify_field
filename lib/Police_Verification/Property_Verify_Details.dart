@@ -13,7 +13,7 @@ import '../Propert_verigication_Document/Show_tenant.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 
-class Catid {
+class P_detailModel {
   final int id;
   final String property_num;
   final String Address_;
@@ -58,7 +58,7 @@ class Catid {
   final String Feild_number;
   final String date;
 
-  Catid(
+  P_detailModel(
       {required this.id,required this.property_num,required this.Address_,required this.Place_,required this.sqft,
         required this.Price,required this.Sell_price,required this.Persnol_price,required this.maintenance,
         required this.Buy_Rent,required this.Residence_Commercial,required this.floor_,required this.flat_,
@@ -68,8 +68,8 @@ class Catid {
         required this.Caretaker_name,required this.Caretaker_number, required this.Building_Location, required this.Building_Name, required this.Building_Address, required this.Building_image, required this.Longitude, required this.Latitude, required this.Rent, required this.Verify_price, required this.BHK, required this.tyope, required this.maintence, required this.buy_Rent,
         required this.facility,required this.Feild_name,required this.Feild_number,required this.date});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['PVR_id'],
+  factory P_detailModel.FromJson(Map<String, dynamic>json){
+    return P_detailModel(id: json['PVR_id'],
         property_num: json['Property_Number'], Address_: json['Address_'],
         Place_: json['Place_'], sqft: json['City'],
         Price: json['Price'], Sell_price: json['Waterfilter'],
@@ -128,12 +128,12 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
     }
   }
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<P_detailModel>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.id}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => P_detailModel.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -277,7 +277,7 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
 
       body: SingleChildScrollView(
         child: Container(
-          child: FutureBuilder<List<Catid>>(
+          child: FutureBuilder<List<P_detailModel>>(
               future: fetchData(),
               builder: (context,abc){
                 if(abc.connectionState == ConnectionState.waiting){
@@ -1409,221 +1409,6 @@ class _Property_Verify_DetailsState extends State<Property_Verify_Details> {
               }
 
           ),
-
-
-
-          /*FutureBuilder<List<Catid>>(
-            future: fetchData(""+1.toString()),
-            builder: (context,abc){
-              if(abc.connectionState == ConnectionState.waiting){
-                return Center(child: CircularProgressIndicator());
-              }
-              else if(abc.hasError){
-                return Text('${abc.error}');
-              }
-              else if (abc.data == null || abc.data!.isEmpty) {
-                // If the list is empty, show an empty image
-                return Center(
-                  child: Column(
-                    children: [
-                      // Lottie.asset("assets/images/no data.json",width: 450),
-                      Text("No Data Found!",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500,color: Colors.white,fontFamily: 'Poppins',letterSpacing: 0),),
-                    ],
-                  ),
-                );
-              }
-              else{
-                return ListView.builder(
-                    itemCount: abc.data!.length,
-                    shrinkWrap: true,
-                    scrollDirection: Axis.vertical,
-                    itemBuilder: (BuildContext context,int len){
-                      return GestureDetector(
-                        onTap: () async {
-                          //  int itemId = abc.data![len].id;
-                          //int iiid = abc.data![len].PropertyAddress
-                          SharedPreferences prefs = await SharedPreferences.getInstance();
-                          prefs.setString('id_Document', abc.data![len].id.toString());
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute
-                                (builder: (context) => ShowProperty(iidd: abc.data![len].id.toString()))
-                          );
-                        },
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(top: 0, left: 10, right: 10, bottom: 10),
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    Column(
-                                      children: [
-                                        ClipRRect(
-                                          borderRadius: const BorderRadius.all(Radius.circular(5)),
-                                          child:  Container(
-                                            child: Image.asset(AppImages.propertysale,width: 120,fit: BoxFit.fill),
-                                          ),
-                                        ),
-                                        SizedBox(height: 5,),
-                                        Container(
-                                          padding: EdgeInsets.only(left: 10,right: 10,top: 0,bottom: 0),
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(5),
-                                            border: Border.all(width: 1, color: Colors.green),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                  color: Colors.green.withOpacity(0.5),
-                                                  blurRadius: 10,
-                                                  offset: Offset(0, 0),
-                                                  blurStyle: BlurStyle.outer
-                                              ),
-                                            ],
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              // Icon(Iconsax.sort_copy,size: 15,),
-                                              //w SizedBox(width: 10,),
-                                              Text(""+abc.data![len].type.toUpperCase(),
-                                                style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.w500,
-                                                    letterSpacing: 0.5
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    SizedBox(width: 5,),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      mainAxisAlignment: MainAxisAlignment.center,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.location_copy,size: 12,color: Colors.red,),
-                                            SizedBox(width: 2,),
-                                            Text("Property Address",
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: 180,
-                                          child: Text(""+abc.data![len].PropertyAddress,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(Iconsax.home_1_copy,size: 12,color: Colors.red,),
-                                            SizedBox(width: 2,),
-                                            Text("Society",
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: 180,
-                                          child: Text(""+abc.data![len].Society,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          children: [
-                                            Icon(PhosphorIcons.push_pin,size: 12,color: Colors.red,),
-                                            SizedBox(width: 2,),
-                                            Text("Place",
-                                              style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.black,
-                                                  fontWeight: FontWeight.w600),
-                                            ),
-                                          ],
-                                        ),
-                                        SizedBox(
-                                          width: 180,
-                                          child: Text(""+abc.data![len].Place,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.black,
-                                                fontWeight: FontWeight.w400
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Row(
-                                          mainAxisAlignment: MainAxisAlignment.start,
-                                          crossAxisAlignment: CrossAxisAlignment.center,
-                                          children: [
-                                            Icon(Iconsax.building_3_copy,size: 14,color: Colors.red,),
-                                            SizedBox(width: 3,),
-                                            Text(""+abc.data![len].City.toUpperCase(),
-                                              style: TextStyle(
-                                                  fontSize: 12,
-                                                  color: Colors.grey.shade600,
-                                                  fontWeight: FontWeight.w500
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )
-                          ],
-                        ),
-                      );
-                    });
-              }
-
-
-            }
-
-        ),*/
 
 
         ),

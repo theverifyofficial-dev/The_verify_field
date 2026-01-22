@@ -116,17 +116,16 @@ class Catid1122 {
   }
 }
 
-class Catid {
+class id_model {
   final int id;
 
-  Catid({required this.id});
+  id_model({required this.id});
 
-  factory Catid.fromJson(Map<String, dynamic> json) {
-    return Catid(id: (json['logg'] as num?)?.toInt() ?? 0);
+  factory id_model.fromJson(Map<String, dynamic> json) {
+    return id_model(id: (json['logg'] as num?)?.toInt() ?? 0);
   }
 }
 
-// Dummy classes for JSON parsing - replace with actual if available
 class AgreementTask {
   final int id;
   final String ownerName;
@@ -167,7 +166,6 @@ class AgreementTask {
     );
   }
 }
-
 
 class FuturePropertyResponse {
   final List<FutureProperty> data;
@@ -1252,7 +1250,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
   }
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<id_model>> fetchData() async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/count_rent_proerty?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
@@ -1260,7 +1258,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       debugPrint(number.toString());
       debugPrint(formattedDate.toString());
       List listresponse = json.decode(response.body);
-      return listresponse.map((data) => Catid.fromJson(data)).toList();
+      return listresponse.map((data) => id_model.fromJson(data)).toList();
     } else {
       throw Exception('Unexpected error occured!');
     }
@@ -1283,7 +1281,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
     }
   }
 
-  Future<List<Catid>> fetchData_aggrement() async {
+  Future<List<id_model>> fetchData_aggrement() async {
     var url = Uri.parse(
         "https://verifyserve.social/WebService4.asmx/count_police_verification_rent_target_by_fnumber_random_text?feildworkar_number=$number&random_text=${formattedDate.toString()}");
     final response = await http.get(url).timeout(const Duration(seconds: 10));
@@ -1291,7 +1289,7 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
       debugPrint(number.toString());
       debugPrint(formattedDate.toString());
       List listresponse = json.decode(response.body);
-      return listresponse.map((data) => Catid.fromJson(data)).toList();
+      return listresponse.map((data) => id_model.fromJson(data)).toList();
     } else {
       throw Exception('Unexpected error occured!');
     }

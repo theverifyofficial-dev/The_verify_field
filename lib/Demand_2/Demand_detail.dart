@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Demand_2/redemand_detailpage.dart';
 
+import '../Administrator/New_TenandDemand/Add_demand.dart';
 import '../model/demand_model.dart';
 import '../utilities/bug_founder_fuction.dart';
 import 'demand_Form.dart';
@@ -1656,6 +1657,16 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
 
   Widget _buildTenantCard(bool isDark, Color accent) {
+
+    bool _isAddedByFieldWorker(dynamic value) {
+      if (value == null) return false;
+      if (value is bool) return value;
+      if (value is String) return value.toLowerCase() == "true";
+      return false;
+    }
+    final bool addedByField =
+    _isAddedByFieldWorker(_demand?["by_field"]);
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.all(18),
@@ -1726,7 +1737,22 @@ class _AdminDemandDetailState extends State<DemandDetail> {
 
 
                 ]),
+
+
           ),
+
+
+              if (addedByField)
+              IconButton(
+                icon: const Icon(Icons.edit_rounded),
+                tooltip: "Edit",
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) =>  CustomerDemandFormPage(mode: DemandEditMode.updateDemand, demandId: widget.demandId,)),
+                ).then((_) => _fetchDemandDetails()),
+
+              ),
+
           if (_demand?["mark"] == "1") ...[
             Spacer(),
           Container(

@@ -18,7 +18,7 @@ import '../ui_decoration_tools/app_images.dart';
 import '../model/realestateSlider.dart';
 import 'Admin_future _property/Future_Property_Details.dart';
 
-class Catid {
+class RealestateModel {
   final int id;
   final String propertyPhoto;
   final String locations;
@@ -68,7 +68,7 @@ class Catid {
   final int subid;
   final String? sourceId; // NEW, nullable
 
-  const Catid({
+  const RealestateModel({
     required this.id,
     required this.propertyPhoto,
     required this.locations,
@@ -119,8 +119,8 @@ class Catid {
     required  this.sourceId,
   });
 
-  factory Catid.fromJson(Map<String, dynamic> json) {
-    return Catid(
+  factory RealestateModel.fromJson(Map<String, dynamic> json) {
+    return RealestateModel(
       id: json['P_id'] is int
           ? json['P_id']
           : int.tryParse(json['P_id']?.toString() ?? '0') ?? 0,
@@ -248,7 +248,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
   }
 
 
-  Future<List<Catid>> fetchData(String id) async {
+  Future<List<RealestateModel>> fetchData(String id) async {
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
     );
@@ -271,14 +271,14 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
       listResponse = const [];
     }
 
-    final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
+    final properties = listResponse.map((e) => RealestateModel.fromJson(e)).toList();
 
     return properties;
   }
 
 
   List<String> name = [];
-  Future<List<Catid>>? _propertyFuture;
+  Future<List<RealestateModel>>? _propertyFuture;
   Future<List<RealEstateSlider>>? _galleryFuture;
 
   Future<List<RealEstateSlider>> fetchCarouselData(String id) async {
@@ -323,7 +323,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
 
   String data = 'Initial Data';
 
-  Catid? firstProperty;
+  RealestateModel? firstProperty;
 
   String formatDate(String? dateString) {
     if (dateString == null || dateString.isEmpty) return "N/A";
@@ -619,7 +619,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
             ]);
           }
         },
-        child: FutureBuilder<List<Catid>>(
+        child: FutureBuilder<List<RealestateModel>>(
           future: _propertyFuture,
           builder: (context, propertySnapshot) {
             if (propertySnapshot.connectionState == ConnectionState.waiting) {
@@ -1406,7 +1406,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
       },
     );
   }
-  List<Widget> _getPropertyDetailsRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
+  List<Widget> _getPropertyDetailsRows(RealestateModel prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
     List<Widget> rows = [];
     if ((prop.metroDistance ?? '').isNotEmpty)
       rows.add(_buildInfoRow(Icons.train, Colors.orange, "Metro Station", prop.metroDistance, isSmallScreen, isDarkMode));
@@ -1466,7 +1466,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     //);
     return rows;
   }
-  List<Widget> _getBuildingFacilityRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
+  List<Widget> _getBuildingFacilityRows(RealestateModel prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
     List<Widget> rows = [];
     if ((prop.facility ?? '').isNotEmpty) {
       rows.add(_buildInfoRow(Icons.local_hospital, Colors.amber, "Building Facility", prop.facility, isSmallScreen, isDarkMode));
@@ -1533,7 +1533,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
       );
     });
   }
-  List<Widget> _getAdditionalInfoRows(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
+  List<Widget> _getAdditionalInfoRows(RealestateModel prop, BuildContext context, bool isSmallScreen, bool isDarkMode, double horizontalPadding) {
     List<Widget> rows = [];
     // Current Date
     if ((prop.currentDates ?? '').isNotEmpty) {
@@ -1575,7 +1575,7 @@ class _Administater_View_DetailsState extends State<Administater_View_Details> {
     rows.add(_buildFieldworkerInfoCard(prop, context, isSmallScreen, isDarkMode));
     return rows;
   }
-  Widget _buildFieldworkerInfoCard(Catid prop, BuildContext context, bool isSmallScreen, bool isDarkMode) {
+  Widget _buildFieldworkerInfoCard(RealestateModel prop, BuildContext context, bool isSmallScreen, bool isDarkMode) {
     final String name = prop.fieldWorkerName ?? '';
     final String number = prop.fieldWorkerNumber ?? '';
     final String address = prop.fieldWorkerAddress ?? '';

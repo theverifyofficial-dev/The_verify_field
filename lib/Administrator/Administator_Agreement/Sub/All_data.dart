@@ -5,6 +5,21 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../model/Agreement_model.dart';
 import 'All_data_details_page.dart';
 
+class FieldWorkerPayment {
+  final String number;
+  final String name;
+  final int pendingAgreements;
+  final int pendingAmount;
+
+  FieldWorkerPayment({
+    required this.number,
+    required this.name,
+    required this.pendingAgreements,
+    required this.pendingAmount,
+  });
+}
+
+
 class AllData extends StatefulWidget {
   const AllData({super.key});
 
@@ -17,12 +32,13 @@ class _AgreementDetailsState extends State<AllData> {
   List<AgreementModel> filteredAgreements = [];
   bool isLoading = true;
   TextEditingController searchController = TextEditingController();
-
+  late Future<List<FieldWorkerPayment>> _paymentsFuture;
 
   @override
   void initState() {
     super.initState();
     fetchAgreements();
+    _paymentsFuture = fetchAllFieldWorkersPayments();
     searchController.addListener(_onSearchChanged);
   }
 
@@ -31,6 +47,56 @@ class _AgreementDetailsState extends State<AllData> {
     searchController.dispose();
     super.dispose();
   }
+
+   List<Map<String, String>> fieldWorkers = [
+    {"number": "9711775300", "name": "Sumit"},
+    {"number": "9711275300", "name": "Ravi Kumar"},
+    {"number": "9971172204", "name": "Faizan Khan"},
+    {"number": "9675383184", "name": "Abhay"},
+    {"number": "8130209217", "name": "Manish"},
+  ];
+
+  Future<FieldWorkerPayment> fetchPaymentForWorker({
+    required String number,
+    required String name,
+  }) async {
+    final res = await http.get(
+      Uri.parse(
+        'https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/payment_count.php?fieldworker=$number',
+      ),
+    );
+
+    final data = jsonDecode(res.body);
+
+    if (data['status'] != true) {
+      throw Exception("Failed for $number");
+    }
+
+    return FieldWorkerPayment(
+      number: number,
+      name: name,
+      pendingAgreements: int.parse(
+        data['total_pending_agreements'].toString(),
+      ),
+      pendingAmount: int.parse(
+        data['total_pending_amount'].toString(),
+      ),
+    );
+  }
+
+  Future<List<FieldWorkerPayment>> fetchAllFieldWorkersPayments() async {
+    return Future.wait(
+      fieldWorkers.map(
+            (fw) => fetchPaymentForWorker(
+          number: fw['number']!,
+          name: fw['name']!,
+        ),
+      ),
+    );
+  }
+
+
+
 
   void _onSearchChanged() {
     String query = searchController.text.toLowerCase();
@@ -208,7 +274,171 @@ class _AgreementDetailsState extends State<AllData> {
               ),
             ),
 
-            const SizedBox(height: 10),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: Theme.of(context).brightness == Brightness.dark
+                      ? [Colors.deepPurple.shade800, Colors.black]
+                      : [Colors.deepPurple.shade300, Colors.white],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.green.withOpacity(0.25),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 🔹 Section Title
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                    child: Text(
+                      "Field Worker Pending Payments",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.green.shade900,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // 🔹 Compact Horizontal List
+                  SizedBox(
+                    height: 96,
+                    child: FutureBuilder<List<FieldWorkerPayment>>(
+                      future: _paymentsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              "Failed to load payments",
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                            ),
+                          );
+                        }
+
+                        final data = snapshot.data!;
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
+
+                        return ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          itemCount: data.length,
+                          separatorBuilder: (_, __) => const SizedBox(width: 8),
+                          itemBuilder: (context, index) {
+                            final fw = data[index];
+
+                            return Container(
+                              width: 210,
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isDark
+                                    ? Colors.black.withOpacity(0.4)
+                                    : Colors.white.withOpacity(0.9),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isDark
+                                      ? Colors.white12
+                                      : Colors.grey.shade300,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 👤 Name + Number
+                                  Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          fw.name,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            fontSize: 13.5,
+                                            fontWeight: FontWeight.w600,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .onSurface,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        fw.number,
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.6),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+
+                                  const Spacer(),
+
+                                  // 📊 Bottom Row
+                                  Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "Pending: ${fw.pendingAgreements}",
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onSurface
+                                              .withOpacity(0.65),
+                                        ),
+                                      ),
+                                      Text(
+                                        "₹${fw.pendingAmount}",
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.redAccent,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
 
             // 📋 List of agreements
             Expanded(
@@ -326,11 +556,13 @@ class _AgreementDetailsState extends State<AllData> {
                               children: [
                                 _statusTick(
                                   label: "Payment",
+                                  sublabel: paymentDone ? "Paid" : "Pending",
                                   done: paymentDone,
                                   activeColor: Colors.lightBlueAccent,
                                 ),
                                 _statusTick(
                                   label: "Office",
+                                  sublabel: officeReceived ? "Delivered" : "Not Delivered",
                                   done: officeReceived,
                                   activeColor: Colors.greenAccent,
                                 ),
@@ -339,9 +571,6 @@ class _AgreementDetailsState extends State<AllData> {
 
                             const SizedBox(height: 10),
 
-
-
-                            // 🧩 Fieldworker and Floor
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -363,8 +592,22 @@ class _AgreementDetailsState extends State<AllData> {
                                 ),
                               ],
                             ),
+                            const SizedBox(height: 4),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "On ${_formatDate(item.currentDate)}",
+                                  style: const TextStyle(
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            ),
 
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
 
                             // ⚠ Missing field indicators
                             Wrap(
@@ -512,6 +755,7 @@ class _MissingBadge extends StatelessWidget {
 
 Widget _statusTick({
   required String label,
+  required String sublabel,
   required bool done,
   required Color activeColor,
 }) {
@@ -527,7 +771,7 @@ Widget _statusTick({
       ),
       const SizedBox(width: 4),
       Text(
-        label,
+        "${label}: ${sublabel}",
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,

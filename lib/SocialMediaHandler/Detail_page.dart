@@ -20,7 +20,7 @@ import '../model/realestateSlider.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, TargetPlatform;
 
 
-class Catid {
+class D_model {
   final int id;
   final String propertyPhoto;
   final String locations;
@@ -70,7 +70,7 @@ class Catid {
   final int subid;
   final String? sourceId; // NEW, nullable
 
-  Catid({
+  D_model({
     required this.id,
     required this.propertyPhoto,
     required this.locations,
@@ -124,8 +124,8 @@ class Catid {
   static String _s(dynamic v) => v?.toString() ?? '';
   static int _i(dynamic v) => int.tryParse(v?.toString() ?? '') ?? 0;
 
-  factory Catid.fromJson(Map<String, dynamic> json) {
-    return Catid(
+  factory D_model.fromJson(Map<String, dynamic> json) {
+    return D_model(
       id: _i(json['P_id']),
       propertyPhoto: _s(json['property_photo']),
       locations: _s(json['locations']),
@@ -221,7 +221,7 @@ class _View_DetailsState extends State<DetailPage> {
     }
   }
 
-  Future<List<Catid>> fetchData(int id) async {
+  Future<List<D_model>> fetchData(int id) async {
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
     );
@@ -243,7 +243,7 @@ class _View_DetailsState extends State<DetailPage> {
       listResponse = const [];
     }
 
-    final properties = listResponse.map((e) => Catid.fromJson(e)).toList();
+    final properties = listResponse.map((e) => D_model.fromJson(e)).toList();
 
     // >>> store firstProperty for later navigation
     if (properties.isNotEmpty) {
@@ -320,7 +320,7 @@ class _View_DetailsState extends State<DetailPage> {
       });
     }
   }
-  Future<List<Catid>>? _propertyFuture;
+  Future<List<D_model>>? _propertyFuture;
   Future<List<RealEstateSlider>>? _galleryFuture;
 
   final PageController _galleryController = PageController();
@@ -334,7 +334,7 @@ class _View_DetailsState extends State<DetailPage> {
     });
   }
   String data = 'Initial Data';
-  Catid? firstProperty;
+  D_model? firstProperty;
 
 
 //  final result = await profile();
@@ -380,7 +380,7 @@ class _View_DetailsState extends State<DetailPage> {
 
         },
         child: SingleChildScrollView(
-          child: FutureBuilder<List<Catid>>(
+          child: FutureBuilder<List<D_model>>(
             future: _propertyFuture,
             builder: (context, propertySnapshot) {
               // Determine current theme mode

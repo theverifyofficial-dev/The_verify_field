@@ -11,26 +11,8 @@ import '../Administrator/SubAdmin/SubAdminAccountant_Home.dart';
 import '../Home_Screen.dart';
 import '../SocialMediaHandler/video_home.dart';
 import '../Custom_Widget/constant.dart';
+import '../model/user_model.dart';
 
-class Catid {
-  final String ID;
-  final String F_Name;
-  final String F_Number;
-  final String FAadharCard;
-  final String FLocation;
-
-  Catid(
-      {required this.ID,required this.F_Name, required this.F_Number, required this.FAadharCard, required this.FLocation});
-
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(
-        ID: json['id'],
-        F_Name: json['FName'],
-        F_Number: json['FNumber'],
-        FAadharCard: json['FAadharCard'],
-        FLocation: json['F_Location']);
-  }
-}
 
 class Login_page extends StatefulWidget {
   static const route = "/Login_page";
@@ -46,12 +28,12 @@ class _Login_pageState extends State<Login_page> {
   final TextEditingController _passController = TextEditingController();
   bool _isPasswordVisible = false;
 
-  Future<List<Catid>> fetchData_account() async {
+  Future<List<UserModel>> fetchData_account() async {
     var url = Uri.parse("https://verifyserve.social/WebService3_ServiceWork.asmx/account_FeildWorkers_Register?num=${_mobileController.text}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => UserModel.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');

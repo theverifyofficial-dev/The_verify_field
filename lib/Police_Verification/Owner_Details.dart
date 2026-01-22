@@ -119,7 +119,7 @@ class Realestate {
   }
 }
 
-class Catid {
+class detailModel {
   final int id;
   final String Name_;
   final String Number;
@@ -132,13 +132,13 @@ class Catid {
   final String Police_station;
   final String Place;
 
-  Catid(
+  detailModel(
       {required this.id,required this.Name_,required this.Number,required this.Father_name,required this.Occupation,
         required this.Date_of_birth, required this.Permanent_address,required this.District,required this.Pin_code,
         required this.Police_station,required this.Place});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['id'],
+  factory detailModel.FromJson(Map<String, dynamic>json){
+    return detailModel(id: json['id'],
         Name_: json['Name_'],
         Number: json['Number'],
         Father_name: json['Father_name'],
@@ -199,12 +199,12 @@ class _Owner_detailsState extends State<Owner_details> {
 
   bool _isLoading = false;
 
-  Future<List<Catid>> fetchData() async{
+  Future<List<detailModel>> fetchData() async{
     var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_store_document_by_number_?number=${_number_Owner.toString()}");
     final responce=await http.get(url);
     if(responce.statusCode==200){
       List listresponce=json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => detailModel.FromJson(data)).toList();
     }
     else{
       throw Exception('Unexpected error occured!');

@@ -1,45 +1,12 @@
 import 'dart:convert';
-
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phone_direct_caller/flutter_phone_direct_caller.dart';
-import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../Home_Screen_click/Add_RealEstate.dart';
-import '../Tenant_Details_Demand/Add_TenantDemands.dart';
-import '../Tenant_Details_Demand/Assigned_demand_Add_MainTenant_Demand.dart';
+import 'package:verify_feild_worker/Administrator/Add_Assign_Tenant_Demand/Show_Unexpected_Demand.dart';
 import '../Tenant_Details_Demand/Feedback_Details_Page.dart';
-import '../Custom_Widget/constant.dart';
-import 'Add_Assign_Tenant_Demand/Add_Assign_Demand_form.dart';
-import 'Add_Assign_Tenant_Demand/Feild_Workers_Bylocation.dart';
 
-class Catid {
-  final int id;
-  final String fieldworkar_name;
-  final String fieldworkar_number;
-  final String demand_name;
-  final String demand_number;
-  final String buy_rent;
-  final String place;
-  final String BHK;
-
-  Catid(
-      {required this.id, required this.fieldworkar_name, required this.fieldworkar_number, required this.demand_name, required this.demand_number,
-        required this.buy_rent, required this.place, required this.BHK});
-
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['id'],
-        fieldworkar_name: json['fieldworkar_name'],
-        fieldworkar_number: json['fieldworkar_number'],
-        demand_name: json['demand_name'],
-        demand_number: json['demand_number'],
-        buy_rent: json['buy_rent'],
-        place: json['add_info'],
-        BHK: json['bhk']);
-  }
-}
 
 class AdmiinistaterAssignd_Tenant_details extends StatefulWidget {
   const AdmiinistaterAssignd_Tenant_details({super.key});
@@ -50,26 +17,26 @@ class AdmiinistaterAssignd_Tenant_details extends StatefulWidget {
 
 class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssignd_Tenant_details> {
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<Demand_model>> fetchData() async {
     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_looking_type_location_?looking_type=Re_Demand&location_=sultanpur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => Demand_model.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
     }
   }
 
-  Future<List<Catid>> fetchData_pendinhg(id) async {
+  Future<List<Demand_model>> fetchData_pendinhg(id) async {
     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/display_assign_tenant_demand_by_looking_type_location_?looking_type=Pending&location_=sultanpur');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => Demand_model.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -156,7 +123,7 @@ class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssig
         child: SingleChildScrollView(
           child: Column(
             children: [
-              FutureBuilder<List<Catid>>(
+              FutureBuilder<List<Demand_model>>(
                   future: fetchData(),
                   builder: (context,abc){
                     if(abc.connectionState == ConnectionState.waiting){
@@ -652,7 +619,7 @@ class _AdmiinistaterAssignd_Tenant_detailsState extends State<AdmiinistaterAssig
 
               ),
 
-              FutureBuilder<List<Catid>>(
+              FutureBuilder<List<Demand_model>>(
                   future: fetchData_pendinhg(""+1.toString()),
                   builder: (context,abc){
                     if(abc.connectionState == ConnectionState.waiting){

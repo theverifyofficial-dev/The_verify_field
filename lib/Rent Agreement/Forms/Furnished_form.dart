@@ -26,6 +26,8 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
   int _currentStep = 0;
   Map<String, int> _selectedFurniture = {};
 
+  bool isPropertyFetched = false;
+
 
   // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
@@ -1233,6 +1235,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
 
           setState(() {
             fetchedData = data;
+            isPropertyFetched = true; // 🔒 lock fields
             Bhk.text = data['Bhk'] ?? '';
             floor.text = data['Floor_'] ?? '';
             Address.text = data['Apartment_Address'] ?? '';
@@ -1262,6 +1265,25 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
         const SnackBar(content: Text("Failed to fetch property details")),
       );
     }
+  }
+
+  void _resetProperty() {
+    setState(() {
+      fetchedData = null;
+      isPropertyFetched = false;
+
+      Bhk.clear();
+      floor.clear();
+      Address.clear();
+      rentAmount.clear();
+
+      meterInfo = 'As per Govt. Unit';
+      parking = 'Car';
+      maintenance = 'Including';
+
+      customUnitAmount.clear();
+      customMaintanceAmount.clear();
+    });
   }
 
 
@@ -2035,18 +2057,27 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
                   ],
                 ),
                 child: ElevatedButton.icon(
-                  onPressed: () => fetchPropertyDetails(),
-                  icon: const Icon(Icons.search, color: Colors.white),
-                  label: const Text(
-                    'Auto fetch',
-                    style: TextStyle(
+                  onPressed: () {
+                    if (isPropertyFetched) {
+                      _resetProperty(); // allow change
+                    } else {
+                      fetchPropertyDetails(); // fetch property
+                    }
+                  },
+                  icon: Icon(
+                    isPropertyFetched ? Icons.refresh : Icons.search,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    isPropertyFetched ? 'Change' : 'Auto Fetch',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    backgroundColor: Colors.transparent, // must be transparent for gradient to show
+                    backgroundColor: Colors.transparent, // gradient visible
                     shadowColor: Colors.transparent,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -2054,6 +2085,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
                     ),
                   ),
                 ),
+
               ),
             ),
 
@@ -2067,24 +2099,30 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
             Row(
                 children: [
                   Expanded(
-                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,  readOnly: isPropertyFetched,
+                      )),
                   const SizedBox(width: 12),
                   Expanded(
-                      child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+                      )),
                 ]
             ),
-            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+            ),
             const SizedBox(height: 10),
+
+
             Row(
                 children: [
                   Expanded(child: _glowTextField(controller: rentAmount, label: 'Monthly Rent (INR)', keyboard: TextInputType.number,  showInWords: true,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
-                      onChanged: (v) {
-                        setState(() {
-                          rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
-                        });
-                      },
-                      validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
+                    onChanged: (v) {
+                      setState(() {
+                        rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
+                      });
+                    },
+                    validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,  readOnly: isPropertyFetched,
+                  )),
                   const SizedBox(width: 12),
                   Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)',        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
                     keyboard: TextInputType.number,  showInWords: true,onChanged: (v) {

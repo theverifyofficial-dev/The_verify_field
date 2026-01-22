@@ -13,6 +13,7 @@ class AdminDisclosedDemand extends StatefulWidget {
 }
 
 class _TenantDemandState extends State<AdminDisclosedDemand> {
+
   List<TenantDemandModel> _allDemands = [];
   List<TenantDemandModel> _filteredDemands = [];
   bool _isLoading = true;
@@ -22,21 +23,30 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
   final int _limit = 20;
   bool _isFetchingMore = false;
   bool _hasMore = true;
-
+  bool _isSearching = false;
+  String _currentQuery = "";
+  bool _searchLoading = false;
   final ScrollController _scrollController = ScrollController();
 
-
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchController.dispose();
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
-    _loadDemands();
+    _fetchDemands(reset: true);
     _searchController.addListener(_onSearchChanged);
     _scrollController.addListener(_onScroll);
-
   }
 
-  Future<void> _loadDemands({bool reset = false}) async {
+  Future<void> _fetchDemands({bool reset = false}) async {
+    final localQuery = _currentQuery;
+
     if (_isFetchingMore) return;
 
     if (reset) {
@@ -50,33 +60,50 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
 
     setState(() {
       _isFetchingMore = true;
-      if (reset) _isLoading = true;
+
+      // ✅ Only show full loader when NOT searching
+      if (reset && !_isSearching) {
+        _isLoading = true;
+      }
     });
 
+
     try {
-      final url = Uri.parse(
+      final Uri url = _isSearching
+          ? Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/search_api_in_tenant_demand.php"
+            "?q=${Uri.encodeQueryComponent(_currentQuery)}"
+            "&page=$_page&limit=$_limit",
+      )
+          : Uri.parse(
         "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
             "?Status=disclosed&page=$_page&limit=$_limit",
       );
 
-      print("📡 Fetching page $_page");
-      print("📡 Fetching from : $url");
+      debugPrint("📡 Fetching: $url");
 
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final decoded = jsonDecode(response.body);
 
-        if (decoded["success"] == true) {
+        final bool ok =
+            decoded["success"] == true || decoded["status"] == true;
+
+        if (ok && decoded["data"] is List) {
           final List data = decoded["data"];
 
           final newList = data
               .map((e) => TenantDemandModel.fromJson(e))
               .toList();
 
-          if (newList.length < _limit) {
-            _hasMore = false; // 🚫 no more pages
+          if (_page == 1 && newList.isEmpty) {
+            _hasMore = false;
           }
+
+          if (newList.length < _limit) _hasMore = false;
+
+          if (_isSearching && localQuery != _currentQuery) return;
 
           _page++;
 
@@ -84,6 +111,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
             _allDemands.addAll(newList);
             _filteredDemands = List.from(_allDemands);
           });
+
         } else {
           _hasMore = false;
         }
@@ -92,8 +120,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
       }
     } catch (e) {
       await BugLogger.log(
-        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_tenant_demand.php"
-            "?Status=disclosed&page=$_page&limit=$_limit",
+        apiLink: "Demand Fetch",
         error: e.toString(),
         statusCode: 500,
       );
@@ -101,8 +128,14 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
       if (mounted) {
         setState(() {
           _isFetchingMore = false;
-          _isLoading = false;
+          _searchLoading = false;
+
+          // ✅ Only stop full loader if not searching
+          if (!_isSearching) {
+            _isLoading = false;
+          }
         });
+
       }
     }
   }
@@ -111,41 +144,29 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 300 &&
         !_isFetchingMore &&
-        _hasMore &&
-        _searchController.text.isEmpty) {
-      _loadDemands();
+        _hasMore) {
+      _fetchDemands();
     }
   }
 
   void _onSearchChanged() {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
 
-    _debounce = Timer(const Duration(milliseconds: 250), () {
-      final q = _searchController.text.toLowerCase().trim();
+    _debounce = Timer(const Duration(milliseconds: 400), () {
+      final q = _searchController.text.trim();
 
+      if (q.isEmpty) {
+        _isSearching = false;
+        _currentQuery = "";
+        _fetchDemands(reset: true);
+        return;
+      }
       setState(() {
-        _filteredDemands = _allDemands.where((d) {
-          // extract date safely
-          final rawDate = d.createdDate;
-          final formattedDate = formatApiDate(rawDate).toLowerCase();
-
-          return [
-            d.tname,
-            d.tnumber,
-            d.buyRent,
-            d.reference,
-            d.price,
-            d.message,
-            d.bhk,
-            d.location,
-            d.status,
-            d.result,
-            formattedDate, // allow searching "13 nov 2025"
-          ].any((field) =>
-              field.toString().toLowerCase().contains(q)
-          );
-        }).toList();
+        _isSearching = true;
+        _searchLoading = true;
+        _currentQuery = q;
       });
+      _fetchDemands(reset: true);
     });
   }
 
@@ -239,10 +260,15 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                                 ? Colors.white54
                                 : Colors.black54),
                         onPressed: () {
-                          _searchController.clear();
-                          setState(() =>
-                          _filteredDemands = _allDemands);
+                          _searchController.clear(); // ✅ important
+                          setState(() {
+                            _isSearching = false;
+                            _currentQuery = "";
+                          });
+                          _fetchDemands(reset: true);
                         },
+
+
                       )
                           : null,
                       border: InputBorder.none,
@@ -271,7 +297,11 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                 ),
               ),
 
-
+              if (_searchLoading)
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: LinearProgressIndicator(minHeight: 2),
+                ),
 
               Expanded(
                 child: _filteredDemands.isEmpty
@@ -287,8 +317,9 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                     ),
                   ),
                 )
+
                     : RefreshIndicator(
-                  onRefresh: _loadDemands,
+                  onRefresh: () => _fetchDemands(reset: true),
                   color: theme.colorScheme.primary,
                   child: ListView.builder(
                     controller: _scrollController,
@@ -319,7 +350,7 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                                   MaterialPageRoute(
                                     builder: (_) => AdminDemandDetail(demandId: d.id.toString()),
                                   ),
-                                ).then((_) => _loadDemands());
+                                ).then((_) => _fetchDemands());
                               },
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 250),
@@ -497,47 +528,6 @@ class _TenantDemandState extends State<AdminDisclosedDemand> {
                                 ),
                               ),
                             ),
-
-                            if (d.status.toLowerCase() == "disclosed")
-                              Positioned(
-                                top: 12,
-                                left: -30,
-                                child: Transform.rotate(
-                                  angle: -0.785398, // -45 degrees in radians
-                                  child: Container(
-                                    width: 140,
-                                    padding: const EdgeInsets.symmetric(vertical: 4),
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: [
-                                          Colors.red.shade500,
-                                          Colors.red.shade700,
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.redAccent.withOpacity(0.4),
-                                          blurRadius: 6,
-                                          offset: const Offset(2, 2),
-                                        ),
-                                      ],
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: const Text(
-                                      "DISCLOSED   ",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w900,
-                                        letterSpacing: 1.2,
-                                        fontSize: 11.5,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-
                             Positioned(
                               bottom: 20,
                               left: 10,

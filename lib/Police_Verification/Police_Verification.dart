@@ -12,7 +12,7 @@ import '../ui_decoration_tools/app_images.dart';
 import 'Owner_Details.dart';
 import 'Submit_Police_Verification.dart';
 
-class Catid {
+class P_model {
   final int id;
   final String Property_Number;
   final String PropertyAddress;
@@ -31,12 +31,12 @@ class Catid {
   final String Owner_Number;
   final String Subid;
 
-  Catid(
+  P_model(
       {required this.id, required this.Property_Number, required this.PropertyAddress, required this.Looking_Prop_, required this.FLoorr, required this.Flat, required this.Tenant_Name, required this.Tenant_Rented_Amount, required this.Tenant_Rented_Date, required this.About_tenant, required this.Tenant_Number, required this.Tenant_Email, required this.Tenant_WorkProfile, required this.Tenant_Members, required this.Owner_Name,
         required this.Owner_Number,required this.Subid});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['TUP_id'],
+  factory P_model.FromJson(Map<String, dynamic>json){
+    return P_model(id: json['TUP_id'],
         Property_Number: json['Property_Number'],
         PropertyAddress: json['PropertyAddress'],
         Looking_Prop_: json['Looking_Prop_'],
@@ -73,12 +73,12 @@ class _Police_VerificationState extends State<Police_Verification> {
     _loaduserdata();
   }
 
-  Future<List<Catid>> fetchData(id) async{
+  Future<List<P_model>> fetchData(id) async{
     var url=Uri.parse("https://verifyserve.social/WebService4.asmx/Verify_AddTenant_show_by_fieldworkar_?fieldworkarnumber=$_number");
     final responce=await http.get(url);
     if(responce.statusCode==200){
       List listresponce=json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => P_model.FromJson(data)).toList();
     }
     else{
       throw Exception('Unexpected error occured!');
@@ -128,7 +128,7 @@ class _Police_VerificationState extends State<Police_Verification> {
       ),
 
       body: Container(
-        child: FutureBuilder<List<Catid>>(
+        child: FutureBuilder<List<P_model>>(
             future: fetchData(""+1.toString()),
             builder: (context,abc){
               if(abc.connectionState == ConnectionState.waiting){

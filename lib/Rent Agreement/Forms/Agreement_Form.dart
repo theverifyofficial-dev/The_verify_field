@@ -25,6 +25,9 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
+  bool isPropertyFetched = false;
+
+
   // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
   final ownerName = TextEditingController();
@@ -1254,6 +1257,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
 
           setState(() {
             fetchedData = data;
+            isPropertyFetched = true; // 🔒 lock fields
             Bhk.text = data['Bhk'] ?? '';
             floor.text = data['Floor_'] ?? '';
             Address.text = data['Apartment_Address'] ?? '';
@@ -1271,6 +1275,11 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                 : "Excluding";
           }
           );
+          setState(() {
+            fetchedData = data;
+            isPropertyFetched = true;
+          });
+
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(json['message'] ?? "Property not found")),
@@ -1283,6 +1292,25 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
         const SnackBar(content: Text("Failed to fetch property details")),
       );
     }
+  }
+
+  void _resetProperty() {
+    setState(() {
+      fetchedData = null;
+      isPropertyFetched = false;
+
+      Bhk.clear();
+      floor.clear();
+      Address.clear();
+      rentAmount.clear();
+
+      meterInfo = 'As per Govt. Unit';
+      parking = 'Car';
+      maintenance = 'Including';
+
+      customUnitAmount.clear();
+      customMaintanceAmount.clear();
+    });
   }
 
 
@@ -1868,7 +1896,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
-
   Widget _propertyStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -1896,19 +1923,29 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     ),
                   ],
                 ),
-                child: ElevatedButton.icon(
-                  onPressed: () => fetchPropertyDetails(),
-                  icon: const Icon(Icons.search, color: Colors.white),
-                  label: const Text(
-                    'Auto fetch',
-                    style: TextStyle(
+                child:
+                ElevatedButton.icon(
+                  onPressed: () {
+                    if (isPropertyFetched) {
+                      _resetProperty(); // allow change
+                    } else {
+                      fetchPropertyDetails(); // fetch property
+                    }
+                  },
+                  icon: Icon(
+                    isPropertyFetched ? Icons.refresh : Icons.search,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    isPropertyFetched ? 'Change' : 'Auto Fetch',
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
                     elevation: 0,
-                    backgroundColor: Colors.transparent, // must be transparent for gradient to show
+                    backgroundColor: Colors.transparent, // gradient visible
                     shadowColor: Colors.transparent,
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     shape: RoundedRectangleBorder(
@@ -1916,6 +1953,7 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                     ),
                   ),
                 ),
+
               ),
             ),
 
@@ -1929,13 +1967,16 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
             Row(
                 children: [
                   Expanded(
-                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      child: _glowTextField(controller: Bhk, label: 'BHK', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,  readOnly: isPropertyFetched,
+                      )),
                   const SizedBox(width: 12),
                   Expanded(
-                  child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                  child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+                  )),
                 ]
             ),
-            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+            ),
             const SizedBox(height: 10),
 
 
@@ -1948,7 +1989,10 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
                       rentAmountInWords = convertToWords(int.tryParse(v.replaceAll(',', '')) ?? 0);
                     });
                   },
-                  validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                  validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,  readOnly: isPropertyFetched,
+              )),
+
+
               const SizedBox(width: 12),
               Expanded(child: _glowTextField(controller: securityAmount, label: 'Security Amount (INR)',        inputFormatters: [FilteringTextInputFormatter.digitsOnly, LengthLimitingTextInputFormatter(6)],
                 keyboard: TextInputType.number,  showInWords: true,onChanged: (v) {
@@ -2209,8 +2253,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
     );
   }
 
-
-
   Widget _previewStep() {
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -2354,7 +2396,6 @@ class _RentalWizardPageState extends State<RentalWizardPage> with TickerProvider
       ),
     );
   }
-
 
   Widget _sectionCard({required String title, required List<Widget> children}) {
     return Padding(

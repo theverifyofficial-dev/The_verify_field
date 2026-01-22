@@ -25,6 +25,9 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
+  bool isPropertyFetched = false;
+
+
   final _ownerFormKey = GlobalKey<FormState>();
   final ownerName = TextEditingController();
   String ownerRelation = 'S/O';
@@ -1161,6 +1164,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
 
           setState(() {
             fetchedData = data;
+            isPropertyFetched = true; // 🔒 lock fields
             Sqft.text = data['Sqft'] ?? '';
             floor.text = data['Floor_'] ?? '';
             Address.text = data['Apartment_Address'] ?? '';
@@ -1190,6 +1194,24 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
         const SnackBar(content: Text("Failed to fetch property details")),
       );
     }
+  }
+
+  void _resetProperty() {
+    setState(() {
+      fetchedData = null;
+      isPropertyFetched = false;
+
+      floor.clear();
+      Address.clear();
+      rentAmount.clear();
+
+      meterInfo = 'As per Govt. Unit';
+      parking = 'Car';
+      maintenance = 'Including';
+
+      customUnitAmount.clear();
+      customMaintanceAmount.clear();
+    });
   }
 
   Widget _buildBackground(bool isDark) {
@@ -1742,21 +1764,35 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
-                onPressed: () => fetchPropertyDetails(),
-                icon: const Icon(Icons.search, color: Colors.white),
-                label: const Text(
-                  'Auto fetch',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                onPressed: () {
+                  if (isPropertyFetched) {
+                    _resetProperty(); // allow change
+                  } else {
+                    fetchPropertyDetails(); // fetch property
+                  }
+                },
+                icon: Icon(
+                  isPropertyFetched ? Icons.refresh : Icons.search,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  isPropertyFetched ? 'Change' : 'Auto Fetch',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 style: ElevatedButton.styleFrom(
+                  elevation: 0,
+                  backgroundColor: Colors.amber.shade700, // gradient visible
+                  shadowColor: Colors.transparent,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  elevation: 4,
-                  backgroundColor: Colors.amber.shade700,
                 ),
               ),
+
             ),
           ],
         ),
@@ -1768,13 +1804,16 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             Row(
                 children: [
                   Expanded(
-                      child: _glowTextField(controller: Sqft, label: 'Sqft', keyboard: TextInputType.number, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      child: _glowTextField(controller: Sqft, label: 'Sqft', keyboard: TextInputType.number, validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+                      )),
                   const SizedBox(width: 12),
                   Expanded(
-                      child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null)),
+                      child: _glowTextField(controller: floor, label: 'Floor', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+                      )),
                 ]
             ),
-            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null),
+            _glowTextField(controller: Address, label: 'Rented Address', validator: (v) => (v?.trim().isEmpty ?? true) ? 'Required' : null,   readOnly: isPropertyFetched,
+            ),
             const SizedBox(height: 10),
 
             Row(

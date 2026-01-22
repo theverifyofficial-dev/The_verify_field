@@ -16,7 +16,7 @@ import '../Custom_Widget/property_preview.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../model/docpropertySlider.dart';
 
-class Catid {
+class T_detailmodel {
   final int id;
   final String property_num;
   final String Address_;
@@ -61,7 +61,7 @@ class Catid {
   final String Feild_number;
   final String date;
 
-  Catid(
+  T_detailmodel(
       {required this.id,required this.property_num,required this.Address_,required this.Place_,required this.sqft,
         required this.Price,required this.Sell_price,required this.Persnol_price,required this.maintenance,
         required this.Buy_Rent,required this.Residence_Commercial,required this.floor_,required this.flat_,
@@ -71,8 +71,8 @@ class Catid {
         required this.Caretaker_name,required this.Caretaker_number, required this.Building_Location, required this.Building_Name, required this.Building_Address, required this.Building_image, required this.Longitude, required this.Latitude, required this.Rent, required this.Verify_price, required this.BHK, required this.tyope, required this.maintence, required this.buy_Rent,
         required this.facility,required this.Feild_name,required this.Feild_number,required this.date});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['PVR_id'],
+  factory T_detailmodel.FromJson(Map<String, dynamic>json){
+    return T_detailmodel(id: json['PVR_id'],
         property_num: json['Property_Number'], Address_: json['Address_'],
         Place_: json['Place_'], sqft: json['City'],
         Price: json['Price'], Sell_price: json['Waterfilter'],
@@ -154,12 +154,12 @@ class View_Detailsdocs extends StatefulWidget {
 
 class _View_DetailsdocsState extends State<View_Detailsdocs> {
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<T_detailmodel>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_proprty_realstate_by_originalid?PVR_id=${widget.SUbid}");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => T_detailmodel.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -506,7 +506,7 @@ class _View_DetailsdocsState extends State<View_Detailsdocs> {
               padding: EdgeInsets.symmetric(horizontal: 10),
               child: Padding(
                 padding: EdgeInsets.all(16),
-                child: FutureBuilder<List<Catid>>(
+                child: FutureBuilder<List<T_detailmodel>>(
                   future: fetchData(),
                   builder: (context, abc) {
                     if (abc.connectionState == ConnectionState.waiting) {

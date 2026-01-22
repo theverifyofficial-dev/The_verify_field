@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../Administrator/Administator_Agreement/Admin_All_agreement_model.dart';
+import '../../Administrator/Administator_Agreement/Sub/All_data.dart';
 import '../All_detailpage.dart';
 
 class AllAgreement extends StatefulWidget {
@@ -12,6 +13,8 @@ class AllAgreement extends StatefulWidget {
   State<AllAgreement> createState() => _AllAgreementState();
 }
 
+
+
 class _AllAgreementState extends State<AllAgreement> {
 
   List<AdminAllAgreementModel> agreements = [];
@@ -19,6 +22,9 @@ class _AllAgreementState extends State<AllAgreement> {
   bool isLoading = true;
   String? mobileNumber;
   final TextEditingController searchController = TextEditingController();
+
+  FieldWorkerPayment? myPayment;
+  bool isPaymentLoading = false;
 
   @override
   void initState() {
@@ -43,12 +49,48 @@ class _AllAgreementState extends State<AllAgreement> {
   Future<void> _loadMobileNumber() async {
     final prefs = await SharedPreferences.getInstance();
     mobileNumber = prefs.getString("number");
+
     if (mobileNumber != null && mobileNumber!.isNotEmpty) {
+      await fetchMyPayment();   // 👈 ONE TIME
       await fetchAgreements();
     } else {
       setState(() => isLoading = false);
     }
   }
+
+
+  Future<void> fetchMyPayment() async {
+    if (mobileNumber == null || mobileNumber!.isEmpty) return;
+
+    try {
+      setState(() => isPaymentLoading = true);
+
+      final res = await http.get(
+        Uri.parse(
+          'https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/payment_count.php?fieldworker=$mobileNumber',
+        ),
+      );
+
+      final data = jsonDecode(res.body);
+
+      if (data['status'] == true) {
+        myPayment = FieldWorkerPayment(
+          number: data['fieldworker'],
+          name: "You",
+          pendingAgreements:
+          int.parse(data['total_pending_agreements'].toString()),
+          pendingAmount:
+          int.parse(data['total_pending_amount'].toString()),
+        );
+      }
+    } catch (e) {
+      debugPrint("❌ Payment fetch error: $e");
+    } finally {
+      setState(() => isPaymentLoading = false);
+    }
+  }
+
+
 
   Future<void> _refreshAgreements() async {
     try {
@@ -133,6 +175,8 @@ class _AllAgreementState extends State<AllAgreement> {
       return "--";
     }
   }
+
+
 
   String _formatDateTime(DateTime date) {
     return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
@@ -231,6 +275,93 @@ class _AllAgreementState extends State<AllAgreement> {
                   ),
                 ),
               ),
+
+              if (isPaymentLoading)
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else if (myPayment != null)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: Theme.of(context).brightness == Brightness.dark
+                          ? [Colors.deepPurple.shade800, Colors.black]
+                          : [Colors.deepPurple.shade300, Colors.white],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.25),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.black.withOpacity(0.4)
+                            : Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white12
+                              : Colors.grey.shade300,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                        Text(
+                        myPayment!.pendingAgreements > 0
+                        ? "Your Pending Payment"
+                            : "All Payments Clear",
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w600,
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                "Pending: ${myPayment!.pendingAgreements}",
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withOpacity(0.65),
+                                ),
+                              ),
+                              Text(
+                                "₹${myPayment!.pendingAmount}",
+                                style:  TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                  color: myPayment!.pendingAmount == 0
+                                      ? Colors.greenAccent
+                                      : Colors.redAccent,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
 
               // 📌 List
               Expanded(
@@ -349,23 +480,28 @@ class _AllAgreementState extends State<AllAgreement> {
 
                               const Divider(height: 20, color: Colors.white30),
 
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  _statusTick(
+                                    label: "Payment",
+                                    sublabel: paymentDone ? "Paid" : "Pending",
+                                    done: paymentDone,
+                                    activeColor: Colors.lightBlueAccent,
+                                  ),
+                                  _statusTick(
+                                    label: "Office",
+                                    sublabel: officeReceived ? "Delivered" : "Not Delivered",
+                                    done: officeReceived,
+                                    activeColor: Colors.greenAccent,
+                                  ),
+                                ],
+                              ),
                               // Floor (hide for police)
                               if (!isPolice)
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-
-                                        _statusTick(
-                                          label: "Payment",
-                                          done: paymentDone,
-                                          activeColor: Colors.lightBlueAccent,
-                                        ),
-                                        _statusTick(
-                                          label: "Office",
-                                          done: officeReceived,
-                                          activeColor: Colors.greenAccent,
-                                        ),
-
 
                                     Text(
                                       "Floor: ${item.floor}",
@@ -441,6 +577,7 @@ Widget _InfoRow({required String title, required String value, Color? valueColor
 
 Widget _statusTick({
   required String label,
+  required String sublabel,
   required bool done,
   required Color activeColor,
 }) {
@@ -456,7 +593,7 @@ Widget _statusTick({
       ),
       const SizedBox(width: 4),
       Text(
-        label,
+        "${label}: ${sublabel}",
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w600,

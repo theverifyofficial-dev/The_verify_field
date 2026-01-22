@@ -9,282 +9,15 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Future_Property_OwnerDetails_section/Owner_Call/All_contact.dart';
 import '../Custom_Widget/property_preview.dart';
+import '../model/future_detailpage_model.dart';
 import '../ui_decoration_tools/app_images.dart';
 import 'Add_FutureProperty_Images.dart';
 import 'Duplicate_Property.dart';
-import 'Update_future_building.dart';
+import 'Update_future_building.dart' hide FutureProperty2;
 import 'add_flat_form.dart';
 import 'New_Update/under_flats_infutureproperty.dart';
 
-class FutureProperty2 {
-  final String id;
-  final String images;
-  final String ownerName;
-  final String ownerNumber;
-  final String caretakerName;
-  final String caretakerNumber;
-  final String place;
-  final String buyRent;
-  final String typeOfProperty;
-  final String selectBhk;
-  final String floorNumber;
-  final String squareFeet;
-  final String propertyNameAddress;
-  final String buildingInformationFacilities;
-  final String propertyAddressForFieldworker;
-  final String ownerVehicleNumber;
-  final String yourAddress;
-  final String fieldworkarName;
-  final String fieldworkarNumber;
-  final String currentDate;
-  final String longitude;
-  final String latitude;
-  final String roadSize;
-  final String metroDistance;
-  final String metroName;
-  final String mainMarketDistance;
-  final String ageOfProperty;
-  final String lift;
-  final String parking;
-  final String totalFloor;
-  final String residenceCommercial;
-  final String facility;
-  final String localityList;
 
-  FutureProperty2({
-    required this.id,
-    required this.images,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.caretakerName,
-    required this.caretakerNumber,
-    required this.place,
-    required this.buyRent,
-    required this.typeOfProperty,
-    required this.selectBhk,
-    required this.floorNumber,
-    required this.squareFeet,
-    required this.propertyNameAddress,
-    required this.buildingInformationFacilities,
-    required this.propertyAddressForFieldworker,
-    required this.ownerVehicleNumber,
-    required this.yourAddress,
-    required this.fieldworkarName,
-    required this.fieldworkarNumber,
-    required this.currentDate,
-    required this.longitude,
-    required this.latitude,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.metroName,
-    required this.mainMarketDistance,
-    required this.ageOfProperty,
-    required this.lift,
-    required this.parking,
-    required this.totalFloor,
-    required this.residenceCommercial,
-    required this.facility,
-    required this.localityList,
-  });
-
-  factory FutureProperty2.fromJson(Map<String, dynamic> json) {
-    return FutureProperty2(
-      id: json['id']?.toString() ?? '',
-      images: json['images'] ?? '',
-      ownerName: json['ownername'] ?? '',
-      ownerNumber: json['ownernumber'] ?? '',
-      caretakerName: json['caretakername'] ?? '',
-      caretakerNumber: json['caretakernumber'] ?? '',
-      place: json['place'] ?? '',
-      buyRent: json['buy_rent'] ?? '',
-      typeOfProperty: json['typeofproperty'] ?? '',
-      selectBhk: json['select_bhk'] ?? '',
-      floorNumber: json['floor_number'] ?? '',
-      squareFeet: json['sqyare_feet'] ?? '',
-      propertyNameAddress: json['propertyname_address'] ?? '',
-      buildingInformationFacilities: json['building_information_facilitys'] ?? '',
-      propertyAddressForFieldworker: json['property_address_for_fieldworkar'] ?? '',
-      ownerVehicleNumber: json['owner_vehical_number'] ?? '',
-      yourAddress: json['your_address'] ?? '',
-      fieldworkarName: json['fieldworkarname'] ?? '',
-      fieldworkarNumber: json['fieldworkarnumber'] ?? '',
-      currentDate: json['current_date_'] ?? '',
-      longitude: json['longitude'] ?? '',
-      latitude: json['latitude'] ?? '',
-      roadSize: json['Road_Size'] ?? '',
-      metroDistance: json['metro_distance'] ?? '',
-      metroName: json['metro_name'] ?? '',
-      mainMarketDistance: json['main_market_distance'] ?? '',
-      ageOfProperty: json['age_of_property'] ?? '',
-      lift: json['lift'] ?? '',
-      parking: json['parking'] ?? '',
-      totalFloor: json['total_floor'] ?? '',
-      residenceCommercial: json['Residence_commercial'] ?? '',
-      facility: json['facility'] ?? '',
-      localityList: json['locality_list'] ?? '',
-    );
-  }
-}
-class Ground {
-  final int id;
-  final String propertyPhoto;
-  final String locations;
-  final String flatNumber;
-  final String buyRent;
-  final String residenceCommercial;
-  final String apartmentName;
-  final String apartmentAddress;
-  final String typeOfProperty;
-  final String bhk;
-  final String showPrice;
-  final String lastPrice;
-  final String askingPrice;
-  final String floor;
-  final String totalFloor;
-  final String balcony;
-  final String squarefit;
-  final String maintance;
-  final String parking;
-  final String ageOfProperty;
-  final String fieldworkarAddress;
-  final String roadSize;
-  final String metroDistance;
-  final String highwayDistance;
-  final String mainMarketDistance;
-  final String meter;
-  final String ownerName;
-  final String ownerNumber;
-  final String currentDate;
-  final String availableDate;
-  final String kitchen;
-  final String bathroom;
-  final String lift;
-  final String facility;
-  final String furnishedUnfurnished;
-  final String fieldWorkerName;
-  final String fieldWorkerNumber;
-  final String registryAndGpa;
-  final String loan;
-  final String longitude;
-  final String latitude;
-  final String videoLink;
-  final String fieldWorkerLocation;
-  final String careTakerName;
-  final String careTakerNumber;
-  final String live;
-  final String subid;
-  Ground({
-    required this.id,
-    required this.propertyPhoto,
-    required this.locations,
-    required this.flatNumber,
-    required this.buyRent,
-    required this.residenceCommercial,
-    required this.apartmentName,
-    required this.apartmentAddress,
-    required this.typeOfProperty,
-    required this.bhk,
-    required this.showPrice,
-    required this.lastPrice,
-    required this.askingPrice,
-    required this.floor,
-    required this.totalFloor,
-    required this.balcony,
-    required this.squarefit,
-    required this.maintance,
-    required this.parking,
-    required this.ageOfProperty,
-    required this.fieldworkarAddress,
-    required this.roadSize,
-    required this.metroDistance,
-    required this.highwayDistance,
-    required this.mainMarketDistance,
-    required this.meter,
-    required this.ownerName,
-    required this.ownerNumber,
-    required this.currentDate,
-    required this.availableDate,
-    required this.kitchen,
-    required this.bathroom,
-    required this.lift,
-    required this.facility,
-    required this.furnishedUnfurnished,
-    required this.fieldWorkerName,
-    required this.fieldWorkerNumber,
-    required this.registryAndGpa,
-    required this.loan,
-    required this.longitude,
-    required this.latitude,
-    required this.videoLink,
-    required this.fieldWorkerLocation,
-    required this.careTakerName,
-    required this.careTakerNumber,
-    required this.live,
-    required this.subid,
-  });
-  factory Ground.fromJson(Map<String, dynamic> json) {
-    return Ground(
-      id: int.tryParse(json['P_id'].toString()) ?? 0,
-      propertyPhoto: json['property_photo'] ?? '',
-      locations: json['locations'] ?? '',
-      flatNumber: json['Flat_number'] ?? '',
-      buyRent: json['Buy_Rent'] ?? '',
-      residenceCommercial: json['Residence_Commercial'] ?? '',
-      apartmentName: json['Apartment_name'] ?? '',
-      apartmentAddress: json['Apartment_Address'] ?? '',
-      typeOfProperty: json['Typeofproperty'] ?? '',
-      bhk: json['Bhk'] ?? '',
-      showPrice: json['show_Price'] ?? '',
-      lastPrice: json['Last_Price'] ?? '',
-      askingPrice: json['asking_price'] ?? '',
-      floor: json['Floor_'] ?? '',
-      totalFloor: json['Total_floor'] ?? '',
-      balcony: json['Balcony'] ?? '',
-      squarefit: json['squarefit'] ?? '',
-      maintance: json['maintance'] ?? '',
-      parking: json['parking'] ?? '',
-      ageOfProperty: json['age_of_property'] ?? '',
-      fieldworkarAddress: json['fieldworkar_address'] ?? '',
-      roadSize: json['Road_Size'] ?? '',
-      metroDistance: json['metro_distance'] ?? '',
-      highwayDistance: json['highway_distance'] ?? '',
-      mainMarketDistance: json['main_market_distance'] ?? '',
-      meter: json['meter'] ?? '',
-      ownerName: json['owner_name'] ?? '',
-      ownerNumber: json['owner_number'] ?? '',
-      currentDate: json['current_dates'] ?? '',
-      availableDate: json['available_date'] ?? '',
-      kitchen: json['kitchen'] ?? '',
-      bathroom: json['bathroom'] ?? '',
-      lift: json['lift'] ?? '',
-      facility: json['Facility'] ?? '',
-      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
-      fieldWorkerName: json['field_warkar_name'] ?? '',
-      fieldWorkerNumber: json['field_workar_number'] ?? '',
-      registryAndGpa: json['registry_and_gpa'] ?? '',
-      loan: json['loan'] ?? '',
-      longitude: json['Longitude'] ?? '',
-      latitude: json['Latitude'] ?? '',
-      videoLink: json['video_link'] ?? '',
-      fieldWorkerLocation: json['field_worker_current_location'] ?? '',
-      careTakerName: json['care_taker_name'] ?? '',
-      careTakerNumber: json['care_taker_number'] ?? '',
-      live: json['live_unlive'] ?? '',
-      subid: json['subid'] ?? '',
-    );
-  }
-}
-class DocumentMainModel_F {
-  final String dimage;
-  DocumentMainModel_F({
-    required this.dimage,
-  });
-  factory DocumentMainModel_F.fromJson(Map<String, dynamic> json) {
-    return DocumentMainModel_F(
-      dimage: json['img'] ?? '',
-    );
-  }
-}
 class Future_Property_details extends StatefulWidget {
   final String idd;
   Future_Property_details({super.key, required this.idd});
@@ -292,86 +25,55 @@ class Future_Property_details extends StatefulWidget {
   State<Future_Property_details> createState() => _Future_Property_detailsState();
 }
 class _Future_Property_detailsState extends State<Future_Property_details> {
-  // API Methods
-  Future<List<Ground>> fetchData_Ground() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=G%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
+
+  late Future<List<Ground>> flatsFuture;
+  late Future<List<FutureProperty2>> propertyFuture;
+  late Future<List<DocumentMainModel_F>> imagesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAll();
   }
-  Future<List<Ground>> fetchData_first() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/frist_floor_base_show_mainrealestae?Floor_=1%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
+
+  void _loadAll() {
+    flatsFuture = fetchAllFlats();
+    propertyFuture = fetchData();
+    imagesFuture = fetchCarouselData();
   }
-  Future<List<Ground>> fetchData_second() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/second_floor_base_show_mainrealestae?Floor_=2%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
+
+  Future<void> _refreshAllData() async {
+    setState(() {
+      _loadAll(); // reassign futures
+    });
   }
-  Future<List<Ground>> fetchData_third() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=3%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
+
+  Map<String, List<Ground>> groupFlatsByFloor(List<Ground> flats) {
+    final Map<String, List<Ground>> grouped = {};
+
+    for (final flat in flats) {
+      final floor = flat.floor.trim();
+      grouped.putIfAbsent(floor, () => []).add(flat);
     }
+
+    return grouped;
   }
-  Future<List<Ground>> fetchData_four() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=4%20Floor&subid=${widget.idd}");
+
+  Future<List<Ground>> fetchAllFlats() async {
+    final url = Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/new_future_property_api_with_multile_images_store/show_api_building_flat.php?subid=${widget.idd}",
+    );
+
     final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
+
+    if (response.statusCode != 200) {
+      throw Exception("Failed to load flats");
     }
-  }
-  Future<List<Ground>> fetchData_five() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=5%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
-  }
-  Future<List<Ground>> fetchData_six() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=6%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
-  }
-  Future<List<Ground>> fetchData_seven() async {
-    var url = Uri.parse("https://verifyserve.social/WebService4.asmx/third_floor_base_show_mainrealestae?Floor_=7%20Floor&subid=${widget.idd}");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List listResponse = json.decode(response.body);
-      return listResponse.map((data) => Ground.fromJson(data)).toList();
-    } else {
-      throw Exception('Unexpected error occurred!');
-    }
+
+    final decoded = jsonDecode(response.body);
+
+    final List list = decoded['data'] ?? [];
+    return list.map((e) => Ground.fromJson(e)).toList();
   }
 
   Future<List<FutureProperty2>> fetchData() async {
@@ -425,56 +127,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       throw Exception('Failed to load data');
     }
   }
-  Future<Map<String, dynamic>> _fetchAllData() async {
-    try {
-      final results = await Future.wait([
-        fetchData_Ground(),
-        fetchData_first(),
-        fetchData_second(),
-        fetchData_third(),
-        fetchData_four(),
-        fetchData_five(),
-        fetchData_six(),
-        fetchData_seven(),
-        fetchData(),
-        fetchCarouselData(),
-      ]);
-      return {
-        'groundList': results[0],
-        'firstList': results[1],
-        'secondList': results[2],
-        'thirdList': results[3],
-        'fourthList': results[4],
-        'fifthList': results[5],
-        'sixList': results[6],
-        'sevenList': results[7],
-        'catidList': results[8],
-        'imageList': results[9],
-      };
-    } catch (e) {
-      print("Error fetching all data: $e");
-      throw Exception('Failed to load all data');
-    }
-  }
-  Future<void> _refreshAllData() async {
-    try {
-      final ground = await fetchData_Ground();
-      final first = await fetchData_first();
-      final second = await fetchData_second();
-      final third = await fetchData_third();
-      final fourth = await fetchData_four();
-      final fifth = await fetchData_five();
-      final sixth = await fetchData_six();
-      final seven = await fetchData_seven();
-      final catids = await fetchData();
-      final images = await fetchCarouselData();
-      setState(() {
-        // You can store these in variables if needed
-      });
-    } catch (e) {
-      print('Refresh Error: $e');
-    }
-  }
+
   void _handleMenuItemClick(String value) async {
     print("You clicked: $value");
     if (value == 'Edit Building') {
@@ -531,24 +184,41 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
-            // Custom Header without AppBar
             _buildCustomHeader(isDarkMode),
-            // Floor-wise Flats Sections (moved to top)
-            _buildFloorSection("Ground Floor", fetchData_Ground(), isDarkMode),
-            _buildFloorSection("First Floor", fetchData_first(), isDarkMode),
-            _buildFloorSection("Second Floor", fetchData_second(), isDarkMode),
-            _buildFloorSection("Third Floor", fetchData_third(), isDarkMode),
-            _buildFloorSection("Fourth Floor", fetchData_four(), isDarkMode),
-            _buildFloorSection("Fifth Floor", fetchData_five(), isDarkMode),
-            _buildFloorSection("Sixth Floor", fetchData_six(), isDarkMode),
-            _buildFloorSection("Seventh Floor", fetchData_seven(), isDarkMode),
-            // Property Images Carousel (now below floors)
+
+            SliverToBoxAdapter(
+              child: FutureBuilder<List<Ground>>(
+                future: flatsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingCard(isDarkMode);
+                  }
+
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+
+                  final grouped = groupFlatsByFloor(snapshot.data!);
+
+                  return Column(
+                    children: grouped.entries.map((entry) {
+                      return _buildFloorContentSection(
+                        entry.key,
+                        entry.value,
+                        isDarkMode,
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ),
+
             _buildImageCarouselSection(isDarkMode),
-            // Property Overview Section
+
             _buildPropertyOverviewSection(isDarkMode),
-            // Building Details Section
+
             _buildBuildingDetailsSection(isDarkMode),
-            // Add spacing at the bottom
+
             const SliverToBoxAdapter(child: SizedBox(height: 1)),
           ],
         ),
@@ -621,7 +291,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   SliverToBoxAdapter _buildImageCarouselSection(bool isDarkMode) {
     return SliverToBoxAdapter(
       child: FutureBuilder<List<DocumentMainModel_F>>(
-        future: fetchCarouselData(),
+        future: imagesFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Container(
@@ -728,7 +398,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   SliverToBoxAdapter _buildPropertyOverviewSection(bool isDarkMode) {
     return SliverToBoxAdapter(
       child: FutureBuilder<List<FutureProperty2>>(
-        future: fetchData(),
+        future: propertyFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildLoadingCard(isDarkMode);
@@ -810,24 +480,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       ),
     );
   }
-  // Floor Section Builder
-  SliverToBoxAdapter _buildFloorSection(String floorName, Future<List<Ground>> futureData, bool isDarkMode) {
-    return SliverToBoxAdapter(
-      child: FutureBuilder<List<Ground>>(
-        future: futureData,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return _buildFloorLoadingSection(floorName, isDarkMode);
-          } else if (snapshot.hasError || snapshot.data == null || snapshot.data!.isEmpty) {
-            return const SizedBox.shrink(); // Hide empty floors
-          } else {
-            return _buildFloorContentSection(floorName, snapshot.data!, isDarkMode);
-          }
-        },
-      ),
-    );
-  }
-  // Floor Content Section - Horizontal scrolling cards
+
   Widget _buildFloorContentSection(String floorName, List<Ground> flats, bool isDarkMode) {
     final screenWidth = MediaQuery.of(context).size.width;
     final cardWidth = (screenWidth - 48) * 0.65; // Responsive width: 65% of available space minus margins
@@ -1113,7 +766,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   SliverToBoxAdapter _buildBuildingDetailsSection(bool isDarkMode) {
     return SliverToBoxAdapter(
       child: FutureBuilder<List<FutureProperty2>>(
-        future: fetchData(),
+        future: propertyFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return _buildLoadingCard(isDarkMode);
@@ -1484,144 +1137,121 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
   }
   // Add Flats Button
   Widget _buildAddFlatsButton(bool isDarkMode) {
-    return FutureBuilder<Map<String, dynamic>>(
-      future: _fetchAllData(),
+    return FutureBuilder<List<FutureProperty2>>(
+      future: propertyFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            padding: const EdgeInsets.all(16),
-            child: const Center(child: CircularProgressIndicator(color: Colors.black)),
-          );
-        } else if (snapshot.hasError ||
-            snapshot.data == null ||
-            (snapshot.data!['catidList'] as List).isEmpty) {
-          return Container();
-        } else {
-          final catidList = snapshot.data!['catidList'] as List<FutureProperty2>;
-          final data = catidList[0];
-
-
-          return Container(
-            margin: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // Call Button (Left side) - Ab sahi kaam karega: Phone call
-                Expanded(
-                  flex: 3,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green[600],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    onPressed: ()  {
-                      Navigator.push(context, MaterialPageRoute(builder: (context)
-                      => AllContact(buildingId: data.id, ownerName: data.ownerName, ownerNumber: data.ownerNumber)
-                      ));
-                    },
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Icon(Icons.call, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          "Calling section",
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                // Add Flat Button (Right side) - Yeh pehle se sahi tha
-                Expanded(
-                  flex: 3,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
-                    ),
-                    onPressed: () {
-                      if (data.roadSize.isEmpty ||
-                          data.metroName.isEmpty ||
-                          data.metroDistance.isEmpty ||
-                          data.mainMarketDistance.isEmpty ||
-                          data.ageOfProperty.isEmpty ||
-                          data.lift.isEmpty ||
-                          data.parking.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "⚠ Please update property details before adding flats.",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                            ),
-                            duration: Duration(seconds: 4),
-                            backgroundColor: Colors.red,
-                            behavior: SnackBarBehavior.floating,
-                          ),
-                        );
-                        return;
-                      }
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Add_Flatunder_futureproperty(
-                            id: widget.idd,
-                            Owner_name: data.ownerName,
-                            Owner_num: data.ownerNumber,
-                            Caretaker_name: data.caretakerName,
-                            Caretaker_num: data.caretakerNumber,
-                            market_dis: data.mainMarketDistance,
-                            metro_name: data.metroName,
-                            metro_dis: data.metroDistance,
-                            road_size: data.roadSize,
-                            age_property: data.ageOfProperty,
-                            apartment_address: data.propertyNameAddress,
-                            apartment_name: data.propertyNameAddress,
-                            field_address: data.propertyAddressForFieldworker,
-                            current_loc: data.currentDate,
-                            place: data.place,
-                            lift: data.lift,
-                            totalFloor: data.totalFloor,
-                            Residence_commercial: data.residenceCommercial,
-                            facility: data.facility,
-                            google_loc: data.place,
-                            locality_list: data.localityList,
-                            apartment: '',
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.add, size: 20),
-                        SizedBox(width: 8),
-                        Text(
-                          "Add New Flat",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
           );
         }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final data = snapshot.data!.first;
+
+        return Container(
+          margin: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              /// CALL BUTTON
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AllContact(
+                          buildingId: data.id,
+                          ownerName: data.ownerName,
+                          ownerNumber: data.ownerNumber,
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text("Calling section"),
+                ),
+              ),
+
+              const SizedBox(width: 12),
+
+              /// ADD FLAT BUTTON
+              Expanded(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    if (data.roadSize.isEmpty ||
+                        data.metroName.isEmpty ||
+                        data.metroDistance.isEmpty ||
+                        data.mainMarketDistance.isEmpty ||
+                        data.ageOfProperty.isEmpty ||
+                        data.lift.isEmpty ||
+                        data.parking.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("⚠ Please update property details first"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => Add_Flatunder_futureproperty(
+                          id: widget.idd,
+                          Owner_name: data.ownerName,
+                          Owner_num: data.ownerNumber,
+                          Caretaker_name: data.caretakerName,
+                          Caretaker_num: data.caretakerNumber,
+                          market_dis: data.mainMarketDistance,
+                          metro_name: data.metroName,
+                          metro_dis: data.metroDistance,
+                          road_size: data.roadSize,
+                          age_property: data.ageOfProperty,
+                          apartment_address: data.propertyNameAddress,
+                          apartment_name: data.propertyNameAddress,
+                          field_address: data.propertyAddressForFieldworker,
+                          current_loc: data.currentDate,
+                          place: data.place,
+                          lift: data.lift,
+                          totalFloor: data.totalFloor,
+                          Residence_commercial: data.residenceCommercial,
+                          facility: data.facility,
+                          google_loc: data.place,
+                          locality_list: data.localityList,
+                          apartment: '',
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Text("Add New Flat"),
+                ),
+              ),
+            ],
+          ),
+        );
       },
     );
   }
-  // Helper Widgets
+
   Widget _buildChip(String text, Color color, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -1642,6 +1272,7 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       ),
     );
   }
+
   Widget _buildStatItem(String label, String value, IconData icon, bool isDarkMode) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -1675,63 +1306,19 @@ class _Future_Property_detailsState extends State<Future_Property_details> {
       ),
     );
   }
-  Widget _buildFloorLoadingSection(String floorName, bool isDarkMode) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 48) * 0.65;
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.grey[300],
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              floorName,
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: cardWidth * 1.2,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return Container(
-                  width: cardWidth,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Center(child: CircularProgressIndicator(color: Colors.black)),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
   Widget _buildLoadingCard(bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.all(16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.black,
         borderRadius: BorderRadius.circular(16),
       ),
-      child: const Center(child: CircularProgressIndicator(color: Colors.black)),
+      child: const Center(child: CircularProgressIndicator(color: Colors.white)),
     );
   }
+
   Widget _buildErrorCard(bool isDarkMode) {
     return Container(
       margin: const EdgeInsets.all(16),

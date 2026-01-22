@@ -6,52 +6,8 @@ import 'package:http/http.dart' as http;
 import 'package:iconsax_flutter/iconsax_flutter.dart';
 import '../ui_decoration_tools/app_images.dart';
 import '../Tenant_Details_Demand/Feedback_Details_Page.dart';
+import 'Administrator_main_tenantdemand.dart';
 
-class Catid {
-  final int id;
-  final String V_name;
-  final String V_number;
-  final String bhk;
-  final String budget;
-  final String place;
-  final String floor_option;
-  final String Additional_Info;
-  final String Shifting_date;
-  final String Current_date;
-  final String Parking;
-  final String Gadi_Number;
-  final String FeildWorker_Name;
-  final String FeildWorker_Number;
-  final String Current__Date;
-  final String Family_Members;
-  final String buyrent;
-
-  Catid(
-      {required this.id, required this.V_name, required this.V_number, required this.bhk, required this.budget,
-        required this.place, required this.floor_option, required this.Additional_Info, required this.Shifting_date,required this.Current_date,
-        required this.Parking, required this.Gadi_Number, required this.FeildWorker_Name, required this.FeildWorker_Number,
-        required this.Current__Date,required this.Family_Members,required this.buyrent});
-
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['VTD_id'],
-        V_name: json['V_name'],
-        V_number: json['V_number'],
-        bhk: json['bhk'],
-        budget: json['budget'],
-        place: json['place'],
-        floor_option: json['floor_option'],
-        Additional_Info: json['Additional_Info'],
-        Shifting_date: json['Shifting_date'],
-        Current_date: json['Current__Date'],
-        Parking: json['Parking'],
-        Gadi_Number: json['Gadi_Number'],
-        FeildWorker_Name: json['FeildWorker_Name'],
-        FeildWorker_Number: json['FeildWorker_Number'],
-        Current__Date: json['Current__Date'],
-        Family_Members: json['Family_Members'],
-        buyrent: json['Buy_rent']);
-  }
-}
 
 class Catid_pending {
   final int id;
@@ -91,13 +47,13 @@ class Pending_demand_Status extends StatefulWidget {
 
 class _Pending_demand_StatusState extends State<Pending_demand_Status> {
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<TenantModel>> fetchData() async {
     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/Verify_Tenant_show_by_V_number_?V_number=${widget.id}');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['VTD_id'].compareTo(a['VTD_id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => TenantModel.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -707,7 +663,7 @@ class _Pending_demand_StatusState extends State<Pending_demand_Status> {
             ),
 
             Container(
-              child: FutureBuilder<List<Catid>>(
+              child: FutureBuilder<List<TenantModel>>(
                   future: fetchData(),
                   builder: (context,abc){
                     if(abc.connectionState == ConnectionState.waiting){

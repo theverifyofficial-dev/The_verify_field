@@ -12,7 +12,7 @@ import 'Add_Property_Veerification.dart';
 import 'Add_Tenant.dart';
 import 'Show_tenant.dart';
 
-class Catid {
+class V_model {
   final int id;
   final String Flat;
   final String Building_Address;
@@ -40,12 +40,12 @@ class Catid {
   final String fieldworkarname;
   final String fieldworkarnumber;
 
-  Catid(
+  V_model(
       {required this.id, required this.Flat, required this.Building_Address, required this.Building_Location, required this.Building_image, required this.Longitude, required this.Latitude, required this.Rent, required this.Verify_price, required this.BHK, required this.sqft, required this.tyope, required this.floor_, required this.maintence, required this.buy_Rent,
         required this.Building_information,required this.balcony,required this.Parking,required this.facility,required this.Furnished,required this.kitchen,required this.Baathroom,required this.Ownername,required this.Owner_number,required this.fieldworkarname,required this.fieldworkarnumber});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['PVR_id'],
+  factory V_model.FromJson(Map<String, dynamic>json){
+    return V_model(id: json['PVR_id'],
         Flat: json['flat_'],
         Building_Address: json['Address_'],
         Building_Location: json['Place_'],
@@ -91,7 +91,7 @@ class _Book_PropertyState extends State<Book_Property> {
     _loaduserdata();
   }
 
-  Future<List<Catid>> fetchData(id) async{
+  Future<List<V_model>> fetchData(id) async{
 
     var url=Uri.parse("https://verifyserve.social/WebService4.asmx/show_propertyverifycation_by_lookingproperty_fieldworkarnumber?Looking_Property_=Book&fieldworkarnumber=$_number");
     final responce=await http.get(url);
@@ -100,7 +100,7 @@ class _Book_PropertyState extends State<Book_Property> {
       List listresponce=json.decode(responce.body);
       listresponce.sort((a, b) => b['PVR_id'].compareTo(a['PVR_id']));
 
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => V_model.FromJson(data)).toList();
     }
     else{
       throw Exception('Unexpected error occured!');
@@ -152,7 +152,7 @@ class _Book_PropertyState extends State<Book_Property> {
       ),
 
       body: Container(
-        child: FutureBuilder<List<Catid>>(
+        child: FutureBuilder<List<V_model>>(
             future: fetchData(""+1.toString()),
             builder: (context,abc){
               if(abc.connectionState == ConnectionState.waiting){
@@ -180,30 +180,7 @@ class _Book_PropertyState extends State<Book_Property> {
                     scrollDirection: Axis.vertical,
                     itemBuilder: (BuildContext context,int len){
                       return GestureDetector(
-                        onTap: () async {
-                          //  int itemId = abc.data![len].id;
-                          //int iiid = abc.data![len].PropertyAddress
-                          /*SharedPreferences prefs = await SharedPreferences.getInstance();
-                          prefs.setString('id_Subid', abc.data![len].id.toString());
-                          prefs.setString('Property_Number', abc.data![len].Building_Address.toString());
-                          prefs.setString('PropertyAddress', abc.data![len].Building_Location.toString());
-                          prefs.setString('Looking_Prop_', abc.data![len].tyope.toString());
-                          prefs.setString('FLoorr', abc.data![len].floor_.toString());
-                          prefs.setString('Flat', abc.data![len].Flat.toString());
-                          prefs.setString('Owner_Name', abc.data![len].Ownername.toString());
-                          prefs.setString('Owner_Number', abc.data![len].Owner_number.toString());
-                          prefs.setString('fieldworkarname', abc.data![len].fieldworkarname.toString());
-                          prefs.setString('fieldworkarnumber', abc.data![len].fieldworkarnumber.toString());
-                          prefs.setString('property_image', abc.data![len].Building_image.toString());
-                          prefs.setString('maintence', abc.data![len].maintence.toString());
-                          prefs.setString('bhk_bhk', abc.data![len].BHK.toString());
-                          //prefs.setString('Owner_no', abc.data![len].Owner_number.toString());
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute
-                                (builder: (context) => TenantDetails())
-                          );*/
-                        },
+                        onTap: () async {},
                         child: Column(
                           children: [
                             Padding(

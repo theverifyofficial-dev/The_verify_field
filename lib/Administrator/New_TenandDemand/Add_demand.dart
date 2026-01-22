@@ -2,18 +2,38 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:dio/dio.dart';
 import '../../Custom_Widget/constant.dart';
 import '../../utilities/bug_founder_fuction.dart';
 import 'Admin_demand_detail.dart';
 
+enum DemandEditMode {
+  add,
+  updateDemand,
+  updateRedemand,
+}
+
+
 class CustomerDemandFormPage extends StatefulWidget {
-  const CustomerDemandFormPage({super.key});
+  final DemandEditMode mode;
+  final String? demandId;     // main demand id
+  final String? redemandId;   // redemand id
+
+  const CustomerDemandFormPage({
+    super.key,
+    required this.mode,
+    this.demandId,
+    this.redemandId,
+  });
+
 
   @override
-  State<CustomerDemandFormPage> createState() => _CustomerDemandFormPageState();
+  State<CustomerDemandFormPage> createState() =>
+      _CustomerDemandFormPageState();
 }
+
 
 class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with SingleTickerProviderStateMixin  {
 
@@ -28,15 +48,18 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   bool _fetchingCustomer = false;
   Map<String, dynamic>? _existingCustomer;
 
-
+  Map<String, dynamic>? _demandData;
+  bool _loadingDemand = false;
 
   String? _buyRent, _reference, _location;
   bool _isSubmitting = false;
-  final String _status = "New";
+  String get _status {
+    if (widget.mode == DemandEditMode.add) return "New";
+    return _demandData?["Status"] ?? "New";
+  }
   bool _isUrgent = false;
 
   RangeValues _buyBudget = const RangeValues(1000000, 5000000);
-
 
   RangeValues _rentBudget = const RangeValues(5000, 20000);
 
@@ -69,6 +92,13 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.08).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    // 🔥 LOAD DATA FOR UPDATE MODE
+    if (widget.mode != DemandEditMode.add) {
+      _loadDemandForEdit();
+    }
+
+    print(" redemand id from add page : ${widget.redemandId}");
+
   }
 
   @override
@@ -140,8 +170,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     );
   }
 
-
-
   String _extractLast10Digits(String input) {
     final digitsOnly = input.replaceAll(RegExp(r'\D'), '');
     if (digitsOnly.length >= 10) {
@@ -150,8 +178,110 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
     return "";
   }
 
+  Future<void> _loadDemandForEdit() async {
+    setState(() => _loadingDemand = true);
+
+    try {
+      if (widget.mode == DemandEditMode.updateDemand) {
+        await _fetchMainDemand();
+      } else {
+        await _fetchRedemand();
+      }
+
+      if (_demandData != null) {
+        _autofillFromExistingCustomer(_demandData!);
+      }
+    } finally {
+      if (mounted) setState(() => _loadingDemand = false);
+    }
+  }
+
+
+
+  Future<Response> _updateDemandDispatcher(Map<String, dynamic> payload) {
+    if (widget.mode == DemandEditMode.updateDemand) {
+      return _updateMainDemand(payload);
+    } else {
+      return _updateRedemand(payload);
+    }
+  }
+
+
+  Future<void> _fetchMainDemand() async {
+    final res = await http.get(Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/details_page_for_tenat_demand.php?id=${widget.demandId}",
+    ));
+
+    if (res.statusCode == 200) {
+      final jsonRes = jsonDecode(res.body);
+      if (jsonRes["success"] == true &&
+          jsonRes["data"] is List &&
+          jsonRes["data"].isNotEmpty) {
+        _demandData = Map<String, dynamic>.from(jsonRes["data"][0]);
+      }
+    }
+  }
+
+  Future<void> _fetchRedemand() async {
+    print(" redemand id from add page : ${widget.redemandId}");
+    final res = await http.get(Uri.parse(
+      "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/show_redemand_base_on_main_id.php?id=${widget.redemandId}",
+    ));
+
+    if (res.statusCode == 200) {
+      final jsonRes = jsonDecode(res.body);
+      if (jsonRes["success"] == true &&
+          jsonRes["data"] is List &&
+          jsonRes["data"].isNotEmpty) {
+        _demandData = Map<String, dynamic>.from(jsonRes["data"][0]);
+      }
+    }
+  }
+
+  Future<Response> _updateMainDemand(Map<String, dynamic> payload) async {
+    try {
+      final res = await _dio.post(
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
+        data: FormData.fromMap(payload),
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
+      );
+      return res;
+    } on DioException catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_tenant_demand_api_for_admin.php",
+        error: e.response?.data.toString() ?? e.message ?? "Unknown error",
+        statusCode: e.response?.statusCode ?? 0,
+      );
+      rethrow;
+    }
+  }
+
+  Future<Response> _updateRedemand(Map<String, dynamic> payload) async {
+    try {
+      final res = await _dio.post(
+        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        data: FormData.fromMap(payload),
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
+      );
+      return res;
+    } on DioException catch (e) {
+      await BugLogger.log(
+        apiLink: "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/edit_redemand_option.php",
+        error: e.response?.data.toString() ?? e.message ?? "Unknown error",
+        statusCode: e.response?.statusCode ?? 0,
+      );
+      rethrow;
+    }
+  }
+
   Future<void> _fetchCustomerByPhone(String phone) async {
     if (phone.length != 10) return;
+
+    if (widget.mode != DemandEditMode.add) return;
 
     setState(() => _fetchingCustomer = true);
 
@@ -178,12 +308,21 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   }
 
   void _autofillFromExistingCustomer(Map<String, dynamic> data) {
+
+
     // NAME
     if (_nameCtrl.text.isEmpty && data["Tname"] != null) {
       _nameCtrl.text = data["Tname"].toString();
     }
+    if (_numberCtrl.text.isEmpty && data["Tnumber"] != null) {
+      _numberCtrl.text = data["Tnumber"].toString();
+    }
 
 
+    // URGENT FLAG
+    if (data["mark"] != null) {
+      _isUrgent = data["mark"].toString() == "1";
+    }
     // BUY / RENT
     if (_buyRent == null && data["Buy_rent"] != null) {
       _buyRent = data["Buy_rent"];
@@ -213,8 +352,6 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       }
     }
 
-    // PRICE → BUDGET
-    _resetBudgetState();
     if (data["Price"] != null) {
       final parts = data["Price"].toString().split("-");
       if (parts.length == 2) {
@@ -224,15 +361,17 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         if (start != null && end != null) {
           if (_buyRent == "Buy") {
             _buyBudget = RangeValues(start, end);
+            _selectedBudgetLabel = "Custom Range"; // 🔥 IMPORTANT
           } else {
             _rentBudget = RangeValues(start, end);
+            _selectedBudgetLabel = "Custom Range"; // 🔥 IMPORTANT
           }
+          _showCustomSlider = true; // 🔥 IMPORTANT
         }
       }
     }
+
   }
-
-
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
@@ -252,30 +391,101 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
       return;
     }
 
-    final formData = {
-      "Tname": _nameCtrl.text.trim(),
-      "Tnumber": _numberCtrl.text.trim(),
-      "Buy_rent": _buyRent,
-      "Reference": _reference ?? "",
-      "Price": _buyRent == "Buy"
-          ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
-          : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
-      "Message": _messageCtrl.text.trim(),
-      "Bhk": _selectedBhks.join(", "),
-      "Location": _location ?? "",
-      "Status": _status, // Always "New"
-      "mark": _isUrgent, // true / false urgent flag
-      "created_date": DateFormat('yyyy-MM-dd').format(now),
-      "Result": "", // Initially blank
-      "by_field": "false", // STRING, not bool
-    };
+    if (_buyRent == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.redAccent,
+          content: Text("Please select Buy or Rent"),
+        ),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
+
+
+
+    final String? updateId = widget.mode == DemandEditMode.updateDemand
+        ? widget.demandId
+        : widget.redemandId;
+
+    if (widget.mode != DemandEditMode.add && updateId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Colors.red,
+          content: Text("Invalid demand ID. Please reopen the page."),
+        ),
+      );
+      setState(() => _isSubmitting = false);
+      return;
+    }
+
+    Map<String, dynamic> formData;
+
+    if (widget.mode == DemandEditMode.add) {
+      formData = {
+        "Tname": _nameCtrl.text.trim(),
+        "Tnumber": _numberCtrl.text.trim(),
+        "Buy_rent": _buyRent,
+        "Reference": _reference ?? "",
+        "Price": _buyRent == "Buy"
+            ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
+            : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
+        "Message": _messageCtrl.text.trim(),
+        "Bhk": _selectedBhks.join(", "),
+        "Location": _location ?? "",
+        "Status": "New",
+        "mark": _isUrgent ? "1" : "0",
+        "created_date": DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        "Result": "",
+        "by_field": "false",
+      };
+    } else {
+      formData = {
+        "id": updateId, // ✅ REQUIRED
+        "Tname": _nameCtrl.text.trim(),
+        "Tnumber": _numberCtrl.text.trim(),
+        "Buy_rent": _buyRent,
+        "Reference": _reference ?? "",
+        "Price": _buyRent == "Buy"
+            ? "${_buyBudget.start.toInt()}-${_buyBudget.end.toInt()}"
+            : "${_rentBudget.start.toInt()}-${_rentBudget.end.toInt()}",
+        "Message": _messageCtrl.text.trim(),
+        "Bhk": _selectedBhks.join(", "),
+        "Location": _location ?? "",
+        "mark": _isUrgent ? "1" : "0",
+      };
+    }
+
+    debugPrint("MODE: ${widget.mode}");
+    debugPrint("DEMAND ID: ${widget.demandId}");
+    debugPrint("REDEMAND ID: ${widget.redemandId}");
+    debugPrint("FINAL PAYLOAD: $formData");
+
+
 
     try {
-      final res = await _dio.post(
-        "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
-        data: jsonEncode(formData),
-        options: Options(headers: {"Content-Type": "application/json"}),
-      );
+
+      Response? res;
+
+      if (widget.mode == DemandEditMode.add) {
+        res = await _dio.post(
+          "https://verifyserve.social/Second%20PHP%20FILE/Tenant_demand/Tenant_demand_insert.php",
+          data: jsonEncode(formData),
+          options: Options(headers: {"Content-Type": "application/json"}),
+        );
+      } else {
+        formData["id"] = widget.mode == DemandEditMode.updateDemand
+            ? widget.demandId
+            : widget.redemandId;
+
+        res = await _updateDemandDispatcher(formData);
+      }
+
+// 🔐 SAFETY CHECK
+      if (res == null) {
+        throw Exception("Update API returned null response");
+      }
 
       print('printing response ${res.data}');
 
@@ -283,11 +493,13 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
         final data = res.data;
 
         print(data);
+        final msg = data["message"] ?? data["msg"] ?? "Something went wrong";
+
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Colors.green,
-            content: Text(data["message"]),
+            content: Text(msg),
           ),
         );
 
@@ -417,12 +629,28 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
               color: Colors.white, size: 30),
         ),
       ),
-      body: SafeArea(
+      body:  _loadingDemand
+      ? const Center(child: CircularProgressIndicator())
+    :
+    SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
             child: Column(children: [
+               Row(
+                 mainAxisAlignment: MainAxisAlignment.center,
+                 children: [
+                   Text(
+                    widget.mode == DemandEditMode.add
+                        ? "Add Demand"
+                        : widget.mode == DemandEditMode.updateDemand
+                        ? "Update Demand"
+                        : "Update Redemand",
+                                 ),
+                 ],
+               ),
+
               if (_existingCustomer != null) ...[
                 _ExistingCustomerCard(
                   data: _existingCustomer!,
@@ -729,6 +957,7 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
                   ),
                   onPressed: (_isSubmitting || !_canSubmitRedemand)
                       ? null
+
                       : _submitForm,
                 ),
               ),
@@ -743,8 +972,9 @@ class _CustomerDemandFormPageState extends State<CustomerDemandFormPage> with Si
   String get _submitButtonText {
     if (_isSubmitting) return "Submitting...";
     if (!_canSubmitRedemand) return "Waiting for Assign";
-    return "Submit Demand";
-  }
+    if (widget.mode == DemandEditMode.add) return "Submit Demand";
+    if (widget.mode == DemandEditMode.updateDemand) return "Update Demand";
+    return "Update Redemand";  }
 
   Color _submitButtonColor(ThemeData theme) {
     if (_isSubmitting) return Colors.grey.shade600;;

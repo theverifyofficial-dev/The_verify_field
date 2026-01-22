@@ -14,7 +14,7 @@ import '../number_repeat_page/number_repeat_page.dart';
 import 'Add_Assign_Demand_form.dart';
 import 'Edit_Asign_Demand.dart';
 
-class Catid {
+class Demand_model {
   final int id;
   final String fieldworkar_name;
   final String fieldworkar_number;
@@ -26,12 +26,12 @@ class Catid {
   final String refrence;
   final String BHK;
 
-  Catid(
+  Demand_model(
       {required this.id, required this.fieldworkar_name, required this.fieldworkar_number, required this.demand_name, required this.demand_number,
         required this.buy_rent, required this.place, required this.info, required this.refrence, required this.BHK});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(id: json['id'],
+  factory Demand_model.FromJson(Map<String, dynamic>json){
+    return Demand_model(id: json['id'],
         fieldworkar_name: json['fieldworkar_name'],
         fieldworkar_number: json['fieldworkar_number'],
         demand_name: json['demand_name'],
@@ -53,162 +53,20 @@ class Administater_Assignd_Tenant_details extends StatefulWidget {
 
 class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assignd_Tenant_details> {
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<Demand_model>> fetchData() async {
     var url = Uri.parse('https://verifyserve.social/WebService4.asmx/show_assign_tanant_demand_2nd_table');
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
       listresponce.sort((a, b) => b['id'].compareTo(a['id']));
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => Demand_model.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
     }
   }
 
-  final TextEditingController _number = TextEditingController();
 
-  void _showBottomSheet(BuildContext context) {
-
-
-
-    final List<String> names = ['Not Reachable', 'Cut the phone', 'Talk to me Later'];
-
-    showModalBottomSheet(
-      backgroundColor: Colors.black,
-      context: context,
-      builder: (BuildContext context) {
-        return  ListView.builder(
-          itemCount: 1,
-          itemBuilder: (context, index) {
-            return GestureDetector(
-              onTap: () async {
-
-
-
-
-
-              },
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  Container(
-                      padding: EdgeInsets.only(left: 15, top: 20, right: 10),
-                      child: Text('Number',style: TextStyle(fontSize: 16,color: Colors.grey[500],fontFamily: 'Poppins'),)),
-
-                  SizedBox(height: 5,),
-
-                  Container(
-                    margin: EdgeInsets.all(10),
-                    padding: const EdgeInsets.only(left: 10, right: 10),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(15),
-                      // boxShadow: K.boxShadow,
-                    ),
-                    child: TextField(
-                      style: TextStyle(color: Colors.black),
-                      controller: _number,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                          hintText: "Number",
-                          hintStyle: TextStyle(color: Colors.grey,fontFamily: 'Poppins',),
-                          border: InputBorder.none),
-                    ),
-                  ),
-
-                  SizedBox(
-                    height: 20,
-                  ),
-
-                  Center(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red
-                      ),
-                      onPressed: () async {
-                        //fetchData();
-                        final responce_Official_table = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/Verify_Tenant_Countapi_by_V_number_?V_number=${_number.text}"));
-                        //final responce_Assign_Table = await http.get(Uri.parse("https://verifyserve.social/WebService4.asmx/assign_tenant_demand_count_api_?demand_number=${_number.text}"));
-
-                        print(responce_Official_table.body);
-
-                        if (responce_Official_table.body == '[{"logg":1}]') {
-
-                          //fetchData();
-
-                          //avigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Add_TenantDemands(number_Back: '${_number.text}',),), (route) => route.isFirst);
-
-                          // Successful login
-                          print("Login successful");
-                        } /*else if (responce_Assign_Table.body == '[{"logg":1}]') {
-
-                  Fluttertoast.showToast(
-                      msg: "Number Found in Assign table",
-                      toastLength: Toast.LENGTH_LONG,
-                      gravity: ToastGravity.BOTTOM,
-                      timeInSecForIosWeb: 1,
-                      backgroundColor: Colors.grey,
-                      textColor: Colors.white,
-                      fontSize: 16.0
-                  );
-                  // Successful login
-                  print("Login successful");
-                }*/ else {
-                          // Failed login
-
-                          Fluttertoast.showToast(
-                              msg: "Number Found in Tenant Demand table",
-                              toastLength: Toast.LENGTH_LONG,
-                              gravity: ToastGravity.BOTTOM,
-                              timeInSecForIosWeb: 1,
-                              backgroundColor: Colors.grey,
-                              textColor: Colors.white,
-                              fontSize: 16.0
-                          );
-
-                          //Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Show_AddedDemand_Details(id: '${_number.text}',),), (route) => route.isFirst);
-
-                        }
-
-                        /*if (responce_Assign_Table.body == '[{"logg":1}]') {
-
-                  Fluttertoast.showToast(
-                      msg: "Number Found in Assign table",
-                      toastLength: Toast.LENGTH_LONG,
-                      gravity: ToastGravity.BOTTOM,
-
-                      timeInSecForIosWeb: 1,
-                      backgroundColor: Colors.grey,
-                      textColor: Colors.white,
-                      fontSize: 16.0
-                  );
-                  // Successful login
-                  print("Login successful");
-                } else {
-                  // Failed login
-                  Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => Add_TenantDemands(number_Back: '${_number.text}',),), (route) => route.isFirst);
-
-                }*/
-
-
-
-                      }, child: Text("Next", style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 20 ),
-                    ),
-                    ),
-                  ),
-
-
-
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
 
 
   String _num = '';
@@ -224,46 +82,9 @@ class _Administater_Assignd_Tenant_detailsState extends State<Administater_Assig
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      /*appBar: AppBar(
-        centerTitle: true,
-        backgroundColor: Colors.black,
-        title: Image.asset(AppImages.verify, height: 75),
-        leading: InkWell(
-          onTap: () {
-            Navigator.pop(context, true);
 
-          },
-          child: const Row(
-            children: [
-              SizedBox(
-                width: 3,
-              ),
-              Icon(
-                PhosphorIcons.caret_left_bold,
-                color: Colors.white,
-                size: 30,
-              ),
-            ],
-          ),
-        ),
-        actions:  [
-          GestureDetector(
-            onTap: () {
-              //Navigator.of(context).push(MaterialPageRoute(builder: (context)=> Administater_Assignd_Tenant_details()));
-            },
-            child: const Icon(
-              PhosphorIcons.bounding_box,
-              color: Colors.black,
-              size: 30,
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-          ),
-        ],
-      ),*/
       body: SingleChildScrollView(
-        child: FutureBuilder<List<Catid>>(
+        child: FutureBuilder<List<Demand_model>>(
             future: fetchData(),
             builder: (context,abc) {
               if(abc.connectionState == ConnectionState.waiting){

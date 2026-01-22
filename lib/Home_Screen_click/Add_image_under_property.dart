@@ -16,14 +16,14 @@ import '../ui_decoration_tools/app_images.dart';
 import 'Delete_Image.dart';
 import 'Real-Estate.dart';
 
-class Catid {
+class Property_id {
   final String property_num;
 
-  Catid(
+  Property_id(
       {required this.property_num});
 
-  factory Catid.FromJson(Map<String, dynamic>json){
-    return Catid(
+  factory Property_id.FromJson(Map<String, dynamic>json){
+    return Property_id(
         property_num: json['imagepath']);
   }
 }
@@ -198,12 +198,12 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
 
   }
 
-  Future<List<Catid>> fetchData() async {
+  Future<List<Property_id>> fetchData() async {
     var url = Uri.parse("https://verifyserve.social/WebService4.asmx/Show_Image_under_Realestatet?id_num=$_id");
     final responce = await http.get(url);
     if (responce.statusCode == 200) {
       List listresponce = json.decode(responce.body);
-      return listresponce.map((data) => Catid.FromJson(data)).toList();
+      return listresponce.map((data) => Property_id.FromJson(data)).toList();
     }
     else {
       throw Exception('Unexpected error occured!');
@@ -491,7 +491,7 @@ class _FileUploadPageState extends State<FileUploadPage> with WidgetsBindingObse
                 SizedBox(height: constraints.maxHeight * 0.03),
 
                 // Images List
-                FutureBuilder<List<Catid>>(
+                FutureBuilder<List<Property_id>>(
                   future: fetchData(),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {

@@ -174,7 +174,7 @@ class _TenantDemandState extends State<TenantDemand> {
           ),
           onPressed: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const CustomerDemandFormPage()),
+            MaterialPageRoute(builder: (_) => const CustomerDemandFormPage(mode: DemandEditMode.add,)),
           ).then((_) => _loadDemands()),
         ),
       ),

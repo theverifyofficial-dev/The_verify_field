@@ -1410,7 +1410,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        // const SizedBox(height: 12),
 
                         FutureBuilder<List<Property>>(
                           future: fetchBookingData(),
@@ -1479,7 +1479,7 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
                                 final item = bookingList[index];
 
                                 return Container(
-                                  margin: const EdgeInsets.only(bottom: 8),
+                                  // margin: const EdgeInsets.only(bottom: 8),
                                   decoration: BoxDecoration(
                                     color: Theme.of(context).cardColor,
                                     borderRadius: BorderRadius.circular(12),
@@ -1571,7 +1571,12 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
                       ],
                     ),
                   ),
-
+                  ValueListenableBuilder<int>(
+                    valueListenable: _calcTick,
+                    builder: (_, __, ___) {
+                      return _buildOverallPaymentSummaryCard();
+                    },
+                  ),
                   // Payment Process Steps
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -1817,21 +1822,21 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
                                 ),
 
                                 const SizedBox(height: 12),
-
-                                // Visitor toggle
-                                SwitchListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  title: const Text("Visitor Commission"),
-                                  value: hasVisitor,
-                                  onChanged: (v) {
-                                    setState(() {
-                                      hasVisitor = v;
-                                      _recalc();
-                                    });
-                                  },
-                                ),
+                                if(hasVisitor)
+                                  SwitchListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    title: const Text("Visitor Commission"),
+                                    value: hasVisitor,
+                                    onChanged: (v) {
+                                      setState(() {
+                                        hasVisitor = v;
+                                        _recalc();
+                                      });
+                                    },
+                                  ),
 
                                 const SizedBox(height: 12),
+
 
                                 if (hasVisitor)
                                   _buildAmountDisplay(
@@ -2375,6 +2380,138 @@ class _CompletePropertyCalculationFieldWorkerState extends State<CompletePropert
       ),
     );
   }
+  Widget _summaryLine(
+      String label,
+      double value, {
+        Color? valueColor,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            _inr(value),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  Widget _summaryBlock({
+    required String title,
+    required double total,
+    required double paid,
+    required Color color,
+  }) {
+    final remaining = (total - paid).clamp(0, double.infinity);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          _summaryLine("Total", total),
+          _summaryLine("Paid", paid, valueColor: Colors.green),
+          _summaryLine("Remain", remaining.toDouble(), valueColor: Colors.red),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOverallPaymentSummaryCard() {
+    final ownerTotal =
+        ownerFinalNow + s1Give + s2Tenant;
+
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.account_balance, size: 18, color: Colors.blue),
+              SizedBox(width: 8),
+              Text(
+                "Overall Payment Summary",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+          const Divider(),
+
+          /// TENANT
+          Row(
+              children:[
+                Expanded(
+                  child: _summaryBlock(
+                    title: "Tenant",
+                    total: totalDue,
+                    paid: tenantPaid,
+                    color: Colors.blue,
+                  ),
+                ),
+                SizedBox(width: 5,),
+                /// OWNER
+                Expanded(
+                  child: _summaryBlock(
+                    title: "Owner",
+                    total: ownerTotal,
+                    paid: ownerReceivedTotal,
+                    color: Colors.green,
+                  ),
+                ),
+              ] ),
+
+        ],
+      ),
+    );
+  }
+
   Widget _buildSkeletonUI() {
     return SingleChildScrollView(
       child: Column(

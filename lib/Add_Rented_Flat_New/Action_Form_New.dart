@@ -74,9 +74,7 @@ class _ActionFormNewState extends State<ActionFormNew> {
     final ownerSideCommission = ownerController.text.replaceAll(',', '');
     final extraExpense = extraExpenseController.text.replaceAll(',', '');
     final advance = advanceController.text.replaceAll(',', '');
-    final totalBalance = balanceController.text.replaceAll('₹', '').replaceAll(',', '').trim();
-
-    // Get current date and time
+    final totalBalance = _finalBalance.toStringAsFixed(2);
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyy-MM-dd').format(now);
     final formattedTime = DateFormat('HH:mm:ss').format(now);
@@ -159,12 +157,11 @@ class _ActionFormNewState extends State<ActionFormNew> {
                 const SizedBox(height: 16),
                 _buildInputField("Tenant Commission", "e.g. 2000", commissionController, Icons.percent),
                 const SizedBox(height: 16),
-                _buildInputField("Owner Commission", "e.g. 2000", ownerController, Icons.percent_rounded),
-                const SizedBox(height: 16),
+
                 _buildInputField("Extra Expense", "e.g. 5000", extraExpenseController, Icons.money_off, isOptional: true, ),// optional parameter),
                 const SizedBox(height: 16),
-                _buildInputField("Total Amount", "Auto calculated", balanceController, Icons.account_balance_wallet_outlined),
-                const SizedBox(height: 16),
+                // _buildInputField("Total Amount", "Auto calculated", balanceController, Icons.account_balance_wallet_outlined),
+                // const SizedBox(height: 16),
                 Card(
 
                   elevation: 2,
@@ -205,12 +202,6 @@ class _ActionFormNewState extends State<ActionFormNew> {
                         ),
                         const SizedBox(height: 6),
 
-                        Text(
-                          "= ${_indianFormat.format(addPart)}",
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 6),
-
                         Row(
                           children: [
                             const Text(
@@ -234,6 +225,8 @@ class _ActionFormNewState extends State<ActionFormNew> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                _buildInputField("Owner Commission", "e.g. 2000", ownerController, Icons.percent_rounded),
                 const SizedBox(height: 16),
                 _buildInputField("Advance Payment", "e.g. 10000", advanceController, Icons.payments),
 

@@ -7,6 +7,8 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:verify_feild_worker/Calender/CalenderForFieldWorker.dart';
+import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/Accept_agreement.dart';
 
 import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
@@ -484,6 +486,200 @@ class WebsiteVisit {
   }
 }
 
+class AdminAcceptedAgreementResponse {
+  final String status;
+  final List<AdminAcceptedAgreement> data;
+
+  AdminAcceptedAgreementResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory AdminAcceptedAgreementResponse.fromJson(Map<String, dynamic> json) {
+    return AdminAcceptedAgreementResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => AdminAcceptedAgreement.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+
+  static AdminAcceptedAgreementResponse fromRawJson(String str) =>
+      AdminAcceptedAgreementResponse.fromJson(json.decode(str));
+}
+
+class AdminAcceptedAgreement {
+  final int id;
+  final String ownerName;
+  final String tenantName;
+  final String rentedAddress;
+  final String monthlyRent;
+  final String bhk;
+  final String floor;
+  final String agreementType;
+  final String fieldWorkerName;
+  final String status;
+
+  AdminAcceptedAgreement({
+    required this.id,
+    required this.ownerName,
+    required this.tenantName,
+    required this.rentedAddress,
+    required this.monthlyRent,
+    required this.bhk,
+    required this.floor,
+    required this.agreementType,
+    required this.fieldWorkerName,
+    required this.status,
+  });
+
+  factory AdminAcceptedAgreement.fromJson(Map<String, dynamic> json) {
+    return AdminAcceptedAgreement(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      ownerName: json['owner_name'] ?? '',
+      tenantName: json['tenant_name'] ?? '',
+      rentedAddress: json['rented_address'] ?? '',
+      monthlyRent: json['monthly_rent'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      agreementType: json['agreement_type'] ?? '',
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      status: "Accepted",
+    );
+  }
+}
+
+class AdminPendingAgreementResponse {
+  final String status;
+  final List<AdminPendingAgreement> data;
+
+  AdminPendingAgreementResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory AdminPendingAgreementResponse.fromJson(Map<String, dynamic> json) {
+    return AdminPendingAgreementResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => AdminPendingAgreement.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+
+  static AdminPendingAgreementResponse fromRawJson(String str) =>
+      AdminPendingAgreementResponse.fromJson(json.decode(str));
+}
+
+class AdminPendingAgreement {
+  final int id;
+
+  // OWNER
+  final String ownerName;
+  final String ownerRelation;
+  final String ownerRelationPerson;
+  final String ownerPermanentAddress;
+  final String ownerMobile;
+  final String ownerAadhar;
+
+  // TENANT
+  final String tenantName;
+  final String tenantRelation;
+  final String tenantRelationPerson;
+  final String tenantPermanentAddress;
+  final String tenantMobile;
+  final String tenantAadhar;
+  final String tenantImage;
+
+  // AGREEMENT
+  final String rentedAddress;
+  final String monthlyRent;
+  final String security;
+  final String meter;
+  final String maintenance;
+  final String shiftingDate;
+  final String bhk;
+  final String floor;
+  final String parking;
+  final String agreementType;
+  final String status;
+  final String currentDate;
+
+  // FIELD WORKER
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  AdminPendingAgreement({
+    required this.id,
+    required this.ownerName,
+    required this.ownerRelation,
+    required this.ownerRelationPerson,
+    required this.ownerPermanentAddress,
+    required this.ownerMobile,
+    required this.ownerAadhar,
+    required this.tenantName,
+    required this.tenantRelation,
+    required this.tenantRelationPerson,
+    required this.tenantPermanentAddress,
+    required this.tenantMobile,
+    required this.tenantAadhar,
+    required this.tenantImage,
+    required this.rentedAddress,
+    required this.monthlyRent,
+    required this.security,
+    required this.meter,
+    required this.maintenance,
+    required this.shiftingDate,
+    required this.bhk,
+    required this.floor,
+    required this.parking,
+    required this.agreementType,
+    required this.status,
+    required this.currentDate,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+  });
+
+  factory AdminPendingAgreement.fromJson(Map<String, dynamic> json) {
+    return AdminPendingAgreement(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+
+      ownerName: json['owner_name'] ?? '',
+      ownerRelation: json['owner_relation'] ?? '',
+      ownerRelationPerson: json['relation_person_name_owner'] ?? '',
+      ownerPermanentAddress: json['parmanent_addresss_owner'] ?? '',
+      ownerMobile: json['owner_mobile_no'] ?? '',
+      ownerAadhar: json['owner_addhar_no'] ?? '',
+
+      tenantName: json['tenant_name'] ?? '',
+      tenantRelation: json['tenant_relation'] ?? '',
+      tenantRelationPerson: json['relation_person_name_tenant'] ?? '',
+      tenantPermanentAddress: json['permanent_address_tenant'] ?? '',
+      tenantMobile: json['tenant_mobile_no'] ?? '',
+      tenantAadhar: json['tenant_addhar_no'] ?? '',
+      tenantImage: json['tenant_image'] ?? '',
+
+      rentedAddress: json['rented_address'] ?? '',
+      monthlyRent: json['monthly_rent'] ?? '',
+      security: json['securitys'] ?? '',
+      meter: json['meter'] ?? '',
+      maintenance: json['maintaince'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      floor: json['floor'] ?? '',
+      parking: json['parking'] ?? '',
+      agreementType: json['agreement_type'] ?? '',
+      status: json['status'] ?? 'pending',
+      currentDate: json['current_dates'] ?? '',
+
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
+    );
+  }
+}
+
 /// -------- MAIN PAGE --------
 class CalendarTaskPageForAdmin extends StatefulWidget {
   const CalendarTaskPageForAdmin({super.key});
@@ -499,6 +695,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   List<AgreementTask> _agreements = [];
   List<FutureProperty> _futureProperties = [];
   Map<DateTime, bool> _eventDays = {};
+  List<AdminAcceptedAgreement> _acceptedAgreements = [];
+  List<AdminPendingAgreement> _pendingAgreements = [];
+  List<String> _pendingAgreementWorkerNames = [];
 
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
@@ -576,6 +775,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   List<String> _futurePropertyWorkerNames = [];
   List<String> _websiteVisitWorkerNames = [];
   List<AdminAddFlat> _addFlats = [];
+  List<AdminAcceptedAgreement> acceptedAgreements = [];
 
   Future<void> _fetchData(DateTime date) async {
     setState(() => _isLoading = true);
@@ -595,6 +795,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     List<Map<String, dynamic>> futureProps = [];
     List<Map<String, dynamic>> websiteVisits = [];
     List<Map<String, dynamic>> adminAddFlat = [];
+    List<AdminAcceptedAgreement> acceptedAgreements = [];
 
     try {
       for (final worker in fieldworkers) {
@@ -606,6 +807,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate")),
           http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate")),
           http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate")),
+          http.get(Uri.parse(
+              "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_for_admin.php"
+                  "?current_dates=$formattedDate&Fieldwarkarnumber=$number"
+          )),
+          http.get(Uri.parse(
+              "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_for_admin.php"
+                  "?current_dates=$formattedDate&Fieldwarkarnumber=$number"
+          )),
         ]);
 
         // Agreements
@@ -641,6 +850,22 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             }),
           );
         }
+        // ✅ Accepted Agreements (Admin)
+        if (responses[4].statusCode == 200 && responses[4].body.isNotEmpty) {
+          final acc = AdminAcceptedAgreementResponse.fromRawJson(responses[4].body);
+          acceptedAgreements.addAll(acc.data);
+        }
+// ✅ Pending Agreements (Admin)
+        if (responses[5].statusCode == 200 && responses[5].body.isNotEmpty) {
+          debugPrint("🟠 Pending Agreements Count: ${_pendingAgreements.length}");
+
+          final p =
+          AdminPendingAgreementResponse.fromRawJson(responses[5].body);
+
+          _pendingAgreements.addAll(p.data);
+        }
+
+
       }
 
       if (!mounted) return;
@@ -649,6 +874,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         final cleanDate = DateTime(date.year, date.month, date.day);
         final hasEvent =
             agreements.isNotEmpty ||
+                acceptedAgreements.isNotEmpty ||
+                _pendingAgreements.isNotEmpty ||
                 futureProps.isNotEmpty ||
                 adminAddFlat.isNotEmpty ||
                 websiteVisits.isNotEmpty;
@@ -662,8 +889,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             .map((e) => e["data"] as AdminAddFlat)
             .toList();
 
-
-
+        _acceptedAgreements = acceptedAgreements;
 
         // Save worker names (so we can use them in cards)
         _agreementWorkerNames =
@@ -680,6 +906,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       if (!mounted) return;
       setState(() {
         _agreements = [];
+        _acceptedAgreements=[];
+        _pendingAgreements=[];
         _futureProperties = [];
         _websiteVisits = [];
         _addFlats=[];
@@ -847,7 +1075,127 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
     if (mounted) setState(() {});
   }
-// Enhanced Add Flat Card
+  Widget _buildPendingAgreementCard(
+      AdminPendingAgreement t,
+      bool isDark,
+      ) {
+    final statusColor = Colors.orange;
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                AdminAgreementDetails(agreementId: t.id.toString()),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            )
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// HEADER
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: statusColor.withOpacity(0.12),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    t.agreementType,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          "Pending",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        t.fieldWorkerName,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : Colors.indigo,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            /// BODY
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildInfoRow(
+                    icon: PhosphorIcons.user,
+                    title: "Owner",
+                    value: t.ownerName,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    icon: PhosphorIcons.users,
+                    title: "Tenant",
+                    value: t.tenantName,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    icon: PhosphorIcons.map_pin,
+                    title: "Address",
+                    value: t.rentedAddress,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Enhanced Add Flat Card
   Widget _buildAddFlatCard(AdminAddFlat f, bool isDark) {
     final statusColor = _getLiveUnliveColor(f.liveUnlive);
 
@@ -1012,6 +1360,113 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         return Colors.grey;
     }
   }
+  Widget _buildAcceptedAgreementCard(
+      AdminAcceptedAgreement t, bool isDark) {
+    final statusColor = Colors.green;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.08),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.12),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  t.agreementType,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: statusColor,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        "Accepted",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      t.fieldWorkerName,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isDark ? Colors.white : Colors.indigo,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildInfoRow(
+                  icon: PhosphorIcons.user,
+                  title: "Owner",
+                  value: t.ownerName,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                  icon: PhosphorIcons.users,
+                  title: "Tenant",
+                  value: t.tenantName,
+                  isDark: isDark,
+                ),
+                const SizedBox(height: 8),
+                _buildInfoRow(
+                  icon: PhosphorIcons.map_pin,
+                  title: "Address",
+                  value: t.rentedAddress,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // Enhanced Agreement Card with better design
   Widget _buildAgreementCard(AgreementTask t, bool isDark, String workerName) {
     Color statusColor = _getStatusColor(t.status);
@@ -1488,44 +1943,6 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     );
   }
 
-  // Helper widget for detail chips
-  Widget _buildDetailChip({
-    required IconData icon,
-    required String text,
-    required bool isDark,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 12,
-            color: isDark ? Colors.white60 : Colors.grey.shade600,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
       case 'completed':
@@ -1606,6 +2023,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     );
   }
 
+  CalendarFormat _calendarFormat = CalendarFormat.month;
+  String _calendarView = "Month";
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1669,6 +2089,30 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
             tooltip: "Refresh",
           ),
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              setState(() {
+                _calendarView = value;
+                _calendarFormat =
+                value == "Month" ? CalendarFormat.month : CalendarFormat.week;
+              });
+            },
+            itemBuilder: (_) => const [
+              PopupMenuItem(value: "Month", child: Text("Month")),
+              PopupMenuItem(value: "Week", child: Text("Week")),
+            ],
+            child: Row(
+              children: [
+                Text(
+                  _calendarView,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const Icon(Icons.arrow_drop_down),
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
+
         ],
       ),
       body: Column(
@@ -1693,21 +2137,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 children: [
                   // Full Month Calendar
                   TableCalendar(
-                    focusedDay: DateTime(
-                      _focusedDay.year,
-                      _focusedDay.month,
-                      _focusedDay.day,
-                      _eventDays.length,
-                    ),
+                    focusedDay: _focusedDay,
                     firstDay: DateTime(2023),
                     lastDay: DateTime(2030),
                     selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    calendarFormat: CalendarFormat.month,
+                    calendarFormat: _calendarFormat,
                     headerVisible: false,
-                    eventLoader: (day) {
-                      final clean = DateTime(day.year, day.month, day.day);
-                      return _eventDays[clean] == true ? ["event"] : [];
-                    },
+                    daysOfWeekVisible: _calendarFormat == CalendarFormat.month,
+                    rowHeight: _calendarFormat == CalendarFormat.week ? 80 : 48,
 
                     daysOfWeekStyle: DaysOfWeekStyle(
                       weekdayStyle: TextStyle(
@@ -1718,56 +2155,47 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                         fontWeight: FontWeight.w600,
                         color: Colors.red.shade400,
                       ),
+                    ), calendarStyle: CalendarStyle(
+                    todayDecoration: BoxDecoration(
+                      color: Colors.orange.shade400,
+                      shape: BoxShape.circle,
                     ),
-                    calendarStyle: CalendarStyle(
-                      todayDecoration: BoxDecoration(
-                        color: Colors.orange.shade400,
-                        shape: BoxShape.circle,
-                      ),
-                      selectedDecoration: BoxDecoration(
-                        color: Colors.indigo.shade400,
-                        shape: BoxShape.circle,
-                      ),
+                    selectedDecoration: BoxDecoration(
+                      color: Colors.indigo.shade400,
+                      shape: BoxShape.circle,
+                    ), defaultTextStyle: TextStyle(
+                    fontSize: 14,
+                    color: isDark ? Colors.white : Colors.grey.shade900,
+                  ),
+                    weekendTextStyle: TextStyle(
+                      fontSize: 14,
+                      color: Colors.red.shade400,
+                    ),
+                  ),
+                    calendarBuilders: CalendarBuilders(
+                      defaultBuilder: (context, day, focusedDay) {
+                        return _calendarFormat == CalendarFormat.week
+                            ? _weekDayTile(day, false)
+                            : null;
+                      },
 
-                      // ⭐ DOT INDICATOR ⭐
-                      markersMaxCount: 1,
-                      markerDecoration: const BoxDecoration(
-                        color: Colors.indigo,
-                        shape: BoxShape.circle,
-                      ),
-                      markersAlignment: Alignment.bottomCenter,
+                      selectedBuilder: (context, day, focusedDay) {
+                        return _calendarFormat == CalendarFormat.week
+                            ? _weekDayTile(day, true)
+                            : null;
+                      },
                     ),
+
                     onDaySelected: (selected, focused) {
                       setState(() {
                         _selectedDay = selected;
                         _focusedDay = focused;
-                        _selectedMonth = focused.month;
-                        _selectedYear = focused.year;
                       });
                       _fetchData(selected);
                     },
+
                     onPageChanged: (focused) {
-                      setState(() {
-                        _focusedDay = focused;
-                        _selectedMonth = focused.month;
-                        _selectedYear = focused.year;
-                      });
-
-                      // 🔥 Fetch dots for entire month instantly
-                      if (mounted) {
-                        setState(() {}); // update event days
-
-                        // 🔥 Force refresh table calendar so markers appear immediately
-                        Future.microtask(() {
-                          setState(() {
-                            _focusedDay = DateTime(
-                              _focusedDay.year,
-                              _focusedDay.month,
-                              _focusedDay.day,
-                            );
-                          });
-                        });
-                      }
+                      _focusedDay = focused;
                     },
                   ),
                 ],
@@ -1793,6 +2221,37 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       _agreements[i],
                       isDark,
                       _agreementWorkerNames[i],
+                    ),
+                  ),
+                  // ✅ Pending Agreements Section
+                  if (_pendingAgreements.isNotEmpty)
+                    _sectionTitle(
+                      "Pending Agreements",
+                      isDark,
+                      _pendingAgreements.length,
+                    ),
+
+                  ...List.generate(
+                    _pendingAgreements.length,
+                        (i) => _buildPendingAgreementCard(
+                      _pendingAgreements[i],
+                      isDark,
+                    ),
+                  ),
+
+                  // ✅ Accept Agreements Section
+                  if (_acceptedAgreements.isNotEmpty)
+                    _sectionTitle(
+                      "Accepted Agreements",
+                      isDark,
+                      _acceptedAgreements.length,
+                    ),
+
+                  ...List.generate(
+                    _acceptedAgreements.length,
+                        (i) => _buildAcceptedAgreementCard(
+                      _acceptedAgreements[i],
+                      isDark,
                     ),
                   ),
 
@@ -1850,5 +2309,50 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         ],
       ),
     );
+  }
+
+  Widget _weekDayTile(DateTime day, bool isSelected) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: 50,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        color: isSelected
+            ? Colors.blue
+            : (isDark ? Colors.transparent : Colors.transparent),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            _weekDayName(day),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.6, // 🔥 crisp text
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            day.day.toString(),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: isSelected
+                  ? Colors.white
+                  : (isDark ? Colors.white : Colors.black),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  String _weekDayName(DateTime date) {
+    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+    return days[date.weekday % 7];
   }
 }

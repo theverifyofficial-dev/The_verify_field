@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import '../Custom_Widget/constant.dart';
-import '../Home_Screen.dart';
 import 'NewDesginFieldWorkerPendingFlatsNew.dart';
 import 'NewDesgin_FieldWorker_Booking_Page_New.dart';
 import 'NewDesgin_FieldWorker_Complete_Page_New.dart';
@@ -58,10 +57,11 @@ class _AddRentedFlatTabbarNewState extends State<AddRentedFlatTabbarNew>
         leading: InkWell(
           onTap: () {
             if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
+              Navigator.pop(context);
             } else {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => Home_Screen()),
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                "/Home_Screen",
+                    (route) => false,
               );
             }
           },

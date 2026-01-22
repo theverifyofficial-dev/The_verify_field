@@ -460,14 +460,15 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
 
     return GestureDetector(
       onTap: () {
-        // ✅ WHOLE CARD NAVIGATION
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => PropertyDetailPageNew(propertyId: item.pId.toString()
+            builder: (_) => FieldWorkerBookingFinancialDetailPage(
+              propertyId: item.pId,
             ),
           ),
         );
+
       },
       child: Card(
         elevation: 2,
@@ -525,7 +526,7 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
                           children: [
                             Expanded(
                               child: Text(
-                                "${item.bhk} ${item.typeOfProperty ?? ""}",
+                                "${item.bhk} ${item.typeOfProperty}",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 14,
@@ -549,7 +550,7 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
 
                         /// LOCATION
                         Text(
-                          item.locations ?? "",
+                          item.locations,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -593,31 +594,50 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
 
               const SizedBox(height: 10),
 
-              /// ===== REMAINING ROW =====
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Column(
                 children: [
-                  const Text(
-                    "Remaining Balance",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  _amountRow("Rent", parseNum(item.rent)),
+                  _amountRow("Security", parseNum(item.security)),
+                  _amountRow("Tenant Commission", parseNum(item.commission)),
+
+                  _amountRow(
+                    "Advance Payment",
+                    -parseNum(item.advancePayment),
+                    amountColor: Colors.green,
                   ),
-                  Text(
-                    formatINR(remaining),
-                    style: const TextStyle(
-                      fontSize: 13,
-                      color: Colors.red,
-                      fontWeight: FontWeight.w700,
-                    ),
+
+                  /// ===== REMAINING ROW =====
+                  const SizedBox(height: 6),
+                  const Divider(height: 1),
+                  const SizedBox(height: 6),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "Remaining Balance",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        formatINR(remaining),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.red,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
+                  _amountRow("Owner Commission", parseNum(item.ownerSideCommission)),
+
                 ],
               ),
 
               const SizedBox(height: 14),
-
-              /// ===== CTA ROW =====
+              /// ===== REMAINING ROW =====
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
@@ -626,12 +646,10 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => FieldWorkerBookingFinancialDetailPage(
-                            propertyId: item.pId,
+                          builder: (_) => PropertyDetailPageNew(propertyId: item.pId.toString()
                           ),
                         ),
                       );
-
                     },
                     child: Container(
                       padding:
@@ -652,7 +670,7 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
                           ),
                           SizedBox(width: 6),
                           Text(
-                            "View Financial Details",
+                            "View Details",
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -676,6 +694,40 @@ class _NewDesginFieldWorkerBookingPageNewState extends State<NewDesginFieldWorke
         ),
       ),
     );
+  }
+  Widget _amountRow(
+      String title,
+      num amount, {
+        Color? amountColor,
+        bool isBold = false,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: isBold ? FontWeight.w600 : FontWeight.w500,
+              color: Colors.grey.shade400,
+            ),
+          ),
+          Text(
+            formatINR(amount), // ✅ formatting here
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
+              color: amountColor ?? Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  num parseNum(String? value) {
+    return num.tryParse(value ?? "0") ?? 0;
   }
 
   double remainingAmount(Property p) {

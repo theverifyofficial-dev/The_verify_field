@@ -1052,6 +1052,13 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
   int _safeSubId(dynamic v) {
     return int.tryParse(v?.toString() ?? '') ?? 0;
   }
+  double getOwnerTotalForSummary() {
+    // Owner Total = Total Amount - (Owner Commission + Tenant Commission)
+    final totalAmount = totalDue;
+    final totalCommission = commissionBothSide;
+
+    return (totalAmount - totalCommission).clamp(0, double.infinity);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1462,7 +1469,12 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
                       ],
                     ),
                   ),
-
+                  ValueListenableBuilder<int>(
+                    valueListenable: _calcTick,
+                    builder: (_, __, ___) {
+                      return _buildOverallPaymentSummaryCard();
+                    },
+                  ),
                   // Payment Process Steps
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -2397,7 +2409,138 @@ class _PropertyCalculateState extends State<PropertyCalculate> {
       ),
     );
   }
+  Widget _buildOverallPaymentSummaryCard() {
+    final ownerTotal = getOwnerTotalForSummary();
 
+
+    final officeTotal = companyCommissionTotal;
+
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: const [
+              Icon(Icons.account_balance, size: 18, color: Colors.blue),
+              SizedBox(width: 8),
+              Text(
+                "Overall Payment Summary",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+          const Divider(),
+
+          /// TENANT
+          _summaryBlock(
+            title: "Tenant",
+            total: totalDue,
+            paid: tenantPaid,
+            color: Colors.blue,
+          ),
+
+          /// OWNER
+          _summaryBlock(
+            title: "Owner",
+            total: ownerTotal,
+            paid: ownerReceivedTotal,
+            color: Colors.green,
+          ),
+
+          /// OFFICE
+          // _summaryBlock(
+          //   title: "Office",
+          //   total: officeTotal,
+          //   paid: companyKeepNow,
+          //   color: Colors.deepOrange,
+          // ),
+        ],
+      ),
+    );
+  }
+  Widget _summaryBlock({
+    required String title,
+    required double total,
+    required double paid,
+    required Color color,
+  }) {
+    final remaining = (total - paid).clamp(0, double.infinity);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          _summaryLine("Total", total),
+          _summaryLine("Paid", paid, valueColor: Colors.green),
+          _summaryLine("Remaining", remaining.toDouble(), valueColor: Colors.red),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryLine(
+      String label,
+      double value, {
+        Color? valueColor,
+      }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            _inr(value),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: valueColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
   Widget _exactHeader(Property? p) {
     return Stack(
       children: [

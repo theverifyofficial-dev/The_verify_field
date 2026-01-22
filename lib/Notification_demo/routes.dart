@@ -6,7 +6,6 @@ import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import '../Add_Rented_Flat_New/Add_Rented_Flat_Tabbar_New.dart';
 import '../Administrator/Admin_future _property/Administater_Future_Property.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
-import '../Administrator/Administator_Add_Rented_Flat_Tabbar.dart' hide AdministatorAddRentedFlatTabbar;
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
 import '../Administrator/Administator_Realestate.dart';
 import '../Administrator/Administrator_HomeScreen.dart';
@@ -68,7 +67,7 @@ class Routes {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>? ?? {};
 
       return AddRentedFlatTabbarNew(
-        tabIndex: args["tabIndex"] ?? 2,
+        tabIndex: args["tabIndex"] ?? 1,
       );
     },
 
@@ -124,15 +123,15 @@ class Routes {
     },
 
     // 🔥 NEW — Admin Rented Flat Tabbar (Booking/Pending/Complete)
-    // administaterAddRentedFlatTabbar: (context) {
-    //   final args = ModalRoute.of(context)?.settings.arguments as Map? ?? {};
-    //
-    //   return AdministatorAddRentedFlatTabbar(
-    //     fromNotification: args["fromNotification"] ?? false,
-    //     flatId: args["propertyId"]?.toString(),
-    //     tabIndex: args["tabIndex"] ?? 0,
-    //   );
-    // },
+    administaterAddRentedFlatTabbar: (context) {
+      final args = ModalRoute.of(context)?.settings.arguments as Map? ?? {};
+
+      return AdministatorAddRentedFlatTabbar(
+        fromNotification: args["fromNotification"] ?? false,
+        flatId: args["propertyId"]?.toString(),
+        tabIndex: args["tabIndex"] ?? 0,
+      );
+    },
     subAdminDemandDetail: (context) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>;
       return SubDemandDetails(

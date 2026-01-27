@@ -226,6 +226,8 @@ class _View_DetailsState extends State<View_Details> {
   }
 
   Future<List<Catid>> fetchData(int id) async {
+    print("live detail page id: ${id}");
+    print("live detail page id: ${widget.id}");
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/display_api_for_details_page_in_main_realestate.php?P_id=$id",
     );

@@ -102,6 +102,16 @@ String formatAmount(String? amount) {
   return 'Rs. $intVal /- ( $words RUPEES )';
 }
 
+String maskIdNumber(String value) {
+  final digits = value.replaceAll(RegExp(r'\D'), '');
+
+  if (digits.length < 4) return value;
+
+  // Mask all except last 3 digits
+  final maskedLength = digits.length - 3;
+  return 'X' * maskedLength + digits.substring(digits.length - 3);
+}
+
 /// Safe extraction: returns data[key] if present and not empty; otherwise returns fallback + ' (static)'
 String safeString(Map<String, dynamic> data, String key, String fallback) {
   final v = data[key];
@@ -170,6 +180,9 @@ String getDayWithSuffix(int day) {
 Future<File> generateFurnishedAgreementPdf(Map<String, dynamic> data) async {
   final pdf = pw.Document();
 
+  final bool hideAgreement =
+  data['is_agreement_hide']?.toString() == '1';
+
   // --- helper for clause formatting
   pw.Widget clause(String heading, List<pw.InlineSpan> spans) {
     return pw.Padding(
@@ -190,9 +203,7 @@ Future<File> generateFurnishedAgreementPdf(Map<String, dynamic> data) async {
 
   // --- Safe extracts
   final ownerName = safeString(data, 'owner_name', 'SWAVEN REALTY PRIVATE LIMITED');
-  final ownerAadhaar = safeString(data, 'owner_addhar_no', '');
   final tenantName = safeString(data, 'tenant_name', 'PULKIT SATYARTHI');
-  final tenantAadhaar = safeString(data, 'tenant_addhar_no', '482251509660');
   final tenantRelation = safeString(data, 'tenant_relation', 'S/O');
   final tenantRelationPerson = safeString(data, 'relation_person_name_tenant', '');
   final tenantPermAddress = safeString(data, 'permanent_address_tenant', 'JAWAHAR JYOTI BERI ...');
@@ -229,6 +240,17 @@ Future<File> generateFurnishedAgreementPdf(Map<String, dynamic> data) async {
   final baseStyle = pw.TextStyle(fontSize: 11, height: 1.18);
   final boldStyle = pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, height: 1.18);
   final titleStyle = pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold);
+
+  final rawOwnerAadhaar =
+  safeString(data, 'owner_addhar_no', '297374997337');
+  final rawTenantAadhaar =
+  safeString(data, 'tenant_addhar_no', '100288377394');
+
+  final ownerAadhaar =
+  hideAgreement ? maskIdNumber(rawOwnerAadhaar) : rawOwnerAadhaar;
+
+  final tenantAadhaar =
+  hideAgreement ? maskIdNumber(rawTenantAadhaar) : rawTenantAadhaar;
 
   // --- Furniture parsing
   Map<String, dynamic> furnitureMap = {};

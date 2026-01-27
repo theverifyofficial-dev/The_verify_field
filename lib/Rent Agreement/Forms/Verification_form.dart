@@ -26,6 +26,9 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
   final PageController _pageController = PageController();
   int _currentStep = 0;
 
+  bool isAgreementHide = false; // 🔐 privacy toggle
+
+
   // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
   final ownerName = TextEditingController();
@@ -110,6 +113,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
   String _name = '';
   bool _userLoaded = false;
 
+
   String? ownerAadharFrontUrl;
   String? ownerAadharBackUrl;
   String? tenantAadharFrontUrl;
@@ -163,6 +167,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
           tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
           tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
           tenantPhotoUrl       = data["tenant_image"] ?? "";
+          isAgreementHide = data["is_agreement_hide"] == "1";
         });
       } else {
         debugPrint("⚠️ No agreement data found");
@@ -420,6 +425,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
         "rented_address": propertyAddress.text,
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "is_agreement_hide": isAgreementHide ? "1" : "0",
         "agreement_type": "Police Verification",
       };
 
@@ -543,6 +549,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
         "rented_address": propertyAddress.text,
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
+        "is_agreement_hide": isAgreementHide ? "1" : "0",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -1478,6 +1485,31 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
           _kv('Property Address', propertyAddress.text),
             ],
           ),
+
+        const SizedBox(height: 12),
+
+        CheckboxListTile(
+          value: isAgreementHide,
+          onChanged: (v) {
+            setState(() {
+              isAgreementHide = v ?? false;
+            });
+          },
+          title: const Text(
+            'Hide Aadhaar',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          subtitle: const Text(
+            'Aadhaar images & number will be hidden in agreement PDF',
+            style: TextStyle(fontSize: 12,color: Colors.black),
+          ),
+          activeColor: Colors.redAccent,
+          checkColor: Colors.white,
+        ),
+
 
         const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),

@@ -1,3 +1,4 @@
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
@@ -25,6 +26,9 @@ class ExternalWizardPage extends StatefulWidget {
 class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProviderStateMixin {
   final PageController _pageController = PageController();
   int _currentStep = 0;
+
+  bool isAgreementHide = false; // 🔐 privacy toggle
+
 
   // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
@@ -213,6 +217,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
           tenantAadharFrontUrl = data["tenant_aadhar_front"] ?? "";
           tenantAadharBackUrl  = data["tenant_aadhar_back"] ?? "";
           tenantPhotoUrl       = data["tenant_image"] ?? "";
+          isAgreementHide = data["is_agreement_hide"] == "1";
+
         });
         // 🔁 Recalculate agreement price AFTER state restore
         updateAgreementPrice();
@@ -565,6 +571,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "agreement_price": Agreement_price.text ?? "150",
         "notary_price": Notary_price ?? '10 rupees',
         "is_Police": isPolice,
+        "is_agreement_hide": isAgreementHide ? "1" : "0",
         "agreement_type": "External Rental Agreement",
       };
 
@@ -698,6 +705,8 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "agreement_price": Agreement_price.text,
         "is_Police": isPolice,
         "notary_price": Notary_price ?? '10 rupees',
+        "is_agreement_hide": isAgreementHide ? "1" : "0",
+
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -1933,6 +1942,30 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
             foregroundColor: Colors.blue, // text color
           ), child: const Text('Edit'))])
         ]),
+        const SizedBox(height: 12),
+
+        CheckboxListTile(
+          value: isAgreementHide,
+          onChanged: (v) {
+            setState(() {
+              isAgreementHide = v ?? false;
+            });
+          },
+          title: const Text(
+            'Hide Aadhaar',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          subtitle: const Text(
+            'Aadhaar images & number will be hidden in agreement PDF',
+            style: TextStyle(fontSize: 12,color: Colors.black),
+          ),
+          activeColor: Colors.redAccent,
+          checkColor: Colors.white,
+        ),
+
         const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
       ]),

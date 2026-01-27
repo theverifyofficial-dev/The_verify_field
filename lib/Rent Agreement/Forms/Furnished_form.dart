@@ -28,6 +28,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
 
   bool isPropertyFetched = false;
 
+  bool isAgreementHide = false; // 🔐 privacy toggle
 
   // Form keys & controllers
   final _ownerFormKey = GlobalKey<FormState>();
@@ -192,6 +193,8 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
           Agreement_price.text = data["agreement_price"] ?? "";
           // 🔹 Police verification (IMPORTANT)
           isPolice = data["is_Police"] == "true";
+          isAgreementHide = data["is_agreement_hide"] == "1";
+
 
 
           _selectedFurniture = data['furniture'] != null
@@ -519,6 +522,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
         "agreement_price": Agreement_price.text ?? "150",
         "notary_price": Notary_price ?? '10 rupees',
         "is_Police": isPolice,
+        "is_agreement_hide": isAgreementHide ? "1" : "0",
 
       };
 
@@ -657,6 +661,7 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
         "notary_price": Notary_price ?? '10 rupees',
         "is_Police": isPolice,
         "property_id": propertyID.text,
+        "is_agreement_hide": isAgreementHide ? "1" : "0",
       };
 
       request.fields.addAll(textFields.map((k, v) => MapEntry(k, (v ?? '').toString())));
@@ -2544,6 +2549,30 @@ class _RentalWizardPageState extends State<FurnishedForm> with TickerProviderSta
             foregroundColor: Colors.red, // text color
           ), child: const Text('Edit'))])
         ]),
+        const SizedBox(height: 12),
+
+        CheckboxListTile(
+          value: isAgreementHide,
+          onChanged: (v) {
+            setState(() {
+              isAgreementHide = v ?? false;
+            });
+          },
+          title: const Text(
+            'Hide Aadhaar',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.black,
+            ),
+          ),
+          subtitle: const Text(
+            'Aadhaar images & number will be hidden in agreement PDF',
+            style: TextStyle(fontSize: 12,color: Colors.black),
+          ),
+          activeColor: Colors.redAccent,
+          checkColor: Colors.white,
+        ),
+
         const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
       ]),

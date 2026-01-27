@@ -1,4 +1,3 @@
-// calendar_task_page.dart
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,12 +6,13 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:verify_feild_worker/Calender/CalenderForFieldWorker.dart';
-import 'package:verify_feild_worker/Rent%20Agreement/history_agreement/Accept_agreement.dart';
-
+import 'package:verify_feild_worker/Administrator/New_TenandDemand/Admin_demand_detail.dart';
 import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
+import '../Administrator/Administater_Realestate_Details.dart';
 import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
+import '../Administrator/Administator_Agreement/Sub/Accepted_details.dart';
+import 'CalenderForFieldWorker.dart';
 
 
 class AgreementTaskResponse {
@@ -150,13 +150,18 @@ class AgreementTask {
       securityAmount: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
       maintenance: json['maintaince'] ?? '',
-      shiftingDate: json['shifting_date'] ?? '',
+      shiftingDate: json['shifting_date'] is Map
+          ? json['shifting_date']['date'] ?? ''
+          : json['shifting_date']?.toString() ?? '',
+
+      currentDate: json['current_dates'] is Map
+          ? json['current_dates']['date'] ?? ''
+          : json['current_dates']?.toString() ?? '',
       bhk: json['Bhk'] ?? '',
       floor: json['floor'] ?? '',
       parking: json['parking'] ?? '',
       agreementType: json['agreement_type'] ?? '',
       status: json['status'] ?? '',
-      currentDate: json['current_dates'] ?? '',
       propertyId: json['property_id'] ?? '',
 
       // FIELD WORKER
@@ -666,13 +671,18 @@ class AdminPendingAgreement {
       security: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
       maintenance: json['maintaince'] ?? '',
-      shiftingDate: json['shifting_date'] ?? '',
+      shiftingDate: json['shifting_date'] is Map
+          ? json['shifting_date']['date'] ?? ''
+          : json['shifting_date']?.toString() ?? '',
+
+      currentDate: json['current_dates'] is Map
+          ? json['current_dates']['date'] ?? ''
+          : json['current_dates']?.toString() ?? '',
       bhk: json['Bhk'] ?? '',
       floor: json['floor'] ?? '',
       parking: json['parking'] ?? '',
       agreementType: json['agreement_type'] ?? '',
       status: json['status'] ?? 'pending',
-      currentDate: json['current_dates'] ?? '',
 
       fieldWorkerName: json['Fieldwarkarname'] ?? '',
       fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
@@ -697,7 +707,6 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   Map<DateTime, bool> _eventDays = {};
   List<AdminAcceptedAgreement> _acceptedAgreements = [];
   List<AdminPendingAgreement> _pendingAgreements = [];
-  List<String> _pendingAgreementWorkerNames = [];
 
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
@@ -724,18 +733,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     _selectedDay = _focusedDay;
     _selectedYear = _focusedDay.year;
     _selectedMonth = _focusedDay.month;
+
     _initUserAndFetch();
 
-    // fetch after first frame so inherited widgets are available
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData(_focusedDay);
-      loadUserName();
-      _fetchMonthlyEvents(_selectedYear, _selectedMonth).then((_) {
-        if (mounted) setState(() {});
-      });
-
+      _fetchMonthlyEvents(_selectedYear, _selectedMonth);
     });
   }
+
   Future<void> _initUserAndFetch() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
@@ -771,150 +776,143 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
   String _monthName(int m) => _months[m - 1];
   List<WebsiteVisit> _websiteVisits = [];
-  List<String> _agreementWorkerNames = [];
-  List<String> _futurePropertyWorkerNames = [];
-  List<String> _websiteVisitWorkerNames = [];
   List<AdminAddFlat> _addFlats = [];
   List<AdminAcceptedAgreement> acceptedAgreements = [];
+  List<TenantDemand> _adminTenantDemands = [];
+  List<LiveFlat> _adminLiveProperties = [];
 
   Future<void> _fetchData(DateTime date) async {
+    if (_isLoading) return;
     setState(() => _isLoading = true);
+
+    _agreements.clear();
+    _acceptedAgreements.clear();
+    _pendingAgreements.clear();
+    _futureProperties.clear();
+    _websiteVisits.clear();
+    _addFlats.clear();
+
+    // 🔥 NEW
+    _adminTenantDemands.clear();
+    _adminLiveProperties.clear();
 
     final formattedDate =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
-    // ✅ Fieldworkers info
-    final fieldworkers = [
-      {"name": "Sumit", "number": "9711775300"},
-      {"name": "Ravi", "number": "9711275300"},
-      {"name": "Faizan", "number": "9971172204"},
-    ];
-
-    // Temporary combined lists
-    List<Map<String, dynamic>> agreements = [];
-    List<Map<String, dynamic>> futureProps = [];
-    List<Map<String, dynamic>> websiteVisits = [];
-    List<Map<String, dynamic>> adminAddFlat = [];
-    List<AdminAcceptedAgreement> acceptedAgreements = [];
-
     try {
-      for (final worker in fieldworkers) {
-        final number = worker["number"];
-        final name = worker["name"];
+      // ===================== AGREEMENTS =====================
 
-        final responses = await Future.wait([
-          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$formattedDate")),
-          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate")),
-          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate")),
-          http.get(Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate")),
-          http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_for_admin.php"
-                  "?current_dates=$formattedDate&Fieldwarkarnumber=$number"
-          )),
-          http.get(Uri.parse(
-              "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_for_admin.php"
-                  "?current_dates=$formattedDate&Fieldwarkarnumber=$number"
-          )),
-        ]);
+      final agreementRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$formattedDate"));
 
-        // Agreements
-        if (responses[0].statusCode == 200 && responses[0].body.isNotEmpty) {
-          final a = AgreementTaskResponse.fromRawJson(responses[0].body);
-          agreements.addAll(
-            a.data.map((e) => {"workerName": name, "data": e}),
-          );
-        }
-
-        // Future Properties
-        if (responses[1].statusCode == 200 && responses[1].body.isNotEmpty) {
-          final f = FuturePropertyResponse.fromRawJson(responses[1].body);
-          futureProps.addAll(
-            f.data.map((e) => {"workerName": name, "data": e}),
-          );
-        }
-
-        // Website Visits
-        if (responses[2].statusCode == 200 && responses[2].body.isNotEmpty) {
-          final w = WebsiteVisitResponse.fromRawJson(responses[2].body);
-          websiteVisits.addAll(
-            w.data.map((e) => {"workerName": name, "data": e}),
-          );
-        }
-        // Admin Add Flat
-        if (responses[3].statusCode == 200 && responses[3].body.isNotEmpty) {
-          final addFlatRes = AddFlatResponse.fromRawJson(responses[3].body);
-
-          adminAddFlat.addAll(
-            addFlatRes.data.map((e) => {
-              "data": e,
-            }),
-          );
-        }
-        // ✅ Accepted Agreements (Admin)
-        if (responses[4].statusCode == 200 && responses[4].body.isNotEmpty) {
-          final acc = AdminAcceptedAgreementResponse.fromRawJson(responses[4].body);
-          acceptedAgreements.addAll(acc.data);
-        }
-// ✅ Pending Agreements (Admin)
-        if (responses[5].statusCode == 200 && responses[5].body.isNotEmpty) {
-          debugPrint("🟠 Pending Agreements Count: ${_pendingAgreements.length}");
-
-          final p =
-          AdminPendingAgreementResponse.fromRawJson(responses[5].body);
-
-          _pendingAgreements.addAll(p.data);
-        }
-
-
+      if (agreementRes.statusCode == 200 && agreementRes.body.isNotEmpty) {
+        _agreements =
+            AgreementTaskResponse.fromJson(jsonDecode(agreementRes.body)).data;
       }
 
-      if (!mounted) return;
+      final acceptedRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_for_admin.php?current_dates=$formattedDate"));
 
-      setState(() {
-        final cleanDate = DateTime(date.year, date.month, date.day);
-        final hasEvent =
-            agreements.isNotEmpty ||
-                acceptedAgreements.isNotEmpty ||
-                _pendingAgreements.isNotEmpty ||
-                futureProps.isNotEmpty ||
-                adminAddFlat.isNotEmpty ||
-                websiteVisits.isNotEmpty;
+      if (acceptedRes.statusCode == 200 && acceptedRes.body.isNotEmpty) {
+        _acceptedAgreements =
+            AdminAcceptedAgreementResponse.fromJson(jsonDecode(acceptedRes.body))
+                .data;
+      }
 
-        _eventDays[cleanDate] = hasEvent;
+      final pendingRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_for_admin.php?current_dates=$formattedDate"));
 
-        _agreements = agreements.map((e) => e["data"] as AgreementTask).toList();
-        _futureProperties = futureProps.map((e) => e["data"] as FutureProperty).toList();
-        _websiteVisits = websiteVisits.map((e) => e["data"] as WebsiteVisit).toList();
-        _addFlats = adminAddFlat
-            .map((e) => e["data"] as AdminAddFlat)
-            .toList();
+      if (pendingRes.statusCode == 200 && pendingRes.body.isNotEmpty) {
+        _pendingAgreements =
+            AdminPendingAgreementResponse.fromJson(jsonDecode(pendingRes.body))
+                .data;
+      }
 
-        _acceptedAgreements = acceptedAgreements;
+      // ================= FUTURE PROPERTIES =================
 
-        // Save worker names (so we can use them in cards)
-        _agreementWorkerNames =
-            agreements.map((e) => e["workerName"] as String).toList();
-        _futurePropertyWorkerNames =
-            futureProps.map((e) => e["workerName"] as String).toList();
-        _websiteVisitWorkerNames =
-            websiteVisits.map((e) => e["workerName"] as String).toList();
+      final futureRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate"));
 
-        _isLoading = false;
-      });
-    } catch (e) {
-      debugPrint("❌ Exception fetching admin data: $e");
-      if (!mounted) return;
-      setState(() {
-        _agreements = [];
-        _acceptedAgreements=[];
-        _pendingAgreements=[];
-        _futureProperties = [];
-        _websiteVisits = [];
-        _addFlats=[];
-        _isLoading = false;
-      });
+      if (futureRes.statusCode == 200 && futureRes.body.isNotEmpty) {
+        _futureProperties =
+            FuturePropertyResponse.fromJson(jsonDecode(futureRes.body)).data;
+      }
+
+      // 🔒 Dedup
+      _futureProperties = {
+        for (final f in _futureProperties) f.id: f
+      }.values.toList();
+
+      // ================= WEBSITE VISITS =================
+
+      final fieldworkers = [
+        "9711775300",
+        "9711275300",
+        "9971172204",
+        "8130209217",
+        "9675383184",
+      ];
+
+      for (final number in fieldworkers) {
+        final webRes = await http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate&Fieldwarkarnumber=$number"));
+
+        if (webRes.statusCode == 200 && webRes.body.isNotEmpty) {
+          _websiteVisits.addAll(
+            WebsiteVisitResponse.fromJson(jsonDecode(webRes.body)).data,
+          );
+        }
+      }
+
+      // ================= 🔥 ADMIN TENANT DEMANDS =================
+
+      final demandRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/tenant_demand_for_admin.php?Date=$formattedDate"));
+
+      debugPrint("🟢 ADMIN DEMAND RAW: ${demandRes.body}");
+
+      if (demandRes.statusCode == 200 && demandRes.body.isNotEmpty) {
+        final decoded = jsonDecode(demandRes.body);
+        if (decoded['status'] == 'success' && decoded['data'] is List) {
+          _adminTenantDemands =
+              TenantDemandResponse.fromJson(decoded).data;
+        }
+      }
+
+      // ================= 🔥 ADMIN LIVE PROPERTIES =================
+
+      final liveRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/live_property_for_admin.php?date_for_target=$formattedDate"));
+
+      debugPrint("🟢 ADMIN LIVE RAW: ${liveRes.body}");
+
+      if (liveRes.statusCode == 200 && liveRes.body.isNotEmpty) {
+        final decoded = jsonDecode(liveRes.body);
+        if (decoded['status'] == 'success' && decoded['data'] is List) {
+          _adminLiveProperties = (decoded['data'] as List)
+              .map((e) => LiveFlat.fromJson(e))
+              .toList();
+        }
+      }
+
+      // ================= FINAL DEDUP =================
+
+      _agreements = {for (var a in _agreements) a.id: a}.values.toList();
+      _acceptedAgreements =
+          {for (var a in _acceptedAgreements) a.id: a}.values.toList();
+      _pendingAgreements =
+          {for (var p in _pendingAgreements) p.id: p}.values.toList();
+      _adminTenantDemands =
+          {for (var d in _adminTenantDemands) d.id: d}.values.toList();
+
+    } catch (e, s) {
+      debugPrint("❌ ADMIN FETCH ERROR: $e");
+      debugPrintStack(stackTrace: s);
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
+
   Future<void> _showMonthYearPicker(BuildContext context) async {
     int tempYear = _selectedYear;
     int tempMonth = _selectedMonth;
@@ -1074,24 +1072,343 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     }
 
     if (mounted) setState(() {});
+
   }
+
+  Widget _responsiveCard({
+    required Widget child,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        if (width >= 900) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: child,
+            ),
+          );
+        }
+
+        // Normal phone
+        if (width >= 600) {
+          return Center(
+            child: SizedBox(width: 520, child: child),
+          );
+        }
+
+        // Small phone
+        return child;
+      },
+    );
+  }
+
   Widget _buildPendingAgreementCard(
       AdminPendingAgreement t,
       bool isDark,
       ) {
     final statusColor = Colors.orange;
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                AdminAgreementDetails(agreementId: t.id.toString()),
+    return _responsiveCard(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  AdminAgreementDetails(agreementId: t.id.toString()),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              )
+            ],
           ),
-        );
-      },
-      child: Container(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// HEADER
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      t.agreementType,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Text(
+                            "Pending",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          t.fieldWorkerName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white : Colors.indigo,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+      
+              /// BODY
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow(
+                      icon: PhosphorIcons.user,
+                      title: "Owner",
+                      value: t.ownerName,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      icon: PhosphorIcons.users,
+                      title: "Tenant",
+                      value: t.tenantName,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      icon: PhosphorIcons.map_pin,
+                      title: "Address",
+                      value: t.rentedAddress,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Enhanced Add Flat Card
+  Widget _buildAddFlatCard(AdminAddFlat f, bool isDark) {
+    final statusColor = _getLiveUnliveColor(f.liveUnlive);
+
+    return _responsiveCard(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => Admin_underflat_futureproperty(
+                id: f.pId.toString(),
+                Subid: f.subId,
+              ),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.08),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+      
+              /// 🔹 HEADER (same as Agreement)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.12),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    /// Left title
+                    Expanded(
+                      child: Text(
+                        "Add Flat • ${f.flatNumber}",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white : Colors.black,
+                        ),
+                      ),
+                    ),
+      
+                    /// Status + Worker
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            f.liveUnlive,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          f.fieldWorkerName,
+                          style:  TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ?Colors.white:Colors.indigo
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+      
+              /// 🔹 CONTENT (info rows like Agreement)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+      
+                    _buildInfoRow(
+                      icon: PhosphorIcons.map_pin,
+                      title: "Location",
+                      value: f.location,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 8),
+      
+                    _buildInfoRow(
+                      icon: PhosphorIcons.house,
+                      title: "Address",
+                      value: f.apartmentAddress,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 8),
+      
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.bed,
+                            title: "BHK",
+                            value: f.bhk,
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.buildings,
+                            title: "Floor",
+                            value: "${f.floor} / ${f.totalFloor}",
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+      
+                    _buildInfoRow(
+                      icon: PhosphorIcons.currency_inr,
+                      title: "Price",
+                      value: "₹${f.showPrice}",
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+// Helper method for live/unlive status color
+  Color _getLiveUnliveColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'book':
+        return Colors.orange;
+      case 'live':
+        return Colors.green;
+      case 'unlive':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+  Widget _buildAcceptedAgreementCard(
+      AdminAcceptedAgreement t, bool isDark) {
+    final statusColor = Colors.green;
+
+    return _responsiveCard(
+      child: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) =>
+                    AcceptedDetails(agreementId: t.id.toString()),
+              ),
+            );
+          },
+          child:Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isDark ? Colors.grey.shade900 : Colors.white,
@@ -1107,7 +1424,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// HEADER
+            // Header
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -1137,7 +1454,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
-                          "Pending",
+                          "Accepted",
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -1159,8 +1476,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 ],
               ),
             ),
-
-            /// BODY
+      
+            // Content
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -1191,335 +1508,65 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Enhanced Add Flat Card
-  Widget _buildAddFlatCard(AdminAddFlat f, bool isDark) {
-    final statusColor = _getLiveUnliveColor(f.liveUnlive);
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => Admin_underflat_futureproperty(
-              id: f.pId.toString(),
-              Subid: f.subId,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            /// 🔹 HEADER (same as Agreement)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.12),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  /// Left title
-                  Expanded(
-                    child: Text(
-                      "Add Flat • ${f.flatNumber}",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ),
-
-                  /// Status + Worker
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: statusColor,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Text(
-                          f.liveUnlive,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        f.fieldWorkerName,
-                        style:  TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ?Colors.white:Colors.indigo
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            /// 🔹 CONTENT (info rows like Agreement)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-
-                  _buildInfoRow(
-                    icon: PhosphorIcons.map_pin,
-                    title: "Location",
-                    value: f.location,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 8),
-
-                  _buildInfoRow(
-                    icon: PhosphorIcons.house,
-                    title: "Address",
-                    value: f.apartmentAddress,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 8),
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.bed,
-                          title: "BHK",
-                          value: f.bhk,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.buildings,
-                          title: "Floor",
-                          value: "${f.floor} / ${f.totalFloor}",
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-
-                  _buildInfoRow(
-                    icon: PhosphorIcons.currency_inr,
-                    title: "Price",
-                    value: "₹${f.showPrice}",
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-// Helper method for live/unlive status color
-  Color _getLiveUnliveColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'book':
-        return Colors.orange;
-      case 'live':
-        return Colors.green;
-      case 'unlive':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-  Widget _buildAcceptedAgreementCard(
-      AdminAcceptedAgreement t, bool isDark) {
-    final statusColor = Colors.green;
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade900 : Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          )
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.12),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  t.agreementType,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: statusColor,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        "Accepted",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      t.fieldWorkerName,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.white : Colors.indigo,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Content
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildInfoRow(
-                  icon: PhosphorIcons.user,
-                  title: "Owner",
-                  value: t.ownerName,
-                  isDark: isDark,
-                ),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                  icon: PhosphorIcons.users,
-                  title: "Tenant",
-                  value: t.tenantName,
-                  isDark: isDark,
-                ),
-                const SizedBox(height: 8),
-                _buildInfoRow(
-                  icon: PhosphorIcons.map_pin,
-                  title: "Address",
-                  value: t.rentedAddress,
-                  isDark: isDark,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      )),
     );
   }
 
   // Enhanced Agreement Card with better design
-  Widget _buildAgreementCard(AgreementTask t, bool isDark, String workerName) {
-    Color statusColor = _getStatusColor(t.status);
+  Widget _buildAgreementCard(AgreementTask t, bool isDark) {
+    final statusColor = _getStatusColor(t.status);
 
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AdminAgreementDetails(agreementId: t.id.toString()),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
+    double font(BuildContext c, double base) {
+      final w = MediaQuery.of(c).size.width;
+      if (w < 360) return base - 2;
+      if (w > 600) return base + 1;
+      return base;
+    }
+
+    return _responsiveCard(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  AdminAgreementDetails(agreementId: t.id.toString()),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
                 color: Colors.black.withOpacity(0.08),
                 blurRadius: 12,
-                offset: const Offset(0, 4))
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with status and fieldworker
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: statusColor.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
+                offset: const Offset(0, 4),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-
-                  Text(
-                    t.agreementType,
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w600,
-                    ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🔹 HEADER (RESPONSIVE)
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
-                  Row(children: [
-                    Container(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                ),
+                child: LayoutBuilder(
+                  builder: (context, c) {
+                    final isNarrow = c.maxWidth < 360;
+
+                    final statusChip = Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusColor,
                         borderRadius: BorderRadius.circular(20),
@@ -1532,251 +1579,286 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                    ),
-                    SizedBox(width: 6,),
-                    Text(
+                    );
+
+                    final worker = Text(
                       t.fieldWorkerName,
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: font(context, 13),
                         fontWeight: FontWeight.w600,
-                          color: isDark ?Colors.white:Colors.indigo
+                        color: isDark ? Colors.white : Colors.indigo,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.agreementType,
+                          style: TextStyle(
+                            fontSize: font(context, 16),
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        isNarrow
+                            ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            statusChip,
+                            const SizedBox(height: 4),
+                            worker,
+                          ],
+                        )
+                            : Row(
+                          children: [
+                            statusChip,
+                            const SizedBox(width: 8),
+                            Expanded(child: worker),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+
+              // 🔹 CONTENT
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildInfoRow(
+                      icon: PhosphorIcons.user,
+                      title: "Owner",
+                      value: t.ownerName,
+                      isDark: isDark,
                     ),
-                  ],)
-
-                ],
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      icon: PhosphorIcons.users,
+                      title: "Tenant",
+                      value: t.tenantName,
+                      isDark: isDark,
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoRow(
+                      icon: PhosphorIcons.map_pin,
+                      title: "Address",
+                      value: t.rentedAddress,
+                      isDark: isDark,
+                    ),
+                  ],
+                ),
               ),
-            ),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow(
-                    icon: PhosphorIcons.user,
-                    title: "Owner",
-                    value: t.ownerName,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(
-                    icon: PhosphorIcons.users,
-                    title: "Tenant",
-                    value: t.tenantName,
-                    isDark: isDark,
-                  ),
-                  const SizedBox(height: 8),
-                  _buildInfoRow(
-                    icon: PhosphorIcons.map_pin,
-                    title: "Address",
-                    value: t.rentedAddress,
-                    isDark: isDark,
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   // Enhanced Future Property Card
-  Widget _buildFuturePropertyCard(FutureProperty f, bool isDark, String workerName) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => Administater_Future_Property_details(
-              buildingId: f.id.toString(),
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4)
-            )
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
+  Widget _buildFuturePropertyCard(FutureProperty f, bool isDark) {
+    return _responsiveCard(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => Administater_Future_Property_details(
+                buildingId: f.id.toString(),
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    PhosphorIcons.buildings,
-                    color: Colors.blue,
-                    size: 20,
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4)
+              )
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    topRight: Radius.circular(16),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      f.propertyNameAddress,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      PhosphorIcons.buildings,
+                      color: Colors.blue,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        f.propertyNameAddress,
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue,
-                      borderRadius: BorderRadius.circular(20),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        f.buyRent,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
-                    child: Text(
-                      f.buyRent,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
+                    SizedBox(width: 6,),
+                    Text(
+                      f.fieldWorkerName,
+                      style:  TextStyle(
+                        color: isDark ?Colors.white:Colors.indigo,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                  ),
-                  SizedBox(width: 6,),
-                  Text(
-                    f.fieldWorkerName,
-                    style:  TextStyle(
-                      color: isDark ?Colors.white:Colors.indigo,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-
-                ],
+      
+                  ],
+                ),
               ),
-            ),
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Location & Type
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.map_pin,
-                          title: "Location",
-                          value: f.place,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.house,
-                          title: "Type",
-                          value: f.residenceType,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Metro & Floors
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.train,
-                          title: "Metro",
-                          value: "${f.metroName} (${f.metroDistance})",
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.star_fill,
-                          title: "Floors",
-                          value: f.totalFloor,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Caretaker
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.user,
-                          title: "Caretaker",
-                          value: f.caretakerName,
-                          isDark: isDark,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildInfoRow(
-                          icon: PhosphorIcons.phone,
-                          title: "Contact",
-                          value: f.caretakerNumber,
-                          isDark: isDark,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // Facilities
-                  if (f.facility.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Location & Type
+                    Row(
                       children: [
-                        Text(
-                          "Facilities:",
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : Colors.grey.shade800,
-                            fontSize: 13,
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.map_pin,
+                            title: "Location",
+                            value: f.place,
+                            isDark: isDark,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          f.facility,
-                          style: TextStyle(
-                            color: isDark ? Colors.white60 : Colors.grey.shade600,
-                            fontSize: 13,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.house,
+                            title: "Type",
+                            value: f.residenceType,
+                            isDark: isDark,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
-                ],
+      
+                    const SizedBox(height: 12),
+      
+                    // Metro & Floors
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.train,
+                            title: "Metro",
+                            value: "${f.metroName} (${f.metroDistance})",
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.star_fill,
+                            title: "Floors",
+                            value: f.totalFloor,
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ),
+      
+                    const SizedBox(height: 12),
+      
+                    // Caretaker
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.user,
+                            title: "Caretaker",
+                            value: f.caretakerName,
+                            isDark: isDark,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildInfoRow(
+                            icon: PhosphorIcons.phone,
+                            title: "Contact",
+                            value: f.caretakerNumber,
+                            isDark: isDark,
+                          ),
+                        ),
+                      ],
+                    ),
+      
+                    const SizedBox(height: 12),
+      
+                    // Facilities
+                    if (f.facility.isNotEmpty)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Facilities:",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: isDark ? Colors.white70 : Colors.grey.shade800,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            f.facility,
+                            style: TextStyle(
+                              color: isDark ? Colors.white60 : Colors.grey.shade600,
+                              fontSize: 13,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -1828,116 +1910,118 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     );
   }
 
-  Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark, String workerName) {
-    return GestureDetector(
-      onTap: () async {
-        final Uri url = Uri.parse("https://theverify.in/details.html?id=${w.subid}");
-        if (await canLaunchUrl(url)) {
-          await launchUrl(url, mode: LaunchMode.externalApplication);
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Could not open link."),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 3),
-            )
-          ],
-        ),
-        padding: const EdgeInsets.all(12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Text(
-                    w.name,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
-                      fontSize: 15,
-                    ),
-                  ),
-                ),
-                Text(
-                  w.time,
-                  style: TextStyle(
-                    color: Colors.indigo,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
-                ),
-                SizedBox(width: 6,),
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.blue,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    w.fieldWorkerName,
-                    style:  TextStyle(
-                      color: isDark ?Colors.white:Colors.indigo,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              "Contact: ${w.contactNo}",
-              style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey.shade800),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              w.message,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                  color: isDark ? Colors.white60 : Colors.grey.shade700),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Date: ${w.date}",
-                  style: TextStyle(
-                      color: isDark ? Colors.white54 : Colors.grey.shade600,
-                      fontSize: 12),
-                ),
-                Row(
-                  children: [
-                    const Icon(Icons.link, size: 16, color: Colors.indigo),
-                    const SizedBox(width: 4),
-                    Text(
-                      "Open",
+  Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
+    return _responsiveCard(
+      child: GestureDetector(
+        onTap: () async {
+          final Uri url = Uri.parse("https://theverify.in/details.html?id=${w.subid}");
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text("Could not open link."),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 6,
+                offset: const Offset(0, 3),
+              )
+            ],
+          ),
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      w.name,
                       style: TextStyle(
-                          color: Colors.indigo, fontWeight: FontWeight.w600),
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontSize: 15,
+                      ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                  ),
+                  Text(
+                    w.time,
+                    style: TextStyle(
+                      color: Colors.indigo,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ),
+                  SizedBox(width: 6,),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      w.fieldWorkerName,
+                      style:  TextStyle(
+                        color: isDark ?Colors.white:Colors.indigo,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Contact: ${w.contactNo}",
+                style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.grey.shade800),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                w.message,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    color: isDark ? Colors.white60 : Colors.grey.shade700),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Date: ${w.date}",
+                    style: TextStyle(
+                        color: isDark ? Colors.white54 : Colors.grey.shade600,
+                        fontSize: 12),
+                  ),
+                  Row(
+                    children: [
+                      const Icon(Icons.link, size: 16, color: Colors.indigo),
+                      const SizedBox(width: 4),
+                      Text(
+                        "Open",
+                        style: TextStyle(
+                            color: Colors.indigo, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -2034,62 +2118,60 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     return Scaffold(
       backgroundColor: bg,
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         centerTitle: true,
+
+        // 🔹 TITLE: Month + Year (tap to open picker)
         title: GestureDetector(
           onTap: () => _showMonthYearPicker(context),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "${_monthName(_selectedMonth)} ${_selectedYear}",
-                style: TextStyle(
+                "${_monthName(_selectedMonth)} $_selectedYear",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.grey.shade900,
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_drop_down,
-                color: isDark ? Colors.white54 : Colors.grey.shade600,
-              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down, size: 22),
             ],
           ),
         ),
-        backgroundColor: isDark ? Colors.black : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black,
-        elevation: 0.5,
-        actions: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) {
-              final offsetAnimation = Tween<Offset>(
-                begin: const Offset(0, 0.3), // slide slightly upward
-                end: Offset.zero,
-              ).animate(animation);
-              return SlideTransition(
-                position: offsetAnimation,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-              );
-            },
+
+        // 🔹 SUBTITLE (Selected Day)
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(28),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              "${_selectedDay?.day ?? _focusedDay.day}, ${_monthName(_selectedMonth).substring(0, 3)}",
-              key: ValueKey("${_selectedDay?.day ?? _focusedDay.day}-${_selectedMonth}"),
+              _selectedDay != null
+                  ? "Selected: ${_selectedDay!.day} ${_monthName(_selectedMonth).substring(0, 3)}"
+                  : "",
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white60 : Colors.grey.shade600,
               ),
             ),
-          ) ,
+          ),
+        ),
 
+        // 🔹 ACTIONS
+        actions: [
+          // Refresh
           IconButton(
+            tooltip: "Refresh",
             icon: const Icon(PhosphorIcons.arrow_clockwise),
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
-            tooltip: "Refresh",
           ),
+
+          // Calendar View Switch
           PopupMenuButton<String>(
+            tooltip: "Calendar View",
             onSelected: (value) {
               setState(() {
                 _calendarView = value;
@@ -2098,64 +2180,65 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               });
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: "Month", child: Text("Month")),
-              PopupMenuItem(value: "Week", child: Text("Week")),
+              PopupMenuItem(value: "Month", child: Text("Month View")),
+              PopupMenuItem(value: "Week", child: Text("Week View")),
             ],
-            child: Row(
-              children: [
-                Text(
-                  _calendarView,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const Icon(Icons.arrow_drop_down),
-                const SizedBox(width: 8),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Text(
+                    _calendarView,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
             ),
           ),
-
         ],
       ),
-      body: Column(
-        children: [
-          // Full Calendar Section
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey.shade900 : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
+      body: _isLoading
+          ? const Center(
+        child: CircularProgressIndicator(color: Colors.indigo),
+      )
+          : RefreshIndicator(
+        onRefresh: () async =>
+            _fetchData(_selectedDay ?? _focusedDay),
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 20),
+          children: [
+            // 🔹 CALENDAR (NOW SCROLLABLE)
+            Container(
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey.shade900 : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4)
-                )
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 10),
-              child: Column(
-                children: [
-                  // Full Month Calendar
-                  TableCalendar(
-                    focusedDay: _focusedDay,
-                    firstDay: DateTime(2023),
-                    lastDay: DateTime(2030),
-                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    calendarFormat: _calendarFormat,
-                    headerVisible: false,
-                    daysOfWeekVisible: _calendarFormat == CalendarFormat.month,
-                    rowHeight: _calendarFormat == CalendarFormat.week ? 80 : 48,
-
-                    daysOfWeekStyle: DaysOfWeekStyle(
-                      weekdayStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.grey.shade100 : Colors.grey[700],
-                      ),
-                      weekendStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red.shade400,
-                      ),
-                    ), calendarStyle: CalendarStyle(
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: TableCalendar(
+                  focusedDay: _focusedDay,
+                  firstDay: DateTime(2023),
+                  lastDay: DateTime(2030),
+                  selectedDayPredicate: (day) =>
+                      isSameDay(_selectedDay, day),
+                  calendarFormat: _calendarFormat,
+                  headerVisible: false,
+                  daysOfWeekVisible:
+                  _calendarFormat == CalendarFormat.month,
+                  rowHeight:
+                  _calendarFormat == CalendarFormat.week ? 80 : 48,
+                  calendarStyle: CalendarStyle(
                     todayDecoration: BoxDecoration(
                       color: Colors.orange.shade400,
                       shape: BoxShape.circle,
@@ -2163,196 +2246,365 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     selectedDecoration: BoxDecoration(
                       color: Colors.indigo.shade400,
                       shape: BoxShape.circle,
-                    ), defaultTextStyle: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.grey.shade900,
-                  ),
-                    weekendTextStyle: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red.shade400,
                     ),
                   ),
-                    calendarBuilders: CalendarBuilders(
-                      defaultBuilder: (context, day, focusedDay) {
-                        return _calendarFormat == CalendarFormat.week
-                            ? _weekDayTile(day, false)
-                            : null;
-                      },
-
-                      selectedBuilder: (context, day, focusedDay) {
-                        return _calendarFormat == CalendarFormat.week
-                            ? _weekDayTile(day, true)
-                            : null;
-                      },
-                    ),
-
-                    onDaySelected: (selected, focused) {
-                      setState(() {
-                        _selectedDay = selected;
-                        _focusedDay = focused;
-                      });
-                      _fetchData(selected);
-                    },
-
-                    onPageChanged: (focused) {
+                  onDaySelected: (selected, focused) {
+                    setState(() {
+                      _selectedDay = selected;
                       _focusedDay = focused;
-                    },
-                  ),
-                ],
+                    });
+                    _fetchData(selected);
+                  },
+                  onPageChanged: (focused) {
+                    _focusedDay = focused;
+                  },
+                ),
               ),
             ),
-          ),
-          // Tasks List Section
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.indigo))
-                : RefreshIndicator(
-              onRefresh: () async => _fetchData(_selectedDay ?? _focusedDay),
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 16),
-                children: [
-                  // ✅ Agreements Section
-                  if (_agreements.isNotEmpty)
-                    _sectionTitle("Agreements", isDark, _agreements.length),
-                  ...List.generate(
-                    _agreements.length,
-                        (i) => _buildAgreementCard(
-                      _agreements[i],
-                      isDark,
-                      _agreementWorkerNames[i],
-                    ),
-                  ),
-                  // ✅ Pending Agreements Section
-                  if (_pendingAgreements.isNotEmpty)
-                    _sectionTitle(
-                      "Pending Agreements",
-                      isDark,
-                      _pendingAgreements.length,
-                    ),
 
-                  ...List.generate(
-                    _pendingAgreements.length,
-                        (i) => _buildPendingAgreementCard(
-                      _pendingAgreements[i],
-                      isDark,
-                    ),
-                  ),
-
-                  // ✅ Accept Agreements Section
-                  if (_acceptedAgreements.isNotEmpty)
-                    _sectionTitle(
-                      "Accepted Agreements",
-                      isDark,
-                      _acceptedAgreements.length,
-                    ),
-
-                  ...List.generate(
-                    _acceptedAgreements.length,
-                        (i) => _buildAcceptedAgreementCard(
-                      _acceptedAgreements[i],
-                      isDark,
-                    ),
-                  ),
-
-                  // ✅ Future Property Section
-                  if (_futureProperties.isNotEmpty)
-                    _sectionTitle(
-                        "Future Properties", isDark, _futureProperties.length),
-                  ...List.generate(
-                    _futureProperties.length,
-                        (i) => _buildFuturePropertyCard(
-                      _futureProperties[i],
-                      isDark,
-                      _futurePropertyWorkerNames[i],
-                    ),
-                  ),
-
-                  // ✅ Add Flats Section
-                  if (_addFlats.isNotEmpty)
-                    _sectionTitle("Add Flats", isDark, _addFlats.length),
-
-                  ...List.generate(
-                    _addFlats.length,
-                        (i) => _buildAddFlatCard(
-                      _addFlats[i],
-                      isDark,
-                    ),
-                  ),
-
-
-                  // ✅ Website Visit Section
-                  if (_websiteVisits.isNotEmpty)
-                    _sectionTitle("Website Visit Requests", isDark,
-                        _websiteVisits.length),
-                  ...List.generate(
-                    _websiteVisits.length,
-                        (i) => _buildWebsiteVisitCard(
-                      _websiteVisits[i],
-                      isDark,
-                      _websiteVisitWorkerNames[i],
-                    ),
-                  ),
-
-                  // ✅ Empty State
-                  if (_agreements.isEmpty &&
-                      _futureProperties.isEmpty &&
-                      _addFlats.isEmpty &&
-                      _websiteVisits.isEmpty)
-                    _emptyState(isDark),
-
-                  const SizedBox(height: 20),
-                ],
-              ),
+            // 🔹 TASK SECTIONS (SAME AS BEFORE)
+            if (_agreements.isNotEmpty)
+              _sectionTitle("Agreements", isDark, _agreements.length),
+            ..._agreements.map(
+                  (e) => _buildAgreementCard(e, isDark),
             ),
-          ),
-        ],
+
+            if (_pendingAgreements.isNotEmpty)
+              _sectionTitle(
+                  "Pending Agreements", isDark, _pendingAgreements.length),
+            ..._pendingAgreements.map(
+                  (e) => _buildPendingAgreementCard(e, isDark),
+            ),
+
+            if (_acceptedAgreements.isNotEmpty)
+              _sectionTitle(
+                  "Accepted Agreements", isDark, _acceptedAgreements.length),
+            ..._acceptedAgreements.map(
+                  (e) => _buildAcceptedAgreementCard(e, isDark),
+            ),
+
+            if (_futureProperties.isNotEmpty)
+              _sectionTitle(
+                  "Future Properties", isDark, _futureProperties.length),
+            ..._futureProperties.map(
+                  (e) => _buildFuturePropertyCard(e, isDark),
+            ),
+
+            if (_adminLiveProperties.isNotEmpty)
+              _sectionTitle("Live Properties", isDark, _adminLiveProperties.length),
+            ..._adminLiveProperties.map((e) => _buildLivePropertyCard(e, isDark)),
+
+            if (_websiteVisits.isNotEmpty)
+              _sectionTitle("Website Visits", isDark, _websiteVisits.length),
+            ..._websiteVisits.map(
+                  (e) => _buildWebsiteVisitCard(e, isDark),
+            ),
+
+
+            if (_adminTenantDemands.isNotEmpty)
+              _sectionTitle("Tenant Demands", isDark, _adminTenantDemands.length),
+            ..._adminTenantDemands.map((e) => _buildTenantDemandCard(e, isDark)),
+
+            if (_agreements.isEmpty &&
+                _futureProperties.isEmpty &&
+                _websiteVisits.isEmpty)
+              _emptyState(isDark),
+
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _weekDayTile(DateTime day, bool isSelected) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildTenantDemandCard(TenantDemand t, bool isDark) {
+    return  InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  AdminDemandDetail(demandId: t.id.toString()),
+            ),
+          );
+        },
+        child:Container(
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// 🔶 HEADER
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      "Demand",
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
 
+              const SizedBox(height: 6),
+
+              /// 📞 CONTACT + 📍 LOCATION
+              Text(
+                "${t.number}  •  ${t.location}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              /// 💰 CHIPS
+              Row(
+                children: [
+                  _miniChip(
+                    icon: PhosphorIcons.buildings,
+                    text: t.bhk,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.currency_inr,
+                    text: t.price,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+
+              if (t.message.isNotEmpty) ...[
+                const SizedBox(height: 8),
+
+                /// 📝 MESSAGE
+                Text(
+                  t.message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isDark ? Colors.white60 : Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ));
+  }
+
+  Widget _miniChip({
+    required IconData icon,
+    required String text,
+    required bool isDark,
+  }) {
     return Container(
-      width: 50,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: isSelected
-            ? Colors.blue
-            : (isDark ? Colors.transparent : Colors.transparent),
+        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
+          Icon(
+            icon,
+            size: 12,
+            color: isDark ? Colors.white60 : Colors.grey.shade600,
+          ),
+          const SizedBox(width: 4),
           Text(
-            _weekDayName(day),
+            text,
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.w600,
-              letterSpacing: 0.6, // 🔥 crisp text
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            day.day.toString(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.white : Colors.black),
+              color: isDark ? Colors.white70 : Colors.grey.shade800,
             ),
           ),
         ],
       ),
     );
   }
-  String _weekDayName(DateTime date) {
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    return days[date.weekday % 7];
+
+  Widget _buildLivePropertyCard(LiveFlat f, bool isDark) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                Administater_View_Details(
+                  idd: f.propertyId.toString(),
+                ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔹 TITLE + BUY/RENT
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.buildings,
+                  size: 16,
+                  color: Colors.blue,
+                ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    f.apartmentName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    f.buyRent,
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 📍 LOCATION + TYPE
+            Text(
+              "${f.locations}  •  ${f.residenceCommercial}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 🚆 METRO + FLOORS (CHIPS)
+            Row(
+              children: [
+                if (f.metroDistance.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text: "${f.metroDistance} ${f.highwayDistance}",
+                    isDark: isDark,
+                  ),
+                if (f.totalFloor.isNotEmpty) const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${f.totalFloor} Floors",
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            /// 👤 CARETAKER (OPTIONAL)
+            if (f.careTakerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${f.careTakerName} • ${f.careTakerNumber}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white60 : Colors.grey.shade700,
+                ),
+              ),
+            ],
+
+            /// 🏢 FACILITY (OPTIONAL)
+            if (f.facility.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                f.facility,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white54 : Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
+
+
+
 }

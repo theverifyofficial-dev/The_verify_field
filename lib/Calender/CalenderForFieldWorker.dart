@@ -1,4 +1,3 @@
-// calendar_task_page.dart
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,14 +7,12 @@ import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
-
-import '../Administrator/Admin_future _property/Admin_under_flats.dart';
 import '../Administrator/Admin_future _property/Future_Property_Details.dart';
-import '../Administrator/Administator_Agreement/Admin_Agreement_details.dart';
-
-import 'dart:convert';
-
+import '../Demand_2/Demand_detail.dart';
 import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infutureproperty.dart';
+import '../Home_Screen_click/View_All_Details.dart';
+import '../Rent Agreement/All_detailpage.dart';
+import '../Rent Agreement/details_agreement.dart';
 
 CalendarAddFlatResponse calendarAddFlatResponseFromJson(String str) =>
     CalendarAddFlatResponse.fromJson(json.decode(str));
@@ -329,6 +326,161 @@ class AddFlat {
     );
   }
 }
+
+class LiveFlat {
+  final int propertyId;
+  final String propertyPhoto;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String apartmentName;
+  final String apartmentAddress;
+  final String typeOfProperty;
+  final String bhk;
+  final String showPrice;
+  final String lastPrice;
+  final String askingPrice;
+  final String floor;
+  final String totalFloor;
+  final String balcony;
+  final String squareFit;
+  final String maintenance;
+  final String parking;
+  final String ageOfProperty;
+  final String fieldworkarAddress;
+  final String roadSize;
+  final String metroDistance;
+  final String highwayDistance;
+  final String mainMarketDistance;
+  final String meter;
+  final String ownerName;
+  final String ownerNumber;
+  final String currentDates;
+  final String availableDate;
+  final String kitchen;
+  final String bathroom;
+  final String lift;
+  final String facility;
+  final String furnishedUnfurnished;
+  final String fieldWarkarName;
+  final String liveUnlive;
+  final String fieldWorkarNumber;
+  final String registryAndGpa;
+  final String loan;
+  final String longitude;
+  final String latitude;
+  final String videoLink;
+  final String fieldWorkerCurrentLocation;
+  final String careTakerName;
+  final String careTakerNumber;
+  final int subId;
+  final String demoLiveUnlive;
+
+  LiveFlat({
+    required this.propertyId,
+    required this.propertyPhoto,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.apartmentName,
+    required this.apartmentAddress,
+    required this.typeOfProperty,
+    required this.bhk,
+    required this.showPrice,
+    required this.lastPrice,
+    required this.askingPrice,
+    required this.floor,
+    required this.totalFloor,
+    required this.balcony,
+    required this.squareFit,
+    required this.maintenance,
+    required this.parking,
+    required this.ageOfProperty,
+    required this.fieldworkarAddress,
+    required this.roadSize,
+    required this.metroDistance,
+    required this.highwayDistance,
+    required this.mainMarketDistance,
+    required this.meter,
+    required this.ownerName,
+    required this.ownerNumber,
+    required this.currentDates,
+    required this.availableDate,
+    required this.kitchen,
+    required this.bathroom,
+    required this.lift,
+    required this.facility,
+    required this.furnishedUnfurnished,
+    required this.fieldWarkarName,
+    required this.liveUnlive,
+    required this.fieldWorkarNumber,
+    required this.registryAndGpa,
+    required this.loan,
+    required this.longitude,
+    required this.latitude,
+    required this.videoLink,
+    required this.fieldWorkerCurrentLocation,
+    required this.careTakerName,
+    required this.careTakerNumber,
+    required this.subId,
+    required this.demoLiveUnlive,
+  });
+
+  factory LiveFlat.fromJson(Map<String, dynamic> json) {
+    return LiveFlat(
+      propertyId: (json['P_id'] as num?)?.toInt() ?? 0,
+      subId: (json['subid'] as num?)?.toInt() ?? 0,
+      propertyPhoto: json['property_photo'] ?? '',
+      locations: json['locations'] ?? '',
+      flatNumber: json['Flat_number'] ?? '',
+      buyRent: json['Buy_Rent'] ?? '',
+      residenceCommercial: json['Residence_Commercial'] ?? '',
+      apartmentName: json['Apartment_name'] ?? '',
+      apartmentAddress: json['Apartment_Address'] ?? '',
+      typeOfProperty: json['Typeofproperty'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      showPrice: json['show_Price'] ?? '',
+      lastPrice: json['Last_Price'] ?? '',
+      askingPrice: json['asking_price'] ?? '',
+      floor: json['Floor_'] ?? '',
+      totalFloor: json['Total_floor'] ?? '',
+      balcony: json['Balcony'] ?? '',
+      squareFit: json['squarefit'] ?? '',
+      maintenance: json['maintance'] ?? '',
+      parking: json['parking'] ?? '',
+      ageOfProperty: json['age_of_property'] ?? '',
+      fieldworkarAddress: json['fieldworkar_address'] ?? '',
+      roadSize: json['Road_Size'] ?? '',
+      metroDistance: json['metro_distance'] ?? '',
+      highwayDistance: json['highway_distance'] ?? '',
+      mainMarketDistance: json['main_market_distance'] ?? '',
+      meter: json['meter'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      ownerNumber: json['owner_number'] ?? '',
+      currentDates: json['current_dates'] ?? '',
+      availableDate: json['available_date'] ?? '',
+      kitchen: json['kitchen'] ?? '',
+      bathroom: json['bathroom'] ?? '',
+      lift: json['lift'] ?? '',
+      facility: json['Facility'] ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
+      fieldWarkarName: json['field_warkar_name'] ?? '',
+      liveUnlive: json['live_unlive'] ?? '',
+      fieldWorkarNumber: json['field_workar_number'] ?? '',
+      registryAndGpa: json['registry_and_gpa'] ?? '',
+      loan: json['loan'] ?? '',
+      longitude: json['Longitude'] ?? '',
+      latitude: json['Latitude'] ?? '',
+      videoLink: json['video_link'] ?? '',
+      fieldWorkerCurrentLocation: json['field_worker_current_location'] ?? '',
+      careTakerName: json['care_taker_name'] ?? '',
+      careTakerNumber: json['care_taker_number'] ?? '',
+      demoLiveUnlive: json['demo_live_unlive'] ?? '',
+    );
+  }
+}
 /// -------- BUILDING MODEL (UPDATED FOR NEW API) --------
 class FuturePropertyResponse {
   final String status;
@@ -348,6 +500,29 @@ class FuturePropertyResponse {
 
   static FuturePropertyResponse fromRawJson(String str) =>
       FuturePropertyResponse.fromJson(json.decode(str));
+}
+
+LivePropertyResponse LivePropertyResponseFromJson(String str) =>
+    LivePropertyResponse.fromJson(json.decode(str));
+
+class LivePropertyResponse {
+  final String status;
+  final List<LiveFlat> data;
+
+  LivePropertyResponse({required this.status, required this.data});
+
+  factory LivePropertyResponse.fromJson(Map<String, dynamic> json) {
+    return LivePropertyResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => LiveFlat.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+
+  static LivePropertyResponse fromRawJson(String str) =>
+      LivePropertyResponse.fromJson(json.decode(str));
 }
 
 class FutureProperty {
@@ -605,9 +780,6 @@ class PendingAgreement {
       monthlyRent: json['monthly_rent'] ?? '',
       security: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
-      shiftingDate: json['shifting_date'] != null
-          ? DateTime.tryParse(json['shifting_date'])
-          : null,
       maintenance: json['maintaince'] ?? '',
 
       ownerAadharFront: json['owner_aadhar_front'],
@@ -617,9 +789,14 @@ class PendingAgreement {
       tenantImage: json['tenant_image'],
 
       installmentSecurityAmount: json['installment_security_amount'] ?? '',
-      currentDate: json['current_dates'] != null
-          ? DateTime.tryParse(json['current_dates'])
-          : null,
+      shiftingDate: json['shifting_date'] is Map
+          ? DateTime.tryParse(json['shifting_date']['date'] ?? '')
+          : DateTime.tryParse(json['shifting_date'] ?? ''),
+
+      currentDate: json['current_dates'] is Map
+          ? DateTime.tryParse(json['current_dates']['date'] ?? '')
+          : DateTime.tryParse(json['current_dates'] ?? ''),
+
 
       fieldWorkerName: json['Fieldwarkarname'] ?? '',
       fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
@@ -800,9 +977,6 @@ class AcceptedAgreement {
       monthlyRent: json['monthly_rent'] ?? '',
       security: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
-      shiftingDate: json['shifting_date'] != null
-          ? DateTime.tryParse(json['shifting_date'])
-          : null,
       maintenance: json['maintaince'] ?? '',
 
       ownerAadharFront: json['owner_aadhar_front'],
@@ -813,9 +987,14 @@ class AcceptedAgreement {
 
       installmentSecurityAmount:
       json['installment_security_amount'] ?? '',
-      currentDate: json['current_dates'] != null
-          ? DateTime.tryParse(json['current_dates'])
-          : null,
+      shiftingDate: json['shifting_date'] is Map
+          ? DateTime.tryParse(json['shifting_date']['date'] ?? '')
+          : DateTime.tryParse(json['shifting_date'] ?? ''),
+
+      currentDate: json['current_dates'] is Map
+          ? DateTime.tryParse(json['current_dates']['date'] ?? '')
+          : DateTime.tryParse(json['current_dates'] ?? ''),
+
 
       fieldWorkerName: json['Fieldwarkarname'] ?? '',
       fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
@@ -930,6 +1109,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   bool _isLoading = false;
   List<AgreementTask> _agreements = [];
   List<FutureProperty> _futureProperties = [];
+  List<LiveFlat> _liveProperties = [];
   List<AddFlat> _addFlats = [];
   List<TenantDemand> _tenantDemands = [];
 
@@ -962,14 +1142,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     _selectedDay = _focusedDay;
     _selectedYear = _focusedDay.year;
     _selectedMonth = _focusedDay.month;
+
     _initUserAndFetch();
 
-    // fetch after first frame so inherited widgets are available
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _fetchData(_focusedDay);
-      loadUserName();
+      loadUserName(); // ✅ ONLY UI work here
     });
   }
+
   Future<void> _initUserAndFetch() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
@@ -1055,6 +1235,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate&field_workar_number=${userNumber}")),
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_task.php?current_dates=$formattedDate&Fieldwarkarnumber=$userNumber")),
+
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_task.php"
                 "?current_dates=$formattedDate&Fieldwarkarnumber=$userNumber"
@@ -1065,6 +1246,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 "?fieldworker_assigned_at=$formattedDate"
                 "&assigned_fieldworker_name=${userName ?? ''}"
         )),
+
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/live_property_task_for_fieldworkar.php?field_workar_number=$userNumber&date_for_target=$formattedDate")),
       ]);
       print(userName);
       print(userNumber);
@@ -1075,6 +1259,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       PendingAgreementResponse? p;
       AcceptedAgreementResponse? aa;
       TenantDemandResponse? td;
+      LivePropertyResponse? l;
 
       // ✅ Handle Agreement API safely
       if (responses[0].statusCode == 200 && responses[0].body.isNotEmpty) {
@@ -1144,11 +1329,30 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           td = TenantDemandResponse(status: "error", data: []);
         }
       }
+      if (responses[6].statusCode == 200) {
+        debugPrint("🟢 LIVE API RAW BODY:");
+        debugPrint(responses[6].body);
 
-    else {
-        debugPrint("Accept API failed (${responses[4].statusCode})");
-        p = PendingAgreementResponse(status: "error", data: []);
+        try {
+          final decoded = jsonDecode(responses[6].body);
+          debugPrint("🟢 LIVE API STATUS: ${decoded['status']}");
+          debugPrint("🟢 LIVE API DATA TYPE: ${decoded['data'].runtimeType}");
+          debugPrint("🟢 LIVE API DATA LENGTH: ${(decoded['data'] as List).length}");
+
+          l = LivePropertyResponse.fromJson(decoded);
+
+          debugPrint("🟢 PARSED LIVE COUNT: ${l.data.length}");
+        } catch (e, s) {
+          debugPrint("❌ LIVE PARSE ERROR: $e");
+          debugPrint(s.toString());
+          l = LivePropertyResponse(status: "error", data: []);
+        }
+      } else {
+        debugPrint("❌ LIVE API FAILED: ${responses[6].statusCode}");
+        l = LivePropertyResponse(status: "error", data: []);
       }
+
+
 
       if (!mounted) return;
 
@@ -1158,6 +1362,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         _tenantDemands = td?.data ?? [];
         _acceptedAgreements = aa?.data ?? [];
         _futureProperties = f?.data ?? [];
+        _liveProperties = l?.data ?? [];
         _websiteVisits = w?.data ?? [];
         _isLoading = false;
       });
@@ -1296,7 +1501,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     );
   }
 
-// Helper method for live/unlive status color
   Color _getLiveUnliveColor(String status) {
     switch (status.toLowerCase()) {
       case 'book':
@@ -1312,139 +1516,139 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   Widget _buildAcceptedAgreementCard(AcceptedAgreement t, bool isDark) {
     final Color statusColor = Colors.green;
 
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                AdminAgreementDetails(agreementId: t.id.toString()),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.grey.shade900 : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: isDark ? Colors.grey.shade900 : Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            /// ✅ HEADER
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    t.agreementType,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
-                    ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// ✅ HEADER
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  t.agreementType,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black87,
                   ),
                 ),
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    "Accepted",
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 6),
-
-            /// 👤 OWNER → TENANT
-            Text(
-              "${t.ownerName}  →  ${t.tenantName}",
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
               ),
-            ),
-
-            const SizedBox(height: 8),
-
-            /// 💰 MINI CHIPS
-            Row(
-              children: [
-                _miniChip(
-                  icon: PhosphorIcons.currency_inr,
-                  text: "₹${t.monthlyRent}",
-                  isDark: isDark,
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusColor.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(20),
                 ),
-                const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.buildings,
-                  text: t.bhk,
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.star_fill,
-                  text: "${t.floor}F",
-                  isDark: isDark,
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            /// 📍 ADDRESS
-            Row(
-              children: [
-                Icon(
-                  PhosphorIcons.map_pin,
-                  size: 14,
-                  color: isDark ? Colors.white54 : Colors.grey.shade600,
-                ),
-                const SizedBox(width: 6),
-                Expanded(
-                  child: Text(
-                    t.rentedAddress,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color:
-                      isDark ? Colors.white60 : Colors.grey.shade700,
-                    ),
+                child: Text(
+                  "Accepted",
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-              ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 6),
+
+          /// 👤 OWNER → TENANT
+          Text(
+            "${t.ownerName}  →  ${t.tenantName}",
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.grey.shade800,
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 💰 MINI CHIPS
+          Row(
+            children: [
+              _miniChip(
+                icon: PhosphorIcons.currency_inr,
+                text: "₹${t.monthlyRent}",
+                isDark: isDark,
+              ),
+              const SizedBox(width: 6),
+              _miniChip(
+                icon: PhosphorIcons.buildings,
+                text: t.bhk,
+                isDark: isDark,
+              ),
+              const SizedBox(width: 6),
+              _miniChip(
+                icon: PhosphorIcons.star_fill,
+                text: "${t.floor}F",
+                isDark: isDark,
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+
+          /// 📍 ADDRESS
+          Row(
+            children: [
+              Icon(
+                PhosphorIcons.map_pin,
+                size: 14,
+                color: isDark ? Colors.white54 : Colors.grey.shade600,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  t.rentedAddress,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color:
+                    isDark ? Colors.white60 : Colors.grey.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+
   Widget _buildTenantDemandCard(TenantDemand t, bool isDark) {
-    return Container(
+    return  InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  DemandDetail(demandId: t.id.toString()),
+            ),
+          );
+        },
+        child:Container(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -1544,8 +1748,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ],
         ],
       ),
-    );
+    ));
   }
+
   String formatIndianCurrency(String value) {
     try {
       // Handle ranges like "987500-20000000"
@@ -1588,7 +1793,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           context,
           MaterialPageRoute(
             builder: (_) =>
-                AdminAgreementDetails(agreementId: t.id.toString()),
+                AllDetailpage(agreementId: t.id.toString()),
           ),
         );
       },
@@ -1712,6 +1917,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   Widget _buildPendingAgreementCard(PendingAgreement t, bool isDark) {
     final Color statusColor = Colors.orange;
 
@@ -1721,7 +1927,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => AdminAgreementDetails(
+            builder: (_) => AgreementDetailPage(
               agreementId: t.id.toString(),
             ),
           ),
@@ -1847,6 +2053,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   Widget _miniChip({
     required IconData icon,
     required String text,
@@ -2020,51 +2227,148 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     );
   }
 
-  // Helper widget for info rows
-  Widget _buildInfoRow({
-    required IconData icon,
-    required String title,
-    required String value,
-    required bool isDark,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          icon,
-          size: 16,
-          color: isDark ? Colors.white54 : Colors.grey.shade600,
+  Widget _buildLivePropertyCard(LiveFlat f, bool isDark) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                View_Details(
+                  id: f.propertyId,
+                ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.white54 : Colors.grey.shade600,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔹 TITLE + BUY/RENT
+            Row(
+              children: [
+                Icon(
+                  PhosphorIcons.buildings,
+                  size: 16,
+                  color: Colors.blue,
                 ),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    f.apartmentName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    f.buyRent,
+                    style: const TextStyle(
+                      color: Colors.blue,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 📍 LOCATION + TYPE
+            Text(
+              "${f.locations}  •  ${f.residenceCommercial}",
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
               ),
-              const SizedBox(height: 2),
-              Text(
-                value.isNotEmpty ? value : "N/A",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+            ),
+
+            const SizedBox(height: 8),
+
+            /// 🚆 METRO + FLOORS (CHIPS)
+            Row(
+              children: [
+                if (f.metroDistance.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text: "${f.metroDistance} ${f.highwayDistance}",
+                    isDark: isDark,
+                  ),
+                if (f.totalFloor.isNotEmpty) const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: "${f.totalFloor} Floors",
+                  isDark: isDark,
                 ),
-                maxLines: 2,
+              ],
+            ),
+
+            /// 👤 CARETAKER (OPTIONAL)
+            if (f.careTakerName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${f.careTakerName} • ${f.careTakerNumber}",
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white60 : Colors.grey.shade700,
+                ),
               ),
             ],
-          ),
+
+            /// 🏢 FACILITY (OPTIONAL)
+            if (f.facility.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                f.facility,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color:
+                  isDark ? Colors.white54 : Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ],
         ),
-      ],
+      ),
     );
   }
+
+
+
   Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
     return GestureDetector(
       onTap: () async {
@@ -2149,44 +2453,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  // Helper widget for detail chips
-  Widget _buildDetailChip({
-    required IconData icon,
-    required String text,
-    required bool isDark,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.grey.shade800 : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            size: 12,
-            color: isDark ? Colors.white60 : Colors.grey.shade600,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              text,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade700,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -2435,127 +2701,127 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     return Scaffold(
       backgroundColor: bg,
       appBar: AppBar(
+        elevation: 0,
+        backgroundColor: isDark ? Colors.black : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
         centerTitle: true,
+
+        // 🔹 TITLE: Month + Year (tap to open picker)
         title: GestureDetector(
           onTap: () => _showMonthYearPicker(context),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "${_monthName(_selectedMonth)} ${_selectedYear}",
-                style: TextStyle(
+                "${_monthName(_selectedMonth)} $_selectedYear",
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.grey.shade900,
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_drop_down,
-                color: isDark ? Colors.white54 : Colors.grey.shade600,
-              ),
+              const SizedBox(width: 4),
+              const Icon(Icons.keyboard_arrow_down, size: 22),
             ],
           ),
         ),
-        backgroundColor: isDark ? Colors.black : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black,
-        elevation: 0.5,
-        actions: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) {
-              final offsetAnimation = Tween<Offset>(
-                begin: const Offset(0, 0.3), // slide slightly upward
-                end: Offset.zero,
-              ).animate(animation);
-              return SlideTransition(
-                position: offsetAnimation,
-                child: FadeTransition(
-                  opacity: animation,
-                  child: child,
-                ),
-              );
-            },
+
+        // 🔹 SUBTITLE (Selected Day)
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(28),
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 6),
             child: Text(
-              "${_selectedDay?.day ?? _focusedDay.day}, ${_monthName(_selectedMonth).substring(0, 3)}",
-              key: ValueKey("${_selectedDay?.day ?? _focusedDay.day}-${_selectedMonth}"),
+              _selectedDay != null
+                  ? "Selected: ${_selectedDay!.day} ${_monthName(_selectedMonth).substring(0, 3)}"
+                  : "",
               style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? Colors.white60 : Colors.grey.shade600,
               ),
             ),
-          ) ,
+          ),
+        ),
+
+        // 🔹 ACTIONS
+        actions: [
+          // Refresh
           IconButton(
+            tooltip: "Refresh",
             icon: const Icon(PhosphorIcons.arrow_clockwise),
             onPressed: () => _fetchData(_selectedDay ?? _focusedDay),
-            tooltip: "Refresh",
           ),
+
+          // Calendar View Switch
           PopupMenuButton<String>(
+            tooltip: "Calendar View",
             onSelected: (value) {
               setState(() {
                 _calendarView = value;
                 _calendarFormat =
-                value == "Week" ? CalendarFormat.week : CalendarFormat.month;
+                value == "Month" ? CalendarFormat.month : CalendarFormat.week;
               });
             },
             itemBuilder: (_) => const [
-              PopupMenuItem(value: "Month", child: Text("Month")),
-              PopupMenuItem(value: "Week", child: Text("Week")),
+              PopupMenuItem(value: "Month", child: Text("Month View")),
+              PopupMenuItem(value: "Week", child: Text("Week View")),
             ],
-            child: Row(
-              children: [
-                Text(
-                  _calendarView,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const Icon(Icons.arrow_drop_down),
-                const SizedBox(width: 8),
-              ],
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Row(
+                children: [
+                  Text(
+                    _calendarView,
+                    style: const TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const Icon(Icons.arrow_drop_down),
+                ],
+              ),
             ),
           ),
-
         ],
       ),
-      body: Column(
-        children: [
-          // Full Calendar Section
-          Container(
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.grey.shade900 : Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
+       body: _isLoading
+          ? const Center(
+        child: CircularProgressIndicator(color: Colors.indigo),
+      )
+          : RefreshIndicator(
+        onRefresh: () async =>
+            _fetchData(_selectedDay ?? _focusedDay),
+        child: ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.only(bottom: 20),
+          children: [
+            /// 🔹 CALENDAR (NOW SCROLLS)
+            Container(
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? Colors.grey.shade900 : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
                     color: Colors.black.withOpacity(0.05),
                     blurRadius: 10,
-                    offset: const Offset(0, 4)
-                )
-              ],
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10.0,vertical: 10),
-              child: Column(
-                children: [
-                  // Full Month Calendar
-                  TableCalendar(
-                    focusedDay: _focusedDay,
-                    firstDay: DateTime(2023),
-                    lastDay: DateTime(2030),
-                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                    calendarFormat: _calendarFormat,
-                    headerVisible: false,
-                    daysOfWeekVisible: _calendarFormat == CalendarFormat.month,
-                    rowHeight: _calendarFormat == CalendarFormat.week ? 80 : 48,
-
-                    daysOfWeekStyle: DaysOfWeekStyle(
-                      weekdayStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isDark ? Colors.grey.shade100 : Colors.grey[700],
-                      ),
-                      weekendStyle: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red.shade400,
-                      ),
-                    ), calendarStyle: CalendarStyle(
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Padding(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: TableCalendar(
+                  focusedDay: _focusedDay,
+                  firstDay: DateTime(2023),
+                  lastDay: DateTime(2030),
+                  selectedDayPredicate: (day) =>
+                      isSameDay(_selectedDay, day),
+                  calendarFormat: _calendarFormat,
+                  headerVisible: false,
+                  daysOfWeekVisible:
+                  _calendarFormat == CalendarFormat.month,
+                  rowHeight:
+                  _calendarFormat == CalendarFormat.week ? 80 : 48,
+                  calendarStyle: CalendarStyle(
                     todayDecoration: BoxDecoration(
                       color: Colors.orange.shade400,
                       shape: BoxShape.circle,
@@ -2563,153 +2829,96 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     selectedDecoration: BoxDecoration(
                       color: Colors.indigo.shade400,
                       shape: BoxShape.circle,
-                    ), defaultTextStyle: TextStyle(
-                    fontSize: 14,
-                    color: isDark ? Colors.white : Colors.grey.shade900,
-                  ),
-                    weekendTextStyle: TextStyle(
-                      fontSize: 14,
-                      color: Colors.red.shade400,
                     ),
                   ),
-                    calendarBuilders: CalendarBuilders(
-                      defaultBuilder: (context, day, focusedDay) {
-                        return _calendarFormat == CalendarFormat.week
-                            ? _weekDayTile(day, false)
-                            : null;
-                      },
-
-                      selectedBuilder: (context, day, focusedDay) {
-                        return _calendarFormat == CalendarFormat.week
-                            ? _weekDayTile(day, true)
-                            : null;
-                      },
-                    ),
-
-                    onDaySelected: (selected, focused) {
-                      setState(() {
-                        _selectedDay = selected;
-                        _focusedDay = focused;
-                      });
-                      _fetchData(selected);
-                    },
-
-                    onPageChanged: (focused) {
+                  onDaySelected: (selected, focused) {
+                    setState(() {
+                      _selectedDay = selected;
                       _focusedDay = focused;
-                    },
-                  ),
-                ],
+                    });
+                    _fetchData(selected);
+                  },
+                  onPageChanged: (focused) {
+                    _focusedDay = focused;
+                  },
+                ),
               ),
             ),
-          ),
-          // Tasks List Section
-          Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.indigo))
-                : RefreshIndicator(
-              onRefresh: () async => _fetchData(_selectedDay ?? _focusedDay),
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 16),
-                children: [
-                  if (_agreements.isNotEmpty)
-                    _sectionTitle("Agreements", isDark, _agreements.length),
-                  ..._agreements.map((a) => _buildAgreementCard(a, isDark)),
-                  if (_pendingAgreements.isNotEmpty)
-                    _sectionTitle("Pending Agreements", isDark, _pendingAgreements.length),
 
-                  ..._pendingAgreements.map(
-                        (p) => _buildPendingAgreementCard(p, isDark),
-                  ),
-                  if (_acceptedAgreements.isNotEmpty)
-                    _sectionTitle("Accepted Agreements", isDark, _acceptedAgreements.length),
-
-                  ..._acceptedAgreements.map(
-                        (a) => _buildAcceptedAgreementCard(a, isDark),
-                  ),
-                  if (_tenantDemands.isNotEmpty)
-                    _sectionTitle("Tenant Demands", isDark, _tenantDemands.length),
-
-                  ..._tenantDemands.map(
-                        (t) => _buildTenantDemandCard(t, isDark),
-                  ),
-
-                  if (_futureProperties.isNotEmpty)
-                    _sectionTitle("Future Properties", isDark, _futureProperties.length),
-                  ..._futureProperties.map((f) => _buildFuturePropertyCard(f, isDark)),
-
-                  if (_websiteVisits.isNotEmpty)
-                    _sectionTitle("Website Visit Requests", isDark,_websiteVisits.length),
-                  ..._websiteVisits.map((w) => _buildWebsiteVisitCard(w, isDark)),
-
-                  if (_calendarAddFlats.isNotEmpty)
-                    _sectionTitle("Add Flats", isDark, _calendarAddFlats.length),
-                  ..._calendarAddFlats.map(
-                        (f) => _buildCalendarAddFlatCard(f, isDark),
-                  ),
-
-                  if (_agreements.isEmpty &&
-                      _futureProperties.isEmpty &&
-                      _calendarAddFlats.isEmpty &&
-                      _websiteVisits.isEmpty)
-                    _emptyState(isDark),
-
-
-
-
-                  const SizedBox(height: 20),
-                ],
-              ),
+            /// 🔹 AGREEMENTS
+            if (_agreements.isNotEmpty)
+              _sectionTitle("Agreements", isDark, _agreements.length),
+            ..._agreements.map(
+                  (e) => _buildAgreementCard(e, isDark),
             ),
-          ),
-        ],
+
+            /// 🔹 PENDING
+            if (_pendingAgreements.isNotEmpty)
+              _sectionTitle(
+                  "Pending Agreements", isDark, _pendingAgreements.length),
+            ..._pendingAgreements.map(
+                  (e) => _buildPendingAgreementCard(e, isDark),
+            ),
+
+            /// 🔹 ACCEPTED
+            if (_acceptedAgreements.isNotEmpty)
+              _sectionTitle(
+                  "Accepted Agreements", isDark, _acceptedAgreements.length),
+            ..._acceptedAgreements.map(
+                  (e) => _buildAcceptedAgreementCard(e, isDark),
+            ),
+            /// 🔹 FUTURE PROPERTIES
+            if (_futureProperties.isNotEmpty)
+              _sectionTitle(
+                  "Future Properties", isDark, _futureProperties.length),
+            ..._futureProperties.map(
+                  (e) => _buildFuturePropertyCard(e, isDark),
+            ),
+            /// 🔹 FUTURE PROPERTIES
+            if (_liveProperties.isNotEmpty)
+              _sectionTitle(
+                  "Live Properties", isDark, _liveProperties.length),
+            ..._liveProperties.map(
+                  (e) => _buildLivePropertyCard(e, isDark),
+            ),
+
+            /// 🔹 ADD FLATS
+            if (_calendarAddFlats.isNotEmpty)
+              _sectionTitle(
+                  "Add Flats", isDark, _calendarAddFlats.length),
+            ..._calendarAddFlats.map(
+                  (e) => _buildCalendarAddFlatCard(e, isDark),
+            ),
+
+            /// 🔹 WEBSITE VISITS
+            if (_websiteVisits.isNotEmpty)
+              _sectionTitle(
+                  "Website Visit Requests", isDark, _websiteVisits.length),
+            ..._websiteVisits.map(
+                  (e) => _buildWebsiteVisitCard(e, isDark),
+            ),
+
+            /// 🔹 TENANT DEMANDS
+            if (_tenantDemands.isNotEmpty)
+              _sectionTitle(
+                  "Tenant Demands", isDark, _tenantDemands.length),
+            ..._tenantDemands.map(
+                  (e) => _buildTenantDemandCard(e, isDark),
+            ),
+
+
+            /// 🔹 EMPTY STATE
+            if (_agreements.isEmpty &&
+                _futureProperties.isEmpty &&
+                _calendarAddFlats.isEmpty &&
+                _websiteVisits.isEmpty)
+              _emptyState(isDark),
+
+            const SizedBox(height: 24),
+          ],
+        ),
       ),
     );
-  }
-
-  Widget _weekDayTile(DateTime day, bool isSelected) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      width: 50,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        color: isSelected
-            ? Colors.blue
-            : (isDark ? Colors.transparent : Colors.transparent),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _weekDayName(day),
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.6, // 🔥 crisp text
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.grey.shade400 : Colors.grey.shade600),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            day.day.toString(),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: isSelected
-                  ? Colors.white
-                  : (isDark ? Colors.white : Colors.black),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  String _weekDayName(DateTime date) {
-    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-    return days[date.weekday % 7];
   }
 
 }

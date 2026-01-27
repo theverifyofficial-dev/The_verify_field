@@ -101,6 +101,16 @@ String formatAmount(String? amount) {
   return 'Rs. $intVal /- ( $words RUPEES )';
 }
 
+String maskIdNumber(String value) {
+  final digits = value.replaceAll(RegExp(r'\D'), '');
+
+  if (digits.length < 4) return value;
+
+  // Mask all except last 3 digits
+  final maskedLength = digits.length - 3;
+  return 'X' * maskedLength + digits.substring(digits.length - 3);
+}
+
 /// Safe extraction: returns data[key] if present and not empty; otherwise returns fallback + ' (static)'
 String safeString(Map<String, dynamic> data, String key, String fallback) {
   final v = data[key];
@@ -145,6 +155,9 @@ DateTime addMonthsSafely(DateTime from, int monthsToAdd) {
 }
 
 Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
+  final bool hideAgreement =
+      data['is_agreement_hide']?.toString() == '1';
+
   final pdf = pw.Document();
 
   // dynamic-safe reads (use fallback with (static) if missing)
@@ -152,14 +165,12 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final ownerRelation = safeString(data, 'owner_relation', 'S/O');
   final ownerRelationPerson = safeString(data, 'relation_person_name_owner', 'QWERTY');
   final ownerAddress = safeString(data, 'parmanent_addresss_owner', 'DEMO ADDRESS');
-  final ownerAadhaar = safeString(data, 'owner_addhar_no', '297374997337');
 
   final tenantName = safeString(data, 'tenant_name', 'DEMO TENANT');
   final tenantRelation = safeString(data, 'tenant_relation', 'S/O');
   final tenantRelationPerson = safeString(data, 'relation_person_name_tenant', 'PAWAN');
   final tenantPermAddress = safeString(data, 'permanent_address_tenant', 'DEMO TENANT ADDRESS');
   final tenantMobile = safeString(data, 'tenant_mobile_no', '0000000000');
-  final tenantAadhaar = safeString(data, 'tenant_addhar_no', '100288377394');
 
   final bhk = data['Bhk'] ?? '';
   final floor = data['floor'] ?? '';
@@ -173,6 +184,17 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
   final maintenanceRaw = data['maintaince']?.toString() ?? '';
   final securityRaw = data['securitys']?.toString() ?? '';
+
+  final rawOwnerAadhaar =
+  safeString(data, 'owner_addhar_no', '297374997337');
+  final rawTenantAadhaar =
+  safeString(data, 'tenant_addhar_no', '100288377394');
+
+  final ownerAadhaar =
+  hideAgreement ? maskIdNumber(rawOwnerAadhaar) : rawOwnerAadhaar;
+
+  final tenantAadhaar =
+  hideAgreement ? maskIdNumber(rawTenantAadhaar) : rawTenantAadhaar;
 
 
   pw.TextSpan getMeterClause(Map<String, dynamic>? data) {

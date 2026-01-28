@@ -109,11 +109,6 @@
     animated_analog_clock: ^0.2.0
     google_generative_ai: ^0.4.7  # Or check pub.dev for the latest 2026 version
 
-
-
-
-
-
   dev_dependencies:
     flutter_launcher_icons: ^0.13.1
     flutter_test:

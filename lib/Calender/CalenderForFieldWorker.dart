@@ -13,6 +13,7 @@ import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infuturep
 import '../Home_Screen_click/View_All_Details.dart';
 import '../Rent Agreement/All_detailpage.dart';
 import '../Rent Agreement/details_agreement.dart';
+import '../Upcoming/Upcoming_details.dart';
 
 CalendarAddFlatResponse calendarAddFlatResponseFromJson(String str) =>
     CalendarAddFlatResponse.fromJson(json.decode(str));
@@ -1094,6 +1095,191 @@ class TenantDemand {
     );
   }
 }
+class BookedTenantVisit {
+  final int id;
+  final String name;
+  final String number;
+  final String buyRent;
+  final String reference;
+  final String price;
+  final String message;
+  final String bhk;
+  final String location;
+  final String status;
+  final String result;
+  final String date;
+  final String time;
+  final String assignedFieldWorkerName;
+  final String assignedSubAdminName;
+  final String parking;
+  final String lift;
+  final String furnishedUnfurnished;
+  final String familyStructure;
+  final String familyMember;
+  final String religion;
+  final String visitingDate;
+  final String shiftingDate;
+  final String floor;
+  final String countOfPerson;
+  final String vehicleType;
+
+  BookedTenantVisit({
+    required this.id,
+    required this.name,
+    required this.number,
+    required this.buyRent,
+    required this.reference,
+    required this.price,
+    required this.message,
+    required this.bhk,
+    required this.location,
+    required this.status,
+    required this.result,
+    required this.date,
+    required this.time,
+    required this.assignedFieldWorkerName,
+    required this.assignedSubAdminName,
+    required this.parking,
+    required this.lift,
+    required this.furnishedUnfurnished,
+    required this.familyStructure,
+    required this.familyMember,
+    required this.religion,
+    required this.visitingDate,
+    required this.shiftingDate,
+    required this.floor,
+    required this.countOfPerson,
+    required this.vehicleType,
+  });
+
+  factory BookedTenantVisit.fromJson(Map<String, dynamic> json) {
+    return BookedTenantVisit(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      name: json['Tname'] ?? '',
+      number: json['Tnumber'] ?? '',
+      buyRent: json['Buy_rent'] ?? '',
+      reference: json['Reference'] ?? '',
+      price: json['Price'] ?? '',
+      message: json['Message'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      location: json['Location'] ?? '',
+      status: json['Status'] ?? '',
+      result: json['Result'] ?? '',
+      date: json['Date'] ?? '',
+      time: json['Time'] ?? '',
+      assignedFieldWorkerName: json['assigned_fieldworker_name'] ?? '',
+      assignedSubAdminName: json['assigned_subadmin_name'] ?? '',
+      parking: json['parking'] ?? '',
+      lift: json['lift'] ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
+      familyStructure: json['family_structur'] ?? '',
+      familyMember: json['family_member'] ?? '',
+      religion: json['religion'] ?? '',
+      visitingDate: json['visiting_dates'] ?? '',
+      shiftingDate: json['shifting_date'] ?? '',
+      floor: json['floor'] ?? '',
+      countOfPerson: json['count_of_person'] ?? '',
+      vehicleType: json['vichle_type'] ?? '',
+    );
+  }
+}
+class BookedTenantVisitResponse {
+  final String status;
+  final List<BookedTenantVisit> data;
+
+  BookedTenantVisitResponse({
+    required this.status,
+    required this.data,
+  });
+
+  factory BookedTenantVisitResponse.fromJson(Map<String, dynamic> json) {
+    return BookedTenantVisitResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => BookedTenantVisit.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class UpcomingFlat {
+  final int propertyId;
+  final String propertyPhoto;
+  final String locations;
+  final String flatNumber;
+  final String buyRent;
+  final String residenceCommercial;
+  final String bhk;
+  final String showPrice;
+  final String floor;
+  final String totalFloor;
+  final String furnishedUnfurnished;
+  final String parking;
+  final String careTakerName;
+  final String careTakerNumber;
+  final String availableDate;
+  final String demoLiveUnlive;
+  final String subId;
+
+  UpcomingFlat({
+    required this.propertyId,
+    required this.propertyPhoto,
+    required this.locations,
+    required this.flatNumber,
+    required this.buyRent,
+    required this.residenceCommercial,
+    required this.bhk,
+    required this.showPrice,
+    required this.floor,
+    required this.totalFloor,
+    required this.furnishedUnfurnished,
+    required this.parking,
+    required this.careTakerName,
+    required this.careTakerNumber,
+    required this.availableDate,
+    required this.demoLiveUnlive,
+    required this.subId,
+  });
+
+  factory UpcomingFlat.fromJson(Map<String, dynamic> json) {
+    return UpcomingFlat(
+      propertyId: (json['P_id'] as num?)?.toInt() ?? 0,
+      propertyPhoto: json['property_photo'] ?? '',
+      locations: json['locations'] ?? '',
+      flatNumber: json['Flat_number'] ?? '',
+      buyRent: json['Buy_Rent'] ?? '',
+      residenceCommercial: json['Residence_Commercial'] ?? '',
+      bhk: json['Bhk'] ?? '',
+      showPrice: json['show_Price'] ?? '',
+      floor: json['Floor_'] ?? '',
+      totalFloor: json['Total_floor'] ?? '',
+      furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
+      parking: json['parking'] ?? '',
+      careTakerName: json['care_taker_name'] ?? '',
+      careTakerNumber: json['care_taker_number'] ?? '',
+      availableDate: json['dates_for_right_avaiable'] ?? '',
+      demoLiveUnlive: json['demo_live_unlive'] ?? '',
+      subId: json['subid'].toString(),
+    );
+  }
+}
+class UpcomingFlatResponse {
+  final String status;
+  final List<UpcomingFlat> data;
+
+  UpcomingFlatResponse({required this.status, required this.data});
+
+  factory UpcomingFlatResponse.fromJson(Map<String, dynamic> json) {
+    return UpcomingFlatResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => UpcomingFlat.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
 
 /// -------- MAIN PAGE --------
 class CalendarTaskPage extends StatefulWidget {
@@ -1112,6 +1298,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   List<LiveFlat> _liveProperties = [];
   List<AddFlat> _addFlats = [];
   List<TenantDemand> _tenantDemands = [];
+  List<BookedTenantVisit> _bookedTenantVisits = [];
+  List<UpcomingFlat> _upcomingFlats = [];
 
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
@@ -1235,7 +1423,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_for_website_visit.php?dates=$formattedDate&field_workar_number=${userNumber}")),
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_task.php?current_dates=$formattedDate&Fieldwarkarnumber=$userNumber")),
-
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_task.php"
                 "?current_dates=$formattedDate&Fieldwarkarnumber=$userNumber"
@@ -1246,9 +1433,21 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 "?fieldworker_assigned_at=$formattedDate"
                 "&assigned_fieldworker_name=${userName ?? ''}"
         )),
-
         http.get(Uri.parse(
             "https://verifyserve.social/Second%20PHP%20FILE/Calender/live_property_task_for_fieldworkar.php?field_workar_number=$userNumber&date_for_target=$formattedDate")),
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+                "book_visit_in_tenant_demand_for_fields.php"
+                "?visiting_dates=$formattedDate"
+                "&assigned_fieldworker_name=${Uri.encodeComponent(userName ?? '')}"
+        )),
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+                "upcoming_flat_for_fieldworkar.php"
+                "?dates_for_right_avaiable=$formattedDate"
+                "&field_workar_number=$userNumber"
+        )),
+
       ]);
       print(userName);
       print(userNumber);
@@ -1352,6 +1551,44 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         l = LivePropertyResponse(status: "error", data: []);
       }
 
+      BookedTenantVisitResponse? bv;
+
+      if (responses[7].statusCode == 200 && responses[7].body.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(responses[7].body);
+
+          debugPrint("🟢 BOOKED VISIT RAW:");
+          debugPrint(responses[7].body);
+
+          if (decoded['status'] == 'success') {
+            bv = BookedTenantVisitResponse.fromJson(decoded);
+          } else {
+            bv = BookedTenantVisitResponse(status: "error", data: []);
+          }
+        } catch (e) {
+          debugPrint("Booked Visit parse error: $e");
+          bv = BookedTenantVisitResponse(status: "error", data: []);
+        }
+      } else {
+        bv = BookedTenantVisitResponse(status: "error", data: []);
+      }
+      UpcomingFlatResponse? uf;
+
+      if (responses[8].statusCode == 200 && responses[8].body.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(responses[8].body);
+          if (decoded['status'] == 'success') {
+            uf = UpcomingFlatResponse.fromJson(decoded);
+          } else {
+            uf = UpcomingFlatResponse(status: "error", data: []);
+          }
+        } catch (e) {
+          debugPrint("Upcoming Flat parse error: $e");
+          uf = UpcomingFlatResponse(status: "error", data: []);
+        }
+      } else {
+        uf = UpcomingFlatResponse(status: "error", data: []);
+      }
 
 
       if (!mounted) return;
@@ -1364,6 +1601,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         _futureProperties = f?.data ?? [];
         _liveProperties = l?.data ?? [];
         _websiteVisits = w?.data ?? [];
+        _bookedTenantVisits = bv?.data ?? [];
+        _upcomingFlats = uf?.data ?? [];
+
         _isLoading = false;
       });
 
@@ -1600,7 +1840,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               const SizedBox(width: 6),
               _miniChip(
                 icon: PhosphorIcons.star_fill,
-                text: "${t.floor}F",
+                text: "${t.floor}",
                 isDark: isDark,
               ),
             ],
@@ -1780,6 +2020,187 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
     } catch (e) {
       return value; // fallback if parsing fails
     }
+  }
+  Widget _responsiveCard({
+    required Widget child,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+
+        if (width >= 900) {
+          return Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 720),
+              child: child,
+            ),
+          );
+        }
+
+        // Normal phone
+        if (width >= 600) {
+          return Center(
+            child: SizedBox(width: 520, child: child),
+          );
+        }
+
+        // Small phone
+        return child;
+      },
+    );
+  }
+  Widget _buildBookedTenantVisitCard(BookedTenantVisit v, bool isDark) {
+    final statusColor =
+    v.status.toLowerCase() == 'progressing' ? Colors.orange : Colors.green;
+
+    return _responsiveCard(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(14),
+        onTap: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context)
+          => DemandDetail(demandId: v.id.toString(),),
+          ));
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// 🔹 HEADER
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      v.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: statusColor.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      v.status,
+                      style: TextStyle(
+                        color: statusColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              /// 📞 NUMBER + 📍 LOCATION
+              Text(
+                "${v.number}  •  ${v.location}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              /// 🏠 BHK + 💰 PRICE
+              Row(
+                children: [
+                  _miniChip(
+                    icon: PhosphorIcons.bed,
+                    text: v.bhk,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.currency_inr,
+                    text: v.price,
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              /// 🕒 VISIT DATE & TIME
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Visit: ${v.visitingDate}",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color:
+                      isDark ? Colors.white54 : Colors.grey.shade600,
+                    ),
+                  ),
+                  Text(
+                    v.time,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.indigo,
+                    ),
+                  ),
+                ],
+              ),
+
+              /// 📝 MESSAGE (optional)
+              if (v.message.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  v.message,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color:
+                    isDark ? Colors.white60 : Colors.grey.shade700,
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 6),
+
+              /// 👤 ASSIGNED FIELD WORKER
+              Text(
+                "FW: ${v.assignedFieldWorkerName}",
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white60 : Colors.indigo,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // Enhanced Agreement Card with better design
@@ -2226,6 +2647,127 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+  Widget _buildUpcomingFlatCard(UpcomingFlat f, bool isDark) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => UpcomingDetailsPage(
+              id: f.propertyId,),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark ? Colors.grey.shade900 : Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// HEADER
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    f.bhk,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white : Colors.black87,
+                    ),
+                  ),
+                ),
+                Container(
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    "Upcoming",
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              "Flat ${f.flatNumber} • ${f.locations}",
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white70 : Colors.grey.shade800,
+              ),
+            ),
+
+            const SizedBox(height: 8),
+
+            Row(
+              children: [
+                _miniChip(
+                  icon: PhosphorIcons.currency_inr,
+                  text: "₹${f.showPrice}",
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.car,
+                  text: f.parking,
+                  isDark: isDark,
+                ),
+                const SizedBox(width: 6),
+                _miniChip(
+                  icon: PhosphorIcons.star_fill,
+                  text: f.floor,
+                  isDark: isDark,
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              "Available on: ${f.availableDate}",
+              style: TextStyle(
+                fontSize: 12,
+                color: isDark ? Colors.white60 : Colors.grey.shade600,
+              ),
+            ),
+
+            if (f.careTakerName.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                "${f.careTakerName} • ${f.careTakerNumber}",
+                style: TextStyle(
+                  fontSize: 12,
+                  color: isDark ? Colors.white60 : Colors.grey.shade700,
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildLivePropertyCard(LiveFlat f, bool isDark) {
     return InkWell(
@@ -2269,7 +2811,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    f.apartmentName,
+                    f.bhk,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -2302,7 +2844,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             /// 📍 LOCATION + TYPE
             Text(
-              "${f.locations}  •  ${f.residenceCommercial}",
+              "Flat ${f.flatNumber}  •  ${f.locations}  • ${f.residenceCommercial}",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -2326,7 +2868,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 if (f.totalFloor.isNotEmpty) const SizedBox(width: 6),
                 _miniChip(
                   icon: PhosphorIcons.star_fill,
-                  text: "${f.totalFloor} Floors",
+                  text: "${f.totalFloor}",
                   isDark: isDark,
                 ),
               ],
@@ -2523,7 +3065,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    formatDate(f.datesForRightAvailable),
+                    f.bhk,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -2554,7 +3096,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             /// 📍 FLAT + LOCATION
             Text(
-              "Flat ${f.flatNumber}  •  ${f.locations}",
+              "Flat ${f.flatNumber}  •  ${f.locations}  • ${f.residenceCommercial}",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
@@ -2580,33 +3122,17 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   text: f.buyRent,
                   isDark: isDark,
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 8),
-
-            /// 🧱 BHK / FLOOR / USE
-            Row(
-              children: [
-                _miniChip(
-                  icon: PhosphorIcons.cube,
-                  text: f.bhk,
-                  isDark: isDark,
-                ),
                 const SizedBox(width: 6),
+
                 _miniChip(
                   icon: PhosphorIcons.star_fill,
                   text: f.floor,
                   isDark: isDark,
                 ),
-                const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.buildings,
-                  text: f.residenceCommercial,
-                  isDark: isDark,
-                ),
               ],
             ),
+
+            const SizedBox(height: 8),
 
             /// 👤 CARETAKER (OPTIONAL)
             if (f.careTakerName.isNotEmpty) ...[
@@ -2622,6 +3148,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ),
               ),
             ],
+
           ],
         ),
       ),
@@ -2844,6 +3371,16 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ),
               ),
             ),
+            /// 🔹 BOOKED TENANT VISITS
+            if (_bookedTenantVisits.isNotEmpty)
+              _sectionTitle(
+                "Booked Tenant Visits",
+                isDark,
+                _bookedTenantVisits.length,
+              ),
+            ..._bookedTenantVisits.map(
+                  (e) => _buildBookedTenantVisitCard(e, isDark),
+            ),
 
             /// 🔹 AGREEMENTS
             if (_agreements.isNotEmpty)
@@ -2880,6 +3417,16 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   "Live Properties", isDark, _liveProperties.length),
             ..._liveProperties.map(
                   (e) => _buildLivePropertyCard(e, isDark),
+            ),
+            /// 🔹 UPCOMING FLATS
+            if (_upcomingFlats.isNotEmpty)
+              _sectionTitle(
+                "Upcoming Flats",
+                isDark,
+                _upcomingFlats.length,
+              ),
+            ..._upcomingFlats.map(
+                  (e) => _buildUpcomingFlatCard(e, isDark),
             ),
 
             /// 🔹 ADD FLATS

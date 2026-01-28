@@ -99,7 +99,7 @@ class _MyAppState extends State<MyApp> {
       if (message != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (!mounted) return;
-          _openNotificationPage(message); // 👈 use your old function
+          _openNotificationPage(message);
         });
       }
     });

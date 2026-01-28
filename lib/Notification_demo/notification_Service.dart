@@ -85,7 +85,7 @@ void showLocalNotification(RemoteMessage message) {
   if (notification == null) return;
 
   const androidDetails = AndroidNotificationDetails(
-    'high_importance_channel', // Should match your AndroidManifest.xml
+    'high_importance_channel',
     'High Importance Notifications',
     channelDescription: 'This channel is used for important notifications.',
     importance: Importance.max,

@@ -1218,6 +1218,7 @@ class UpcomingFlat {
   final String parking;
   final String careTakerName;
   final String careTakerNumber;
+  final String fieldWarkarName;
   final String availableDate;
   final String demoLiveUnlive;
   final String subId;
@@ -1236,6 +1237,7 @@ class UpcomingFlat {
     required this.furnishedUnfurnished,
     required this.parking,
     required this.careTakerName,
+    required this.fieldWarkarName,
     required this.careTakerNumber,
     required this.availableDate,
     required this.demoLiveUnlive,
@@ -1257,6 +1259,7 @@ class UpcomingFlat {
       furnishedUnfurnished: json['furnished_unfurnished'] ?? '',
       parking: json['parking'] ?? '',
       careTakerName: json['care_taker_name'] ?? '',
+      fieldWarkarName: json['field_warkar_name'] ?? '',
       careTakerNumber: json['care_taker_number'] ?? '',
       availableDate: json['dates_for_right_avaiable'] ?? '',
       demoLiveUnlive: json['demo_live_unlive'] ?? '',
@@ -1275,6 +1278,57 @@ class UpcomingFlatResponse {
       status: json['status'] ?? 'error',
       data: (json['data'] as List<dynamic>?)
           ?.map((e) => UpcomingFlat.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+class CallingReminder {
+  final int id;
+  final String message;
+  final String date;
+  final String time;
+  final String subId;
+  final String nextCallingDate;
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  CallingReminder({
+    required this.id,
+    required this.message,
+    required this.date,
+    required this.time,
+    required this.subId,
+    required this.nextCallingDate,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+  });
+
+  factory CallingReminder.fromJson(Map<String, dynamic> json) {
+    return CallingReminder(
+      id: json['id'] ?? 0,
+      message: json['message'] ?? '',
+      date: json['date'] ?? '',
+      time: json['time'] ?? '',
+      subId: json['subid'] ?? '',
+      nextCallingDate: json['next_calling_date'] ?? '',
+      fieldWorkerName: json['fieldworkar_name'] ?? '',
+      fieldWorkerNumber: json['fieldworkar_number'] ?? '',
+    );
+  }
+}
+
+class CallingReminderResponse {
+  final String status;
+  final List<CallingReminder> data;
+
+  CallingReminderResponse({required this.status, required this.data});
+
+  factory CallingReminderResponse.fromJson(Map<String, dynamic> json) {
+    return CallingReminderResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => CallingReminder.fromJson(e))
           .toList() ??
           [],
     );
@@ -1300,6 +1354,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   List<TenantDemand> _tenantDemands = [];
   List<BookedTenantVisit> _bookedTenantVisits = [];
   List<UpcomingFlat> _upcomingFlats = [];
+  List<CallingReminder> _callingReminders = [];
 
   // month/year state & lists
   final List<int> _years = List.generate(10, (i) => 2022 + i);
@@ -1447,6 +1502,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 "?dates_for_right_avaiable=$formattedDate"
                 "&field_workar_number=$userNumber"
         )),
+        http.get(Uri.parse(
+            "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
+                "building_calling_reminder.php"
+                "?next_calling_date=$formattedDate"
+                "&fieldworkar_number=$userNumber"
+        )),
+
 
       ]);
       print(userName);
@@ -1589,6 +1651,23 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       } else {
         uf = UpcomingFlatResponse(status: "error", data: []);
       }
+      CallingReminderResponse? cr;
+
+      if (responses[9].statusCode == 200 && responses[9].body.isNotEmpty) {
+        try {
+          final decoded = jsonDecode(responses[9].body);
+          if (decoded['status'] == 'success') {
+            cr = CallingReminderResponse.fromJson(decoded);
+          } else {
+            cr = CallingReminderResponse(status: 'error', data: []);
+          }
+        } catch (e) {
+          debugPrint("Calling Reminder parse error: $e");
+          cr = CallingReminderResponse(status: 'error', data: []);
+        }
+      } else {
+        cr = CallingReminderResponse(status: 'error', data: []);
+      }
 
 
       if (!mounted) return;
@@ -1603,7 +1682,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         _websiteVisits = w?.data ?? [];
         _bookedTenantVisits = bv?.data ?? [];
         _upcomingFlats = uf?.data ?? [];
-
+        _callingReminders = cr?.data ?? [];
         _isLoading = false;
       });
 
@@ -1753,6 +1832,113 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         return Colors.grey;
     }
   }
+  String formatReminderDate(String date) {
+    try {
+      final parsed = DateTime.parse(date);
+      return DateFormat('dd-MMM-yyyy').format(parsed);
+    } catch (e) {
+      return date;
+    }
+  }
+
+  Widget _buildCallingReminderCard(CallingReminder r, bool isDark) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                Administater_Future_Property_details(
+                  buildingId: r.subId.toString(),
+                ),
+          ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+
+            colors: [
+              Color(0xFF6366F1), // Indigo-500
+              Color(0xFF06B6D4), // Cyan-500
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// 🔹 MESSAGE
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Follow up with the client \nfor the building inquiry.",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color:Colors.white ,
+                  ),
+                ),
+
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    "Building ID: ${r.subId}",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.indigoAccent : Colors.indigo,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 🔹 NEXT CALL DATE
+            Text(
+              "Next Call Date: ${formatReminderDate(r.nextCallingDate)}",
+              style: TextStyle(
+                fontFamily: "PoppinsBold",
+                fontSize: 12,
+                color: Colors.white70 ,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            /// 🔹 FIELD WORKER
+            Text(
+              "FW: ${r.fieldWorkerName} • ${r.fieldWorkerNumber}",
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.white
+              ),
+            ),
+
+
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildAcceptedAgreementCard(AcceptedAgreement t, bool isDark) {
     final Color statusColor = Colors.green;
 
@@ -1760,6 +1946,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
+        gradient: LinearGradient(colors:[
+          Color(0xFFE41B41),
+          Color(0xFF1BE4BE),
+
+        ]),
         color: isDark ? Colors.grey.shade900 : Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -1784,7 +1975,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color:  Colors.white ,
                   ),
                 ),
               ),
@@ -1792,13 +1983,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
+                  color:Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
                   "Accepted",
                   style: TextStyle(
                     color: statusColor,
+                    fontFamily: "PoppinsBold",
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
@@ -1817,7 +2009,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : Colors.grey.shade800,
+              color: Colors.white70 ,
             ),
           ),
 
@@ -1854,7 +2046,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               Icon(
                 PhosphorIcons.map_pin,
                 size: 14,
-                color: isDark ? Colors.white54 : Colors.grey.shade600,
+                color:Colors.white,
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -1864,8 +2056,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                    isDark ? Colors.white60 : Colors.grey.shade700,
+                    color:Colors.white,
                   ),
                 ),
               ),
@@ -1892,6 +2083,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
+        gradient: LinearGradient(colors: [
+          Color(0xffD42BA5),
+          Color(0xffCBC634),
+        ]),
         color: isDark ? Colors.grey.shade900 : Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
@@ -1916,7 +2111,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color:  Colors.white ,
                   ),
                 ),
               ),
@@ -1924,7 +2119,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.orange.withOpacity(0.15),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Text(
@@ -1932,6 +2127,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   style: TextStyle(
                     color: Colors.orange,
                     fontSize: 11,
+                    fontFamily: "PoppinsBold",
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -1949,7 +2145,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : Colors.grey.shade800,
+              color: Colors.white,
             ),
           ),
 
@@ -1982,7 +2178,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white60 : Colors.grey.shade700,
+                color: Colors.white,
               ),
             ),
           ],
@@ -2065,6 +2261,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF10B981),
+                  const Color(0xFF047857)
+                ]
+            ),
+
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
@@ -2089,7 +2292,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:  Colors.white,
                       ),
                     ),
                   ),
@@ -2097,7 +2300,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.15),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -2105,6 +2308,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                       style: TextStyle(
                         color: statusColor,
                         fontSize: 11,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -2120,9 +2324,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
+                  fontFamily: "PoppinsBold",
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                  color: Colors.white70,
                 ),
               ),
 
@@ -2155,16 +2360,24 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     "Visit: ${v.visitingDate}",
                     style: TextStyle(
                       fontSize: 12,
-                      color:
-                      isDark ? Colors.white54 : Colors.grey.shade600,
+                      fontFamily: "PoppinsBold",
+                      color: Colors.white70,
                     ),
                   ),
-                  Text(
-                    v.time,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.indigo,
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white70,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      v.time,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.indigo,
+                      ),
                     ),
                   ),
                 ],
@@ -2179,8 +2392,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                    isDark ? Colors.white60 : Colors.grey.shade700,
+                    fontFamily: "PoppinsBold",
+                    color: Colors.white ,
                   ),
                 ),
               ],
@@ -2191,9 +2404,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               Text(
                 "FW: ${v.assignedFieldWorkerName}",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12,fontFamily: "PoppinsBold",
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.indigo,
+                  color: Colors.white70 ,
                 ),
               ),
             ],
@@ -2222,6 +2435,12 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(
+              colors: [
+                const Color(0xFFEF4444),
+                const Color(0xFFDC2626)
+              ]
+          ),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2246,7 +2465,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -2254,7 +2473,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -2262,6 +2481,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       color: statusColor,
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2279,7 +2499,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color: Colors.white70 ,
               ),
             ),
 
@@ -2302,7 +2522,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 const SizedBox(width: 6),
                 _miniChip(
                   icon: PhosphorIcons.star_fill,
-                  text: "${t.floor}F",
+                  text: "${t.floor}",
                   isDark: isDark,
                 ),
               ],
@@ -2316,7 +2536,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 Icon(
                   PhosphorIcons.map_pin,
                   size: 14,
-                  color: isDark ? Colors.white54 : Colors.grey.shade600,
+                  color: Colors.white54,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -2326,8 +2546,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color:
-                      isDark ? Colors.white60 : Colors.grey.shade700,
+                      color: Colors.white60,
                     ),
                   ),
                 ),
@@ -2358,6 +2577,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            Color(0xffA75875),
+            Color(0xff58A78A),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2380,7 +2603,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.white,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -2390,13 +2613,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     "Pending",
                     style: TextStyle(
                       color: statusColor,
+                      fontFamily: "PoppinsBold",
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                     ),
@@ -2413,7 +2637,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color: Colors.white70,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -2438,7 +2662,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 const SizedBox(width: 6),
                 _miniChip(
                   icon: PhosphorIcons.star_fill,
-                  text: "${t.floor}F",
+                  text: "${t.floor}",
                   isDark: isDark,
                 ),
               ],
@@ -2452,7 +2676,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 Icon(
                   PhosphorIcons.map_pin,
                   size: 14,
-                  color: isDark ? Colors.white54 : Colors.grey.shade600,
+                  color: Colors.white54,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -2460,8 +2684,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     t.rentedAddress,
                     style: TextStyle(
                       fontSize: 12,
-                      color:
-                      isDark ? Colors.white60 : Colors.grey.shade700,
+                      color: Colors.white60,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -2526,6 +2749,12 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(
+              colors: [
+                const Color(0xFFDC2626),
+                const Color(0xFFF59E0B),
+              ]
+          ),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2545,7 +2774,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 Icon(
                   PhosphorIcons.buildings,
                   size: 16,
-                  color: Colors.blue,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -2556,7 +2785,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -2564,12 +2793,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.15),
+                    color:Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     f.buyRent,
                     style: const TextStyle(
+                      fontFamily: "poppinsBold",
                       color: Colors.blue,
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
@@ -2589,7 +2819,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color:Colors.white70,
               ),
             ),
 
@@ -2607,7 +2837,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 if (f.metroName.isNotEmpty) const SizedBox(width: 6),
                 _miniChip(
                   icon: PhosphorIcons.star_fill,
-                  text: "${f.totalFloor} Floors",
+                  text: "${f.totalFloor}",
                   isDark: isDark,
                 ),
               ],
@@ -2622,8 +2852,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                  isDark ? Colors.white60 : Colors.grey.shade700,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -2637,8 +2866,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                  isDark ? Colors.white54 : Colors.grey.shade600,
+                  color:Colors.white
                 ),
               ),
             ],
@@ -2663,6 +2891,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            const Color(0xFF06B6D4),
+            const Color(0xFFDC2626),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2685,7 +2917,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -2693,7 +2925,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -2701,6 +2933,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       color: Colors.green,
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
+
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2714,8 +2948,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               "Flat ${f.flatNumber} • ${f.locations}",
               style: TextStyle(
                 fontSize: 12,
+                fontFamily: "PoppinsBold",
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color: Colors.white70 ,
               ),
             ),
 
@@ -2749,7 +2984,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               "Available on: ${f.availableDate}",
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white60 : Colors.grey.shade600,
+                fontFamily: "PoppinsBold",
+                color:  Colors.white60 ,
               ),
             ),
 
@@ -2759,7 +2995,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 "${f.careTakerName} • ${f.careTakerNumber}",
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.white60 : Colors.grey.shade700,
+                  fontFamily: "PoppinsBold",
+                  color: Colors.white ,
                 ),
               ),
             ],
@@ -2787,6 +3024,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            Color(0xffFA8205),
+            Color(0xff057DFA),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2806,7 +3047,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 Icon(
                   PhosphorIcons.buildings,
                   size: 16,
-                  color: Colors.blue,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -2825,7 +3066,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -2833,6 +3074,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: const TextStyle(
                       color: Colors.blue,
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2850,7 +3092,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color: Colors.white,
               ),
             ),
 
@@ -2873,22 +3115,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ),
               ],
             ),
-
-            /// 👤 CARETAKER (OPTIONAL)
-            if (f.careTakerName.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                "${f.careTakerName} • ${f.careTakerNumber}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color:
-                  isDark ? Colors.white60 : Colors.grey.shade700,
-                ),
-              ),
-            ],
-
             /// 🏢 FACILITY (OPTIONAL)
             if (f.facility.isNotEmpty) ...[
               const SizedBox(height: 6),
@@ -2898,8 +3124,21 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                  isDark ? Colors.white54 : Colors.grey.shade600,
+                  color:Colors.white,
+                ),
+              ),
+            ],
+
+            /// 👤 FieldWorkar (OPTIONAL)
+            if (f.fieldWarkarName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${f.fieldWarkarName}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -2908,8 +3147,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
-
-
 
   Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
     return GestureDetector(
@@ -2929,6 +3166,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            Color(0xff50AFAE),
+            Color(0xf978C53A),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
@@ -2951,7 +3192,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     w.name,
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.white,
                       fontSize: 15,
                     ),
                   ),
@@ -2970,7 +3211,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             Text(
               "Contact: ${w.contactNo}",
               style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.grey.shade800),
+                  color: Colors.white ),
             ),
             const SizedBox(height: 4),
             Text(
@@ -2978,7 +3219,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: TextStyle(
-                  color: isDark ? Colors.white60 : Colors.grey.shade700),
+                fontFamily: "PoppinsBold",
+                  color:  Colors.white),
             ),
             const SizedBox(height: 6),
             Row(
@@ -2987,7 +3229,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 Text(
                   "Date: ${w.date}",
                   style: TextStyle(
-                      color: isDark ? Colors.white54 : Colors.grey.shade600,
+                      color: Colors.white,
                       fontSize: 12),
                 ),
                 const Icon(Icons.calendar_month, size: 16, color: Colors.indigo),
@@ -3041,6 +3283,10 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            Color(0xffAFAF50),
+            Color(0xff5050AF),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -3060,7 +3306,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 Icon(
                   PhosphorIcons.house_line,
                   size: 16,
-                  color: Colors.indigo,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
@@ -3069,7 +3315,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color:Colors.white ,
                     ),
                   ),
                 ),
@@ -3077,7 +3323,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -3085,6 +3331,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       color: statusColor,
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -3102,7 +3349,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color:  Colors.white70 ,
               ),
             ),
 
@@ -3143,8 +3390,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                  isDark ? Colors.white60 : Colors.grey.shade700,
+                  color: Colors.white60 ,
                 ),
               ),
             ],
@@ -3308,18 +3554,13 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         ],
       ),
-       body: _isLoading
-          ? const Center(
-        child: CircularProgressIndicator(color: Colors.indigo),
-      )
-          : RefreshIndicator(
+       body:  RefreshIndicator(
         onRefresh: () async =>
             _fetchData(_selectedDay ?? _focusedDay),
         child: ListView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 20),
           children: [
-            /// 🔹 CALENDAR (NOW SCROLLS)
             Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -3334,43 +3575,152 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ],
               ),
               child: Padding(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                child: TableCalendar(
-                  focusedDay: _focusedDay,
-                  firstDay: DateTime(2023),
-                  lastDay: DateTime(2030),
-                  selectedDayPredicate: (day) =>
-                      isSameDay(_selectedDay, day),
-                  calendarFormat: _calendarFormat,
-                  headerVisible: false,
-                  daysOfWeekVisible:
-                  _calendarFormat == CalendarFormat.month,
-                  rowHeight:
-                  _calendarFormat == CalendarFormat.week ? 80 : 48,
-                  calendarStyle: CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: Colors.orange.shade400,
-                      shape: BoxShape.circle,
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  child:TableCalendar(
+                    focusedDay: _focusedDay,
+                    firstDay: DateTime(2023),
+                    lastDay: DateTime(2030),
+                    selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
+                    calendarFormat: _calendarFormat,
+                    headerVisible: false,
+                    daysOfWeekVisible: _calendarFormat == CalendarFormat.month,
+                    rowHeight: _calendarFormat == CalendarFormat.week ? 80 : 48,
+
+                    // 🔹 HEADER (Sun / Sat text)
+                    daysOfWeekStyle: const DaysOfWeekStyle(
+                      weekdayStyle: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      weekendStyle: TextStyle(
+                        color: Colors.red, // Sun & Sat header
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    selectedDecoration: BoxDecoration(
-                      color: Colors.indigo.shade400,
-                      shape: BoxShape.circle,
+
+                    calendarStyle: CalendarStyle(
+                      todayDecoration: BoxDecoration(
+                        color: Colors.orange,
+                        shape: BoxShape.circle,
+                      ),
+                      selectedDecoration: BoxDecoration(
+                        color: Colors.indigo,
+                        shape: BoxShape.circle,
+                      ),
+                      outsideDaysVisible: false,
                     ),
-                  ),
-                  onDaySelected: (selected, focused) {
-                    setState(() {
-                      _selectedDay = selected;
-                      _focusedDay = focused;
-                    });
-                    _fetchData(selected);
-                  },
-                  onPageChanged: (focused) {
-                    _focusedDay = focused;
-                  },
-                ),
+
+                    // 🔹 DATES COLOR LOGIC
+                    calendarBuilders: CalendarBuilders(
+                      defaultBuilder: (context, day, focusedDay) {
+                        // 🔴 Sunday date
+                        if (day.weekday == DateTime.sunday) {
+                          return Center(
+                            child: Text(
+                              '${day.day}',
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }
+
+                        // ⚪ Saturday date
+                        if (day.weekday == DateTime.saturday) {
+                          return Center(
+                            child: Text(
+                              '${day.day}',
+                              style:  TextStyle(
+                                color:isDark? Colors.white:Colors.grey,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          );
+                        }
+
+                        return null; // normal weekdays
+                      },
+
+                      todayBuilder: (context, day, focusedDay) {
+                        return Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${day.day}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+
+                      selectedBuilder: (context, day, focusedDay) {
+                        return Padding(
+                          padding: const EdgeInsets.all(4.0),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.indigo,
+                              shape: BoxShape.circle,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${day.day}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+
+                    onDaySelected: (selected, focused) {
+                      setState(() {
+                        _selectedDay = selected;
+                        _focusedDay = focused;
+                      });
+                      _fetchData(selected);
+                    },
+
+                    onPageChanged: (focused) {
+                      setState(() {
+                        _focusedDay = focused;
+                        _selectedMonth = focused.month;
+                        _selectedYear = focused.year;
+                      });
+                    },
+                  )
+
               ),
             ),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: CircularProgressIndicator(color: Colors.indigo),
+                ),
+              ),
+            /// 🔹 CALLING REMINDERS
+            if (_callingReminders.isNotEmpty)
+              _sectionTitle(
+                "Calling Reminder",
+                isDark,
+                _callingReminders.length,
+              ),
+            ..._callingReminders.map(
+                  (e) => _buildCallingReminderCard(e, isDark),
+            ),
+
             /// 🔹 BOOKED TENANT VISITS
             if (_bookedTenantVisits.isNotEmpty)
               _sectionTitle(
@@ -3411,7 +3761,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             ..._futureProperties.map(
                   (e) => _buildFuturePropertyCard(e, isDark),
             ),
-            /// 🔹 FUTURE PROPERTIES
+            /// 🔹 Live PROPERTIES
             if (_liveProperties.isNotEmpty)
               _sectionTitle(
                   "Live Properties", isDark, _liveProperties.length),
@@ -3454,10 +3804,15 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             ),
 
 
-            /// 🔹 EMPTY STATE
-            if (_agreements.isEmpty &&
+            if (!_isLoading &&
+                _agreements.isEmpty &&
                 _futureProperties.isEmpty &&
-                _calendarAddFlats.isEmpty &&
+                _acceptedAgreements.isEmpty &&
+                _pendingAgreements.isEmpty &&
+                _bookedTenantVisits.isEmpty &&
+                _futureProperties.isEmpty &&
+                _addFlats.isEmpty &&
+                _callingReminders.isEmpty &&
                 _websiteVisits.isEmpty)
               _emptyState(isDark),
 

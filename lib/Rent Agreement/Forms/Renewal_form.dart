@@ -12,10 +12,14 @@ import 'package:verify_feild_worker/Rent%20Agreement/history_tab.dart';
 import '../../Custom_Widget/Custom_backbutton.dart';
 import 'package:http_parser/http_parser.dart';
 
+import '../Dashboard_screen.dart';
+
 
 class RenewalForm extends StatefulWidget {
   final String? agreementId;
-  const RenewalForm({Key? key, this.agreementId}) : super(key: key);
+  final RewardStatus rewardStatus;
+
+  const RenewalForm({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
 
   @override
   State<RenewalForm> createState() => _RentalWizardPageState();
@@ -271,29 +275,44 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     });
   }
 
-  int getNotaryAmount(String value) {
+  int getBaseNotaryAmount(String value, bool discounted) {
+    if (!discounted) {
+      switch (value) {
+        case '10 rupees': return 150;
+        case '20 rupees': return 170;
+        case '50 rupees': return 200;
+        case '100 rupees': return 250;
+        default: return 150;
+      }
+    }
+
+    // 🎯 DISCOUNTED
     switch (value) {
-      case '10 rupees':
-        return 150;
-      case '20 rupees':
-        return 170;
-      case '50 rupees':
-        return 200;
-      case '100 rupees':
-        return 250;
-      default:
-        return 150;
+      case '10 rupees': return 100;
+      case '20 rupees': return 120;
+      case '50 rupees': return 150;
+      case '100 rupees': return 200;
+      default: return 100;
     }
   }
 
-  void updateAgreementPrice() {
-    int notaryAmount = getNotaryAmount(Notary_price ?? '10 rupees');
-    int policeCharge = isPolice ? 50 : 0;
 
-    int total = notaryAmount + policeCharge;
+  void updateAgreementPrice() {
+    final discounted = widget.rewardStatus.isDiscounted;
+
+    final notaryAmount =
+    getBaseNotaryAmount(Notary_price, discounted);
+
+    final policeCharge = isPolice
+        ? (discounted ? 40 : 50)
+        : 0;
+
+    final total = notaryAmount + policeCharge;
 
     Agreement_price.text = total.toString();
     AgreementAmountInWords = convertToWords(total);
+
+    setState(() {});
   }
 
   void _goNext() {
@@ -306,7 +325,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
               (ownerAadhaarBack != null || ownerAadharBackUrl != null));
 
       if (!valid) {
-        Fluttertoast.showToast(msg: 'Please upload Owner Aadhaar images');
+        Fluttertoast.showToast(msg: 'Please Check Again!');
       }
 
     } else if (_currentStep == 1) {
@@ -316,7 +335,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
               (tenantAadhaarBack != null || tenantAadharBackUrl != null));
 
       if (!valid) {
-        Fluttertoast.showToast(msg: 'Please upload Tenant Aadhaar images');
+        Fluttertoast.showToast(msg: 'Please Check Again!');
       }
 
     } else if (_currentStep == 2) {
@@ -358,115 +377,82 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     _number = prefs.getString('number') ?? '';
   }
 
-
   Future<void> _fetchUserData({
-    required bool isOwner,                // true for owner, false for tenant
-    required String? aadhaar,             // value in the Aadhaar field
-    required String? mobile,              // value in the mobile field
-  }) async {
-    String query;
-    String paramKey;
-    bool searchedByAadhaar;
+    required bool fillOwner,
+    required String? aadhaar,
+    required String? mobile,
+  })
+  async {
+    String queryKey;
+    String queryValue;
 
-    // Determine which field to search by
     if (aadhaar?.trim().isNotEmpty ?? false) {
-      query = aadhaar!.trim();
-      paramKey = isOwner ? "owner_addhar_no" : "tenant_addhar_no";
-      searchedByAadhaar = true;
+      queryKey = "aadhaar";
+      queryValue = aadhaar!.trim();
     } else if (mobile?.trim().isNotEmpty ?? false) {
-      query = mobile!.trim();
-      paramKey = isOwner ? "owner_mobile_no" : "tenant_mobile_no";
-      searchedByAadhaar = false;
+      queryKey = "mobile";
+      queryValue = mobile!.trim();
     } else {
-      _showToast("Enter Aadhaar or Mobile to fetch ${isOwner ? 'owner' : 'tenant'} data");
+      _showToast("Enter Aadhaar or Mobile number");
       return;
     }
 
     try {
       final uri = Uri.parse(
-        isOwner
-            ? "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php"
-            : "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_tenant_addhar_number.php",
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/"
+            "display_owner_and_tenant_addhar_document.php?$queryKey=$queryValue",
       );
 
-      final response = await http.post(uri, body: {paramKey: query});
+      final response = await http.get(uri);
       print("📩 API Response: ${response.body}");
 
       if (response.statusCode != 200) {
-        return _showToast("${response.statusCode} Not Found");
+        _showToast("${response.statusCode} Error");
+        return;
       }
 
       final decoded = jsonDecode(response.body);
-      if (decoded['status'] != 'success' || decoded['data'] == null) {
-        return _showToast("No data found");
+
+      if (decoded['success'] != true || decoded['data'] == null) {
+        _showToast("No data found");
+        return;
       }
 
-      final rawData = decoded['data'];
-      if (rawData is! List || rawData.isEmpty) {
-        return _showToast("No data found");
-      }
-
-      final data = rawData[0];
+      final data = decoded['data'];
 
       setState(() {
-        if (isOwner) {
-          ownerName.text = data['owner_name'] ?? '';
-          ownerRelation = data['owner_relation'] ?? 'S/O';
-          ownerRelationPerson.text = data['relation_person_name_owner'] ?? '';
-          ownerAddress.text = data['parmanent_addresss_owner'] ?? '';
-
-          // Only update opposite field
-          if (searchedByAadhaar) {
-            ownerMobile.text = data['owner_mobile_no'] ?? '';
-          } else {
-            ownerAadhaar.text = data['owner_addhar_no'] ?? '';
-          }
-
-          ownerAadharFrontUrl = data['owner_aadhar_front'] ?? '';
-          ownerAadharBackUrl = data['owner_aadhar_back'] ?? '';
+        if (fillOwner) {
+          // ✅ Fill OWNER section
+          ownerName.text = data['name'] ?? '';
+          ownerRelation = data['relation'] ?? 'S/O';
+          ownerRelationPerson.text =
+              data['relation_person_name'] ?? '';
+          ownerAddress.text = data['addresss'] ?? '';
+          ownerMobile.text = data['mobile_number'] ?? '';
+          ownerAadhaar.text = data['addhar_number'] ?? '';
+          ownerAadharFrontUrl = data['addhar_front'] ?? '';
+          ownerAadharBackUrl = data['addhar_back'] ?? '';
         } else {
-          tenantName.text = data['tenant_name'] ?? '';
-          tenantRelation = data['tenant_relation'] ?? 'S/O';
-          tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
-          tenantAddress.text = data['permanent_address_tenant'] ?? '';
-
-          if (searchedByAadhaar) {
-            tenantMobile.text = data['tenant_mobile_no'] ?? '';
-          } else {
-            tenantAadhaar.text = data['tenant_addhar_no'] ?? '';
-          }
-
-          tenantAadharFrontUrl = data['tenant_aadhar_front' ?? ''];
-          tenantAadharBackUrl = data['tenant_aadhar_back'] ?? '';
-          tenantPhotoUrl = data['tenant_image'] ?? '';
+          // ✅ Fill TENANT section
+          tenantName.text = data['name'] ?? '';
+          tenantRelation = data['relation'] ?? 'S/O';
+          tenantRelationPerson.text =
+              data['relation_person_name'] ?? '';
+          tenantAddress.text = data['addresss'] ?? '';
+          tenantMobile.text = data['mobile_number'] ?? '';
+          tenantAadhaar.text = data['addhar_number'] ?? '';
+          tenantAadharFrontUrl = data['addhar_front'] ?? '';
+          tenantAadharBackUrl = data['addhar_back'] ?? '';
+          tenantPhotoUrl = data['selfie'] ?? '';
         }
       });
 
-      print("✅ ${isOwner ? 'Owner' : 'Tenant'} data loaded successfully");
+      print("✅ Data filled into ${fillOwner ? 'OWNER' : 'TENANT'} section");
     } catch (e) {
-      print("🔥 Exception while fetching ${isOwner ? 'owner' : 'tenant'}: $e");
+      print("🔥 Exception: $e");
       _showToast("Error: $e");
     }
   }
-
-  /// Wrappers for owner/tenant
-  _fetchOwnerData() {
-    _fetchUserData(
-      isOwner: true,
-      aadhaar: ownerAadhaar.text,
-      mobile: ownerMobile.text,
-    );
-  }
-
-  _fetchTenantData() {
-    _fetchUserData(
-      isOwner: false,
-      aadhaar: tenantAadhaar.text,
-      mobile: tenantMobile.text,
-    );
-  }
-
-
 
   Future<void> _submitAll() async {
     print("🔹 _submitAll called");
@@ -869,8 +855,6 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     );
   }
 
-
-  // small image tile
   Widget _imageTile({File? file, String? url, required String hint}) {
     return Container(
       width: 120,
@@ -896,9 +880,6 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
     );
   }
 
-
-
-  // ---------- Build UI ----------
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -934,6 +915,45 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
                     ],
                   ),
                 ),
+
+                if (widget.rewardStatus.isDiscounted)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.celebration, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "🎉 Congratulations! Discount applied.\n"
+                                  "You completed ${widget.rewardStatus.totalAgreements} agreements this month.",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
 
                 Expanded(
                   child: PageView(
@@ -1112,13 +1132,26 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
                 ),
                 const SizedBox(height: 6),
 
-                // Maintenance
-                Text(
-                  "Maintenance: ${data['maintance'] ?? "--"}",
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Colors.black87,
-                  ),
+                // 🧾 Maintenance
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Maintenance: ${data['maintance'] ?? "--"}",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                    ),
+
+                    Text(
+                      "flat number: ${data['Flat_number'] ?? "--"}",
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1240,7 +1273,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             isPropertyFetched = true; // 🔒 lock fields
             Bhk.text = data['Bhk'] ?? '';
             floor.text = data['Floor_'] ?? '';
-            Address.text = data['Apartment_Address'] ?? '';
+            Address.text = "Flat-${data['Flat_number']}    " + data['Apartment_Address']  ?? '';
             rentAmount.text = data['show_Price'] ?? "";
             meterInfo = data['meter'] == "Govt" ? "As per Govt. Unit" : "Custom Unit (Enter Amount)";
             parking = (data['parking'].toString().toLowerCase().contains("bike"))
@@ -1372,7 +1405,13 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
-                onPressed: () => _fetchOwnerData(),
+                onPressed: () {
+                  _fetchUserData(
+                    fillOwner: true,
+                    aadhaar: ownerAadhaar.text,
+                    mobile: ownerMobile.text,
+                  );
+                },
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
@@ -1512,7 +1551,13 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
             Align(
               alignment: Alignment.centerRight,
               child: ElevatedButton.icon(
-                onPressed: () => _fetchTenantData(),
+                onPressed: () {
+                  _fetchUserData(
+                    fillOwner: false,
+                    aadhaar: tenantAadhaar.text,
+                    mobile: tenantMobile.text,
+                  );
+                },
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
@@ -1646,6 +1691,9 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
 
 
   Widget _propertyStep() {
+    final discounted = widget.rewardStatus.isDiscounted;
+
+    final defaultPrice = discounted ? 100 : 150;
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
@@ -1895,7 +1943,7 @@ class _RentalWizardPageState extends State<RenewalForm> with TickerProviderState
                   Expanded(
                     child:
                     _agreementPriceBox(
-                      amount: int.tryParse(Agreement_price.text) ?? 150,
+                      amount: int.tryParse(Agreement_price.text) ?? defaultPrice,
                       amountInWords: AgreementAmountInWords,
                     ),
 

@@ -36,6 +36,7 @@ class AgreementModel {
   final String policeVerificationPdf;
   final String bhk;
   final String floor;
+  final String agreement_price;
   final String withPolice;
   final String payment;
   final String recieved;
@@ -79,6 +80,7 @@ class AgreementModel {
     required this.policeVerificationPdf,
     required this.bhk,
     required this.floor,
+    required this.agreement_price,
     required this.withPolice,
     required this.payment,
     required this.recieved,
@@ -87,26 +89,31 @@ class AgreementModel {
 
   factory AgreementModel.fromJson(Map<String, dynamic> json) {
     return AgreementModel(
-      id: json['id'] ?? 0,
+      id: int.tryParse(json['id'].toString()) ?? 0,
+
       ownerName: json['owner_name'] ?? '',
       ownerRelation: json['owner_relation'] ?? '',
       relationPersonNameOwner: json['relation_person_name_owner'] ?? '',
       parmanentAddresssOwner: json['parmanent_addresss_owner'] ?? '',
       ownerMobileNo: json['owner_mobile_no'] ?? '',
       ownerAddharNo: json['owner_addhar_no'] ?? '',
+
       tenantName: json['tenant_name'] ?? '',
       tenantRelation: json['tenant_relation'] ?? '',
       relationPersonNameTenant: json['relation_person_name_tenant'] ?? '',
       permanentAddressTenant: json['permanent_address_tenant'] ?? '',
       tenantMobileNo: json['tenant_mobile_no'] ?? '',
       tenantAddharNo: json['tenant_addhar_no'] ?? '',
+
       rentedAddress: json['rented_address'] ?? '',
       monthlyRent: json['monthly_rent'] ?? '',
       securitys: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
-      shiftingDate: json['shifting_date'] != null && json['shifting_date']['date'] != null
-          ? DateTime.tryParse(json['shifting_date']['date'])
-          : null,
+
+      // ✅ FIXED
+      shiftingDate: _parseDate(json['shifting_date']),
+      currentDate: _parseDate(json['current_dates']),
+
       maintaince: json['maintaince'] ?? '',
       ownerAadharFront: json['owner_aadhar_front'] ?? '',
       ownerAadharBack: json['owner_aadhar_back'] ?? '',
@@ -116,9 +123,7 @@ class AgreementModel {
       installmentSecurityAmount: json['installment_security_amount'] ?? '',
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
-      currentDate: json['current_dates'] != null && json['current_dates']['date'] != null
-          ? DateTime.tryParse(json['current_dates']['date'])
-          : null,
+
       fieldWorkerName: json['Fieldwarkarname'] ?? '',
       fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
       tenantImage: json['tenant_image'] ?? '',
@@ -127,11 +132,34 @@ class AgreementModel {
       notaryImg: json['notry_img'] ?? '',
       policeVerificationPdf: json['police_verification_pdf'] ?? '',
       bhk: json['Bhk'] ?? '',
-      withPolice: json['is_Police'] ?? '',
       floor: json['floor'] ?? '',
-      payment: json['payment'] ?? '',
-      recieved: json['office_received'] ?? '',
+      agreement_price: json['agreement_price'] ?? '0',
+
+      // ✅ normalize booleans / flags
+      withPolice: json['is_Police']?.toString() ?? 'false',
+      payment: json['payment']?.toString() ?? '0',
+      recieved: json['office_received']?.toString() ?? '0',
+
+
       agreementType: json['agreement_type'],
     );
   }
+
+
+}
+
+DateTime? _parseDate(dynamic value) {
+  if (value == null) return null;
+
+  // API sends direct string
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value);
+  }
+
+  // Sometimes API sends { date: "yyyy-mm-dd" }
+  if (value is Map && value['date'] != null) {
+    return DateTime.tryParse(value['date'].toString());
+  }
+
+  return null;
 }

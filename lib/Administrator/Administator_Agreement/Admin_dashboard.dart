@@ -5,6 +5,12 @@ import '../../Custom_Widget/constant.dart';
 import 'Sub/Admin_accepted.dart';
 import 'Sub/All_data.dart';
 import 'Sub/Admin_pending.dart';
+import 'customer_data.dart';
+
+enum AppBarMenuOption {
+  _launchURL,
+  viewDetail, launchUrl,
+}
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -46,24 +52,47 @@ class _parent_TenandDemandState extends State<AdminDashboard> {
             ],
           ),
         ),
-
         actions:  [
-          GestureDetector(
-            onTap: () {
-              _launchURL();
+          PopupMenuButton<AppBarMenuOption>(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+
+            onSelected: (value) {
+              if (value == AppBarMenuOption._launchURL) {
+                _launchURL(); // ✅ YOUR URL FUNCTION
+              }
+
+              if (value == AppBarMenuOption.viewDetail) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>  AgreementCustomer(),
+                  ),
+                );
+              }
             },
-            child: Row(
-              children: [
-                const Icon(
-                  PhosphorIcons.share,
-                  color: Colors.white,
-                  size: 30,
+
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: AppBarMenuOption._launchURL,
+                child: Row(
+                  children: [
+                    Icon(Icons.open_in_browser, size: 18),
+                    SizedBox(width: 10),
+                    Text("Launch URL"),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 20,
+              ),
+              PopupMenuItem(
+                value: AppBarMenuOption.viewDetail,
+                child: Row(
+                  children: [
+                    Icon(Icons.info_outline, size: 18),
+                    SizedBox(width: 10),
+                    Text("View Detail"),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),

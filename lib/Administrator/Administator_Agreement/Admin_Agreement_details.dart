@@ -524,6 +524,8 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
                         _kv("Meter", agreement!["meter"]),
                         _kv("Custom Unit", agreement!["custom_meter_unit"] ?? ""),
                         _kv("Maintenance", agreement!["maintaince"]),
+                        if (agreement!["maintaince"] == "Excluding")
+                          _kv("Maintenance Amount", agreement?["custom_maintenance_charge"]),
                         _kv("Parking", agreement!["parking"] ?? ""),
                         _kv("Shifting Date", agreement!["shifting_date"].toString().split("T")[0]),
                         _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),

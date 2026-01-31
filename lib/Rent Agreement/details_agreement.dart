@@ -7,14 +7,17 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 import '../Custom_Widget/Custom_backbutton.dart';
+import 'Dashboard_screen.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
+import 'Forms/Verification_form.dart';
 
 class AgreementDetailPage extends StatefulWidget  {
   final bool fromNotification;
@@ -346,22 +349,55 @@ class _AgreementDetailPageState extends State<AgreementDetailPage>  with SingleT
     );
   }
 
+  Future<RewardStatus> fetchRewardStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final number = prefs.getString("number");
+
+    if (number == null || number.isEmpty) {
+      return RewardStatus(totalAgreements: 0, isDiscounted: false);
+    }
+
+    final res = await http.get(
+      Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+            "?Fieldwarkarnumber=$number",
+      ),
+    );
+
+    final data = jsonDecode(res.body);
+
+    if (data["status"] == true) {
+      final total = int.tryParse(data["total_agreement"].toString()) ?? 0;
+
+      return RewardStatus(
+        totalAgreements: total,
+        isDiscounted: total > 20,
+      );
+    }
+
+    return RewardStatus(totalAgreements: 0, isDiscounted: false);
+  }
+
+
   void _navigateToEditForm(BuildContext context, Map<String, dynamic> agreement) async {
     final String type = (agreement['agreement_type'] ?? '').toString().toLowerCase();
     final String id = (agreement['id'] ?? agreement['agreement_id'] ?? '').toString();
+    final reward = await fetchRewardStatus();
 
     Widget? page;
 
     if (type.contains("rental agreement")) {
-      page = RentalWizardPage(agreementId: id);
+      page = RentalWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("external rental agreement")) {
-      page = ExternalWizardPage(agreementId: id);
+      page = ExternalWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("commercial agreement")) {
-      page = CommercialWizardPage(agreementId: id);
+      page = CommercialWizardPage(agreementId: id,rewardStatus: reward);
     } else if (type.contains("furnished agreement")) {
-      page = FurnishedForm(agreementId: id);
+      page = FurnishedForm(agreementId: id,rewardStatus: reward);
     } else if (type.contains("renewal agreement")) {
-      page = RenewalForm(agreementId: id);
+      page = RenewalForm(agreementId: id,rewardStatus: reward);
+    } else if (type.contains("Police Verification")) {
+      page = VerificationWizardPage(agreementId: id,rewardStatus: reward);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Unknown agreement type: ${agreement['agreement_type']}")),

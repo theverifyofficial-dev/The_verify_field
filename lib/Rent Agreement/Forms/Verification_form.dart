@@ -16,7 +16,9 @@ import '../Dashboard_screen.dart';
 
 class VerificationWizardPage extends StatefulWidget {
   final String? agreementId;
-  const VerificationWizardPage({Key? key, this.agreementId}) : super(key: key);
+  final RewardStatus rewardStatus;
+
+  const VerificationWizardPage({Key? key, this.agreementId,required this.rewardStatus}) : super(key: key);
 
   @override
   State<VerificationWizardPage> createState() => _RentalWizardPageState();
@@ -120,6 +122,8 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
   String? tenantAadharBackUrl;
   String? tenantPhotoUrl;
 
+
+
   @override
   void initState() {
     super.initState();
@@ -128,7 +132,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       _fetchAgreementDetails(widget.agreementId!);
     }
   }
-
 
   Future<void> _fetchAgreementDetails(String id) async {
     final url = Uri.parse(
@@ -176,7 +179,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       debugPrint("❌ Failed to load agreement details: ${response.body}");
     }
   }
-
 
   @override
   void dispose() {
@@ -228,7 +230,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       valid = _ownerFormKey.currentState?.validate() == true;
 
       if (!valid) {
-        Fluttertoast.showToast(msg: 'Please fill required fields');
+        Fluttertoast.showToast(msg: '  fill required fields');
       }
 
     } else if (_currentStep == 1) {
@@ -275,117 +277,82 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
     _number = prefs.getString('number') ?? '';
   }
 
-
-
-  /// Generic fetch for owner/tenant
   Future<void> _fetchUserData({
-    required bool isOwner,                // true for owner, false for tenant
-    required String? aadhaar,             // value in the Aadhaar field
-    required String? mobile,              // value in the mobile field
-  }) async {
-    String query;
-    String paramKey;
-    bool searchedByAadhaar;
+    required bool fillOwner,
+    required String? aadhaar,
+    required String? mobile,
+  })
+  async {
+    String queryKey;
+    String queryValue;
 
-    // Determine which field to search by
     if (aadhaar?.trim().isNotEmpty ?? false) {
-      query = aadhaar!.trim();
-      paramKey = isOwner ? "owner_addhar_no" : "tenant_addhar_no";
-      searchedByAadhaar = true;
+      queryKey = "aadhaar";
+      queryValue = aadhaar!.trim();
     } else if (mobile?.trim().isNotEmpty ?? false) {
-      query = mobile!.trim();
-      paramKey = isOwner ? "owner_mobile_no" : "tenant_mobile_no";
-      searchedByAadhaar = false;
+      queryKey = "mobile";
+      queryValue = mobile!.trim();
     } else {
-      _showToast("Enter Aadhaar or Mobile to fetch ${isOwner ? 'owner' : 'tenant'} data");
+      _showToast("Enter Aadhaar or Mobile number");
       return;
     }
 
     try {
       final uri = Uri.parse(
-        isOwner
-            ? "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_owner_addharnumber.php"
-            : "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/display_data_by_tenant_addhar_number.php",
+        "https://verifyserve.social/Second%20PHP%20FILE/main_application/agreement/"
+            "display_owner_and_tenant_addhar_document.php?$queryKey=$queryValue",
       );
 
-      final response = await http.post(uri, body: {paramKey: query});
+      final response = await http.get(uri);
       print("📩 API Response: ${response.body}");
 
       if (response.statusCode != 200) {
-        return _showToast("${response.statusCode} Not Found");
+        _showToast("${response.statusCode} Error");
+        return;
       }
 
       final decoded = jsonDecode(response.body);
-      if (decoded['status'] != 'success' || decoded['data'] == null) {
-        return _showToast("No data found");
+
+      if (decoded['success'] != true || decoded['data'] == null) {
+        _showToast("No data found");
+        return;
       }
 
-      final rawData = decoded['data'];
-      if (rawData is! List || rawData.isEmpty) {
-        return _showToast("No data found");
-      }
-
-      final data = rawData[0];
+      final data = decoded['data'];
 
       setState(() {
-        if (isOwner) {
-          ownerName.text = data['owner_name'] ?? '';
-          ownerRelation = data['owner_relation'] ?? 'S/O';
-          ownerRelationPerson.text = data['relation_person_name_owner'] ?? '';
-          ownerAddress.text = data['parmanent_addresss_owner'] ?? '';
-
-          // Only update opposite field
-          if (searchedByAadhaar) {
-            ownerMobile.text = data['owner_mobile_no'] ?? '';
-          } else {
-            ownerAadhaar.text = data['owner_addhar_no'] ?? '';
-          }
-
-          ownerAadharFrontUrl = data['owner_aadhar_front'] ?? '';
-          ownerAadharBackUrl = data['owner_aadhar_back'] ?? '';
+        if (fillOwner) {
+          // ✅ Fill OWNER section
+          ownerName.text = data['name'] ?? '';
+          ownerRelation = data['relation'] ?? 'S/O';
+          ownerRelationPerson.text =
+              data['relation_person_name'] ?? '';
+          ownerAddress.text = data['addresss'] ?? '';
+          ownerMobile.text = data['mobile_number'] ?? '';
+          ownerAadhaar.text = data['addhar_number'] ?? '';
+          ownerAadharFrontUrl = data['addhar_front'] ?? '';
+          ownerAadharBackUrl = data['addhar_back'] ?? '';
         } else {
-          tenantName.text = data['tenant_name'] ?? '';
-          tenantRelation = data['tenant_relation'] ?? 'S/O';
-          tenantRelationPerson.text = data['relation_person_name_tenant'] ?? '';
-          tenantAddress.text = data['permanent_address_tenant'] ?? '';
-
-          if (searchedByAadhaar) {
-            tenantMobile.text = data['tenant_mobile_no'] ?? '';
-          } else {
-            tenantAadhaar.text = data['tenant_addhar_no'] ?? '';
-          }
-
-          tenantAadharFrontUrl = data['tenant_aadhar_front' ?? ''];
-          tenantAadharBackUrl = data['tenant_aadhar_back'] ?? '';
-          tenantPhotoUrl = data['tenant_image'] ?? '';
+          // ✅ Fill TENANT section
+          tenantName.text = data['name'] ?? '';
+          tenantRelation = data['relation'] ?? 'S/O';
+          tenantRelationPerson.text =
+              data['relation_person_name'] ?? '';
+          tenantAddress.text = data['addresss'] ?? '';
+          tenantMobile.text = data['mobile_number'] ?? '';
+          tenantAadhaar.text = data['addhar_number'] ?? '';
+          tenantAadharFrontUrl = data['addhar_front'] ?? '';
+          tenantAadharBackUrl = data['addhar_back'] ?? '';
+          tenantPhotoUrl = data['selfie'] ?? '';
         }
       });
 
-      print("✅ ${isOwner ? 'Owner' : 'Tenant'} data loaded successfully");
+      print("✅ Data filled into ${fillOwner ? 'OWNER' : 'TENANT'} section");
     } catch (e) {
-      print("🔥 Exception while fetching ${isOwner ? 'owner' : 'tenant'}: $e");
+      print("🔥 Exception: $e");
       _showToast("Error: $e");
     }
   }
-
-  /// Wrappers for owner/tenant
-  _fetchOwnerData() {
-    _fetchUserData(
-      isOwner: true,
-      aadhaar: ownerAadhaar.text,
-      mobile: ownerMobile.text,
-    );
-  }
-
-  _fetchTenantData() {
-    _fetchUserData(
-      isOwner: false,
-      aadhaar: tenantAadhaar.text,
-      mobile: tenantMobile.text,
-    );
-  }
-
-
 
   Future<void> _submitAll() async {
     print("🔹 _submitAll called");
@@ -426,6 +393,7 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "is_agreement_hide": isAgreementHide ? "1" : "0",
+        "agreement_price": widget.rewardStatus.isDiscounted ? "40" : "50",
         "agreement_type": "Police Verification",
       };
 
@@ -753,8 +721,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
     );
   }
 
-
-  // small image tile
   Widget _imageTile({File? file, String? url, required String hint}) {
     return Container(
       width: 120,
@@ -780,9 +746,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
     );
   }
 
-
-
-  // ---------- Build UI ----------
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -818,6 +781,43 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
                     ],
                   ),
                 ),
+                if (widget.rewardStatus.isDiscounted)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF00C853), Color(0xFF64DD17)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.green.withOpacity(0.4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.celebration, color: Colors.white),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              "🎉 Congratulations! Discount applied.\n"
+                                  "You completed ${widget.rewardStatus.totalAgreements} agreements this month.",
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
 
                 Expanded(
                   child: PageView(
@@ -967,7 +967,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       ),
     );
   }
-
 
   Widget _fancyStepHeader() {
     final stepLabels = ['Owner', 'Tenant', 'Preview'];
@@ -1121,7 +1120,13 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
                     ],
                   ),
                   child: ElevatedButton.icon(
-                    onPressed: () => _fetchOwnerData(),
+                    onPressed: () {
+                      _fetchUserData(
+                        fillOwner: true,
+                        aadhaar: ownerAadhaar.text,
+                        mobile: ownerMobile.text,
+                      );
+                    },
                     icon: const Icon(Icons.search, color: Colors.white),
                     label: const Text(
                       'Auto fetch',
@@ -1273,7 +1278,13 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
                 ],
               ),
               child: ElevatedButton.icon(
-                onPressed: () => _fetchTenantData(),
+                onPressed: () {
+                  _fetchUserData(
+                    fillOwner: false,
+                    aadhaar: tenantAadhaar.text,
+                    mobile: tenantMobile.text,
+                  );
+                },
                 icon: const Icon(Icons.search, color: Colors.white),
                 label: const Text(
                   'Auto fetch',
@@ -1398,9 +1409,9 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
     );
   }
 
-
-
   Widget _previewStep() {
+    final is_discount = widget.rewardStatus.isDiscounted;
+    final police_price = is_discount ? "40" : "50";
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
@@ -1512,10 +1523,13 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
 
 
         const SizedBox(height: 12),
+        Text('* Total cost of this Police Verification: $police_price',style: TextStyle(color: Colors.red),),
+        const SizedBox(height: 12),
         Text('* IMPORTANT : When you tap Submit we send data & uploaded Aadhaar images to server for Approval from the Admin.',style: TextStyle(color: Colors.red),),
       ]),
     );
   }
+
   Widget _kv(String k, String v) {
     if (v.trim().isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -1523,7 +1537,6 @@ class _RentalWizardPageState extends State<VerificationWizardPage> with TickerPr
       child: Row(children: [SizedBox(width: 140, child: Text('$k:', style: const TextStyle(fontWeight: FontWeight.w600,color: Colors.black))), Expanded(child: Text(v,style: TextStyle(color: Colors.black),))]),
     );
   }
-
 
   Widget _sectionCard({required String title, required List<Widget> children}) {
     return Padding(

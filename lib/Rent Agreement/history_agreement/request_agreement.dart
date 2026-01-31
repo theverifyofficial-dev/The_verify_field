@@ -8,6 +8,7 @@ import 'package:verify_feild_worker/Rent%20Agreement/Forms/Renewal_form.dart';
 import 'package:verify_feild_worker/Rent%20Agreement/Forms/Verification_form.dart';
 
 import '../../model/agrement_model.dart';
+import '../Dashboard_screen.dart';
 import '../Forms/Agreement_Form.dart';
 import '../Forms/External_Form.dart';
 import '../Forms/Furnished_form.dart';
@@ -39,30 +40,61 @@ class _RequestAgreementsPageState extends State<RequestAgreementsPage> {
     }
   }
 
+  Future<RewardStatus> fetchRewardStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final number = prefs.getString("number");
+
+    if (number == null || number.isEmpty) {
+      return RewardStatus(totalAgreements: 0, isDiscounted: false);
+    }
+
+    final res = await http.get(
+      Uri.parse(
+        "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/count_api_for_all_agreement_with_reword.php"
+            "?Fieldwarkarnumber=$number",
+      ),
+    );
+
+    final data = jsonDecode(res.body);
+
+    if (data["status"] == true) {
+      final total = int.tryParse(data["total_agreement"].toString()) ?? 0;
+
+      return RewardStatus(
+        totalAgreements: total,
+        isDiscounted: total > 20,
+      );
+    }
+
+    return RewardStatus(totalAgreements: 0, isDiscounted: false);
+  }
+
+
   void _navigateToEditForm(BuildContext context, AgreementData agreement) async {
     Widget page;
+    final reward = await fetchRewardStatus();
 
     switch (agreement.Type.toLowerCase()) {
       case "rental agreement":
-        page = RentalWizardPage(agreementId: agreement.id);
+        page = RentalWizardPage(agreementId: agreement.id,rewardStatus: reward);
         break;
 
       case "external rental agreement":
-        page = ExternalWizardPage(agreementId: agreement.id);
+        page = ExternalWizardPage(agreementId: agreement.id,rewardStatus: reward);
         break;
 
       case "renewal agreement":
-        page = RenewalForm(agreementId: agreement.id);
+        page = RenewalForm(agreementId: agreement.id,rewardStatus: reward);
         break;
       case "commercial agreement":
-        page = CommercialWizardPage(agreementId: agreement.id);
+        page = CommercialWizardPage(agreementId: agreement.id,rewardStatus: reward);
         break;
       case "furnished agreement":
-        page = FurnishedForm(agreementId: agreement.id);
+        page = FurnishedForm(agreementId: agreement.id,rewardStatus: reward);
         break;
 
       case "police verification":
-        page = VerificationWizardPage(agreementId: agreement.id);
+        page = VerificationWizardPage(agreementId: agreement.id,rewardStatus: reward);
         break;
 
       default:

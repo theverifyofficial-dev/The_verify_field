@@ -323,11 +323,22 @@ class _AdminPendingState extends State<AdminPending> {
                   Icon(Icons.schedule_rounded, color: subTextColor, size: 18),
                   const SizedBox(width: 6),
                   Text(
-                    "Shifting Date: ${agreement.shiftingDate.toString().split(' ')[0]}",
+                    "Shifting Date: ${_formatDate(agreement.shiftingDate.toString().split(' ')[0])}",
                     style: TextStyle(
                       color: subTextColor,
                       fontSize: 13.2 * textScale,
                       fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Spacer(),
+
+                  Text(
+                    "by: ${agreement.fieldwarkarname.toString().split(' ')[0]}",
+                    style: TextStyle(
+                      color: subTextColor,
+                      fontSize: 13.2 * textScale,
+                      fontWeight: FontWeight.w500,
+                      fontStyle: FontStyle.italic
                     ),
                   ),
                 ],
@@ -393,6 +404,27 @@ class _AdminPendingState extends State<AdminPending> {
         ),
       ),
     );
+  }
+
+  String _formatDate(dynamic rawDate) {
+    try {
+      String actualDate =
+      rawDate is Map ? rawDate['date'] ?? '' : rawDate.toString();
+      if (actualDate.isEmpty) return "--";
+      final date = DateTime.parse(actualDate.split(' ')[0]);
+      return "${_twoDigits(date.day)} ${_monthName(date.month)} ${date.year}";
+    } catch (_) {
+      return "--";
+    }
+  }
+  String _twoDigits(int n) => n.toString().padLeft(2, '0');
+
+  String _monthName(int month) {
+    const months = [
+      "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+      "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+    return months[month - 1];
   }
 
   @override

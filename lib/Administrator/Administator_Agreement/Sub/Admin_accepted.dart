@@ -213,6 +213,21 @@ class _AgreementDetailsState extends State<AdminAccepted> {
 
                         ],
                       ),
+                      Row(
+                        children: [
+                          Spacer(),
+
+                          Text(
+                            "by: ${item.fieldwarkarname.toString().split(' ')[0]}",
+                            style: TextStyle(
+                                color:  isDark ? Colors.grey.shade100 : Colors.black,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                fontStyle: FontStyle.italic
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),

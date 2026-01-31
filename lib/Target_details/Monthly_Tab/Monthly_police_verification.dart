@@ -172,8 +172,9 @@ class PoliceMonthlyModel {
 /// API FETCH
 /// =======================
 Future<List<PoliceMonthlyModel>> fetchPoliceMonthly(String number) async {
+  print(number);
   final url = Uri.parse(
-    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=${number}}",
+    "https://verifyserve.social/Second%20PHP%20FILE/Target_New_2026/police_verification_monthly.php?Fieldwarkarnumber=${number}",
   );
 
   final res = await http.get(url);

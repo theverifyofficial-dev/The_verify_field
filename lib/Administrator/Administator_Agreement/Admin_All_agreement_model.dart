@@ -76,24 +76,31 @@ class AdminAllAgreementModel {
   });
   factory AdminAllAgreementModel.fromJson(Map<String, dynamic> json) {
     return AdminAllAgreementModel(
-      id: json['id'],
+      id: int.tryParse(json['id'].toString()) ?? 0,
+
       ownerName: json['owner_name'] ?? '',
       ownerRelation: json['owner_relation'] ?? '',
       relationPersonNameOwner: json['relation_person_name_owner'] ?? '',
       parmanentAddresssOwner: json['parmanent_addresss_owner'] ?? '',
       ownerMobileNo: json['owner_mobile_no'] ?? '',
       ownerAddharNo: json['owner_addhar_no'] ?? '',
+
       tenantName: json['tenant_name'] ?? '',
       tenantRelation: json['tenant_relation'] ?? '',
       relationPersonNameTenant: json['relation_person_name_tenant'] ?? '',
       permanentAddressTenant: json['permanent_address_tenant'] ?? '',
       tenantMobileNo: json['tenant_mobile_no'] ?? '',
       tenantAddharNo: json['tenant_addhar_no'] ?? '',
+
       rentedAddress: json['rented_address'] ?? '',
       monthlyRent: json['monthly_rent'] ?? '',
       securitys: json['securitys'] ?? '',
       meter: json['meter'] ?? '',
-      shiftingDate: json['shifting_date']?['date'] ?? '', // ✅ FIX
+
+      // ✅ FIXED
+      shiftingDate: _parseDateString(json['shifting_date']),
+      current_date: _parseDateString(json['current_dates']),
+
       maintaince: json['maintaince'] ?? '',
       ownerAadharFront: json['owner_aadhar_front'] ?? '',
       ownerAadharBack: json['owner_aadhar_back'] ?? '',
@@ -103,15 +110,32 @@ class AdminAllAgreementModel {
       installmentSecurityAmount: json['installment_security_amount'] ?? '',
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',
-      current_date: json['current_dates']?['date'] ?? '', // ✅ FIX
+
       notaryImg: json['notry_img'] ?? '',
       policeVerificationPdf: json['police_verification_pdf'] ?? '',
       bhk: json['Bhk'] ?? '',
-      withPolice: json['is_Police'] ?? '',
       floor: json['floor'] ?? '',
-      payment: json['payment'] ?? '',
-      recieved: json['office_received'] ?? '',
+
+      // normalize flags
+      withPolice: json['is_Police']?.toString() ?? 'false',
+      payment: json['payment']?.toString() ?? '0',
+      recieved: json['office_received']?.toString() ?? '0',
+
       agreementType: json['agreement_type'],
     );
   }
+
+}
+String _parseDateString(dynamic value) {
+  if (value == null) return '';
+
+  // API sends direct string
+  if (value is String) return value;
+
+  // Sometimes API sends { date: "yyyy-mm-dd" }
+  if (value is Map && value['date'] != null) {
+    return value['date'].toString();
+  }
+
+  return '';
 }

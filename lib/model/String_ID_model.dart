@@ -27,6 +27,8 @@ class  StringIdModel {
   final String customMeterUnit;
   final String customMaintenanceCharge;
   final String current_date;
+  final String fieldwarkarname;
+  final String fieldwarkarnumber;
   final String Type;  // ✅ new field
 
 
@@ -60,6 +62,8 @@ class  StringIdModel {
     required this.customMeterUnit,
     required this.customMaintenanceCharge,
     required this. current_date,
+    required this.fieldwarkarname,
+    required this.fieldwarkarnumber,
     required this.Type,  // ✅ new field
   });
 
@@ -90,6 +94,8 @@ class  StringIdModel {
       tenantAadharFront: json['tenant_aadhar_front'] ?? '',
       tenantAadharBack: json['tenant_aadhar_back'] ?? '',
       agreementPdf: json['agreement_pdf'] ?? '',
+      fieldwarkarname: json['Fieldwarkarname'] ?? '',
+      fieldwarkarnumber: json['Fieldwarkarnumber'] ??'',
       installmentSecurityAmount: json['installment_security_amount'] ?? '',
       customMeterUnit: json['custom_meter_unit'] ?? '',
       customMaintenanceCharge: json['custom_maintenance_charge'] ?? '',

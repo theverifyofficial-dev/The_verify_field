@@ -8,6 +8,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import '../../../Custom_Widget/Custom_backbutton.dart';
 import '../../imagepreviewscreen.dart';
 import 'PDF.dart';
@@ -109,23 +110,27 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
     }
   }
 
-  String? _formatDate(dynamic shiftingDate) {
+
+  String _formatDate(dynamic shiftingDate) {
     if (shiftingDate == null) return "";
-    if (shiftingDate is Map && shiftingDate["date"] != null) {
-      try {
-        return DateTime.parse(shiftingDate["date"])
-            .toLocal()
-            .toString()
-            .split(" ")[0];
-      } catch (e) {
-        return shiftingDate["date"].toString();
+
+    try {
+      DateTime date;
+
+      if (shiftingDate is Map && shiftingDate["date"] != null) {
+        date = DateTime.parse(shiftingDate["date"]);
+      } else if (shiftingDate is String && shiftingDate.isNotEmpty) {
+        date = DateTime.parse(shiftingDate);
+      } else {
+        return "";
       }
+
+      return DateFormat('dd MMM yyyy').format(date.toLocal());
+    } catch (_) {
+      return "";
     }
-    if (shiftingDate is String && shiftingDate.isNotEmpty) {
-      return shiftingDate;
-    }
-    return "";
   }
+
 
   Widget _furnitureList(dynamic furnitureData) {
     if (furnitureData == null || furnitureData.toString().trim().isEmpty) {
@@ -525,6 +530,8 @@ class _AgreementDetailPageState extends State<AcceptedDetails> {
                       _kv("Meter", agreement?["meter"]),
                       _kv("Custom Unit", agreement?["custom_meter_unit"]),
                       _kv("Maintenance", agreement?["maintaince"]),
+                      if (agreement!["maintaince"] == "Excluding")
+                        _kv("Maintenance Amount", agreement?["custom_maintenance_charge"]),
                       _kv("Parking", agreement?["parking"]),
                       _kv("Shifting Date", _formatDate(agreement?["shifting_date"]) ?? ""),
                       _kv("Agreement Price", agreement?["agreement_price"] ?? 'Not Added'),

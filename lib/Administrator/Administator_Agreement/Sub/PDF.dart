@@ -181,9 +181,28 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
 
 
 
+
+
   final monthlyRentRaw = data['monthly_rent']?.toString() ?? '';
-  final maintenanceRaw = data['maintaince']?.toString() ?? '';
+  final customMaintenanceRaw = data['custom_maintenance_charge']?.toString() ?? '';
   final securityRaw = data['securitys']?.toString() ?? '';
+
+  final String maintenanceType =
+  (data['maintaince']?.toString() ?? '').trim().toLowerCase();
+
+  final String maintenanceAmount =
+  maintenanceType == 'excluding'
+      ? (customMaintenanceRaw.isNotEmpty ? customMaintenanceRaw : '0')
+      : '0';
+
+  final int maintenanceInt =
+      int.tryParse(maintenanceAmount.replaceAll(',', '')) ?? 0;
+
+  final String maintenanceLabel =
+  maintenanceType == 'excluding'
+      ? 'excluding'
+      : 'including';
+
 
   final rawOwnerAadhaar =
   safeString(data, 'owner_addhar_no', '297374997337');
@@ -284,26 +303,6 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   final currentDate = DateTime.now();
   final currentDateFormatted =
       '${currentDate.day.toString().padLeft(2, '0')}/${currentDate.month.toString().padLeft(2, '0')}/${currentDate.year}';
-
-
-
-
-  pw.Widget clause(String heading, String body){
-    return pw.RichText(
-      text: pw.TextSpan(
-        children: [
-          pw.TextSpan(
-            text: '$heading ',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
-          ),
-          pw.TextSpan(
-            text: body,
-            style: pw.TextStyle(fontSize: 10),
-          ),
-        ],
-      ),
-    );
-  }
 
   // Build the PDF with the same page layout as original (kept unchanged)
   pdf.addPage(
@@ -415,21 +414,18 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
             text: ' of each calendar month. ',
             style: baseStyle,
             ),
-            pw.TextSpan(
-            text: 'Rs. ${maintenanceRaw.isNotEmpty ? maintenanceRaw : '0'} ',
-            style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 11),
-            ),
-            pw.TextSpan(
-            text: '( ' +
-            (maintenanceRaw.isNotEmpty
-            ? numberToWords(
-            int.tryParse(maintenanceRaw.replaceAll(',', '')) ??
-            0) +
-            ' RUPEES )'
-                : 'ZERO RUPEES )'),
-            style: baseStyle,
-            ),
-            pw.TextSpan(text: ' maintenance charge ', style: baseStyle),
+              pw.TextSpan(
+                text: '$maintenanceLabel maintenance charges of ',
+                style: baseStyle,
+              ),
+              pw.TextSpan(
+                text: 'Rs. $maintenanceAmount ',
+                style: boldStyle,
+              ),
+              pw.TextSpan(
+                text: '( ${numberToWords(maintenanceInt)} RUPEES ).',
+                style: boldStyle,
+              ),
             ],
             ),
             ),
@@ -690,26 +686,22 @@ Future<File> generateAgreementPdf(Map<String, dynamic> data) async {
   return file;
 }
 
-pw.Widget clause(String heading, String body) {
-  return pw.Padding(
-    padding: const pw.EdgeInsets.only(bottom: 18), // consistent spacing between clauses
-    child: pw.RichText(
-      text: pw.TextSpan(
-        children: [
-          pw.TextSpan(
-            text: heading,
-            style: pw.TextStyle(
-              fontWeight: pw.FontWeight.bold,
-              fontSize: 9,
-            ),
-          ),
-          pw.TextSpan(
-            text: body,
-            style: pw.TextStyle(fontSize: 9),
-          ),
-        ],
-      ),
+
+pw.Widget clause(String heading, String body){
+  return pw.RichText(
+    text: pw.TextSpan(
+      children: [
+        pw.TextSpan(
+          text: '$heading ',
+          style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 10),
+        ),
+        pw.TextSpan(
+          text: body,
+          style: pw.TextStyle(fontSize: 10),
+        ),
+      ],
     ),
   );
 }
+
 

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -235,6 +236,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     );
   }
 
+
+
   Future<void> fetchFlats() async {
     setState(() => isLoading = true);
     final apiUrl =
@@ -262,24 +265,45 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
   Future<void> _logContact({
     required String message,
     required String id,
-  }) async {
+  })
+  async {
+    final prefs = await SharedPreferences.getInstance();
+    final FName = prefs.getString('name') ?? "";
+    final FNum = prefs.getString('number') ?? "";
+    print(FName);
+    print(FNum);
+
     final now = DateTime.now();
+
     final date =
         "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
     final time =
         "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
 
+    final nextCallingDate = _calculateNextCallingDate();
+
     const apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/calling_for_future_property.php";
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_future_property_calling_option.php";
 
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
-        body: {"message": message, "date": date, "time": time, "subid": id},
+        body: {
+          "message": message,
+          "date": date,
+          "time": time,
+          "subid": id,
+          "next_calling_date": nextCallingDate,
+
+          "fieldworkar_name": FName,
+          "fieldworkar_number": FNum,
+        },
       );
-      debugPrint("Log response: ${response.body}");
+
+      debugPrint("Future call log response: ${response.body}");
     } catch (e) {
-      debugPrint("Error logging contact: $e");
+      debugPrint("Error logging future call: $e");
     }
   }
 
@@ -332,10 +356,12 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
   }
 
   String _formatDate(DateTime dt) {
-    final dd = dt.day.toString().padLeft(2, '0');
-    final mm = dt.month.toString().padLeft(2, '0');
-    final yyyy = dt.year.toString();
-    return "$dd-$mm-$yyyy";
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    return "${dt.day} ${months[dt.month - 1]} ${dt.year}";
   }
 
   String _generateNextContactMessage(DateTime? latest) {
@@ -414,6 +440,11 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     );
   }
 
+  String _calculateNextCallingDate() {
+    final next = DateTime.now().add(const Duration(days: 30));
+    return "${next.year}-${next.month.toString().padLeft(2, '0')}-${next.day.toString().padLeft(2, '0')}";
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -430,21 +461,11 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : flats.isEmpty
-          ? Center(
-        child: Text(
-          "No Data Found.",
-          style: TextStyle(
-            fontSize: 18,
-            color: isDark ? Colors.white70 : Colors.black54,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      )
           : ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // 🌇 Building Header Card
+
+          // ✅ BUILDING CARD — ALWAYS SHOWN
           _glassCard(
             isDark,
             child: Column(
@@ -453,34 +474,19 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                 Row(
                   children: [
                     Icon(Icons.apartment_rounded,
-                        color:
-                        isDark ? Colors.tealAccent : Colors.black87,
-                        size: 22),
+                        color: isDark ? Colors.tealAccent : Colors.black87),
                     const SizedBox(width: 8),
-                    Text(
+                    const Text(
                       "Building Overview",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color:
-                        isDark ? Colors.white : Colors.black87,
-                      ),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
                     ),
                   ],
                 ),
-                const Divider(height: 20, thickness: 0.5),
+                const Divider(height: 20),
                 _infoRow("Building ID", widget.buildingId, isDark),
                 const SizedBox(height: 12),
-                Text(
-                  "Owner Details",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: isDark
-                        ? Colors.white70
-                        : Colors.black87,
-                  ),
-                ),
+                const Text("Owner Details",
+                    style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 6),
                 _infoRow("Name", widget.ownerName, isDark),
                 const SizedBox(height: 6),
@@ -491,15 +497,13 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                   onLog: _logContact,
                 ),
                 const SizedBox(height: 12),
-
                 _reminderCard(isDark: isDark, id: widget.buildingId),
-
                 const SizedBox(height: 12),
                 _viewLogsCard(
                   isDark: isDark,
                   title: "View Logs",
-                  onTap: () => _showLogsBottomSheet(
-                      context, widget.buildingId),
+                  onTap: () =>
+                      _showLogsBottomSheet(context, widget.buildingId),
                 ),
               ],
             ),
@@ -507,113 +511,122 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
           const SizedBox(height: 24),
 
-          Text(
-            "Available Flats",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color:
-              isDark ? Colors.white : Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // 🏠 Flat Cards
-          ...flats.map((flat) {
-            return _glassCard(
-              isDark,
-              margin: const EdgeInsets.only(bottom: 18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.home_rounded,
-                          color: isDark
-                              ? Colors.blueAccent
-                              : Colors.blue.shade700),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          "Flat ${flat['Flat_number']} • ${flat['Floor_']}",
-                          style: TextStyle(
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700,
-                            color: isDark
-                                ? Colors.white
-                                : Colors.black87,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: flat['Buy_Rent']
-                              .toString()
-                              .toLowerCase()
-                              .contains('rent')
-                              ? Colors.orange.withOpacity(0.30)
-                              : Colors.green.withOpacity(0.30),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          flat['Buy_Rent'],
-                          style: TextStyle(
-                            color: flat['Buy_Rent']
-                                .toString()
-                                .toLowerCase()
-                                .contains('rent')
-                                ? Colors.orangeAccent
-                                : Colors.greenAccent,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
+          // 🔹 FLATS SECTION (CONDITIONAL)
+          if (flats.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 40),
+                child: Text(
+                  "No flats added in this building.",
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? Colors.white70 : Colors.black54,
                   ),
-                  const Divider(height: 20, thickness: 0.5),
-                  _infoRow("Flat ID", flat['P_id'].toString(), isDark),
-                  _infoRow("Price", "₹${flat['show_Price']}", isDark),
-                  const SizedBox(height: 10),
-                  Text(
-                    "Owner Details",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color:
-                      isDark ? Colors.white70 : Colors.black87,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  _infoRow(
-                      "Name", flat['owner_name'] ?? "N/A", isDark),
-                  const SizedBox(height: 6),
-                  _contactButtons(
-                    isDark: isDark,
-                    number: flat['owner_number'] ?? "",
-                    id: flat['P_id'].toString(),
-                    onLog: _logContact,
-                  ),
-                  const SizedBox(height: 12),
-
-                  _reminderCard(isDark: isDark, id: flat['P_id'].toString()),
-
-                  const SizedBox(height: 12),
-                  _viewLogsCard(
-                    isDark: isDark,
-                    title: "View Logs",
-                    onTap: () => _showLogsBottomSheet(
-                        context, flat['P_id'].toString()),
-                  ),
-                ],
+                ),
               ),
-            );
-          }),
+            )
+          else ...[
+            Text(
+              "Available Flats",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            ...flats.map((flat) {
+              return _glassCard(
+                isDark,
+                margin: const EdgeInsets.only(bottom: 18),
+                child: _buildFlatCard(flat, isDark),
+              );
+            }),
+          ],
         ],
       ),
+
     );
   }
+
+  Widget _buildFlatCard(dynamic flat, bool isDark) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(
+              Icons.home_rounded,
+              color: isDark ? Colors.blueAccent : Colors.blue.shade700,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                "Flat ${flat['Flat_number']} • ${flat['Floor_']}",
+                style: TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: flat['Buy_Rent']
+                    .toString()
+                    .toLowerCase()
+                    .contains('rent')
+                    ? Colors.orange.withOpacity(0.30)
+                    : Colors.green.withOpacity(0.30),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                flat['Buy_Rent'],
+                style: TextStyle(
+                  color: flat['Buy_Rent']
+                      .toString()
+                      .toLowerCase()
+                      .contains('rent')
+                      ? Colors.orangeAccent
+                      : Colors.greenAccent,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const Divider(height: 20, thickness: 0.5),
+        _infoRow("Flat ID", flat['P_id'].toString(), isDark),
+        _infoRow("Price", "₹${flat['show_Price']}", isDark),
+        const SizedBox(height: 10),
+        const Text(
+          "Owner Details",
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+        ),
+        const SizedBox(height: 6),
+        _infoRow("Name", flat['owner_name'] ?? "N/A", isDark),
+        const SizedBox(height: 6),
+        _contactButtons(
+          isDark: isDark,
+          number: flat['owner_number'] ?? "",
+          id: flat['P_id'].toString(),
+          onLog: _logContact,
+        ),
+        const SizedBox(height: 12),
+        _reminderCard(isDark: isDark, id: flat['P_id'].toString()),
+        const SizedBox(height: 12),
+        _viewLogsCard(
+          isDark: isDark,
+          title: "View Logs",
+          onTap: () =>
+              _showLogsBottomSheet(context, flat['P_id'].toString()),
+        ),
+      ],
+    );
+  }
+
 
   Widget _glassCard(bool isDark, {required Widget child, EdgeInsetsGeometry? margin}) {
     return ClipRRect(
@@ -734,7 +747,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         Expanded(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue.withOpacity(0.5),
+              backgroundColor: Colors.blue,
               foregroundColor: Colors.black,
               elevation: 0,
               shape: RoundedRectangleBorder(
@@ -755,7 +768,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
         Expanded(
           child: ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green.withOpacity(0.5),
+              backgroundColor: Colors.green,
               foregroundColor: Colors.black,
               elevation: 0,
               shape: RoundedRectangleBorder(

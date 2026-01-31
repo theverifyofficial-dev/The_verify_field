@@ -13,6 +13,7 @@ import '../Future_Property_OwnerDetails_section/New_Update/under_flats_infuturep
 import '../Home_Screen_click/View_All_Details.dart';
 import '../Rent Agreement/All_detailpage.dart';
 import '../Rent Agreement/details_agreement.dart';
+import '../Rent Agreement/history_tab.dart';
 import '../Upcoming/Upcoming_details.dart';
 
 CalendarAddFlatResponse calendarAddFlatResponseFromJson(String str) =>
@@ -1942,7 +1943,16 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
   Widget _buildAcceptedAgreementCard(AcceptedAgreement t, bool isDark) {
     final Color statusColor = Colors.green;
 
-    return Container(
+    return GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => const HistoryTab(defaultTabIndex: 1),
+            ),
+          );
+        },
+        child: Container(
       margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -2064,7 +2074,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildTenantDemandCard(TenantDemand t, bool isDark) {
@@ -2730,7 +2740,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
-  // Enhanced Future Property Card
+
   Widget _buildFuturePropertyCard(FutureProperty f, bool isDark) {
     return InkWell(
       borderRadius: BorderRadius.circular(14),
@@ -2875,6 +2885,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+
   Widget _buildUpcomingFlatCard(UpcomingFlat f, bool isDark) {
     return InkWell(
       borderRadius: BorderRadius.circular(14),

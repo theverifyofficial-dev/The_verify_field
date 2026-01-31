@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -213,6 +214,7 @@ class AdminAddFlat {
   final String floor;
   final String liveUnlive;
   final String careTakerName;
+  final String field_warkar_name;
   final String careTakerNumber;
   final String datesForRightAvailable;
   final String subId;
@@ -230,6 +232,7 @@ class AdminAddFlat {
     required this.floor,
     required this.liveUnlive,
     required this.careTakerName,
+    required this.field_warkar_name,
     required this.careTakerNumber,
     required this.datesForRightAvailable,
     required this.subId,
@@ -255,6 +258,8 @@ class AdminAddFlat {
       json['care_taker_name']?.toString() ?? '',
       careTakerNumber:
       json['care_taker_number']?.toString() ?? '',
+      field_warkar_name:
+      json['field_warkar_name']?.toString() ?? '',
 
       /// ⚠️ backend typo handled safely
       datesForRightAvailable:
@@ -802,6 +807,57 @@ class BookedTenantVisitResponse {
   }
 }
 
+class BuildingCallingResponse {
+  final String status;
+  final List<BuildingCalling> data;
+
+  BuildingCallingResponse({required this.status, required this.data});
+
+  factory BuildingCallingResponse.fromJson(Map<String, dynamic> json) {
+    return BuildingCallingResponse(
+      status: json['status'] ?? 'error',
+      data: (json['data'] as List<dynamic>?)
+          ?.map((e) => BuildingCalling.fromJson(e))
+          .toList() ??
+          [],
+    );
+  }
+}
+
+class BuildingCalling {
+  final int id;
+  final String message;
+  final String date;
+  final String time;
+  final String subid;
+  final String nextCallingDate;
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+
+  BuildingCalling({
+    required this.id,
+    required this.message,
+    required this.date,
+    required this.time,
+    required this.subid,
+    required this.nextCallingDate,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+  });
+
+  factory BuildingCalling.fromJson(Map<String, dynamic> json) {
+    return BuildingCalling(
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      message: json['message'] ?? '',
+      date: json['date'] ?? '',
+      time: json['time'] ?? '',
+      subid: json['subid'] ?? '',
+      nextCallingDate: json['next_calling_date'] ?? '',
+      fieldWorkerName: json['fieldworkar_name'] ?? '',
+      fieldWorkerNumber: json['fieldworkar_number'] ?? '',
+    );
+  }
+}
 
 /// -------- MAIN PAGE --------
 class CalendarTaskPageForAdmin extends StatefulWidget {
@@ -858,10 +914,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
+    final storedFAadharCard = prefs.getString('post');
 
     setState(() {
       userName = storedName;
       userNumber = storedNumber;
+      userStoredFAadharCard = storedFAadharCard;
+
+
     });
 
     if (userNumber != null && userNumber!.isNotEmpty) {
@@ -870,23 +930,61 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       debugPrint("⚠️ userNumber not found in SharedPreferences");
     }
   }
+  String normalizeFW(String name) {
+    return name
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z ]'), '') // remove symbols
+        .replaceAll('khan', '')             // remove surname
+        .trim()
+        .split(' ')
+        .first;                             // take first name only
+  }
+
+  bool _canShowForSubAdmin(String? fieldWorkerName) {
+    final role = (userStoredFAadharCard ?? '').toLowerCase().trim();
+    final uname = (userName ?? '').toLowerCase().trim();
+
+    // Administrator → ALL DATA
+    if (role == 'administrator') return true;
+
+    if (fieldWorkerName == null || fieldWorkerName.trim().isEmpty) {
+      return false;
+    }
+
+    final fw = normalizeFW(fieldWorkerName);
+
+    const shivaniWorkers = {'abhay', 'manish'};
+    const saurabhWorkers = {'faizan', 'ravi', 'sumit', 'avjit'};
+
+    if (uname == 'shivani' || uname == 'shivani joshi') {
+      return shivaniWorkers.contains(fw);
+    }
+
+    if (uname == 'saurabh' || uname == 'saurabh yadav') {
+      return saurabhWorkers.contains(fw);
+    }
+
+    return false;
+  }
 
   String? userName;
   String? userNumber;
+  String? userStoredFAadharCard;
+
   Future<void> loadUserName() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     final storedName = prefs.getString('name');
     final storedNumber = prefs.getString('number');
+    final storedFAadharCard = prefs.getString('post');
 
     if (mounted) {
       setState(() {
         userName = storedName;
         userNumber = storedNumber;
-        print(userName);
+        userStoredFAadharCard = storedFAadharCard;
       });
     }
   }
-
 
   String _monthName(int m) => _months[m - 1];
   List<WebsiteVisit> _websiteVisits = [];
@@ -896,6 +994,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   List<LiveFlat> _adminLiveProperties = [];
   List<BookedTenantVisit> _bookedTenantVisits = [];
   List<UpcomingFlat> _adminUpcomingFlats = [];
+  List<BuildingCalling> _buildingCalls = [];
 
   Future<void> _fetchData(DateTime date) async {
     if (_isLoading) return;
@@ -907,163 +1006,175 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     _futureProperties.clear();
     _websiteVisits.clear();
     _addFlats.clear();
-
-    // 🔥 NEW
     _adminTenantDemands.clear();
     _adminLiveProperties.clear();
+    _bookedTenantVisits.clear();
+    _adminUpcomingFlats.clear();
+    _buildingCalls.clear();
 
     final formattedDate =
         "${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}";
 
     try {
       // ===================== AGREEMENTS =====================
-
       final agreementRes = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_agreement_for_admin.php?current_dates=$formattedDate"));
 
       if (agreementRes.statusCode == 200 && agreementRes.body.isNotEmpty) {
         _agreements =
             AgreementTaskResponse.fromJson(jsonDecode(agreementRes.body)).data;
+
+        _agreements = _agreements
+            .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
+            .toList();
       }
 
+      // ================= ACCEPTED AGREEMENTS =================
       final acceptedRes = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/accept_agreement_for_admin.php?current_dates=$formattedDate"));
 
       if (acceptedRes.statusCode == 200 && acceptedRes.body.isNotEmpty) {
         _acceptedAgreements =
-            AdminAcceptedAgreementResponse.fromJson(jsonDecode(acceptedRes.body))
-                .data;
+            AdminAcceptedAgreementResponse.fromJson(jsonDecode(acceptedRes.body)).data;
+
+        _acceptedAgreements = _acceptedAgreements
+            .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
+            .toList();
       }
 
+      // ================= PENDING AGREEMENTS =================
       final pendingRes = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/pending_agreement_for_admin.php?current_dates=$formattedDate"));
 
       if (pendingRes.statusCode == 200 && pendingRes.body.isNotEmpty) {
         _pendingAgreements =
-            AdminPendingAgreementResponse.fromJson(jsonDecode(pendingRes.body))
-                .data;
+            AdminPendingAgreementResponse.fromJson(jsonDecode(pendingRes.body)).data;
+
+        _pendingAgreements = _pendingAgreements
+            .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
+            .toList();
       }
 
       // ================= FUTURE PROPERTIES =================
-
       final futureRes = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/task_building_for_admin.php?current_date_=$formattedDate"));
 
       if (futureRes.statusCode == 200 && futureRes.body.isNotEmpty) {
         _futureProperties =
             FuturePropertyResponse.fromJson(jsonDecode(futureRes.body)).data;
+
+        _futureProperties = _futureProperties
+            .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
+            .toList();
       }
 
-      _futureProperties = {
-        for (final f in _futureProperties) f.id: f
-      }.values.toList();
-
-      // ================= ADD FLAT IN FUTURE PROPERTY =================
-
+      // ================= ADD FLATS =================
       final addFlatRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate"
-      ));
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/add_flat_in_future_property_for_admin.php?current_dates=$formattedDate"));
 
       if (addFlatRes.statusCode == 200 && addFlatRes.body.isNotEmpty) {
-        _addFlats =
-            AddFlatResponse.fromJson(jsonDecode(addFlatRes.body)).data;
+        _addFlats = AddFlatResponse.fromJson(jsonDecode(addFlatRes.body)).data;
+
+        _addFlats = _addFlats
+            .where((e) => _canShowForSubAdmin(e.field_warkar_name))
+            .toList();
       }
 
-// ================= BOOKED TENANT VISITS (FIELD WORKER) =================
+      // ================= BOOKED TENANT VISITS =================
       final visitRes = await http.get(Uri.parse(
-         "https://verifyserve.social/Second%20PHP%20FILE/Calender/book_visit_in_tenant_demand_for_admin.php?visiting_dates=$formattedDate"
-      ));
-      //
-      // debugPrint("🟡 BOOKED VISIT STATUS CODE: ${visitRes.statusCode}");
-      // debugPrint("🟡 BOOKED VISIT RAW BODY:");
-      debugPrint(visitRes.body);
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/book_visit_in_tenant_demand_for_admin.php?visiting_dates=$formattedDate"));
 
       if (visitRes.statusCode == 200 && visitRes.body.isNotEmpty) {
         final decoded = jsonDecode(visitRes.body);
-
-        // debugPrint("🟢 BOOKED VISIT DECODED:");
-        // debugPrint(jsonEncode(decoded)); // pretty readable
-        debugPrint("🧠 USER NAME USED IN API: '$userName'");
-
         if (decoded['status'] == 'success') {
           _bookedTenantVisits =
               BookedTenantVisitResponse.fromJson(decoded).data;
 
-          debugPrint(
-            "✅ BOOKED VISIT COUNT: ${_bookedTenantVisits.length}",
-          );
+          _bookedTenantVisits = _bookedTenantVisits
+              .where((e) => _canShowForSubAdmin(e.assignedFieldWorkerName))
+              .toList();
         }
       }
 
-
-
-
       // ================= WEBSITE VISITS =================
-
       final webRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate"
-      ));
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/web_visit_for_admin.php?dates=$formattedDate"));
 
-      _websiteVisits =
-          WebsiteVisitResponse.fromJson(jsonDecode(webRes.body)).data;
+      if (webRes.statusCode == 200 && webRes.body.isNotEmpty) {
+        _websiteVisits =
+            WebsiteVisitResponse.fromJson(jsonDecode(webRes.body)).data;
 
+        _websiteVisits = _websiteVisits
+            .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
+            .toList();
+      }
 
-      // ================= 🔥 ADMIN TENANT DEMANDS =================
-
+      // ================= TENANT DEMANDS =================
       final demandRes = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/tenant_demand_for_admin.php?Date=$formattedDate"));
 
-      // debugPrint("🟢 ADMIN DEMAND RAW: ${demandRes.body}");
-
       if (demandRes.statusCode == 200 && demandRes.body.isNotEmpty) {
         final decoded = jsonDecode(demandRes.body);
-        if (decoded['status'] == 'success' && decoded['data'] is List) {
+        if (decoded['status'] == 'success') {
           _adminTenantDemands =
               TenantDemandResponse.fromJson(decoded).data;
+
+          _adminTenantDemands = _adminTenantDemands
+              .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
+              .toList();
         }
       }
-// ================= UPCOMING FLATS (ADMIN) =================
 
+      // ================= UPCOMING FLATS =================
       final upcomingRes = await http.get(Uri.parse(
-          "https://verifyserve.social/Second%20PHP%20FILE/Calender/"
-              "upcomin_flat_for_admin.php"
-              "?dates_for_right_avaiable=$formattedDate"
-      ));
-
-      // debugPrint("🟣 ADMIN UPCOMING FLAT RAW:");
-      // debugPrint(upcomingRes.body);
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/upcomin_flat_for_admin.php?dates_for_right_avaiable=$formattedDate"));
 
       if (upcomingRes.statusCode == 200 && upcomingRes.body.isNotEmpty) {
         final decoded = jsonDecode(upcomingRes.body);
-
-        if (decoded['status'] == 'success' && decoded['data'] is List) {
+        if (decoded['status'] == 'success') {
           _adminUpcomingFlats =
               UpcomingFlatResponse.fromJson(decoded).data;
 
-          debugPrint(
-            "✅ ADMIN UPCOMING FLAT COUNT: ${_adminUpcomingFlats.length}",
-          );
+          _adminUpcomingFlats = _adminUpcomingFlats
+              .where((e) => _canShowForSubAdmin(e.fieldWarkarName))
+              .toList();
         }
       }
 
-      // ================= 🔥 ADMIN LIVE PROPERTIES =================
-
+      // ================= LIVE PROPERTIES =================
       final liveRes = await http.get(Uri.parse(
           "https://verifyserve.social/Second%20PHP%20FILE/Calender/live_property_for_admin.php?date_for_target=$formattedDate"));
 
-      // debugPrint("🟢 ADMIN LIVE RAW: ${liveRes.body}");
-
       if (liveRes.statusCode == 200 && liveRes.body.isNotEmpty) {
         final decoded = jsonDecode(liveRes.body);
-        if (decoded['status'] == 'success' && decoded['data'] is List) {
+        if (decoded['status'] == 'success') {
           _adminLiveProperties = (decoded['data'] as List)
               .map((e) => LiveFlat.fromJson(e))
+              .toList();
+
+          _adminLiveProperties = _adminLiveProperties
+              .where((e) => _canShowForSubAdmin(e.fieldWarkarName))
+              .toList();
+        }
+      }
+// ================= BUILDING CALLING REMINDER =================
+      final callingRes = await http.get(Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/Calender/building_calling_option_for_admin.php?next_calling_date=$formattedDate"
+      ));
+
+      if (callingRes.statusCode == 200 && callingRes.body.isNotEmpty) {
+        final decoded = jsonDecode(callingRes.body);
+        if (decoded['status'] == 'success') {
+          _buildingCalls =
+              BuildingCallingResponse.fromJson(decoded).data;
+
+          _buildingCalls = _buildingCalls
+              .where((e) => _canShowForSubAdmin(e.fieldWorkerName))
               .toList();
         }
       }
 
       // ================= FINAL DEDUP =================
-
       _agreements = {for (var a in _agreements) a.id: a}.values.toList();
       _acceptedAgreements =
           {for (var a in _acceptedAgreements) a.id: a}.values.toList();
@@ -1071,15 +1182,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           {for (var p in _pendingAgreements) p.id: p}.values.toList();
       _adminTenantDemands =
           {for (var d in _adminTenantDemands) d.id: d}.values.toList();
-      _addFlats = {
-        for (final f in _addFlats) f.pId: f
-      }.values.toList();
-      _bookedTenantVisits = {
-        for (final v in _bookedTenantVisits) v.id: v
-      }.values.toList();
-      _adminUpcomingFlats = {
-        for (final f in _adminUpcomingFlats) f.propertyId: f
-      }.values.toList();
+      _addFlats = {for (var f in _addFlats) f.pId: f}.values.toList();
+      _bookedTenantVisits =
+          {for (var v in _bookedTenantVisits) v.id: v}.values.toList();
+      _adminUpcomingFlats =
+          {for (var f in _adminUpcomingFlats) f.propertyId: f}.values.toList();
 
     } catch (e, s) {
       debugPrint("❌ ADMIN FETCH ERROR: $e");
@@ -1181,7 +1288,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       _selectedYear = tempYear;
                       _focusedDay = DateTime(tempYear, tempMonth, 1);
                       _selectedDay = _focusedDay;
+
+                      // 🔥 FORCE CALENDAR PAGE UPDATE
+                      _calendarKey = UniqueKey();
                     });
+
                     _fetchData(_focusedDay);
                   },
                   icon: const Icon(Icons.check, color: Colors.white),
@@ -1298,102 +1409,123 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           );
         },
         child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Color(0xffA75875),
+              Color(0xff58A78A),
+            ]),
             color: isDark ? Colors.grey.shade900 : Colors.white,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              )
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
             ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// HEADER
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
+              /// 🔶 HEADER ROW
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
                       t.agreementType,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "Pending",
+                      style: TextStyle(
+                        color: statusColor,
+                        fontFamily: "PoppinsBold",
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: statusColor,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            "Pending",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          t.fieldWorkerName,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white : Colors.indigo,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-      
-              /// BODY
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildInfoRow(
-                      icon: PhosphorIcons.user,
-                      title: "Owner",
-                      value: t.ownerName,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      icon: PhosphorIcons.users,
-                      title: "Tenant",
-                      value: t.tenantName,
-                      isDark: isDark,
-                    ),
-                    const SizedBox(height: 8),
-                    _buildInfoRow(
-                      icon: PhosphorIcons.map_pin,
-                      title: "Address",
-                      value: t.rentedAddress,
-                      isDark: isDark,
-                    ),
-                  ],
+
+              const SizedBox(height: 6),
+
+              /// 👤 OWNER → TENANT (INLINE)
+              Text(
+                "${t.ownerName}  →  ${t.tenantName}",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white70,
                 ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+
+              const SizedBox(height: 8),
+
+              /// 💰 CHIPS ROW
+              Row(
+                children: [
+                  _miniChip(
+                    icon: PhosphorIcons.currency_inr,
+                    text: "₹${t.monthlyRent}",
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.buildings,
+                    text: t.bhk,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.star_fill,
+                    text: "${t.floor}",
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              /// 📍 ADDRESS
+              Row(
+                children: [
+                  Icon(
+                    PhosphorIcons.map_pin,
+                    size: 14,
+                    color: Colors.white54,
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      t.rentedAddress,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.white60,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -1401,6 +1533,115 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       ),
     );
   }
+  String formatReminderDate(String date) {
+    try {
+      final parsed = DateTime.parse(date);
+      return DateFormat('dd-MMM-yyyy').format(parsed);
+    } catch (e) {
+      return date;
+    }
+  }
+
+  Widget _buildBuildingCallingCard(BuildingCalling c, bool isDark) {
+    return _responsiveCard(
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) =>
+                  Administater_Future_Property_details(
+                    buildingId: c.subid.toString(),
+                  ),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+
+              colors: [
+                Color(0xFF6366F1), // Indigo-500
+                Color(0xFF06B6D4), // Cyan-500
+              ],
+            ),
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              /// 🔹 MESSAGE
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Follow up with the client \nfor the building inquiry.",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color:Colors.white ,
+                    ),
+                  ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "Building ID: ${c.subid}",
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: isDark ? Colors.indigoAccent : Colors.indigo,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              /// 🔹 NEXT CALL DATE
+              Text(
+                "Next Call Date: ${formatReminderDate(c.nextCallingDate)}",
+                style: TextStyle(
+                  fontFamily: "PoppinsBold",
+                  fontSize: 12,
+                  color: Colors.white70 ,
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              /// 🔹 FIELD WORKER
+              Text(
+                "FW: ${c.fieldWorkerName} • ${c.fieldWorkerNumber}",
+                style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white
+                ),
+              ),
+
+
+            ],
+          ),
+        ),
+      )
+    );
+  }
+
   Widget _buildBookedTenantVisitCard(BookedTenantVisit v, bool isDark) {
     final statusColor =
     v.status.toLowerCase() == 'progressing' ? Colors.orange : Colors.green;
@@ -1417,6 +1658,13 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF10B981),
+                  const Color(0xFF047857)
+                ]
+            ),
+
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
@@ -1441,7 +1689,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:  Colors.white,
                       ),
                     ),
                   ),
@@ -1449,7 +1697,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.15),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -1457,6 +1705,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         color: statusColor,
                         fontSize: 11,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1472,9 +1721,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
+                  fontFamily: "PoppinsBold",
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                  color: Colors.white70,
                 ),
               ),
 
@@ -1507,16 +1757,24 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     "Visit: ${v.visitingDate}",
                     style: TextStyle(
                       fontSize: 12,
-                      color:
-                      isDark ? Colors.white54 : Colors.grey.shade600,
+                      fontFamily: "PoppinsBold",
+                      color: Colors.white70,
                     ),
                   ),
-                  Text(
-                    v.time,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.indigo,
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white70,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      v.time,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.indigo,
+                      ),
                     ),
                   ),
                 ],
@@ -1531,8 +1789,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                    isDark ? Colors.white60 : Colors.grey.shade700,
+                    fontFamily: "PoppinsBold",
+                    color: Colors.white ,
                   ),
                 ),
               ],
@@ -1543,9 +1801,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Text(
                 "FW: ${v.assignedFieldWorkerName}",
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 12,fontFamily: "PoppinsBold",
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.indigo,
+                  color: Colors.white70 ,
                 ),
               ),
             ],
@@ -1576,6 +1834,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Color(0xffAFAF50),
+              Color(0xff5050AF),
+            ]),
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
@@ -1595,7 +1857,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   Icon(
                     PhosphorIcons.house_line,
                     size: 16,
-                    color: Colors.indigo,
+                    color: Colors.white,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -1604,7 +1866,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:Colors.white ,
                       ),
                     ),
                   ),
@@ -1612,7 +1874,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.15),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -1620,6 +1882,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         color: statusColor,
                         fontSize: 11,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1637,7 +1900,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                  color:  Colors.white70 ,
                 ),
               ),
 
@@ -1678,8 +1941,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                    isDark ? Colors.white60 : Colors.grey.shade700,
+                    color: Colors.white60 ,
                   ),
                 ),
               ],
@@ -1722,6 +1984,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
+              gradient: LinearGradient(colors:[
+                Color(0xFFE41B41),
+                Color(0xFF1BE4BE),
+
+              ]),
               color: isDark ? Colors.grey.shade900 : Colors.white,
               borderRadius: BorderRadius.circular(14),
               boxShadow: [
@@ -1746,7 +2013,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : Colors.black87,
+                          color:  Colors.white ,
                         ),
                       ),
                     ),
@@ -1754,13 +2021,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       padding:
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                       decoration: BoxDecoration(
-                        color: statusColor.withOpacity(0.15),
+                        color:Colors.white,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         "Accepted",
                         style: TextStyle(
                           color: statusColor,
+                          fontFamily: "PoppinsBold",
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1779,7 +2047,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white70 : Colors.grey.shade800,
+                    color: Colors.white70 ,
                   ),
                 ),
 
@@ -1816,7 +2084,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     Icon(
                       PhosphorIcons.map_pin,
                       size: 14,
-                      color: isDark ? Colors.white54 : Colors.grey.shade600,
+                      color:Colors.white,
                     ),
                     const SizedBox(width: 6),
                     Expanded(
@@ -1826,8 +2094,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color:
-                          isDark ? Colors.white60 : Colors.grey.shade700,
+                          color:Colors.white,
                         ),
                       ),
                     ),
@@ -1866,6 +2133,12 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFEF4444),
+                  const Color(0xFFDC2626)
+                ]
+            ),
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
@@ -1890,7 +2163,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -1898,7 +2171,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.15),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -1906,6 +2179,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         color: statusColor,
                         fontSize: 11,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1923,7 +2197,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                  color: Colors.white70 ,
                 ),
               ),
 
@@ -1946,7 +2220,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   const SizedBox(width: 6),
                   _miniChip(
                     icon: PhosphorIcons.star_fill,
-                    text: "${t.floor}F",
+                    text: "${t.floor}",
                     isDark: isDark,
                   ),
                 ],
@@ -1960,7 +2234,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   Icon(
                     PhosphorIcons.map_pin,
                     size: 14,
-                    color: isDark ? Colors.white54 : Colors.grey.shade600,
+                    color: Colors.white54,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -1970,8 +2244,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
-                        color:
-                        isDark ? Colors.white60 : Colors.grey.shade700,
+                        color: Colors.white60,
                       ),
                     ),
                   ),
@@ -1999,6 +2272,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            const Color(0xFF06B6D4),
+            const Color(0xFFDC2626),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2021,7 +2298,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -2029,7 +2306,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: Colors.green.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: const Text(
@@ -2037,6 +2314,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     style: TextStyle(
                       color: Colors.green,
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
+
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2050,8 +2329,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               "Flat ${f.flatNumber} • ${f.locations}",
               style: TextStyle(
                 fontSize: 12,
+                fontFamily: "PoppinsBold",
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color: Colors.white70 ,
               ),
             ),
 
@@ -2085,7 +2365,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               "Available on: ${f.availableDate}",
               style: TextStyle(
                 fontSize: 12,
-                color: isDark ? Colors.white60 : Colors.grey.shade600,
+                fontFamily: "PoppinsBold",
+                color:  Colors.white60 ,
               ),
             ),
 
@@ -2095,7 +2376,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 "${f.careTakerName} • ${f.careTakerNumber}",
                 style: TextStyle(
                   fontSize: 12,
-                  color: isDark ? Colors.white60 : Colors.grey.shade700,
+                  fontFamily: "PoppinsBold",
+                  color: Colors.white ,
                 ),
               ),
             ],
@@ -2123,6 +2405,12 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFDC2626),
+                  const Color(0xFFF59E0B),
+                ]
+            ),
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
@@ -2142,7 +2430,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   Icon(
                     PhosphorIcons.buildings,
                     size: 16,
-                    color: Colors.blue,
+                    color: Colors.white,
                   ),
                   const SizedBox(width: 6),
                   Expanded(
@@ -2153,7 +2441,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -2161,12 +2449,13 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.15),
+                      color:Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       f.buyRent,
                       style: const TextStyle(
+                        fontFamily: "poppinsBold",
                         color: Colors.blue,
                         fontSize: 11,
                         fontWeight: FontWeight.bold,
@@ -2186,7 +2475,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                  color:Colors.white70,
                 ),
               ),
 
@@ -2204,7 +2493,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   if (f.metroName.isNotEmpty) const SizedBox(width: 6),
                   _miniChip(
                     icon: PhosphorIcons.star_fill,
-                    text: "${f.totalFloor} Floors",
+                    text: "${f.totalFloor}",
                     isDark: isDark,
                   ),
                 ],
@@ -2219,8 +2508,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    color:
-                    isDark ? Colors.white60 : Colors.grey.shade700,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -2233,9 +2521,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
-                    color:
-                    isDark ? Colors.white54 : Colors.grey.shade600,
+                      fontSize: 12,
+                      color:Colors.white
                   ),
                 ),
               ],
@@ -2311,6 +2598,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Color(0xff50AFAE),
+              Color(0xf978C53A),
+            ]),
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(12),
             boxShadow: [
@@ -2333,7 +2624,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       w.name,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: Colors.white,
                         fontSize: 15,
                       ),
                     ),
@@ -2352,7 +2643,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               Text(
                 "Contact: ${w.contactNo}",
                 style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.grey.shade800),
+                    color: Colors.white ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -2360,7 +2651,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                    color: isDark ? Colors.white60 : Colors.grey.shade700),
+                    fontFamily: "PoppinsBold",
+                    color:  Colors.white),
               ),
               const SizedBox(height: 6),
               Row(
@@ -2369,7 +2661,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   Text(
                     "Date: ${w.date}",
                     style: TextStyle(
-                        color: isDark ? Colors.white54 : Colors.grey.shade600,
+                        color: Colors.white,
                         fontSize: 12),
                   ),
                   const Icon(Icons.calendar_month, size: 16, color: Colors.indigo),
@@ -2464,6 +2756,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
   CalendarFormat _calendarFormat = CalendarFormat.week;
   String _calendarView = "Week";
+  Key _calendarKey = UniqueKey();
 
   @override
   Widget build(BuildContext context) {
@@ -2553,18 +2846,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(
-        child: CircularProgressIndicator(color: Colors.indigo),
-      )
-          : RefreshIndicator(
+      body: RefreshIndicator(
         onRefresh: () async =>
             _fetchData(_selectedDay ?? _focusedDay),
         child: ListView(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.only(bottom: 20),
           children: [
-            // 🔹 CALENDAR (NOW SCROLLABLE)
+
             Container(
               margin: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -2581,28 +2870,114 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               child: Padding(
                 padding:
                 const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                child: TableCalendar(
+                child:TableCalendar(
+                  key: _calendarKey,
                   focusedDay: _focusedDay,
                   firstDay: DateTime(2023),
                   lastDay: DateTime(2030),
-                  selectedDayPredicate: (day) =>
-                      isSameDay(_selectedDay, day),
+                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   calendarFormat: _calendarFormat,
                   headerVisible: false,
-                  daysOfWeekVisible:
-                  _calendarFormat == CalendarFormat.month,
-                  rowHeight:
-                  _calendarFormat == CalendarFormat.week ? 80 : 48,
+                  daysOfWeekVisible: _calendarFormat == CalendarFormat.month,
+                  rowHeight: _calendarFormat == CalendarFormat.week ? 80 : 48,
+
+                  // 🔹 HEADER (Sun / Sat text)
+                  daysOfWeekStyle: const DaysOfWeekStyle(
+                    weekdayStyle: TextStyle(
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    weekendStyle: TextStyle(
+                      color: Colors.red, // Sun & Sat header
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
                   calendarStyle: CalendarStyle(
                     todayDecoration: BoxDecoration(
-                      color: Colors.orange.shade400,
+                      color: Colors.orange,
                       shape: BoxShape.circle,
                     ),
                     selectedDecoration: BoxDecoration(
-                      color: Colors.indigo.shade400,
+                      color: Colors.indigo,
                       shape: BoxShape.circle,
                     ),
+                    outsideDaysVisible: false,
                   ),
+
+                  // 🔹 DATES COLOR LOGIC
+                  calendarBuilders: CalendarBuilders(
+                    defaultBuilder: (context, day, focusedDay) {
+                      // 🔴 Sunday date
+                      if (day.weekday == DateTime.sunday) {
+                        return Center(
+                          child: Text(
+                            '${day.day}',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+
+                      // ⚪ Saturday date
+                      if (day.weekday == DateTime.saturday) {
+                        return Center(
+                          child: Text(
+                            '${day.day}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      }
+
+                      return null; // normal weekdays
+                    },
+
+                    todayBuilder: (context, day, focusedDay) {
+                      return Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.orange,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '${day.day}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+
+                    selectedBuilder: (context, day, focusedDay) {
+                      return Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.indigo,
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            '${day.day}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+
                   onDaySelected: (selected, focused) {
                     setState(() {
                       _selectedDay = selected;
@@ -2610,11 +2985,34 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     });
                     _fetchData(selected);
                   },
+
                   onPageChanged: (focused) {
-                    _focusedDay = focused;
+                    setState(() {
+                      _focusedDay = focused;
+                      _selectedMonth = focused.month;
+                      _selectedYear = focused.year;
+                    });
                   },
+                )
+
+              ),
+            ),
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(
+                  child: CircularProgressIndicator(color: Colors.indigo),
                 ),
               ),
+            if (_buildingCalls.isNotEmpty)
+              _sectionTitle(
+                "Building Call Reminders",
+                isDark,
+                _buildingCalls.length,
+              ),
+
+            ..._buildingCalls.map(
+                  (e) => _buildBuildingCallingCard(e, isDark),
             ),
 
             // 🔹 TASK SECTIONS (SAME AS BEFORE)
@@ -2684,10 +3082,21 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   (e) => _buildWebsiteVisitCard(e, isDark),
             ),
 
-            if (_agreements.isEmpty &&
+            if (!_isLoading &&
+                _agreements.isEmpty &&
                 _futureProperties.isEmpty &&
+                _acceptedAgreements.isEmpty &&
+                _pendingAgreements.isEmpty &&
+                _bookedTenantVisits.isEmpty &&
+                _futureProperties.isEmpty &&
+                _adminUpcomingFlats.isEmpty &&
+                _buildingCalls.isEmpty &&
+                _adminLiveProperties.isEmpty &&
+                _adminTenantDemands.isEmpty &&
+                _addFlats.isEmpty &&
                 _websiteVisits.isEmpty)
               _emptyState(isDark),
+
 
             const SizedBox(height: 24),
           ],
@@ -2712,6 +3121,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Color(0xffD42BA5),
+              Color(0xffCBC634),
+            ]),
             color: isDark ? Colors.grey.shade900 : Colors.white,
             borderRadius: BorderRadius.circular(14),
             boxShadow: [
@@ -2736,7 +3149,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color:  Colors.white ,
                       ),
                     ),
                   ),
@@ -2744,7 +3157,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.15),
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Text(
@@ -2752,6 +3165,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         color: Colors.orange,
                         fontSize: 11,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -2769,7 +3183,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white70 : Colors.grey.shade800,
+                  color: Colors.white,
                 ),
               ),
 
@@ -2786,7 +3200,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   const SizedBox(width: 6),
                   _miniChip(
                     icon: PhosphorIcons.currency_inr,
-                    text: t.price,
+                    text: formatIndianCurrency(t.price),
                     isDark: isDark,
                   ),
                 ],
@@ -2802,7 +3216,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.white60 : Colors.grey.shade700,
+                    color: Colors.white,
                   ),
                 ),
               ],
@@ -2810,7 +3224,36 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           ),
         ));
   }
+  String formatIndianCurrency(String value) {
+    try {
+      // Handle ranges like "987500-20000000"
+      if (value.contains('-')) {
+        final parts = value.split('-');
+        final start = NumberFormat.currency(
+          locale: 'en_IN',
+          symbol: '₹',
+          decimalDigits: 0,
+        ).format(double.parse(parts[0]));
 
+        final end = NumberFormat.currency(
+          locale: 'en_IN',
+          symbol: '₹',
+          decimalDigits: 0,
+        ).format(double.parse(parts[1]));
+
+        return "$start – $end";
+      }
+
+      final number = double.parse(value);
+      return NumberFormat.currency(
+        locale: 'en_IN',
+        symbol: '₹',
+        decimalDigits: 0,
+      ).format(number);
+    } catch (e) {
+      return value; // fallback if parsing fails
+    }
+  }
   Widget _miniChip({
     required IconData icon,
     required String text,
@@ -2845,7 +3288,6 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   }
 
   Widget _buildLivePropertyCard(LiveFlat f, bool isDark) {
-    final statusColor = _getLiveUnliveColor(f.liveUnlive);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () {
@@ -2863,6 +3305,10 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
+          gradient: LinearGradient(colors: [
+            Color(0xffFA8205),
+            Color(0xff057DFA),
+          ]),
           color: isDark ? Colors.grey.shade900 : Colors.white,
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
@@ -2876,18 +3322,20 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// 🏠 DATE + STATUS
+            /// 🔹 TITLE + BUY/RENT
             Row(
               children: [
                 Icon(
-                  PhosphorIcons.house_line,
+                  PhosphorIcons.buildings,
                   size: 16,
-                  color: Colors.indigo,
+                  color: Colors.white,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
                     f.bhk,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -2899,14 +3347,15 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    f.liveUnlive,
-                    style: TextStyle(
-                      color: statusColor,
+                    f.buyRent,
+                    style: const TextStyle(
+                      color: Colors.blue,
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2916,7 +3365,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
             const SizedBox(height: 6),
 
-            /// 📍 FLAT + LOCATION
+            /// 📍 LOCATION + TYPE
             Text(
               "Flat ${f.flatNumber}  •  ${f.locations}  • ${f.residenceCommercial}",
               maxLines: 1,
@@ -2924,53 +3373,56 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white70 : Colors.grey.shade800,
+                color: Colors.white,
               ),
             ),
 
             const SizedBox(height: 8),
 
-            /// 💰 PRICE + TYPE (CHIPS)
+            /// 🚆 METRO + FLOORS (CHIPS)
             Row(
               children: [
-                _miniChip(
-                  icon: PhosphorIcons.currency_inr,
-                  text: "₹${f.showPrice}",
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 6),
-                _miniChip(
-                  icon: PhosphorIcons.briefcase,
-                  text: f.buyRent,
-                  isDark: isDark,
-                ),
-                const SizedBox(width: 6),
-
+                if (f.metroDistance.isNotEmpty)
+                  _miniChip(
+                    icon: PhosphorIcons.train,
+                    text: "${f.metroDistance} ${f.highwayDistance}",
+                    isDark: isDark,
+                  ),
+                if (f.totalFloor.isNotEmpty) const SizedBox(width: 6),
                 _miniChip(
                   icon: PhosphorIcons.star_fill,
-                  text: f.floor,
+                  text: "${f.totalFloor}",
                   isDark: isDark,
                 ),
               ],
             ),
-
-            const SizedBox(height: 8),
-
-            /// 👤 CARETAKER (OPTIONAL)
-            if (f.careTakerName.isNotEmpty) ...[
-              const SizedBox(height: 8),
+            /// 🏢 FACILITY (OPTIONAL)
+            if (f.facility.isNotEmpty) ...[
+              const SizedBox(height: 6),
               Text(
-                "${f.careTakerName} • ${f.careTakerNumber}",
+                f.facility,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
-                  color:
-                  isDark ? Colors.white60 : Colors.grey.shade700,
+                  color:Colors.white,
                 ),
               ),
             ],
 
+            /// 👤 FieldWorkar (OPTIONAL)
+            if (f.fieldWarkarName.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                "${f.fieldWarkarName}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.white,
+                ),
+              ),
+            ],
           ],
         ),
       ),

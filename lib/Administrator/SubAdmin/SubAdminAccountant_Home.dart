@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import '../../Adminisstrator_Target_details/Targets.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
+import '../../Calender/CalenderForAdmin.dart';
 import '../../Z-Screen/Social_Media_links.dart';
 import '../../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
@@ -360,7 +361,7 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: userNumber == "9711779003"|| userNumber=="9315016461" ? 4:3,
+                            itemCount: userNumber == "9711779003"|| userNumber=="9315016461" ? 5:4,
                             itemBuilder: (context, index) {
                               final List<Map<String, dynamic>> featureItems = [
                                 {
@@ -375,22 +376,23 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                                     );
                                   },
                                 },
-                                // {
-                                //   'image': AppImages.tenant,
-                                //   'title': "Tenant Demands",
-                                //   'onTap': () =>
-                                //       Navigator.push(context, MaterialPageRoute(
-                                //           builder: (
-                                //               context) => const Administater_parent_TenandDemand())),
-                                // },
-                                if (userNumber == "9711779003" || userNumber=="9315016461")
 
+                                if (userNumber == "9711779003" || userNumber=="9315016461")
                                   {
                                   'image': AppImages.police,
                                   'title': "All Rented \nFlat",
                                   'onTap': () =>
                                       Navigator.push(context, MaterialPageRoute(
                                           builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                                },
+                                {
+                                  "image": AppImages.calendar,
+                                  "title": "Task Calendar",
+                                  "onTap": () {
+                                    Navigator.push(
+                                        context, MaterialPageRoute(
+                                        builder: (_) => const CalendarTaskPageForAdmin()));
+                                  },
                                 },
                                 {
                                   'image': AppImages.propertysale,

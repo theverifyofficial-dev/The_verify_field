@@ -107,8 +107,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
     );
   }
 
-
-
   Future<void> _updateAgreementStatus(String action) async {
     print("Updating agreement status: $action"); // debug
     try {
@@ -242,8 +240,6 @@ class _AgreementDetailPageState extends State<AdminAgreementDetails> {
       );
     }
   }
-
-
 
   Widget _glassContainer({required Widget child, EdgeInsets? padding}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -184,7 +184,8 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           },
             _rewardStatus?.isDiscounted == true,
 
-          ),        ],
+          ),
+                                                                                ],
       ),
             if (_rewardStatus?.isDiscounted == true)
               Align(

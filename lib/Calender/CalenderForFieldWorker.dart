@@ -55,7 +55,8 @@ class CalendarAddFlat {
   final String careTakerNumber;
   final String datesForRightAvailable;
   final String subId;
-
+  final String field_warkar_name;
+  final String field_workar_number;
   CalendarAddFlat({
     required this.propertyId,
     required this.datesForRightAvailable,
@@ -72,6 +73,8 @@ class CalendarAddFlat {
     required this.careTakerName,
     required this.careTakerNumber,
     required this.subId,
+    required this.field_warkar_name,
+    required this.field_workar_number,
   });
 
   factory CalendarAddFlat.fromJson(Map<String, dynamic> json) {
@@ -91,6 +94,10 @@ class CalendarAddFlat {
       careTakerNumber: json['care_taker_number'] ?? '',
       datesForRightAvailable: json['dates_for_right_avaiable'] ?? '',
       subId: json['subid'] ?? '',
+      field_warkar_name:
+      json['field_warkar_name']?.toString() ?? '',
+      field_workar_number:
+      json['field_workar_number']?.toString() ?? '',
     );
   }
 }
@@ -126,10 +133,14 @@ class AgreementTask {
   final String floor;
   final String agreementType;
   final String status;
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
 
   AgreementTask({
     required this.id,
     required this.ownerName,
+    required this.fieldWorkerNumber,
+    required this.fieldWorkerName,
     required this.tenantName,
     required this.rentedAddress,
     required this.monthlyRent,
@@ -141,6 +152,9 @@ class AgreementTask {
 
   factory AgreementTask.fromJson(Map<String, dynamic> json) {
     return AgreementTask(
+      // FIELD WORKER
+      fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      fieldWorkerNumber: json['Fieldwarkarnumber'] ?? '',
       id: json['id'] ?? 0,
       ownerName: json['owner_name'] ?? '',
       tenantName: json['tenant_name'] ?? '',
@@ -366,6 +380,7 @@ class LiveFlat {
   final String facility;
   final String furnishedUnfurnished;
   final String fieldWarkarName;
+  final String field_workar_number;
   final String liveUnlive;
   final String fieldWorkarNumber;
   final String registryAndGpa;
@@ -416,6 +431,7 @@ class LiveFlat {
     required this.facility,
     required this.furnishedUnfurnished,
     required this.fieldWarkarName,
+    required this.field_workar_number,
     required this.liveUnlive,
     required this.fieldWorkarNumber,
     required this.registryAndGpa,
@@ -454,6 +470,7 @@ class LiveFlat {
       parking: json['parking'] ?? '',
       ageOfProperty: json['age_of_property'] ?? '',
       fieldworkarAddress: json['fieldworkar_address'] ?? '',
+      field_workar_number: json['field_workar_number'].toString() ?? '',
       roadSize: json['Road_Size'] ?? '',
       metroDistance: json['metro_distance'] ?? '',
       highwayDistance: json['highway_distance'] ?? '',
@@ -542,6 +559,9 @@ class FutureProperty {
   final String residenceType;
   final String? image;
   final String date;
+  // Field Worker
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
   FutureProperty({
     required this.id,
     required this.caretakerName,
@@ -555,6 +575,8 @@ class FutureProperty {
     required this.totalFloor,
     required this.facility,
     required this.residenceType,
+    required this.fieldWorkerNumber,
+    required this.fieldWorkerName,
     this.image,
     required this.date,
 
@@ -576,7 +598,8 @@ class FutureProperty {
       residenceType: json['Residence_commercial'] ?? '',
       image: json['images'],
       date: json['current_date_'] ?? json['date'] ?? '',
-
+      fieldWorkerName: json['fieldworkarname'] ?? '',
+      fieldWorkerNumber: json['fieldworkarnumber'] ?? '',
     );
   }
 }
@@ -605,31 +628,49 @@ class WebsiteVisitResponse {
 class WebsiteVisit {
   final int id;
   final String name;
+  final String email;
   final String contactNo;
   final String message;
+
   final String date;
   final String time;
   final int subid;
 
+  // NEW FIELDS
+  final String fieldWorkerName;
+  final String fieldWorkerNumber;
+  final String? bhk;
+
   WebsiteVisit({
     required this.id,
     required this.name,
+    required this.email,
     required this.contactNo,
     required this.message,
     required this.date,
     required this.time,
     required this.subid,
+    required this.fieldWorkerName,
+    required this.fieldWorkerNumber,
+    this.bhk,
   });
 
   factory WebsiteVisit.fromJson(Map<String, dynamic> json) {
     return WebsiteVisit(
-      id: json['id'] ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: json['name'] ?? '',
+      email: json['email'] ?? '',
       contactNo: json['contact_no'] ?? '',
       message: json['message'] ?? '',
+
       date: json['dates'] ?? '',
       time: json['times'] ?? '',
-      subid: json['subid'] ?? 0,
+      subid: (json['subid'] as num?)?.toInt() ?? 0,
+
+      // NEW KEYS FROM API
+      fieldWorkerNumber: json['field_workar_number'] ?? '',
+      fieldWorkerName: json['field_workar_name'] ?? '',
+      bhk: json['bhk'],
     );
   }
 }
@@ -1220,6 +1261,7 @@ class UpcomingFlat {
   final String careTakerName;
   final String careTakerNumber;
   final String fieldWarkarName;
+  final String field_workar_number;
   final String availableDate;
   final String demoLiveUnlive;
   final String subId;
@@ -1241,6 +1283,7 @@ class UpcomingFlat {
     required this.fieldWarkarName,
     required this.careTakerNumber,
     required this.availableDate,
+    required this.field_workar_number,
     required this.demoLiveUnlive,
     required this.subId,
   });
@@ -1261,6 +1304,7 @@ class UpcomingFlat {
       parking: json['parking'] ?? '',
       careTakerName: json['care_taker_name'] ?? '',
       fieldWarkarName: json['field_warkar_name'] ?? '',
+      field_workar_number: json['field_workar_number'].toString() ?? '',
       careTakerNumber: json['care_taker_number'] ?? '',
       availableDate: json['dates_for_right_avaiable'] ?? '',
       demoLiveUnlive: json['demo_live_unlive'] ?? '',
@@ -1855,7 +1899,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         );
       },
-      child: Container(
+      child:  Container(
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
@@ -1902,6 +1946,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     "Building ID: ${r.subId}",
                     style: TextStyle(
                       fontSize: 11,
+                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.bold,
                       color: isDark ? Colors.indigoAccent : Colors.indigo,
                     ),
@@ -1918,7 +1963,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontFamily: "PoppinsBold",
                 fontSize: 12,
-                color: Colors.white70 ,
+                color: Colors.white ,
               ),
             ),
 
@@ -1928,8 +1973,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             Text(
               "FW: ${r.fieldWorkerName} • ${r.fieldWorkerNumber}",
               style: TextStyle(
-                fontSize: 12,
-                color: Colors.white
+                  fontSize: 12,
+                  fontFamily: "PoppinsBold",
+                  color: Colors.white
               ),
             ),
 
@@ -1953,128 +1999,122 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           );
         },
         child: Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors:[
-          Color(0xFFE41B41),
-          Color(0xFF1BE4BE),
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors:[
+              Color(0xFFE41B41),
+              Color(0xFF1BE4BE),
 
-        ]),
-        color: isDark ? Colors.grey.shade900 : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// ✅ HEADER
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  t.agreementType,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color:  Colors.white ,
-                  ),
-                ),
-              ),
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color:Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  "Accepted",
-                  style: TextStyle(
-                    color: statusColor,
-                    fontFamily: "PoppinsBold",
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+            ]),
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
               ),
             ],
           ),
-
-          const SizedBox(height: 6),
-
-          /// 👤 OWNER → TENANT
-          Text(
-            "${t.ownerName}  →  ${t.tenantName}",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: Colors.white70 ,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          /// 💰 MINI CHIPS
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _miniChip(
-                icon: PhosphorIcons.currency_inr,
-                text: "₹${t.monthlyRent}",
-                isDark: isDark,
-              ),
-              const SizedBox(width: 6),
-              _miniChip(
-                icon: PhosphorIcons.buildings,
-                text: t.bhk,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 6),
-              _miniChip(
-                icon: PhosphorIcons.star_fill,
-                text: "${t.floor}",
-                isDark: isDark,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          /// 📍 ADDRESS
-          Row(
-            children: [
-              Icon(
-                PhosphorIcons.map_pin,
-                size: 14,
-                color:Colors.white,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  t.rentedAddress,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color:Colors.white,
+              /// ✅ HEADER
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.agreementType,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color:  Colors.white ,
+                      ),
+                    ),
                   ),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color:Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      "Accepted",
+                      style: TextStyle(
+                        color: statusColor,
+                        fontFamily: "PoppinsBold",
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              /// 👤 OWNER → TENANT
+              Text(
+                "${t.ownerName}  →  ${t.tenantName}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white ,
                 ),
               ),
+
+              const SizedBox(height: 8),
+
+              /// 💰 MINI CHIPS
+              Row(
+                children: [
+                  _miniChip(
+                    icon: PhosphorIcons.currency_inr,
+                    text: "₹${t.monthlyRent}",
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.buildings,
+                    text: t.bhk,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.star_fill,
+                    text: "${t.floor}",
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 8),
+
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      "${ t.fieldWorkerName} • ${t.fieldWorkerNumber}",
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-        ],
-      ),
-    ));
+        ));
   }
 
   Widget _buildTenantDemandCard(TenantDemand t, bool isDark) {
@@ -2090,111 +2130,111 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           );
         },
         child:Container(
-      margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [
-          Color(0xffD42BA5),
-          Color(0xffCBC634),
-        ]),
-        color: isDark ? Colors.grey.shade900 : Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 8,
-            offset: const Offset(0, 3),
+          margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Color(0xffD42BA5),
+              Color(0xffCBC634),
+            ]),
+            color: isDark ? Colors.grey.shade900 : Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          /// 🔶 HEADER
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  t.name,
+              /// 🔶 HEADER
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      t.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color:  Colors.white ,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      "Demand",
+                      style: TextStyle(
+                        color: Colors.orange,
+                        fontSize: 11,
+                        fontFamily: "PoppinsBold",
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 6),
+
+              /// 📞 CONTACT + 📍 LOCATION
+              Text(
+                "${t.number}  •  ${t.location}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              /// 💰 CHIPS
+              Row(
+                children: [
+                  _miniChip(
+                    icon: PhosphorIcons.buildings,
+                    text: t.bhk,
+                    isDark: isDark,
+                  ),
+                  const SizedBox(width: 6),
+                  _miniChip(
+                    icon: PhosphorIcons.currency_inr,
+                    text: formatIndianCurrency(t.price),
+                    isDark: isDark,
+                  ),
+                ],
+              ),
+
+              if (t.message.isNotEmpty) ...[
+                const SizedBox(height: 8),
+
+                /// 📝 MESSAGE
+                Text(
+                  t.message,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color:  Colors.white ,
+                    fontSize: 12,
+                    color: Colors.white,
                   ),
                 ),
-              ),
-              Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Text(
-                  "Demand",
-                  style: TextStyle(
-                    color: Colors.orange,
-                    fontSize: 11,
-                    fontFamily: "PoppinsBold",
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+              ],
             ],
           ),
-
-          const SizedBox(height: 6),
-
-          /// 📞 CONTACT + 📍 LOCATION
-          Text(
-            "${t.number}  •  ${t.location}",
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
-
-          const SizedBox(height: 8),
-
-          /// 💰 CHIPS
-          Row(
-            children: [
-              _miniChip(
-                icon: PhosphorIcons.buildings,
-                text: t.bhk,
-                isDark: isDark,
-              ),
-              const SizedBox(width: 6),
-              _miniChip(
-                icon: PhosphorIcons.currency_inr,
-                text: formatIndianCurrency(t.price),
-                isDark: isDark,
-              ),
-            ],
-          ),
-
-          if (t.message.isNotEmpty) ...[
-            const SizedBox(height: 8),
-
-            /// 📝 MESSAGE
-            Text(
-              t.message,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ],
-      ),
-    ));
+        ));
   }
 
   String formatIndianCurrency(String value) {
@@ -2301,7 +2341,8 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontFamily: "PoppinsBold",
+                        fontWeight: FontWeight.bold,
                         color:  Colors.white,
                       ),
                     ),
@@ -2337,7 +2378,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   fontFamily: "PoppinsBold",
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70,
+                  color: Colors.white,
                 ),
               ),
 
@@ -2367,11 +2408,11 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Visit: ${v.visitingDate}",
+                    "Reference: ${v.reference}",
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: "PoppinsBold",
-                      color: Colors.white70,
+                      color: Colors.white,
                     ),
                   ),
                   Container(
@@ -2412,11 +2453,12 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
               /// 👤 ASSIGNED FIELD WORKER
               Text(
-                "FW: ${v.assignedFieldWorkerName}",
+                "FW: ${v.assignedFieldWorkerName} ",
                 style: TextStyle(
-                  fontSize: 12,fontFamily: "PoppinsBold",
+                  fontSize: 12,
+                  fontFamily: "PoppinsBold",
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70 ,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -2447,8 +2489,9 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
         decoration: BoxDecoration(
           gradient: LinearGradient(
               colors: [
+
+                const Color(0xFFDC2626),
                 const Color(0xFFEF4444),
-                const Color(0xFFDC2626)
               ]
           ),
           color: isDark ? Colors.grey.shade900 : Colors.white,
@@ -2475,27 +2518,12 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
+                      fontFamily: "PoppinsBold",
                       color: Colors.white,
                     ),
                   ),
                 ),
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    t.status,
-                    style: TextStyle(
-                      color: statusColor,
-                      fontSize: 11,
-                      fontFamily: "PoppinsBold",
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+
               ],
             ),
 
@@ -2509,7 +2537,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.white70 ,
+                color: Colors.white ,
               ),
             ),
 
@@ -2540,23 +2568,17 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             const SizedBox(height: 8),
 
-            /// 📍 ADDRESS
             Row(
               children: [
-                Icon(
-                  PhosphorIcons.map_pin,
-                  size: 14,
-                  color: Colors.white54,
-                ),
-                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    t.rentedAddress,
+                    "${ t.fieldWorkerName} • ${t.fieldWorkerNumber}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.white60,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
                     ),
                   ),
                 ),
@@ -2612,6 +2634,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                     t.agreementType,
                     style: TextStyle(
                       fontSize: 14,
+                      fontFamily: "PoppinsBold",
                       fontWeight: FontWeight.w700,
                       color: Colors.white,
                     ),
@@ -2647,7 +2670,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: Colors.white70,
+                color: Colors.white,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -2680,24 +2703,18 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
 
             const SizedBox(height: 8),
 
-            /// 📍 ADDRESS
             Row(
               children: [
-                Icon(
-                  PhosphorIcons.map_pin,
-                  size: 14,
-                  color: Colors.white54,
-                ),
-                const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    t.rentedAddress,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white60,
-                    ),
+                    "${ t.fieldWorkerName} • ${t.fieldWorkerNumber}",
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
@@ -2755,14 +2772,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           ),
         );
       },
-      child: Container(
+      child:  Container(
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
               colors: [
-                const Color(0xFFDC2626),
-                const Color(0xFFF59E0B),
+                const Color(0xFFF02626),
+                const Color(0xFFFF9E0B),
               ]
           ),
           color: isDark ? Colors.grey.shade900 : Colors.white,
@@ -2789,7 +2806,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    f.propertyName,
+                    f.propertyAddress,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -2829,7 +2846,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color:Colors.white70,
+                color:Colors.white,
               ),
             ),
 
@@ -2853,30 +2870,17 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               ],
             ),
 
-            /// 👤 CARETAKER (OPTIONAL)
-            if (f.caretakerName.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                "${f.caretakerName} • ${f.caretakerNumber}",
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-
             /// 🏢 FACILITY (OPTIONAL)
-            if (f.facility.isNotEmpty) ...[
+            if (f.fieldWorkerName.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                f.facility,
+                "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
-                  color:Colors.white
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color:Colors.white
                 ),
               ),
             ],
@@ -2961,7 +2965,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 fontSize: 12,
                 fontFamily: "PoppinsBold",
                 fontWeight: FontWeight.w600,
-                color: Colors.white70 ,
+                color: Colors.white ,
               ),
             ),
 
@@ -2996,14 +3000,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontFamily: "PoppinsBold",
-                color:  Colors.white60 ,
+                color:  Colors.white,
               ),
             ),
 
-            if (f.careTakerName.isNotEmpty) ...[
+            if (f.fieldWarkarName.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                "${f.careTakerName} • ${f.careTakerNumber}",
+                "${f.fieldWarkarName} • ${f.field_workar_number}",
                 style: TextStyle(
                   fontSize: 12,
                   fontFamily: "PoppinsBold",
@@ -3126,29 +3130,18 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                 ),
               ],
             ),
-            /// 🏢 FACILITY (OPTIONAL)
-            if (f.facility.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                f.facility,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color:Colors.white,
-                ),
-              ),
-            ],
+
 
             /// 👤 FieldWorkar (OPTIONAL)
             if (f.fieldWarkarName.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                "${f.fieldWarkarName}",
+                "${f.fieldWarkarName} • ${f.field_workar_number}",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),
@@ -3158,7 +3151,27 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
       ),
     );
   }
+  String formatTimeRange12h(String timeRange) {
+    try {
+      final parts = timeRange.split('-');
+      if (parts.length != 2) return timeRange;
 
+      String formatSingle(String time) {
+        final t = time.split(':');
+        int hour = int.parse(t[0]);
+        String minute = t[1];
+
+        final isPM = hour >= 12;
+        final hour12 = hour % 12 == 0 ? 12 : hour % 12;
+
+        return "$hour12:$minute ${isPM ? 'PM' : 'AM'}";
+      }
+
+      return "${formatSingle(parts[0])} - ${formatSingle(parts[1])}";
+    } catch (e) {
+      return timeRange; // fallback
+    }
+  }
   Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
     return GestureDetector(
       onTap: () async {
@@ -3174,7 +3187,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
           );
         }
       },
-      child: Container(
+      child:  Container(
         margin: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
           gradient: LinearGradient(colors: [
@@ -3209,43 +3222,38 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   ),
                 ),
                 Text(
-                  w.time,
+                  formatTimeRange12h(w.time),
                   style: TextStyle(
                     color: Colors.indigo,
                     fontWeight: FontWeight.w600,
                     fontSize: 12,
                   ),
                 ),
+
               ],
             ),
             const SizedBox(height: 6),
             Text(
               "Contact: ${w.contactNo}",
               style: TextStyle(
+                  fontWeight: FontWeight.w700,
                   color: Colors.white ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              w.message,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontFamily: "PoppinsBold",
-                  color:  Colors.white),
-            ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Date: ${w.date}",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12),
+
+            /// 👤 FieldWorkar (OPTIONAL)
+            if (w.fieldWorkerName.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                "${w.fieldWorkerName} • ${w.fieldWorkerNumber}",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
                 ),
-                const Icon(Icons.calendar_month, size: 16, color: Colors.indigo),
-              ],
-            ),
+              ),
+            ],
           ],
         ),
       ),
@@ -3360,7 +3368,7 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color:  Colors.white70 ,
+                color:  Colors.white,
               ),
             ),
 
@@ -3393,15 +3401,14 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             const SizedBox(height: 8),
 
             /// 👤 CARETAKER (OPTIONAL)
-            if (f.careTakerName.isNotEmpty) ...[
-              const SizedBox(height: 8),
+            if (f.field_warkar_name.isNotEmpty) ...[
               Text(
-                "${f.careTakerName} • ${f.careTakerNumber}",
+                "${f.field_warkar_name} • ${f.field_workar_number}",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.white60 ,
+                  fontSize: 12,fontWeight: FontWeight.w700,
+                  color: Colors.white ,
                 ),
               ),
             ],
@@ -3721,15 +3728,20 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   child: CircularProgressIndicator(color: Colors.indigo),
                 ),
               ),
-            /// 🔹 CALLING REMINDERS
-            if (_callingReminders.isNotEmpty)
+            /// 🔹 WEBSITE VISITS
+            if (_websiteVisits.isNotEmpty)
               _sectionTitle(
-                "Calling Reminder",
-                isDark,
-                _callingReminders.length,
-              ),
-            ..._callingReminders.map(
-                  (e) => _buildCallingReminderCard(e, isDark),
+                  "Website Visit Requests", isDark, _websiteVisits.length),
+            ..._websiteVisits.map(
+                  (e) => _buildWebsiteVisitCard(e, isDark),
+            ),
+
+            /// 🔹 TENANT DEMANDS
+            if (_tenantDemands.isNotEmpty)
+              _sectionTitle(
+                  "Tenant Demands", isDark, _tenantDemands.length),
+            ..._tenantDemands.map(
+                  (e) => _buildTenantDemandCard(e, isDark),
             ),
 
             /// 🔹 BOOKED TENANT VISITS
@@ -3765,19 +3777,24 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
             ..._acceptedAgreements.map(
                   (e) => _buildAcceptedAgreementCard(e, isDark),
             ),
+
+            /// 🔹 CALLING REMINDERS
+            if (_callingReminders.isNotEmpty)
+              _sectionTitle(
+                "Building Call Reminders",
+                isDark,
+                _callingReminders.length,
+              ),
+            ..._callingReminders.map(
+                  (e) => _buildCallingReminderCard(e, isDark),
+            ),
+
             /// 🔹 FUTURE PROPERTIES
             if (_futureProperties.isNotEmpty)
               _sectionTitle(
-                  "Future Properties", isDark, _futureProperties.length),
+                  "New Building", isDark, _futureProperties.length),
             ..._futureProperties.map(
                   (e) => _buildFuturePropertyCard(e, isDark),
-            ),
-            /// 🔹 Live PROPERTIES
-            if (_liveProperties.isNotEmpty)
-              _sectionTitle(
-                  "Live Properties", isDark, _liveProperties.length),
-            ..._liveProperties.map(
-                  (e) => _buildLivePropertyCard(e, isDark),
             ),
             /// 🔹 UPCOMING FLATS
             if (_upcomingFlats.isNotEmpty)
@@ -3790,6 +3807,15 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   (e) => _buildUpcomingFlatCard(e, isDark),
             ),
 
+            /// 🔹 Live PROPERTIES
+            if (_liveProperties.isNotEmpty)
+              _sectionTitle(
+                  "Live Properties", isDark, _liveProperties.length),
+            ..._liveProperties.map(
+                  (e) => _buildLivePropertyCard(e, isDark),
+            ),
+
+
             /// 🔹 ADD FLATS
             if (_calendarAddFlats.isNotEmpty)
               _sectionTitle(
@@ -3798,21 +3824,6 @@ class _CalendarTaskPageState extends State<CalendarTaskPage> {
                   (e) => _buildCalendarAddFlatCard(e, isDark),
             ),
 
-            /// 🔹 WEBSITE VISITS
-            if (_websiteVisits.isNotEmpty)
-              _sectionTitle(
-                  "Website Visit Requests", isDark, _websiteVisits.length),
-            ..._websiteVisits.map(
-                  (e) => _buildWebsiteVisitCard(e, isDark),
-            ),
-
-            /// 🔹 TENANT DEMANDS
-            if (_tenantDemands.isNotEmpty)
-              _sectionTitle(
-                  "Tenant Demands", isDark, _tenantDemands.length),
-            ..._tenantDemands.map(
-                  (e) => _buildTenantDemandCard(e, isDark),
-            ),
 
 
             if (!_isLoading &&

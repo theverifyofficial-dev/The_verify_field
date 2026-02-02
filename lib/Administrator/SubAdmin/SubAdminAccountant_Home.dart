@@ -6,6 +6,11 @@ import 'package:verify_feild_worker/Z-Screen/Login_page.dart';
 import '../../Adminisstrator_Target_details/Targets.dart';
 import '../../Administrator/Administator_Agreement/Admin_dashboard.dart';
 import '../../Calender/CalenderForAdmin.dart';
+import '../../Future_Property_OwnerDetails_section/Future_Property.dart';
+import '../../Home_Screen_click/live_tabbar.dart';
+import '../../Rent Agreement/history_tab.dart';
+import '../../Tenant_Details_Demand/MainPage_Tenantdemand_Portal.dart';
+import '../../Upcoming/Parent_Upcoming.dart';
 import '../../Z-Screen/Social_Media_links.dart';
 import '../../Z-Screen/profile.dart';
 import '../../ui_decoration_tools/app_images.dart';
@@ -224,7 +229,6 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         child: AnimationLimiter(child: widget),
                       ),
                   children: [
-
                     const SizedBox(height: 20),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -328,113 +332,101 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                       child: _TargetHeaderCard(context),
                     ),
                     const SizedBox(height: 10),
-
                     // Grid of Feature Cards
+                    // ================= MAIN FEATURES =================
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final screenWidth = MediaQuery
-                              .of(context)
-                              .size
-                              .width;
-                          final screenHeight = MediaQuery
-                              .of(context)
-                              .size
-                              .height;
+                          final crossAxisCount =
+                          MediaQuery.of(context).size.width > 600 ? 3 : 2;
 
-                          final crossAxisCount = screenWidth > 800 ? 4 :
-                          screenWidth > 600 ? 3 : 2;
+                          final itemWidth =
+                              (constraints.maxWidth - ((crossAxisCount - 1) * 16)) /
+                                  crossAxisCount;
 
-                          final availableWidth = constraints.maxWidth;
-                          final itemWidth = (availableWidth -
-                              ((crossAxisCount - 1) * 16)) / crossAxisCount;
-                          final childAspectRatio = itemWidth /
-                              (itemWidth * 1.1);
+                          final childAspectRatio = itemWidth / (itemWidth * 1.1);
+
+                          final mainItems = [
+                            {
+                              "image": AppImages.agreement,
+                              "title": "Property \nAgreement",
+                              "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AdminDashboard())),
+                            },
+                            {
+                              "image": AppImages.calendar,
+                              "title": "Task Calendar",
+                              "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const CalendarTaskPageForAdmin())),
+                            },
+                            {
+                              "image": AppImages.propertysale,
+                              "title": "Future\nInventory/Property",
+                              "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => ADministaterShow_FutureProperty())),
+                            },
+                            {
+                              "image": AppImages.demand_2,
+                              "title": "Customer Demands 2.O",
+                              "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => SubadminTabbar())),
+                            },
+                            {
+                              "image": AppImages.realestatefeild,
+                              "title": "Upcoming\nProperty",
+                              "onTap": () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => const AdminUpcoming())),
+                            },
+                            if (userNumber == "9711779003" || userNumber=="9315016461")
+
+                              {
+                              "image": AppImages.tenant,
+                              "title": "Tenant Demands",
+                              "onTap": () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const MainPage_TenandDemand()));
+                              },
+
+                            },
+                            if (userNumber == "9711779003" || userNumber=="9315016461")
+
+                              {
+                              'image': AppImages.police,
+                              'title': "All Rented \nFlat",
+                              'onTap': () =>
+                                  Navigator.push(context, MaterialPageRoute(
+                                      builder: (context) => const AdministatorAddRentedFlatTabbar())),
+                            },
+                          ];
 
                           return GridView.builder(
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
+                            itemCount: mainItems.length,
                             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: crossAxisCount,
                               childAspectRatio: childAspectRatio,
                               crossAxisSpacing: 16,
                               mainAxisSpacing: 16,
                             ),
-                            itemCount: userNumber == "9711779003"|| userNumber=="9315016461" ? 5:4,
                             itemBuilder: (context, index) {
-                              final List<Map<String, dynamic>> featureItems = [
-                                {
-                                  "image": AppImages.agreement,
-                                  "title": "Property \nAgreement",
-                                  "onTap": () async {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => const AdminDashboard(),
-                                      ),
-                                    );
-                                  },
-                                },
-
-                                if (userNumber == "9711779003" || userNumber=="9315016461")
-                                  {
-                                  'image': AppImages.police,
-                                  'title': "All Rented \nFlat",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (context) => const AdministatorAddRentedFlatTabbar())),
-                                },
-                                {
-                                  "image": AppImages.calendar,
-                                  "title": "Task Calendar",
-                                  "onTap": () {
-                                    Navigator.push(
-                                        context, MaterialPageRoute(
-                                        builder: (_) => const CalendarTaskPageForAdmin()));
-                                  },
-                                },
-                                {
-                                  'image': AppImages.propertysale,
-                                  'title': "Future\n Inventory/Property",
-                                  'onTap': () {
-                                    // Pass the buildingId you want to highlight
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => ADministaterShow_FutureProperty(),
-                                      ),
-                                    );
-                                  },
-                                },
-
-                                {
-                                  'image': AppImages.demand_2,
-                                  'title': "Costumer Demands 2.O",
-                                  'onTap': () =>
-                                      Navigator.push(context, MaterialPageRoute(
-                                          builder: (
-                                              context) =>  SubadminTabbar())),
-                                },
-                                {
-                                  "image": AppImages.realestatefeild,
-                                  "title": "Upcoming\n Property",
-                                  "onTap": () {
-                                    Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) => const AdminUpcoming()));
-                                  },
-                                },
-                              ];
-
-                              final item = featureItems[index];
-
+                              final item = mainItems[index];
                               return _buildFeatureCard(
                                 context: context,
-                                imagePath: item['image'],
-                                title: item['title'],
-                                onTap: item['onTap'],
+                                imagePath: item['image'] as String,
+                                title: item['title'] as String,
+                                onTap: item['onTap'] as VoidCallback,
+
                                 shineAnimation: _shineAnimation,
                                 itemWidth: itemWidth,
                               );
@@ -443,6 +435,96 @@ class _AdministratorHome_ScreenState extends State<SubAdminHomeScreen> with Tick
                         },
                       ),
                     ),
+                    if (userNumber == "9711779003" || userNumber == "9315016461") ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          "Field Work",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final crossAxisCount =
+                            MediaQuery.of(context).size.width > 600 ? 3 : 2;
+
+                            final itemWidth =
+                                (constraints.maxWidth - ((crossAxisCount - 1) * 16)) /
+                                    crossAxisCount;
+
+                            final childAspectRatio = itemWidth / (itemWidth * 1.1);
+
+                            final fieldItems = [
+
+                              {
+                                "image": AppImages.verify_Property,
+                                "title": "Live Property (Field)",
+                                "onTap": () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const LiveTabbar())),
+                              },
+                              {
+                                "image": AppImages.futureProperty,
+                                "title": "Future Property (Field)",
+                                "onTap": () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const FrontPage_FutureProperty())),
+                              },
+                              {
+                                "image": AppImages.realestatefeild,
+                                "title": "Upcoming Flats (Field)",
+                                "onTap": () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const ParentUpcoming())),
+                              },
+                              {
+                                "image": AppImages.agreement,
+                                "title": "Property Agreement (Field)",
+                                "onTap": () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const HistoryTab())),
+                              },
+                            ];
+
+                            return GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: fieldItems.length,
+                              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                childAspectRatio: childAspectRatio,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                              ),
+                              itemBuilder: (context, index) {
+                                final item = fieldItems[index];
+                                return _buildFeatureCard(
+                                  context: context,
+                                  imagePath: item['image'] as String,
+                                  title: item['title'] as String,
+                                  onTap: item['onTap'] as VoidCallback,
+
+                                  shineAnimation: _shineAnimation,
+                                  itemWidth: itemWidth,
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ),
+                    ]
+
+
 
                   ],
                 ),

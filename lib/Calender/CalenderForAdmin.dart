@@ -215,6 +215,7 @@ class AdminAddFlat {
   final String liveUnlive;
   final String careTakerName;
   final String field_warkar_name;
+  final String field_workar_number;
   final String careTakerNumber;
   final String datesForRightAvailable;
   final String subId;
@@ -233,6 +234,7 @@ class AdminAddFlat {
     required this.liveUnlive,
     required this.careTakerName,
     required this.field_warkar_name,
+    required this.field_workar_number,
     required this.careTakerNumber,
     required this.datesForRightAvailable,
     required this.subId,
@@ -260,6 +262,8 @@ class AdminAddFlat {
       json['care_taker_number']?.toString() ?? '',
       field_warkar_name:
       json['field_warkar_name']?.toString() ?? '',
+      field_workar_number:
+      json['field_workar_number']?.toString() ?? '',
 
       /// ⚠️ backend typo handled safely
       datesForRightAvailable:
@@ -534,6 +538,7 @@ class AdminAcceptedAgreement {
   final String floor;
   final String agreementType;
   final String fieldWorkerName;
+  final String Fieldwarkarnumber;
   final String status;
 
   AdminAcceptedAgreement({
@@ -546,6 +551,7 @@ class AdminAcceptedAgreement {
     required this.floor,
     required this.agreementType,
     required this.fieldWorkerName,
+    required this.Fieldwarkarnumber,
     required this.status,
   });
 
@@ -560,6 +566,7 @@ class AdminAcceptedAgreement {
       floor: json['floor'] ?? '',
       agreementType: json['agreement_type'] ?? '',
       fieldWorkerName: json['Fieldwarkarname'] ?? '',
+      Fieldwarkarnumber: json['Fieldwarkarnumber'] ?? '',
       status: "Accepted",
     );
   }
@@ -1437,6 +1444,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       t.agreementType,
                       style: TextStyle(
                         fontSize: 14,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
@@ -1472,7 +1480,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70,
+                  color: Colors.white,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -1505,24 +1513,18 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
               const SizedBox(height: 8),
 
-              /// 📍 ADDRESS
               Row(
                 children: [
-                  Icon(
-                    PhosphorIcons.map_pin,
-                    size: 14,
-                    color: Colors.white54,
-                  ),
-                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      t.rentedAddress,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.white60,
-                      ),
+                      "${ t.fieldWorkerName} • ${t.fieldWorkerNumber}",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
@@ -1603,6 +1605,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       "Building ID: ${c.subid}",
                       style: TextStyle(
                         fontSize: 11,
+                        fontFamily: "PoppinsBold",
                         fontWeight: FontWeight.bold,
                         color: isDark ? Colors.indigoAccent : Colors.indigo,
                       ),
@@ -1619,7 +1622,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontFamily: "PoppinsBold",
                   fontSize: 12,
-                  color: Colors.white70 ,
+                  color: Colors.white ,
                 ),
               ),
 
@@ -1630,6 +1633,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 "FW: ${c.fieldWorkerName} • ${c.fieldWorkerNumber}",
                 style: TextStyle(
                     fontSize: 12,
+                    fontFamily: "PoppinsBold",
                     color: Colors.white
                 ),
               ),
@@ -1647,8 +1651,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     v.status.toLowerCase() == 'progressing' ? Colors.orange : Colors.green;
 
     return _responsiveCard(
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+      child: GestureDetector(
         onTap: () {
           Navigator.push(context, MaterialPageRoute(builder: (context)
           => AdminDemandDetail(demandId: v.id.toString(),),
@@ -1688,7 +1691,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        fontWeight: FontWeight.w700,
+                        fontFamily: "PoppinsBold",
+                        fontWeight: FontWeight.bold,
                         color:  Colors.white,
                       ),
                     ),
@@ -1724,7 +1728,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   fontFamily: "PoppinsBold",
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70,
+                  color: Colors.white,
                 ),
               ),
 
@@ -1754,11 +1758,11 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Visit: ${v.visitingDate}",
+                    "Reference: ${v.reference}",
                     style: TextStyle(
                       fontSize: 12,
                       fontFamily: "PoppinsBold",
-                      color: Colors.white70,
+                      color: Colors.white,
                     ),
                   ),
                   Container(
@@ -1799,11 +1803,12 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
               /// 👤 ASSIGNED FIELD WORKER
               Text(
-                "FW: ${v.assignedFieldWorkerName}",
+                "FW: ${v.assignedFieldWorkerName} ",
                 style: TextStyle(
-                  fontSize: 12,fontFamily: "PoppinsBold",
+                  fontSize: 12,
+                  fontFamily: "PoppinsBold",
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70 ,
+                  color: Colors.white,
                 ),
               ),
             ],
@@ -1900,7 +1905,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color:  Colors.white70 ,
+                  color:  Colors.white,
                 ),
               ),
 
@@ -1933,15 +1938,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               const SizedBox(height: 8),
 
               /// 👤 CARETAKER (OPTIONAL)
-              if (f.careTakerName.isNotEmpty) ...[
-                const SizedBox(height: 8),
+              if (f.field_warkar_name.isNotEmpty) ...[
                 Text(
-                  "${f.careTakerName} • ${f.careTakerNumber}",
+                  "${f.field_warkar_name} • ${f.field_workar_number}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white60 ,
+                    fontSize: 12,fontWeight: FontWeight.w700,
+                    color: Colors.white ,
                   ),
                 ),
               ],
@@ -2047,7 +2051,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white70 ,
+                    color: Colors.white ,
                   ),
                 ),
 
@@ -2078,23 +2082,17 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
                 const SizedBox(height: 8),
 
-                /// 📍 ADDRESS
                 Row(
                   children: [
-                    Icon(
-                      PhosphorIcons.map_pin,
-                      size: 14,
-                      color:Colors.white,
-                    ),
-                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        t.rentedAddress,
+                        "${ t.fieldWorkerName} • ${t.Fieldwarkarnumber}",
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color:Colors.white,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
                         ),
                       ),
                     ),
@@ -2135,8 +2133,9 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
                 colors: [
+
+                  const Color(0xFFDC2626),
                   const Color(0xFFEF4444),
-                  const Color(0xFFDC2626)
                 ]
             ),
             color: isDark ? Colors.grey.shade900 : Colors.white,
@@ -2163,27 +2162,12 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w700,
+                        fontFamily: "PoppinsBold",
                         color: Colors.white,
                       ),
                     ),
                   ),
-                  Container(
-                    padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      t.status,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 11,
-                        fontFamily: "PoppinsBold",
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
+
                 ],
               ),
 
@@ -2197,7 +2181,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: Colors.white70 ,
+                  color: Colors.white ,
                 ),
               ),
 
@@ -2228,23 +2212,17 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
 
               const SizedBox(height: 8),
 
-              /// 📍 ADDRESS
               Row(
                 children: [
-                  Icon(
-                    PhosphorIcons.map_pin,
-                    size: 14,
-                    color: Colors.white54,
-                  ),
-                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      t.rentedAddress,
+                     "${ t.fieldWorkerName} • ${t.fieldWorkerNumber}",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.white60,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -2257,8 +2235,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
     );
   }
   Widget _buildAdminUpcomingFlatCard(UpcomingFlat f, bool isDark) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -2331,7 +2308,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 fontSize: 12,
                 fontFamily: "PoppinsBold",
                 fontWeight: FontWeight.w600,
-                color: Colors.white70 ,
+                color: Colors.white ,
               ),
             ),
 
@@ -2366,14 +2343,14 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               style: TextStyle(
                 fontSize: 12,
                 fontFamily: "PoppinsBold",
-                color:  Colors.white60 ,
+                color:  Colors.white,
               ),
             ),
 
-            if (f.careTakerName.isNotEmpty) ...[
+            if (f.fieldWarkarName.isNotEmpty) ...[
               const SizedBox(height: 6),
               Text(
-                "${f.careTakerName} • ${f.careTakerNumber}",
+                "${f.fieldWarkarName} • ${f.field_workar_number}",
                 style: TextStyle(
                   fontSize: 12,
                   fontFamily: "PoppinsBold",
@@ -2407,8 +2384,8 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
                 colors: [
-                  const Color(0xFFDC2626),
-                  const Color(0xFFF59E0B),
+                  const Color(0xFFF02626),
+                  const Color(0xFFFF9E0B),
                 ]
             ),
             color: isDark ? Colors.grey.shade900 : Colors.white,
@@ -2475,7 +2452,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color:Colors.white70,
+                  color:Colors.white,
                 ),
               ),
 
@@ -2499,29 +2476,16 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 ],
               ),
 
-              /// 👤 CARETAKER (OPTIONAL)
-              if (f.caretakerName.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                Text(
-                  "${f.caretakerName} • ${f.caretakerNumber}",
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-
               /// 🏢 FACILITY (OPTIONAL)
-              if (f.facility.isNotEmpty) ...[
+              if (f.fieldWorkerName.isNotEmpty) ...[
                 const SizedBox(height: 6),
                 Text(
-                  f.facility,
+                  "${f.fieldWorkerName} • ${f.fieldWorkerNumber}",
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                       fontSize: 12,
+                      fontWeight: FontWeight.w700,
                       color:Colors.white
                   ),
                 ),
@@ -2578,7 +2542,27 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
       ],
     );
   }
+  String formatTimeRange12h(String timeRange) {
+    try {
+      final parts = timeRange.split('-');
+      if (parts.length != 2) return timeRange;
 
+      String formatSingle(String time) {
+        final t = time.split(':');
+        int hour = int.parse(t[0]);
+        String minute = t[1];
+
+        final isPM = hour >= 12;
+        final hour12 = hour % 12 == 0 ? 12 : hour % 12;
+
+        return "$hour12:$minute ${isPM ? 'PM' : 'AM'}";
+      }
+
+      return "${formatSingle(parts[0])} - ${formatSingle(parts[1])}";
+    } catch (e) {
+      return timeRange; // fallback
+    }
+  }
   Widget _buildWebsiteVisitCard(WebsiteVisit w, bool isDark) {
     return _responsiveCard(
       child: GestureDetector(
@@ -2630,43 +2614,38 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                     ),
                   ),
                   Text(
-                    w.time,
+                    formatTimeRange12h(w.time),
                     style: TextStyle(
                       color: Colors.indigo,
                       fontWeight: FontWeight.w600,
                       fontSize: 12,
                     ),
                   ),
+
                 ],
               ),
               const SizedBox(height: 6),
               Text(
                 "Contact: ${w.contactNo}",
                 style: TextStyle(
+                  fontWeight: FontWeight.w700,
                     color: Colors.white ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                w.message,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                    fontFamily: "PoppinsBold",
-                    color:  Colors.white),
-              ),
-              const SizedBox(height: 6),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Date: ${w.date}",
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 12),
+
+              /// 👤 FieldWorkar (OPTIONAL)
+              if (w.fieldWorkerName.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Text(
+                  "${w.fieldWorkerName} • ${w.fieldWorkerNumber}",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
                   ),
-                  const Icon(Icons.calendar_month, size: 16, color: Colors.indigo),
-                ],
-              ),
+                ),
+              ],
             ],
           ),
         ),
@@ -3004,15 +2983,24 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                   child: CircularProgressIndicator(color: Colors.indigo),
                 ),
               ),
-            if (_buildingCalls.isNotEmpty)
-              _sectionTitle(
-                "Building Call Reminders",
-                isDark,
-                _buildingCalls.length,
-              ),
+            if (_websiteVisits.isNotEmpty)
+              _sectionTitle("Website Visits", isDark, _websiteVisits.length),
+            ..._websiteVisits.map(
+                  (e) => _buildWebsiteVisitCard(e, isDark),
+            ),
 
-            ..._buildingCalls.map(
-                  (e) => _buildBuildingCallingCard(e, isDark),
+            if (_adminTenantDemands.isNotEmpty)
+              _sectionTitle("Tenant Demands", isDark, _adminTenantDemands.length),
+            ..._adminTenantDemands.map((e) => _buildTenantDemandCard(e, isDark)),
+
+            if (_bookedTenantVisits.isNotEmpty)
+              _sectionTitle(
+                "Booked Tenant Visits",
+                isDark,
+                _bookedTenantVisits.length,
+              ),
+            ..._bookedTenantVisits.map(
+                  (e) => _buildBookedTenantVisitCard(e, isDark),
             ),
 
             // 🔹 TASK SECTIONS (SAME AS BEFORE)
@@ -3035,19 +3023,21 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
             ..._acceptedAgreements.map(
                   (e) => _buildAcceptedAgreementCard(e, isDark),
             ),
-            if (_bookedTenantVisits.isNotEmpty)
+
+            if (_buildingCalls.isNotEmpty)
               _sectionTitle(
-                "Booked Tenant Visits",
+                "Building Call Reminders",
                 isDark,
-                _bookedTenantVisits.length,
+                _buildingCalls.length,
               ),
-            ..._bookedTenantVisits.map(
-                  (e) => _buildBookedTenantVisitCard(e, isDark),
+
+            ..._buildingCalls.map(
+                  (e) => _buildBuildingCallingCard(e, isDark),
             ),
 
             if (_futureProperties.isNotEmpty)
               _sectionTitle(
-                  "Future Properties", isDark, _futureProperties.length),
+                  "New Building", isDark, _futureProperties.length),
             ..._futureProperties.map(
                   (e) => _buildFuturePropertyCard(e, isDark),
             ),
@@ -3065,22 +3055,12 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
               _sectionTitle("Live Properties", isDark, _adminLiveProperties.length),
             ..._adminLiveProperties.map((e) => _buildLivePropertyCard(e, isDark)),
 
-
-
-            if (_adminTenantDemands.isNotEmpty)
-              _sectionTitle("Tenant Demands", isDark, _adminTenantDemands.length),
-            ..._adminTenantDemands.map((e) => _buildTenantDemandCard(e, isDark)),
-
             if (_addFlats.isNotEmpty)
               _sectionTitle("Add Flats", isDark, _addFlats.length),
             ..._addFlats.map(
                   (e) => _buildAddFlatCard(e, isDark),
             ),
-            if (_websiteVisits.isNotEmpty)
-              _sectionTitle("Website Visits", isDark, _websiteVisits.length),
-            ..._websiteVisits.map(
-                  (e) => _buildWebsiteVisitCard(e, isDark),
-            ),
+
 
             if (!_isLoading &&
                 _agreements.isEmpty &&
@@ -3288,8 +3268,7 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
   }
 
   Widget _buildLivePropertyCard(LiveFlat f, bool isDark) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(14),
+    return GestureDetector(
       onTap: () {
         Navigator.push(
           context,
@@ -3396,29 +3375,18 @@ class _CalendarTaskPageForAdminState extends State<CalendarTaskPageForAdmin> {
                 ),
               ],
             ),
-            /// 🏢 FACILITY (OPTIONAL)
-            if (f.facility.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                f.facility,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color:Colors.white,
-                ),
-              ),
-            ],
+
 
             /// 👤 FieldWorkar (OPTIONAL)
             if (f.fieldWarkarName.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
-                "${f.fieldWarkarName}",
+                "${f.fieldWarkarName} • ${f.field_workar_number}",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12,
+                  fontWeight: FontWeight.w700,
                   color: Colors.white,
                 ),
               ),

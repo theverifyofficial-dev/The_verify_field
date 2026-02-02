@@ -788,6 +788,7 @@ class _ADministaterShow_FuturePropertyState extends State<ADministaterShow_Futur
           child: ListView.builder(
             controller: _horizontalControllers[id],
             scrollDirection: Axis.horizontal,
+            // shrinkWrap: true,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             itemCount: sortedProperties.length,
             itemBuilder: (context, i) {

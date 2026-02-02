@@ -1128,28 +1128,28 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
               ],
             ),
             const SizedBox(height: 16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.location_on, color: Colors.red[400], size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    property.propertyNameAddress.isNotEmpty
-                        ? property.propertyNameAddress
-                        : "No address available",
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
+            // Row(
+            //   crossAxisAlignment: CrossAxisAlignment.start,
+            //   children: [
+            //     Icon(Icons.location_on, color: Colors.red[400], size: 20),
+            //     const SizedBox(width: 8),
+            //     Expanded(
+            //       child: Text(
+            //         property.propertyNameAddress.isNotEmpty
+            //             ? property.propertyNameAddress
+            //             : "No address available",
+            //         style: const TextStyle(
+            //           fontSize: 15,
+            //           fontWeight: FontWeight.w600,
+            //           color: Colors.black87,
+            //         ),
+            //         maxLines: 2,
+            //         overflow: TextOverflow.ellipsis,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
                 return Wrap(
@@ -1210,11 +1210,11 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
               ],
             ),
             const SizedBox(height: 16),
-            _buildContactSection(property, isDarkMode),
-            const SizedBox(height: 20),
+            // _buildContactSection(property, isDarkMode),
+            // const SizedBox(height: 20),
             _buildSpecificationsSection(property, isDarkMode),
-            const SizedBox(height: 20),
-            _buildLocationSection(property, isDarkMode),
+            // const SizedBox(height: 20),
+            // _buildLocationSection(property, isDarkMode),
           ],
         ),
       ),
@@ -1244,16 +1244,7 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
             Colors.blue,
             isDarkMode,
           ),
-        if (property.ownerName.isNotEmpty || property.ownerNumber.isNotEmpty) const SizedBox(height: 8),
-        if (property.caretakerName.isNotEmpty || property.caretakerNumber.isNotEmpty)
-          _buildContactCard(
-            "Caretaker",
-            property.caretakerName,
-            property.caretakerNumber,
-            Icons.support_agent,
-            Colors.green,
-            isDarkMode,
-          ),
+
       ],
     );
   }
@@ -1360,15 +1351,15 @@ class _Administater_Future_Property_detailsState extends State<Administater_Futu
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Specifications",
-          style: TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
-        const SizedBox(height: 12),
+        // const Text(
+        //   "Specifications",
+        //   style: TextStyle(
+        //     fontSize: 15,
+        //     fontWeight: FontWeight.w600,
+        //     color: Colors.black87,
+        //   ),
+        // ),
+        // const SizedBox(height: 12),
         LayoutBuilder(
           builder: (context, constraints) {
             final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;

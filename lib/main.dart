@@ -54,7 +54,7 @@ void main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        ChangeNotifierProvider(create: (_) => PropertyProvider()),
+            ChangeNotifierProvider(create: (_) => PropertyProvider()),
         ChangeNotifierProvider(create: (_) => PropertyIdProvider()),
         ChangeNotifierProvider(create: (_) => MultiImageUploadProvider()),
         ChangeNotifierProvider(create: (_) => RealEstateShowDataProvider()),

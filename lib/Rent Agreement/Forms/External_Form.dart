@@ -111,6 +111,11 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
   @override
   void initState() {
     super.initState();
+    final discounted = widget.rewardStatus.isDiscounted;
+    final defaultPrice = discounted ? 100 : 150;
+    Agreement_price.text = defaultPrice.toString();
+    AgreementAmountInWords = convertToWords(defaultPrice);
+
     _fabController = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
     if (widget.agreementId != null) {
       _fetchAgreementDetails(widget.agreementId!);
@@ -511,7 +516,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
         "Fieldwarkarname": _name.isNotEmpty ? _name : '',
         "Fieldwarkarnumber": _number.isNotEmpty ? _number : '',
         "property_id": propertyID.text,
-        "agreement_price": Agreement_price.text ?? "150",
+        "agreement_price": Agreement_price.text ?? "--",
         "notary_price": Notary_price ?? '10 rupees',
         "is_Police": isPolice,
         "is_agreement_hide": isAgreementHide ? "1" : "0",
@@ -1580,9 +1585,6 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
 
 
   Widget _propertyStep() {
-    final discounted = widget.rewardStatus.isDiscounted;
-
-    final defaultPrice = discounted ? 100 : 150;
     return _glassContainer(
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
 
@@ -1787,7 +1789,7 @@ class _RentalWizardPageState extends State<ExternalWizardPage> with TickerProvid
                   Expanded(
                     child:
                     _agreementPriceBox(
-                      amount: int.tryParse(Agreement_price.text) ?? defaultPrice,
+                      amount: int.tryParse(Agreement_price.text) ?? 0,
                       amountInWords: AgreementAmountInWords,
                     ),
 

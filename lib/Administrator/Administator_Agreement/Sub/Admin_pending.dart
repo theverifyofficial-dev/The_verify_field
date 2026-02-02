@@ -395,8 +395,31 @@ class _AdminPendingState extends State<AdminPending> {
                     ),
                   ],
                 ),
+
               ),
               SizedBox(height: size.height * 0.008),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "cost: ₹${agreement.agreement_price}",
+                    style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                  Text(
+                    "Filled On ${_formatDate(agreement.currentDate)}",
+                    style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
 
 
             ],

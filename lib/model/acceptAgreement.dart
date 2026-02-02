@@ -17,6 +17,7 @@ class AgreementModel2 {
   final String securitys;
   final String meter;
   final String shiftingDate;
+  final String currentDate;
   final String maintaince;
   final String? ownerAadharFront;
   final String? ownerAadharBack;
@@ -35,6 +36,8 @@ class AgreementModel2 {
   final String? status;    // ✅ new field
   final String? messages;  //// ✅ new field
   final String Type;  // ✅ new field
+  final String agreement_price;
+
 
   AgreementModel2({
     required this.id,
@@ -67,8 +70,10 @@ class AgreementModel2 {
     required this.currentDates,
     required this.fieldwarkarname,
     required this.fieldwarkarnumber,
+    required this.agreement_price,
     this.tenantImage,
     required this.propertyId,
+    required this.currentDate,
     required this.parking,
     this.status,    // ✅ new field
     this.messages,  // ✅ new field
@@ -110,9 +115,26 @@ class AgreementModel2 {
       tenantImage: json['tenant_image'],
       propertyId: json['property_id'] ?? '',
       parking: json['parking'] ?? '',
+      agreement_price: json['agreement_price'] ?? '0',
+      currentDate: json['current_dates'],
       status: json['status'],       // ✅ map from JSON
       messages: json['messages'],   // ✅ map from JSON
       Type: json['agreement_type'] ?? '',
     );
   }
+}
+DateTime? _parseDate(dynamic value) {
+  if (value == null) return null;
+
+  // API sends direct string
+  if (value is String && value.isNotEmpty) {
+    return DateTime.tryParse(value);
+  }
+
+  // Sometimes API sends { date: "yyyy-mm-dd" }
+  if (value is Map && value['date'] != null) {
+    return DateTime.tryParse(value['date'].toString());
+  }
+
+  return null;
 }

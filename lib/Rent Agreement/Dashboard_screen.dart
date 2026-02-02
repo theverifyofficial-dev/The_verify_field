@@ -5,12 +5,21 @@ import 'package:flutter_phosphor_icons/flutter_phosphor_icons.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../Custom_Widget/constant.dart';
+import '../Custom_Widget/marquee_style.dart';
 import 'Forms/Agreement_Form.dart';
 import 'Forms/Commercial_Form.dart';
 import 'Forms/External_Form.dart';
 import 'Forms/Furnished_form.dart';
 import 'Forms/Renewal_form.dart';
 import 'Forms/Verification_form.dart';
+
+class AgreementDashboard extends StatefulWidget {
+
+  const AgreementDashboard({super.key});
+
+  @override
+  State<AgreementDashboard> createState() => _AgreementDashboardState();
+}
 
 class RewardStatus {
   final int totalAgreements;
@@ -22,23 +31,15 @@ class RewardStatus {
   });
 }
 
-class AgreementDashboard extends StatefulWidget {
-  const AgreementDashboard({super.key});
-
-  @override
-  State<AgreementDashboard> createState() => _AgreementDashboardState();
-}
 
 class _AgreementDashboardState extends State<AgreementDashboard> {
 
   static const int monthlyTarget = 20;
   static const bool debugForceDiscount = false; // 🔥 TEMP ONLY
-
+  late ConfettiController _confettiController;
 
   RewardStatus? _rewardStatus;
    bool _loadingReward = true;
-
-  late ConfettiController _confettiController;
 
 
    @override
@@ -64,13 +65,11 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
      }
    }
 
-
   @override
   void dispose() {
     _confettiController.dispose();
     super.dispose();
   }
-
 
   Future<RewardStatus> fetchRewardStatus() async {
     final prefs = await SharedPreferences.getInstance();
@@ -143,7 +142,8 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           },
             _rewardStatus?.isDiscounted == true,
 
-          ),          _buildSectionItem("Commercial", Icons.apartment_sharp, () async {
+          ),
+          _buildSectionItem("Commercial", Icons.apartment_sharp, () async {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => CommercialWizardPage(rewardStatus: _rewardStatus!,)),
@@ -151,7 +151,8 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           },
             _rewardStatus?.isDiscounted == true,
 
-          ),          _buildSectionItem("External Rental", Icons.add_business, () async {
+          ),
+          _buildSectionItem("External Rental", Icons.add_business, () async {
             Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => ExternalWizardPage(rewardStatus: _rewardStatus!,)),
@@ -159,7 +160,8 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           },
             _rewardStatus?.isDiscounted == true,
 
-          ),          _buildSectionItem("Furnished", Icons.workspace_premium, ()  async {
+          ),
+          _buildSectionItem("Furnished", Icons.workspace_premium, ()  async {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => FurnishedForm(rewardStatus: _rewardStatus!,)),
@@ -167,7 +169,8 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           },
             _rewardStatus?.isDiscounted == true,
 
-          ),          _buildSectionItem("Renewal", Icons.timer, ()  async {
+          ),
+          _buildSectionItem("Renewal", Icons.timer, ()  async {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => RenewalForm(rewardStatus: _rewardStatus!,)),
@@ -277,7 +280,7 @@ class _RewardBanner extends StatelessWidget {
         gradient: LinearGradient(
           colors: unlocked
               ? [Colors.green.shade700, Colors.greenAccent.shade400]
-              : [Colors.blueGrey.shade800, Colors.blueGrey.shade500],
+              : [Colors.grey.shade800, Colors.grey.shade600],
         ),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
@@ -292,27 +295,27 @@ class _RewardBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 🎉 TITLE
-          Row(
-            children: [
-              Icon(
-                unlocked ? Icons.celebration : Icons.trending_up,
-                color: Colors.white,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  unlocked
-                      ? "🎉 Target Achieved! Discount Active"
-                      : "Complete $target agreements to unlock discount",
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Icon(
+                  unlocked ? Icons.celebration : Icons.trending_up,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    unlocked
+                        ? "🎉 Discount Unlocked!"
+                        : "Monthly Target Progress",
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
 
           const SizedBox(height: 8),
 
@@ -337,7 +340,7 @@ class _RewardBanner extends StatelessWidget {
               minHeight: 10,
               backgroundColor: Colors.white.withOpacity(0.25),
               valueColor: AlwaysStoppedAnimation<Color>(
-                unlocked ? Colors.white : Colors.greenAccent,
+                unlocked ? Colors.white : Colors.green,
               ),
             ),
           ),
@@ -377,8 +380,6 @@ class DiscountRibbon extends StatelessWidget {
 
 class _BubbleCardState extends State<_BubbleCard> {
   double _scale = 1.0;
-  RewardStatus? _rewardStatus;
-
 
   void _onTapDown(TapDownDetails details) {
     setState(() => _scale = 0.95); // shrink a bit

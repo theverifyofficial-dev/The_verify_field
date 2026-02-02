@@ -6,7 +6,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/scheduler.dart';
 
-
 class AllContact extends StatefulWidget {
   final String buildingId;
   final String ownerName;
@@ -27,6 +26,8 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
 
   List<dynamic> flats = [];
   bool isLoading = true;
+
+  String call_done = "1";
 
   @override
   void initState() {
@@ -60,7 +61,7 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        if (jsonData["success"] == true) {
+        if (jsonData["status"] == true) {
           logs = jsonData["data"];
         }
       }
@@ -95,7 +96,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Drag handle
                 Center(
                   child: Container(
                     width: 40,
@@ -107,8 +107,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // Title
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -220,6 +218,21 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
                                     ),
                                   ],
                                 ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      "by: ${log['fieldworkar_name']}",
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white54
+                                            : Colors.grey.shade600,
+                                        fontSize: 13,
+                                        fontStyle: FontStyle.italic
+                                      ),
+                                    ),
+                                  ],
+                                )
                               ],
                             ),
                           ),
@@ -281,7 +294,6 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     final time =
         "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
 
-    final nextCallingDate = _calculateNextCallingDate();
 
     const apiUrl =
         "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/new_future_property_calling_option.php";
@@ -294,65 +306,69 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
           "date": date,
           "time": time,
           "subid": id,
-          "next_calling_date": nextCallingDate,
-
           "fieldworkar_name": FName,
           "fieldworkar_number": FNum,
+          "call_done": call_done,
         },
       );
 
-      debugPrint("Future call log response: ${response.body}");
+      print("call id : $id");
+      print("call id : $call_done");
+
+      print("Future call log response: ${response.body}");
     } catch (e) {
       debugPrint("Error logging future call: $e");
     }
   }
 
-  Future<DateTime?> _fetchLatestLogDate(String id) async {
+  Future<Map<String, dynamic>?> _fetchLatestCallLog(String subId) async {
     final apiUrl =
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$id";
+        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_api_for_calling_api_in_buidling.php?subid=$subId";
 
     try {
       final response = await http.get(Uri.parse(apiUrl));
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        if (jsonData["success"] == true && jsonData["data"] != null && jsonData["data"].isNotEmpty) {
-          // Convert each log entry into DateTime and pick the newest
-          DateTime? newest;
-          for (final e in jsonData["data"]) {
-            try {
-              final dateStr = (e['date'] ?? '').toString(); // expected "YYYY-MM-DD"
-              final timeStr = (e['time'] ?? '').toString(); // expected "HH:MM" or "HH:MM:SS"
-              if (dateStr.isEmpty) continue;
 
-              // Parse date parts
-              final dateParts = dateStr.split('-');
-              if (dateParts.length < 3) continue;
-              final y = int.tryParse(dateParts[0]) ?? 0;
-              final m = int.tryParse(dateParts[1]) ?? 1;
-              final d = int.tryParse(dateParts[2]) ?? 1;
-
-              // Parse time parts
-              int hh = 0, mm = 0, ss = 0;
-              if (timeStr.isNotEmpty) {
-                final tParts = timeStr.split(':');
-                if (tParts.isNotEmpty) hh = int.tryParse(tParts[0]) ?? 0;
-                if (tParts.length > 1) mm = int.tryParse(tParts[1]) ?? 0;
-                if (tParts.length > 2) ss = int.tryParse(tParts[2]) ?? 0;
-              }
-
-              final dt = DateTime(y, m, d, hh, mm, ss);
-              if (newest == null || dt.isAfter(newest)) newest = dt;
-            } catch (_) {
-              // skip malformed entry
-            }
-          }
-          return newest;
+        if (jsonData["status"] == true &&
+            jsonData["data"] != null &&
+            jsonData["data"].isNotEmpty) {
+          // ✅ latest log (as per your response)
+          return jsonData["data"][0];
         }
       }
     } catch (e) {
-      debugPrint("Error fetching latest log date: $e");
+      debugPrint("Error fetching latest log: $e");
     }
     return null;
+  }
+
+  String _reminderFromBackend(String? nextDate) {
+    if (nextDate == null || nextDate.isEmpty) {
+      return "❌ Never contacted this owner.";
+    }
+
+    final parts = nextDate.split('-');
+    if (parts.length != 3) return "⚠️ Invalid next calling date";
+
+    final next = DateTime(
+      int.parse(parts[0]),
+      int.parse(parts[1]),
+      int.parse(parts[2]),
+    );
+
+    final today = DateTime.now();
+    final diff = next
+        .difference(DateTime(today.year, today.month, today.day))
+        .inDays;
+
+    if (diff > 0) {
+      return "Next contact on ${_formatDate(next)} (in $diff days)";
+    } else if (diff == 0) {
+      return "Contact today (${_formatDate(next)})";
+    } else {
+      return "⚠️ Overdue by ${-diff} day(s)";
+    }
   }
 
   String _formatDate(DateTime dt) {
@@ -364,72 +380,46 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     return "${dt.day} ${months[dt.month - 1]} ${dt.year}";
   }
 
-  String _generateNextContactMessage(DateTime? latest) {
-    if (latest == null) return "❌ Never contacted this owner.";
-
-    final nextContact = latest.add(const Duration(days: 30));
-    final now = DateTime.now();
-    final diffDays = nextContact.difference(DateTime(now.year, now.month, now.day)).inDays;
-
-    if (diffDays > 0) {
-      return "Next contact on ${_formatDate(nextContact)} (in $diffDays days)";
-    } else if (diffDays == 0) {
-      return "Contact today (${_formatDate(nextContact)})";
-    } else {
-      final overdue = -diffDays;
-      return "⚠️ Overdue by $overdue day${overdue > 1 ? 's' : ''} — should have contacted on ${_formatDate(nextContact)}";
-    }
-  }
 
   Widget _reminderCard({
     required bool isDark,
     required String id,
   }) {
-    return FutureBuilder<DateTime?>(
-      future: _fetchLatestLogDate(id),
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _fetchLatestCallLog(id),
       builder: (context, snapshot) {
         String msg;
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          msg = "🔄 Checking last contact...";
-        } else if (snapshot.hasError) {
-          msg = "⚠️ Error fetching last contact.";
-        } else {
-          final latest = snapshot.data;
-          msg = _generateNextContactMessage(latest);
-        }
 
-        Color bg = isDark ? Colors.white10 : Colors.grey.shade50;
-        Color iconColor = isDark ? Colors.amberAccent : Colors.deepPurple;
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          msg = "🔄 Checking next contact...";
+        } else if (!snapshot.hasData) {
+          msg = "❌ Never contacted this owner.";
+        } else {
+          msg = _reminderFromBackend(
+            snapshot.data!["next_calling_date"],
+          );
+        }
 
         return Container(
           margin: const EdgeInsets.only(top: 12),
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              colors: isDark
-                  ? [Colors.deepPurple.withOpacity(0.06), Colors.white12.withOpacity(0.02)]
-                  : [Colors.purple.shade50, Colors.white],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
             border: Border.all(
-              color: isDark ? Colors.white12 : Colors.black12,
-              width: 0.8,
+              color: Colors.redAccent.withOpacity(0.3),
             ),
           ),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.notifications_active_rounded, color: iconColor),
+              const Icon(Icons.notifications_active,
+                  color: Colors.redAccent),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   msg,
-                  style: TextStyle(
-                    fontSize: 14.5,
-                    color: Colors.red,
+                  style: const TextStyle(
                     fontWeight: FontWeight.w600,
+                    color: Colors.red,
                   ),
                 ),
               ),
@@ -440,10 +430,9 @@ class _AllContactState extends State<AllContact> with WidgetsBindingObserver {
     );
   }
 
-  String _calculateNextCallingDate() {
-    final next = DateTime.now().add(const Duration(days: 30));
-    return "${next.year}-${next.month.toString().padLeft(2, '0')}-${next.day.toString().padLeft(2, '0')}";
-  }
+
+
+
 
 
   @override

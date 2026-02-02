@@ -650,7 +650,7 @@ class _AgreementDetailsState extends State<AllData> {
                                   ),
                                 ),
                                 Text(
-                                  "On ${_formatDate(item.currentDate)}",
+                                  "Filled On ${_formatDate(item.currentDate)}",
                                   style: const TextStyle(
                                     fontStyle: FontStyle.italic,
                                     fontSize: 12,

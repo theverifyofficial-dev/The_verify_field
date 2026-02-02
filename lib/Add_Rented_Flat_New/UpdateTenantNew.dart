@@ -222,7 +222,42 @@ class _UpdateTenantPageNewState extends State<UpdateTenantPageNew> {
       ),
     );
   }
+  Widget _buildInputNameField(
+      String label, String hint, TextEditingController controller, IconData icon,
+      {bool isOptional = false, TextInputType inputType = TextInputType.text}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      elevation: 2,
+      borderRadius: BorderRadius.circular(14),
+      child: TextFormField(
+        controller: controller,
+        keyboardType: inputType,
+        validator: (value) {
+          if (!isOptional && (value == null || value.isEmpty)) {
+            return "$label is required";
+          }
+          return null;
+        },
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
+          fontWeight: FontWeight.w600,
+        ),
 
+        decoration: InputDecoration(
+          counterText: "",
+          prefixIcon: Icon(icon, color: Colors.blueAccent),
+          labelText: label,
+          hintText: hint,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          filled: true,
+          fillColor: isDark ? Colors.grey[900] : Colors.white,
+        ),
+      ),
+    );
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -262,7 +297,7 @@ class _UpdateTenantPageNewState extends State<UpdateTenantPageNew> {
             children: [
               _section("Owner Info"),
 
-              _buildInputField(
+              _buildInputNameField(
                 "Owner Name",
                 "Enter owner name",
                 _ownerNameController,
@@ -288,7 +323,8 @@ class _UpdateTenantPageNewState extends State<UpdateTenantPageNew> {
               ),
               _section("Tenant Info"),
 
-              _buildInputField("Tenant Name", "Enter tenant name",
+              _buildInputNameField("Tenant Name",
+                  "Enter tenant name",
                   _tenantNameController, Icons.person),
               const SizedBox(height: 16),
               _buildPhoneField(),

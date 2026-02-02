@@ -925,12 +925,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                 ),
               ),
             ),
-          // Address
-          if (address.isNotEmpty)
-            Padding(
-              padding: EdgeInsets.only(top: isSmallScreen ? 6.0 : 8.0),
-              child: buildSimpleInfoCard("Fieldworker Address", address, Icons.location_on, Colors.lime),
-            ),
+
           // Location
           if (location.isNotEmpty)
             Padding(
@@ -1031,11 +1026,6 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
     if (prop.flatNumber.isNotEmpty) {
       rows.add(buildInfoRow(Icons.format_list_numbered, Colors.green, "Flat Number", prop.flatNumber));
     }
-
-    if (prop.apartmentAddress.isNotEmpty) {
-      rows.add(buildInfoRow(Icons.location_on, Colors.pink, "Apartment Address", prop.apartmentAddress));
-    }
-
     return rows;
   }
 
@@ -1470,35 +1460,7 @@ class Admin_underflat_futurepropertyState extends State<Admin_underflat_futurepr
                             ],
                           ),
                         ),
-                        // Contact Information
-                        Container(
-                          margin: EdgeInsets.all(horizontalPadding),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: horizontalPadding / 2),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.contact_page, color: Colors.blue, size: (isSmallScreen ? 16.0 : 18.0) * fontScale),
-                                    SizedBox(width: horizontalPadding),
-                                    Text(
-                                      "Contact Information",
-                                      style: TextStyle(
-                                        fontSize: (isSmallScreen ? 15.0 : 16.0) * fontScale,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(height: verticalPadding * 2),
-                              buildContactCard("OWNER", prop.ownerName, prop.ownerNumber, bgColor: Colors.green),
-                              buildContactCard("CARETAKER", prop.careTakerName, prop.careTakerNumber, bgColor: Colors.purple),
-                            ],
-                          ),
-                        ),
+
                         // Additional Info
                         Container(
                           margin: EdgeInsets.all(horizontalPadding),

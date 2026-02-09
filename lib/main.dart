@@ -1,10 +1,8 @@
 import 'dart:convert';
-import 'dart:ui';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:provider/provider.dart';
 import 'package:verify_feild_worker/Notification_demo/notification_Service.dart';
@@ -17,11 +15,12 @@ import 'package:verify_feild_worker/Notification_demo/routes.dart';
 import 'package:verify_feild_worker/Z-Screen/splash.dart';
 import 'Administrator/Administrator_HomeScreen.dart';
 import 'Administrator/SubAdmin/SubAdminAccountant_Home.dart';
-import 'Controller/Show_demand_binding.dart';
 import 'Home_Screen.dart';
+import 'Home_Screen_click/VideoEditingForField.dart';
 import 'Home_Screen_click/live_tabbar.dart';
 import 'Internet_Connectivity/NetworkListener.dart';
 import 'SocialMediaHandler/SocialMediaHomePage.dart';
+import 'SocialMediaHandler/VideoSubmitPage.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -35,26 +34,25 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  GoogleFonts.config.allowRuntimeFetching = false;
+
   await Firebase.initializeApp();
-  // await dotenv.load(fileName: ".env");
-  await FireBaseApi().initNotifications();
 
-  // register FCM background handler
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-  final model = GenerativeModel(
-    model: 'gemini-1.5-flash-latest', // or 'gemini-1.5-pro'
-    apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
+  FirebaseMessaging.onBackgroundMessage(
+    firebaseMessagingBackgroundHandler,
   );
 
-  // TenantBinding();
+  await FireBaseApi().initNotifications();
+
+  final model = GenerativeModel(
+    model: 'gemini-1.5-flash-latest',
+    apiKey: 'AIzaSyDri7Gn2OPFa70G3fq2UFCeQj4u8xDLs94',
+  );
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-            ChangeNotifierProvider(create: (_) => PropertyProvider()),
+        ChangeNotifierProvider(create: (_) => PropertyProvider()),
         ChangeNotifierProvider(create: (_) => PropertyIdProvider()),
         ChangeNotifierProvider(create: (_) => MultiImageUploadProvider()),
         ChangeNotifierProvider(create: (_) => RealEstateShowDataProvider()),
@@ -63,6 +61,7 @@ void main() async {
     ),
   );
 }
+
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -85,7 +84,7 @@ class _MyAppState extends State<MyApp> {
       print("📩 Foreground: ${message.notification?.title}");
       print("Body: ${message.notification?.body}");
       print("Payload: ${message.data}");
-      // You can show local notification here if needed
+
     });
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
@@ -104,7 +103,6 @@ class _MyAppState extends State<MyApp> {
       }
     });
 
-    // ✅ Dynamic Links
     _initDynamicLinks();
   }
 
@@ -115,13 +113,12 @@ class _MyAppState extends State<MyApp> {
     required Map<String, dynamic> arguments,
   }) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // 1️⃣ Reset stack to HOME
+
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
         homeRoute,
             (route) => false,
       );
 
-      // 2️⃣ Open detail on top of HOME
       navigatorKey.currentState?.pushNamed(
         detailRoute,
         arguments: arguments,
@@ -129,7 +126,6 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  /// Extract buildingId from body
   String? extractBuildingIdFromBody(String? body) {
     if (body == null) return null;
     final regExp = RegExp(r'Building ID:\s*(\d+)');
@@ -175,6 +171,58 @@ class _MyAppState extends State<MyApp> {
         return;
       }
 
+      if (data['type'] == "EDITOR_REQUEST" && data['P_id'] != null) {
+        final int propertyIdFromPayload =
+            int.tryParse(data['P_id'].toString()) ?? 0;
+        final String? senderRole = data['sender_role']?.toString();
+        final String? senderName = data['sender_name']?.toString();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => SubmitVideoForField(
+                propertyId: propertyIdFromPayload,
+                userName:senderName,
+                fromNotification: true,
+              ),
+            ),
+          );
+        });
+        return;
+      }
+      if (data['type'] == "FIELDWORKER_MESSAGE" && data['P_id'] != null) {
+        final int propertyIdFromPayload =
+            int.tryParse(data['P_id'].toString()) ?? 0;
+        final String? senderRole = data['sender_role']?.toString();
+        final String? senderName = data['sender_name']?.toString();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(
+              builder: (_) => SubmitVideoPage(
+                propertyId: propertyIdFromPayload,
+                userName:senderName,
+                fromNotification: true,
+              ),
+            ),
+          );
+        });
+        return;
+      }
+
+
+      if (type == "EDITOR_MESSAGE") {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          navigatorKey.currentState?.pushNamedAndRemoveUntil(
+            Routes.administaterAddRentedFlatTabbar,
+                (route) => false,
+            arguments: {
+              "fromNotification": true,
+              "propertyId": propertyId,
+              "tabIndex": 0,
+            },
+          );
+        });
+        return;
+      }
       if (type == "RENTED_OUT_UPDATED") {
         WidgetsBinding.instance.addPostFrameCallback((_) {
           navigatorKey.currentState?.pushNamedAndRemoveUntil(
@@ -646,7 +694,9 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    final lightTheme = ThemeData.light().copyWith(
+    final lightTheme = ThemeData(
+      brightness: Brightness.light,
+      fontFamily: 'Poppins', // 👈 THIS IS THE KEY
       scaffoldBackgroundColor: const Color(0xFFF7F7F7),
       cardColor: Colors.white,
       appBarTheme: const AppBarTheme(
@@ -654,18 +704,15 @@ class _MyAppState extends State<MyApp> {
         foregroundColor: Colors.black,
         elevation: 1,
       ),
-      textTheme: ThemeData.light()
-          .textTheme
-          .apply(fontFamily: 'Poppins', bodyColor: Colors.black87),
     );
 
-    final darkTheme = ThemeData.dark().copyWith(
+    final darkTheme = ThemeData(
+      brightness: Brightness.dark,
+      fontFamily: 'Poppins', // 👈 REQUIRED
       scaffoldBackgroundColor: const Color(0xFF121212),
       cardColor: const Color(0xFF1E1E1E),
-      textTheme: ThemeData.dark()
-          .textTheme
-          .apply(fontFamily: 'Poppins', bodyColor: Colors.white),
     );
+
 
     return NetworkListener(
       child: AnimatedTheme(

@@ -680,138 +680,163 @@ class _AllLiveProperty extends State<SocialMediaHomePage> {
                                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                                             children: [
-
                                               Expanded(
-                                                child: InkWell(
-                                                  onTap: () async {
-                                                    String raw = (property.videoStatus ?? "").trim().toLowerCase();
-
-                                                    bool isPending = raw.isEmpty;
-                                                    bool isSubmitted = raw == "video submitted";
-                                                    bool isWorkerReason = raw == "reason";
-                                                    bool isRequested = raw == "video requested by editor";
-                                                    bool isEditingStarted = raw == "video recived and editing started";
-                                                    bool isUploaded = raw == "video uploaded";
-
-                                                    // -----------------------------------------------------
-                                                    // 🔥 If editor should upload final YouTube link
-                                                    // -----------------------------------------------------
-                                                    if (isEditingStarted && !isUploaded) {
-                                                      await Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (_) => SubmitVideoPage(
-                                                            propertyId: property.pId ?? 0,
-                                                            status: raw,
-                                                            action: "upload_video_link",
-                                                            userName: _name,
-                                                            userRole: _aadhar,
-                                                          ),
-                                                        ),
-                                                      );
-
-                                                      _fetchProperties();
-                                                      return;
-                                                    }
-
-                                                    // -----------------------------------------------------
-                                                    // 🔥 If final link already uploaded → view only
-                                                    // -----------------------------------------------------
-                                                    if (isUploaded) {
-                                                      await Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                          builder: (_) => SubmitVideoPage(
-                                                            propertyId: property.pId ?? 0,
-                                                            status: raw,
-                                                            action: "view_only",
-                                                            userName: _name,
-                                                            userRole: _aadhar,
-                                                          ),
-                                                        ),
-                                                      );
-                                                      return;
-                                                    }
-
-                                                    // -----------------------------------------------------
-                                                    // 🔥 Normal editor messaging flow
-                                                    // -----------------------------------------------------
-                                                    String actionToSend = "editor_reply";
-
-                                                    if (isSubmitted || isWorkerReason || isRequested) {
-                                                      actionToSend = "editor_received";
-                                                    }
-
-                                                    final result = await Navigator.push(
+                                                child: GestureDetector(
+                                                  onTap:(){
+                                                   Navigator.push(
                                                       context,
                                                       MaterialPageRoute(
                                                         builder: (_) => SubmitVideoPage(
                                                           propertyId: property.pId ?? 0,
-                                                          status: raw,
-                                                          action: actionToSend,
+                                                          sourceId: property.sourceId.toString(),
                                                           userName: _name,
-                                                          userRole: _aadhar,
                                                         ),
                                                       ),
                                                     );
-
-                                                    if (result == true) {
-                                                      _fetchProperties();
-                                                    }
                                                   },
-
                                                   child: Container(
-                                                    decoration: BoxDecoration(
-                                                      color: () {
-                                                        String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                        if (st.isEmpty) return Colors.red;
-                                                        if (st == "video submitted") return Colors.blue;
-                                                        if (st == "reason") return Colors.blue;
-                                                        if (st == "video requested by editor") return Colors.orange;
-                                                        if (st == "video recived and editing started") return Colors.orange;
-                                                        if (st == "video uploaded") return Colors.purple;
-                                                        return Colors.red;
-                                                      }(),
-                                                      borderRadius: BorderRadius.circular(10),
-                                                      border: Border.all(
-                                                        color: () {
-                                                          String st = (property.videoStatus ?? "").trim().toLowerCase();
-                                                          if (st.isEmpty) return Colors.red;
-                                                          if (st == "video submitted") return Colors.blue;
-                                                          if (st == "reason") return Colors.blue;
-                                                          if (st == "video requested by editor") return Colors.orange;
-                                                          if (st == "video recived and editing started") return Colors.orange;
-                                                          if (st == "video uploaded") return Colors.purple;
-                                                          return Colors.red;
-                                                        }(),
-                                                      ),
-                                                    ),
-                                                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                                    child: Row(
-                                                      children: [
-                                                        Icon(
-                                                          (property.videoStatus ?? "").trim().toLowerCase() == "video submitted"
-                                                              ? Icons.check_circle
-                                                              : Icons.error_outline,
-                                                          color: Colors.white,
-                                                        ),
-                                                        SizedBox(width: 8),
-                                                        Expanded(
-                                                          child: Text(
-                                                            (property.videoStatus ?? "").trim().isEmpty
-                                                                ? "Editor Request"
-                                                                : property.videoStatus!,
-                                                            style: TextStyle(
-                                                              color: Colors.white,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
+                                                          decoration: BoxDecoration(
+                                                            color: Colors.blue,
+                                                            borderRadius: BorderRadius.circular(10)
                                                           ),
-                                                        )
-                                                      ],
+                                                    child: Padding(
+                                                      padding: const EdgeInsets.all(8.0),
+                                                      child: Center(child: Text("For Video",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w700),)),
                                                     ),
                                                   ),
                                                 ),
                                               ),
+                                              // Expanded(
+                                              //   child: InkWell(
+                                              //     onTap: () async {
+                                              //       String raw = (property.videoStatus ?? "").trim().toLowerCase();
+                                              //
+                                              //       bool isPending = raw.isEmpty;
+                                              //       bool isSubmitted = raw == "video submitted";
+                                              //       bool isWorkerReason = raw == "reason";
+                                              //       bool isRequested = raw == "video requested by editor";
+                                              //       bool isEditingStarted = raw == "video recived and editing started";
+                                              //       bool isUploaded = raw == "video uploaded";
+                                              //
+                                              //       // -----------------------------------------------------
+                                              //       // 🔥 If editor should upload final YouTube link
+                                              //       // -----------------------------------------------------
+                                              //       if (isEditingStarted && !isUploaded) {
+                                              //         await Navigator.push(
+                                              //           context,
+                                              //           MaterialPageRoute(
+                                              //             builder: (_) => SubmitVideoPage(
+                                              //               propertyId: property.pId ?? 0,
+                                              //               status: raw,
+                                              //               action: "upload_video_link",
+                                              //               userName: _name,
+                                              //               userRole: _aadhar,
+                                              //             ),
+                                              //           ),
+                                              //         );
+                                              //
+                                              //         _fetchProperties();
+                                              //         return;
+                                              //       }
+                                              //
+                                              //       // -----------------------------------------------------
+                                              //       // 🔥 If final link already uploaded → view only
+                                              //       // -----------------------------------------------------
+                                              //       if (isUploaded) {
+                                              //         await Navigator.push(
+                                              //           context,
+                                              //           MaterialPageRoute(
+                                              //             builder: (_) => SubmitVideoPage(
+                                              //               propertyId: property.pId ?? 0,
+                                              //               status: raw,
+                                              //               action: "view_only",
+                                              //               userName: _name,
+                                              //               userRole: _aadhar,
+                                              //             ),
+                                              //           ),
+                                              //         );
+                                              //         return;
+                                              //       }
+                                              //
+                                              //       // -----------------------------------------------------
+                                              //       // 🔥 Normal editor messaging flow
+                                              //       // -----------------------------------------------------
+                                              //       String actionToSend = "editor_reply";
+                                              //
+                                              //       if (isSubmitted || isWorkerReason || isRequested) {
+                                              //         actionToSend = "editor_received";
+                                              //       }
+                                              //
+                                              //       final result = await Navigator.push(
+                                              //         context,
+                                              //         MaterialPageRoute(
+                                              //           builder: (_) => SubmitVideoPage(
+                                              //             propertyId: property.pId ?? 0,
+                                              //             status: raw,
+                                              //             action: actionToSend,
+                                              //             userName: _name,
+                                              //             userRole: _aadhar,
+                                              //           ),
+                                              //         ),
+                                              //       );
+                                              //
+                                              //       if (result == true) {
+                                              //         _fetchProperties();
+                                              //       }
+                                              //     },
+                                              //
+                                              //     child: Container(
+                                              //       decoration: BoxDecoration(
+                                              //         color: () {
+                                              //           String st = (property.videoStatus ?? "").trim().toLowerCase();
+                                              //           if (st.isEmpty) return Colors.red;
+                                              //           if (st == "video submitted") return Colors.blue;
+                                              //           if (st == "reason") return Colors.blue;
+                                              //           if (st == "video requested by editor") return Colors.orange;
+                                              //           if (st == "video recived and editing started") return Colors.orange;
+                                              //           if (st == "video uploaded") return Colors.purple;
+                                              //           return Colors.red;
+                                              //         }(),
+                                              //         borderRadius: BorderRadius.circular(10),
+                                              //         border: Border.all(
+                                              //           color: () {
+                                              //             String st = (property.videoStatus ?? "").trim().toLowerCase();
+                                              //             if (st.isEmpty) return Colors.red;
+                                              //             if (st == "video submitted") return Colors.blue;
+                                              //             if (st == "reason") return Colors.blue;
+                                              //             if (st == "video requested by editor") return Colors.orange;
+                                              //             if (st == "video recived and editing started") return Colors.orange;
+                                              //             if (st == "video uploaded") return Colors.purple;
+                                              //             return Colors.red;
+                                              //           }(),
+                                              //         ),
+                                              //       ),
+                                              //       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                                              //       child: Row(
+                                              //         children: [
+                                              //           Icon(
+                                              //             (property.videoStatus ?? "").trim().toLowerCase() == "video submitted"
+                                              //                 ? Icons.check_circle
+                                              //                 : Icons.error_outline,
+                                              //             color: Colors.white,
+                                              //           ),
+                                              //           SizedBox(width: 8),
+                                              //           Expanded(
+                                              //             child: Text(
+                                              //               (property.videoStatus ?? "").trim().isEmpty
+                                              //                   ? "Editor Request"
+                                              //                   : property.videoStatus!,
+                                              //               style: TextStyle(
+                                              //                 color: Colors.white,
+                                              //                 fontWeight: FontWeight.bold,
+                                              //               ),
+                                              //             ),
+                                              //           )
+                                              //         ],
+                                              //       ),
+                                              //     ),
+                                              //   ),
+                                              // ),
 
                                           // space between the two containers
                                                   Expanded(

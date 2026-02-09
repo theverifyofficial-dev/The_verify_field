@@ -29,6 +29,7 @@ class Property {
   final String squarefit;
   final String maintance;
   final String parking;
+  final String bookingDate;
   final String ageOfProperty;
   final String fieldworkarAddress;
   final String roadSize;
@@ -125,6 +126,7 @@ class Property {
     required this.advancePayment,
     required this.totalBalance,
     required this.finalAmount,
+    required this.bookingDate,
     required this.secondAmount,
     required this.statusForFinalPayment,
     required this.statusForSecondPayment,
@@ -172,6 +174,7 @@ class Property {
       liveUnlive: json["live_unlive"] ?? "",
       fieldWorkerNumber: json["field_workar_number"] ?? "",
       registryAndGpa: json["registry_and_gpa"] ?? "",
+      bookingDate: json["booking_date"] ?? "",
       loan: json["loan"] ?? "",
       longitude: json["Longitude"] ?? "",
       latitude: json["Latitude"] ?? "",
@@ -940,7 +943,13 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
                         ),
 
                         const SizedBox(height: 10),
-
+                        Text("Booking Date : "+formatBookingDate(item.bookingDate),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontFamily: "Poppins",
+                            fontWeight: FontWeight.w600,
+                          ),),
+                        const SizedBox(height: 6),
                         /// ---------------- PAYMENT BUTTONS ----------------
                         if(userStoredFAadharCard=="Sub Administrator")
                         Row(
@@ -1159,7 +1168,15 @@ class _AdministatiorFieldWorkerPendingFlatsState extends State<AdministatiorFiel
       ),
     );
   }
-
+  String formatBookingDate(String rawDate) {
+    try {
+      final DateTime date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
+      // Example output: 07 Feb 2026
+    } catch (e) {
+      return rawDate; // fallback if parsing fails
+    }
+  }
   Widget _paymentBtn({
     required String label,
     required Color color,

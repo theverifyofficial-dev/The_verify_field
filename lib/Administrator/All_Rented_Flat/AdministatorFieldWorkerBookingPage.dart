@@ -67,6 +67,7 @@ class Property {
   final String totalBalance;
   final String secondAmount;
   final String finalAmount;
+  final String bookingDate;
 
   Property({
     required this.pId,
@@ -127,6 +128,7 @@ class Property {
     required this.secondAmount,
     required this.statusForFinalPayment,
     required this.statusForSecondPayment,
+    required this.bookingDate,
   });
 
   factory Property.fromJson(Map<String, dynamic> json) {
@@ -189,6 +191,7 @@ class Property {
       statusForSecondPayment: json["status_for_second_payment"] ?? "",
       statusForFinalPayment: json["status_for_final_payment"] ?? "",
       sourceId: json["source_id"] ?? "",
+      bookingDate: json["booking_date"] ?? "",
     );
   }
 }
@@ -612,7 +615,15 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
                 ],
               ),
 
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
+              Text("Booking Date : "+formatBookingDate(item.bookingDate),
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontFamily: "Poppins",
+                  fontWeight: FontWeight.w600,
+                ),),
+              const SizedBox(height: 6),
+
               const Divider(height: 1),
 
               const SizedBox(height: 10),
@@ -766,6 +777,15 @@ class _AdministatiorFieldWorkerBookingPageState extends State<AdministatiorField
     return num.tryParse(value ?? "0") ?? 0;
   }
 
+  String formatBookingDate(String rawDate) {
+    try {
+      final DateTime date = DateTime.parse(rawDate);
+      return DateFormat('dd MMM yyyy').format(date);
+      // Example output: 07 Feb 2026
+    } catch (e) {
+      return rawDate; // fallback if parsing fails
+    }
+  }
 
   String formatINR(num value) {
     final f = NumberFormat.currency(

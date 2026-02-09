@@ -6,41 +6,61 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 FlutterLocalNotificationsPlugin();
 
 class FireBaseApi {
-  final _fireBaseMessaging = FirebaseMessaging.instance;
+  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
 
   Future<void> initNotifications() async {
-    await Firebase.initializeApp();
-
-    await _fireBaseMessaging.requestPermission(
+    // 🔔 Request permissions
+    await _firebaseMessaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
     );
 
-    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const initSettings = InitializationSettings(android: androidSettings);
+    // 🔧 Local notifications setup
+    const AndroidInitializationSettings androidSettings =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const DarwinInitializationSettings iosSettings =
+    DarwinInitializationSettings(
+      requestAlertPermission: true,
+      requestBadgePermission: true,
+      requestSoundPermission: true,
+    );
+
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidSettings,
+      iOS: iosSettings,
+    );
+
     await flutterLocalNotificationsPlugin.initialize(initSettings);
 
-    final fCMToken = await _fireBaseMessaging.getToken();
-    print("🔑 FCM Token: $fCMToken");
+    // 🔑 Token
+    final token = await _firebaseMessaging.getToken();
+    print('🔑 FCM Token: $token');
 
-    FirebaseMessaging.onBackgroundMessage(BackgroundMessageHandler);
-
+    // 📬 Terminated
     FirebaseMessaging.instance.getInitialMessage().then((message) {
-      if (message != null) {
-        handleMessage(message);
-      }
+      if (message != null) handleMessage(message);
     });
 
+    // 📬 Background → foreground
     FirebaseMessaging.onMessageOpenedApp.listen(handleMessage);
 
+    // 📬 Foreground
     FirebaseMessaging.onMessage.listen((message) {
-      print(" Foreground message: ${message.notification?.title}");
       showLocalNotification(message);
       handleMessage(message);
     });
   }
 }
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+
+  print('🔕 Background message: ${message.messageId}');
+}
+
 
 @pragma('vm:entry-point')
 Future<void> BackgroundMessageHandler(RemoteMessage message) async {
@@ -81,20 +101,20 @@ void handleMessage(RemoteMessage message) {
 
 void showLocalNotification(RemoteMessage message) {
   final notification = message.notification;
-
   if (notification == null) return;
 
-  const androidDetails = AndroidNotificationDetails(
+  const AndroidNotificationDetails androidDetails =
+  AndroidNotificationDetails(
     'high_importance_channel',
     'High Importance Notifications',
-    channelDescription: 'This channel is used for important notifications.',
+    channelDescription: 'Important notifications',
     importance: Importance.max,
     priority: Priority.high,
-    styleInformation: BigTextStyleInformation(''),
     icon: '@mipmap/ic_launcher',
   );
 
-  const platformDetails = NotificationDetails(android: androidDetails);
+  const NotificationDetails platformDetails =
+  NotificationDetails(android: androidDetails);
 
   flutterLocalNotificationsPlugin.show(
     notification.hashCode,

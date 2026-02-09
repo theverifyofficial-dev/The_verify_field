@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/intl.dart';
 
 class SubmitVideoPage extends StatefulWidget {
-  final int propertyId;
-  final String action;
-  final String userName;
-  final String userRole; // editor / fieldworker
-  final String status;
-
+  final int? propertyId;
+  final String? userName;
+  final String? sourceId;
+  final bool fromNotification;
+  final String? buildingId;
   const SubmitVideoPage({
     super.key,
-    required this.propertyId,
-    required this.action,
-    required this.userName,
-    required this.userRole,
-    required this.status,
+    this.propertyId,
+    this.userName,
+    this.sourceId,
+    this.fromNotification = false,
+    this.buildingId,
   });
 
   @override
@@ -26,362 +24,331 @@ class SubmitVideoPage extends StatefulWidget {
 }
 
 class _SubmitVideoPageState extends State<SubmitVideoPage> {
-  final TextEditingController msgController = TextEditingController();
-  final TextEditingController linkController = TextEditingController();
+  final TextEditingController messageController = TextEditingController();
 
-  Map<int, String> submittedStatus = {};
-  Map<String, dynamic>? editorInfo;
+  final String apiUrl =
+      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php";
+
+  bool loading = false;
+  bool chatLoading = true;
+  List<dynamic> messages = [];
 
   @override
   void initState() {
     super.initState();
-    loadStatus();
-    fetchEditorInfo();
+    fetchChat();
   }
 
-  Future<void> loadStatus() async {
-    final prefs = await SharedPreferences.getInstance();
-    String? saved = prefs.getString("videoStatus_${widget.propertyId}");
-    if (saved != null) {
-      submittedStatus[widget.propertyId] = saved;
+  Future<void> sendData({
+    required String action,
+    String? text,
+  }) async {
+    if (widget.propertyId == null) return;
+
+    final body = <String, String>{
+      "action": action,
+      "id": widget.propertyId.toString(),
+      "by_name": widget.userName ?? "",
+    };
+
+    if (text != null && text.isNotEmpty) {
+      body["text"] = text;
     }
-    setState(() {});
-  }
-
-  Future<void> fetchEditorInfo() async {
-    final url = Uri.parse(
-      "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php",
-    );
 
     try {
-      final res = await http.post(url, body: {
-        "action": "get_status",
+      await http.post(Uri.parse(apiUrl), body: body);
+
+      messageController.clear();
+
+      FocusScope.of(context).unfocus();
+
+      setState(() {});
+
+      fetchChat();
+    } catch (e) {
+      debugPrint("❌ SEND ERROR: $e");
+    }
+  }
+
+  Future<void> fetchChat() async {
+    try {
+      final res = await http.post(Uri.parse(apiUrl), body: {
+        "action": "get_chat",
         "id": widget.propertyId.toString(),
       });
 
       final decoded = jsonDecode(res.body);
-      print("📥 STATUS FETCHED: $decoded");
 
-      if (decoded is List && decoded.isNotEmpty) {
-        editorInfo = decoded.first;
-      } else if (decoded is Map && decoded["data"] is Map) {
-        editorInfo = decoded["data"];
-      } else if (decoded is Map && decoded["data"] is List) {
-        editorInfo = decoded["data"].first;
+      if (decoded is Map && decoded["messages"] is List) {
+        messages = decoded["messages"];
+      } else if (decoded is List) {
+        messages = decoded;
       }
     } catch (e) {
-      print("❌ ERROR get_status: $e");
+      debugPrint("❌ GET CHAT ERROR: $e");
     }
 
+    chatLoading = false;
     setState(() {});
-  }
-
-  Future<String?> submitVideo({
-    required String action,
-    String? text,
-    String? videoLink,
-  }) async {
-    final url = Uri.parse(
-        "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/video_editor.php");
-
-    Map<String, String> body = {
-      "action": action,
-      "id": widget.propertyId.toString(),
-      "by_name": widget.userName,
-      "role": widget.userRole,
-    };
-
-    if (action == "upload_video_link") {
-      body["video_link"] = videoLink ?? "";
-    } else {
-      body["text"] = text ?? "";
-    }
-
-    try {
-      final res = await http.post(url, body: body);
-      print("📤 SENT: $body");
-      print("📩 RESPONSE: ${res.body}");
-
-      final data = jsonDecode(res.body);
-
-      if (data["ok"] == true) {
-        return data["data"]["messages"][0]["status_after"];
-      }
-    } catch (e) {
-      print("❌ SUBMIT ERROR: $e");
-    }
-
-    return null;
   }
 
   Future<void> openTelegram() async {
     final Uri url = Uri.parse("https://t.me/Nakli_artist");
     await launchUrl(url, mode: LaunchMode.externalApplication);
   }
+  Future<void> uploadVideo() async {
+    final Uri url = Uri.parse("https://verifyserve.social/Second%20PHP%20FILE/main_realestate_for_website/videos_link.html");
+    await launchUrl(url, mode: LaunchMode.externalApplication);
+  }
 
   @override
   Widget build(BuildContext context) {
-    String rawStatus = widget.status.trim().toLowerCase();
-
-    bool isEditor = widget.userRole.toLowerCase() == "editor";
-    bool isFieldworker = widget.userRole.toLowerCase() == "fieldworker";
-
-    /// FIX → API sometimes gives "video uploaded" OR "video_uploaded"
-    bool isUploaded =
-        rawStatus == "video uploaded" || rawStatus == "video_uploaded";
-
-    bool showLinkBox = widget.action == "upload_video_link" && isEditor;
-
-    /// FINAL LOGIC
-    bool hideMessageBox = isFieldworker && isUploaded;
-    bool hideSubmitButton = isFieldworker && isUploaded;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Submit Video", style: TextStyle(color: Colors.white)),
+        leading: GestureDetector(
+            onTap: (){
+              Navigator.pop(context);
+            },
+            child: Icon(Icons.keyboard_arrow_left)),
+        title: const Text("Video Communication"),
         backgroundColor: Colors.blueAccent,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
-
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(18),
+      body: RefreshIndicator(
+        onRefresh: fetchChat,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            /// STATUS BANNER
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              decoration: BoxDecoration(
-                color: Colors.red,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  widget.status.isEmpty ? "Editor Request" : widget.status,
-                  style: const TextStyle(
-                      fontSize: 22, color: Colors.white, fontWeight: FontWeight.bold),
-                ),
+            SizedBox(height: 10,),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Live Property Id: ${widget.propertyId}"),
+                  Text("Source Id:${widget.sourceId}"),
+                ],
               ),
             ),
 
-            const SizedBox(height: 15),
-
-            Text("Property ID: ${widget.propertyId}",
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-
-            const SizedBox(height: 20),
-
-            /// TELEGRAM BUTTON
-            Center(
-              child: InkWell(
-                onTap: openTelegram,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-                  decoration: BoxDecoration(
-                      color: Colors.blueAccent,
-                      borderRadius: BorderRadius.circular(12)),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.telegram, color: Colors.white),
-                      SizedBox(width: 10),
-                      Text(
-                        "Open Telegram",
-                        style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            /// FINAL VIDEO LINK BOX (ONLY EDITOR)
-            if (showLinkBox) ...[
-              const Text("Final Video Link",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-
-              TextField(
-                controller: linkController,
-                decoration: InputDecoration(
-                  hintText: "Paste YouTube Link",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
-
-            /// MESSAGE BOX (HIDE IF FIELDWORKER + UPLOADED)
-            if (!showLinkBox && !hideMessageBox) ...[
-              const Text("Message",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-
-              TextField(
-                controller: msgController,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: "Write something...",
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-            ],
-
-            /// SUBMIT BUTTON (HIDE IF FIELDWORKER + UPLOADED)
-            if (!hideSubmitButton)
-              GestureDetector(
-                onTap: () async {
-                  if (showLinkBox) {
-                    if (linkController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Enter YouTube Link")),
-                      );
-                      return;
-                    }
-
-                    String? status = await submitVideo(
-                        action: "upload_video_link",
-                        videoLink: linkController.text.trim());
-
-                    if (status != null) Navigator.pop(context, true);
-                  } else {
-                    if (msgController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(const SnackBar(content: Text("Enter Message")));
-                      return;
-                    }
-
-                    String? status = await submitVideo(
-                        action: widget.action,
-                        text: msgController.text.trim());
-
-                    if (status != null) Navigator.pop(context, true);
-                  }
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.blueAccent,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Text(
-                      showLinkBox ? "Submit Video Link" : "Submit",
-                      style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ),
-              ),
-
-            const SizedBox(height: 20),
-
-            /// MESSAGE HISTORY
-            if (editorInfo != null)
-              ListView(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.mail, color: Colors.blue),
-                      SizedBox(width: 6),
-                      const Text(
-                        "Message History",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      Expanded(
+                        child: InkWell(
+                          onTap: openTelegram,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.blueAccent,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.telegram, color: Colors.white),
+                                SizedBox(width: 10),
+                                Text(
+                                  "Open Telegram",
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10,),
+                      Expanded(
+                        child: InkWell(
+                          onTap: uploadVideo,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 14),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.play_circle_fill, color: Colors.white),
+                                SizedBox(width: 10),
+                                Text(
+                                  "Upload Video",
+                                  style: TextStyle(
+                                    fontFamily: 'PoppinsMedium',
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
-                  ...List.generate(
-                    (editorInfo?["messages"] ?? []).length,
-                        (i) {
-                      var msg = editorInfo!["messages"][i];
-                      bool isEditorMessage = msg["role"] == "Editor";
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: isEditorMessage
-                              ? (Theme.of(context).brightness == Brightness.dark
-                              ? Colors.blue.withOpacity(0.15)
-                              : Colors.blue.withOpacity(0.08))
-                              : (Theme.of(context).brightness == Brightness.dark
-                              ? Colors.green.withOpacity(0.15)
-                              : Colors.green.withOpacity(0.08)),
-                          border: Border.all(
-                            color: isEditorMessage
-                                ? (Theme.of(context).brightness == Brightness.dark
-                                ? Colors.blue.shade300
-                                : Colors.blue.shade600)
-                                : (Theme.of(context).brightness == Brightness.dark
-                                ? Colors.green.shade300
-                                : Colors.green.shade600),
-                            width: 1.2,
+
+                  const SizedBox(height: 20),
+
+                  TextField(
+                    controller: messageController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: "Type message...",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 15),
+
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed:
+                          loading ? null : () => sendData(
+                            action: "editor_request_video",
                           ),
+                          child: const Text("Request Video"),
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "${msg["actor_name"]} (${msg["role"]})",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isEditorMessage ? Colors.blue : Colors.green,
-                              ),
-                            ),
-                            const SizedBox(height: 5),
-                            Text(
-                              msg["message_text"] ?? "",
-                              style: const TextStyle(
-                                  fontSize: 14, fontWeight: FontWeight.w600),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              "Time: ${formatDateTime(msg["created_at"]["date"] ?? "")}",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.grey
-                                    : Colors.black,
-                              ),
-                            ),
-                          ],
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: loading
+                              ? null
+                              : () {
+                            if (messageController.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                    Text("Enter message first")),
+                              );
+                              return;
+                            }
+                            sendData(
+                              action: "editor_message",
+                              text: messageController.text.trim(),
+                            );
+                          },
+                          child: const Text("Send"),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
 
+            const Divider(),
+
+            Expanded(
+              child: chatLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : messages.isEmpty
+                  ? const Center(child: Text("No chat found"))
+                  : ListView.builder(
+                padding: const EdgeInsets.all(12),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final msg = messages[index];
+
+                  final String actor =
+                      msg["actor_name"] ?? "";
+                  final String role = msg["role"] ?? "";
+                  final String text =
+                      msg["message_text"] ?? "";
+                  final String actionType =
+                      msg["action_type"] ?? "";
+
+                  final bool isMe =
+                      actor == widget.userName;
+                  final bool isEditor = role == "Editor";
+                  final Color bubbleColor = isMe
+                      ? Colors.blue.shade600
+                      : Colors.green.shade600;
+                  return Align(
+                    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      padding: const EdgeInsets.all(12),
+                      constraints: BoxConstraints(
+                        maxWidth: MediaQuery.of(context).size.width * 0.75,
+                      ),
+                      decoration: BoxDecoration(
+                        color: bubbleColor,
+                        borderRadius: BorderRadius.only(
+                          topLeft: const Radius.circular(16),
+                          topRight: const Radius.circular(16),
+                          bottomLeft:
+                          isMe ? const Radius.circular(16) : const Radius.circular(4),
+                          bottomRight:
+                          isMe ? const Radius.circular(4) : const Radius.circular(16),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+
+                          Text(
+                            "$actor • $role",
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: isMe ? Colors.white70 : Colors.white70,
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          Text(
+                            text,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              fontFamily: "PoppinsMedium",
+                              color: Colors.white,
+                            ),
+                          ),
+
+                          const SizedBox(height: 6),
+
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Text(
+                              formatDate(msg["created_at"]?["date"] ?? ""),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontFamily: "Poppins",
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
     );
   }
-  String formatDateTime(String raw) {
+
+  String formatDate(String raw) {
     try {
-      DateTime date = DateTime.parse(raw);
-      return DateFormat('dd-MM-yyyy  hh:mm a').format(date);
-    } catch (e) {
-      return raw; // fallback if parsing fails
+      return DateFormat('dd MMM, hh:mm a')
+          .format(DateTime.parse(raw));
+    } catch (_) {
+      return raw;
     }
   }
-
 }

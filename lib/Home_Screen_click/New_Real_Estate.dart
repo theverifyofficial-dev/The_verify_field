@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../SocialMediaHandler/VideoSubmitPage.dart';
 import '../ui_decoration_tools/app_images.dart';
+import 'VideoEditingForField.dart';
 import 'View_All_Details.dart';
 
 class NewRealEstateShowDateModel {
@@ -589,58 +590,6 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
       detailRows.add(_DetailRow(icon: Icons.numbers, label: 'Building ID', value: property.sId.toString(), theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
     }
     detailRows.add(_DetailRow(icon: Icons.numbers, label: 'Building Flat ID', value: property.sourceId ?? 'N/A', theme: theme, getIconColor: _getIconColor, fontSize: detailFontSize, fontWeight: FontWeight.bold));
-    // Video Status Button
-    Widget? videoStatusButton;
-    if (!_blank(property.videoStatus)) {
-      String st = (property.videoStatus ?? "").trim().toLowerCase();
-      Color btnColor = Colors.red;
-      IconData btnIcon = Icons.error_outline;
-      String btnText = "Pending";
-
-      if (st == "video submitted") { btnColor = Colors.green; btnIcon = Icons.check_circle; btnText = "Video Submitted"; }
-      else if (st == "video requested by editor") { btnColor = Colors.blue; btnText = property.videoStatus!; }
-      else if (st == "video recived and editing started") { btnColor = Colors.orange; btnText = property.videoStatus!; }
-      else if (st == "video uploaded") { btnColor = Colors.purple; btnIcon = Icons.check_circle; btnText = property.videoStatus!; }
-      else if (st.isEmpty) { btnText = "Pending"; }
-
-      videoStatusButton = Padding(
-        padding: const EdgeInsets.only(top: 8.0),
-        child: InkWell(
-          onTap: () async {
-            bool isPending = st.isEmpty;
-            bool isEditingStarted = st == "video recived and editing started";
-            bool isUploaded = st == "video uploaded";
-
-            if (isEditingStarted || isUploaded) {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Editing already started")));
-              await Navigator.push(context, MaterialPageRoute(builder: (_) => SubmitVideoPage(propertyId: property.pId ?? 0, status: st, action: "view_only", userName: _name, userRole: "fieldworker")));
-              return;
-            }
-
-            String actionToSend = st == "video requested by editor" ? "fieldworker_reply" : "submit_video";
-            String displayStatus = isPending ? "Pending" : property.videoStatus!;
-
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => SubmitVideoPage(propertyId: property.pId ?? 0, status: displayStatus, action: actionToSend, userName: _name, userRole: "fieldworker")),
-            );
-            if (result == true) _fetchProperties();
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(color: btnColor, borderRadius: BorderRadius.circular(10)),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(btnIcon, color: Colors.white, size: 18),
-                const SizedBox(width: 6),
-                Text(btnText, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
 
     return Container(
       width: double.infinity,
@@ -686,7 +635,21 @@ class _Show_New_Real_EstateState extends State<Show_New_Real_Estate> {
                             ),
                             const SizedBox(height: 8),
                             ...detailRows,
-                            if (videoStatusButton != null) videoStatusButton,
+                            InkWell(
+                              onTap: (){
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (_) => SubmitVideoForField(propertyId: property.pId ?? 0,
+                                    sourceId: property.sourceId.toString(),
+                                    userName: _name,)),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                decoration: BoxDecoration(color: Colors.blue, borderRadius: BorderRadius.circular(10)),
+                                child: Text("For Video", style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
                             const Spacer(),
                           ],
                         ),

@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:ui' show FontFeature;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -394,10 +395,6 @@ class OwnerData {
   };
 }
 
-// =====================================================
-// SCREEN
-// =====================================================
-
 class Show_Billing_Fieldworker_Pending_Page extends StatefulWidget {
 
   final int propertyId;
@@ -502,8 +499,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final res = await http.get(uri);
 
-    debugPrint("🟣 STATUS API CODE: ${res.statusCode}");
-    debugPrint("🟣 STATUS API BODY: ${res.body}");
+    // debugPrint("🟣 STATUS API CODE: ${res.statusCode}");
+    // debugPrint("🟣 STATUS API BODY: ${res.body}");
 
     if (res.statusCode != 200) return null;
 
@@ -592,15 +589,15 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final response = await http.get(url);
 
-    debugPrint("🟡 TENANT STATUS: ${response.statusCode}");
-    debugPrint("🟡 TENANT RAW RESPONSE: ${response.body}");
+    // debugPrint("🟡 TENANT STATUS: ${response.statusCode}");
+    // debugPrint("🟡 TENANT RAW RESPONSE: ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}");
     }
 
     final jsonResponse = json.decode(response.body);
-    debugPrint("🟢 TENANT PARSED JSON: $jsonResponse");
+    // debugPrint("🟢 TENANT PARSED JSON: $jsonResponse");
 
     if (jsonResponse["success"] == true &&
         jsonResponse["data"] is List) {
@@ -681,114 +678,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     return booking;
   }
 
-  bool _visitorInitialized = false;
-  bool _changed = false;
 
-  Future<void> _saveStep1() async {
-    final t = _pc(s1TenantCtl);
-    final g = _pc(s1GiveCtl);
-    if (t < 0 || g < 0 || g > t) {
-      _toast(context, "Step 1: Give to Owner cannot exceed Tenant pays.");
-      return;
-    }
-    final h = (t - g).clamp(0, double.infinity);
-
-    final ok = await _postStep1(
-      tenantAdvance: t,
-      giveToOwnerAdvance: g,
-      officeHold: h.toDouble(),
-      subid: _subId!,
-    );
-    if (!ok) {
-      _toast(context, "Step 1 save failed.");
-      return;
-    }
-
-    s1Saved = true;
-    s1Tenant = t;
-    s1Give = g;
-    s1Hold = h.toDouble();
-    _recalc();
-    _toast(context, "Step 1 saved.");
-
-    _changed = true; // mark dirty
-    await _refreshStatus(_subId!);
-  }
-  Future<void> _saveStep2() async {
-    if (!(s1Saved || step1Done)) {
-      _toast(context, "Save Step 1 first.");
-      return;
-    }
-    if (_status == null || _status!.id == 0) {
-      _toast(context, "Cannot add Step 2: first payment record not found.");
-      return;
-    }
-
-    final t = _pc(s2TenantCtl);
-    if (t <= 0) {
-      _toast(context, "Step 2: Enter a positive amount.");
-      return;
-    }
-
-    final ok = await _postStep2(id: _status!.id, midPaymentToOwner: t);
-    if (!ok) {
-      _toast(context, "Step 2 save failed.");
-      return;
-    }
-
-    s2Saved = true;
-    s2Tenant = t;
-    _recalc();
-    _toast(context, "Step 2 saved.");
-
-    _changed = true; // mark dirty
-    await _refreshStatus(_subId!); // ✅
-  }
-  Future<void> _saveFinal() async {
-    if (!(s1Saved || step1Done)) {
-      _toast(context, "Save Step 1 first.");
-      return;
-    }
-    if (_status == null || _status!.id == 0) {
-      _toast(context, "Cannot add Step 3: first payment record not found.");
-      return;
-    }
-
-    final t = _pc(s3TenantCtl);
-    if (t < 0) {
-      _toast(context, "Step 3: Invalid amount.");
-      return;
-    }
-
-    // lock UI + recompute
-    s3Saved = true;
-    s3Tenant = t;
-    _recalc();
-
-    final ok = await _postStep3(
-      id: _status!.id,
-      tenantPayLastAmount: s3Tenant,
-      bothSideCompanyComition: companyCommissionTotal,
-      remainingHold: settlementPool,
-      remainBalanceShareToOwner: ownerFinalNow,
-      ownerRecivedFinalAmount: s1Give + s2Tenant + ownerFinalNow,
-      tenantTotalPay: tenantPaid,
-      remainingFinalBalance: remaining,
-    );
-
-    if (!ok) {
-      _toast(context, "Step 3 save failed.");
-      return;
-    }
-
-    _toast(context, "Step 3 saved.");
-
-    // optional: refresh local screen state before leaving
-    await _refreshStatus(_subId!);
-
-    // tell previous page to refresh
-    if (mounted) Navigator.pop(context, true);
-  }
   Future<void> _refreshStatus(int subid) async {
     setState(() => _loadingStatus = true);
 
@@ -832,209 +722,9 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     }
   }
 
-
-  // -----------------------------------------------------
-  // APPLY STATUS TO UI
-  // -----------------------------------------------------
   final ValueNotifier<int> _calcTick = ValueNotifier(0);
 
-  // -----------------------------------------------------
-  // PREFILL FROM PROPERTY (initial hints)
-  // -----------------------------------------------------
-  void _prefillFromProperty(Property p) {
-    // Only prefill tenant payments; office-hold is derived from Step1 fields.
-    s1TenantCtl.text = _numOnly(p.advancePayment);
-    s2TenantCtl.text = _numOnly(p.secondAmount);
-    s3TenantCtl.text = _numOnly(p.finalAmount);
-    _syncHold();
-    _recalc();
-  }
 
-  void _logLine([String msg = ""]) => debugPrint(msg);
-
-  void _logBlock(String title, Map<String, dynamic> data) {
-    _logLine("—" * 50);
-    _logLine(title);
-    data.forEach((k, v) => _logLine("  $k: $v"));
-    _logLine("—" * 50);
-  }
-// --- tiny helpers: no intl needed
-  String _two(int n) => n.toString().padLeft(2, '0');
-  String _date(DateTime d) => '${d.year}-${_two(d.month)}-${_two(d.day)}';
-  String _time(DateTime d) => '${_two(d.hour)}:${_two(d.minute)}:${_two(d.second)}';
-
-  Future<bool> _postStep1({
-    required double tenantAdvance,
-    required double giveToOwnerAdvance,
-    required double officeHold,
-    required int subid,
-  }) async {
-    final sw = Stopwatch()..start();
-    final now = DateTime.now();
-
-    try {
-      setState(() => _s1Submitting = true);
-
-      final url = Uri.parse(_step1Endpoint);
-      final bodyMap = {
-        "tenant_advance": _intStr(tenantAdvance),
-        "give_to_owner_advance": _intStr(giveToOwnerAdvance),
-        "office_hold": _intStr(officeHold),
-        "subid": subid.toString(),
-        "dates": _date(now),
-        "times": _time(now),
-      };
-
-      _logBlock("STEP1 REQUEST", {
-        "method": "POST",
-        "url": url.toString(),
-        "contentType": "application/x-www-form-urlencoded",
-        "body": bodyMap.toString(),
-      });
-
-      final resp = await http.post(
-        url,
-        headers: {"Content-Type": "application/x-www-form-urlencoded"},
-        body: bodyMap,
-      );
-
-      _logBlock("STEP1 RESPONSE", {
-        "status": resp.statusCode,
-        "elapsedMs": sw.elapsedMilliseconds,
-        "headers": resp.headers.toString(),
-        "body": resp.body,
-      });
-
-      return resp.statusCode == 200 && resp.body.toLowerCase().contains('success');
-    } catch (e) {
-      _logBlock("STEP1 ERROR", {"error": e.toString()});
-      return false;
-    } finally {
-      if (mounted) setState(() => _s1Submitting = false);
-    }
-  }
-
-  Future<bool> _postStep2({
-    required int id,
-    required double midPaymentToOwner,
-  }) async {
-    final sw = Stopwatch()..start();
-    final now = DateTime.now();
-
-    try {
-      setState(() => _s2Submitting = true);
-
-      final url = Uri.parse(_step2Endpoint);
-      final req = http.MultipartRequest('POST', url)
-        ..fields['id'] = id.toString()
-        ..fields['mid_payment_to_owner'] = _intStr(midPaymentToOwner)
-        ..fields['dates_2nd'] = _date(now)
-        ..fields['times_2nd'] = _time(now);
-
-      _logBlock("STEP2 REQUEST", {
-        "method": "POST (multipart/form-data)",
-        "url": url.toString(),
-        "fields": req.fields.toString(),
-        "files": "[]",
-      });
-
-      final streamed = await req.send();
-      final res = await http.Response.fromStream(streamed);
-
-      _logBlock("STEP2 RESPONSE", {
-        "status": res.statusCode,
-        "elapsedMs": sw.elapsedMilliseconds,
-        "headers": res.headers.toString(),
-        "body": res.body,
-      });
-
-      return res.statusCode == 200 && res.body.toLowerCase().contains('success');
-    } catch (e) {
-      _logBlock("STEP2 ERROR", {"error": e.toString()});
-      return false;
-    } finally {
-      if (mounted) setState(() => _s2Submitting = false);
-    }
-  }
-  bool _s3Submitting = false;
-
-  static const _step3Endpoint =
-      "https://verifyserve.social/Second%20PHP%20FILE/Payment/third_setp_payment.php";
-
-  Future<bool> _postStep3({
-    required int id,
-    required double tenantPayLastAmount,
-    required double bothSideCompanyComition,
-    required double remainingHold,
-    required double remainBalanceShareToOwner,
-    required double ownerRecivedFinalAmount,
-    required double tenantTotalPay,
-    required double remainingFinalBalance,
-  }) async {
-    final sw = Stopwatch()..start();
-    final now = DateTime.now();
-
-    try {
-      setState(() => _s3Submitting = true);
-
-      final req = http.MultipartRequest(
-        'POST',
-        Uri.parse(_step3Endpoint),
-      )
-        ..fields['id'] = id.toString()
-        ..fields['tenant_pay_last_amount'] = _intStr(tenantPayLastAmount)
-        ..fields['bothside_company_comition'] = _intStr(bothSideCompanyComition)
-        ..fields['remaining_hold'] = _intStr(remainingHold)
-        ..fields['company_keep_comition'] = _intStr(companyKeepNow)
-        ..fields['remain_balance_share_to_owner'] = _intStr(remainBalanceShareToOwner)
-        ..fields['final_recived_amount_owner'] = _intStr(ownerRecivedFinalAmount)
-        ..fields['total_pay_tenant'] = _intStr(tenantTotalPay)
-        ..fields['remaing_final_balance'] = _intStr(remainingFinalBalance)
-        ..fields['visiter_share'] = _intStr(visitorShare)
-        ..fields['office_gst'] = _intStr(gstAmount)
-        ..fields['after_gst_amount'] = _intStr(netAfterGst)
-        ..fields['office_share_fifty_percent'] = _intStr(officeFinalShare)
-        ..fields['field_workar_share_fifity_percent'] = _intStr(fieldWorkerFinalShare)
-
-        ..fields['dates_3rd'] = _date(now)
-        ..fields['times_3rd'] = _time(now);
-
-      _logBlock("STEP3 REQUEST", {
-        "url": _step3Endpoint,
-        "fields": req.fields,
-      });
-
-      final streamed = await req.send();
-      final res = await http.Response.fromStream(streamed);
-
-      _logBlock("STEP3 RESPONSE", {
-        "status": res.statusCode,
-        "body": res.body,
-      });
-
-      return res.statusCode == 200 &&
-          res.body.toLowerCase().contains('success');
-    } catch (e) {
-      _logBlock("STEP3 ERROR", {"error": e.toString()});
-      return false;
-    } finally {
-      if (mounted) setState(() => _s3Submitting = false);
-    }
-  }
-
-
-
-
-  // -----------------------------------------------------
-  // CALC & HELPERS
-  // -----------------------------------------------------
-  void _syncHold() {
-    final t = _pc(s1TenantCtl);
-    final g = _pc(s1GiveCtl);
-    final h = (t - g).clamp(0, double.infinity);
-    final newText = h.toStringAsFixed(0);
-    if (s1HoldCtl.text != newText) s1HoldCtl.text = newText;
-  }
 
   void _recalc() {
     // STEP 1
@@ -1108,14 +798,6 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
     ).format(value);
   }
 
-
-  String _intStr(num v) => v.toStringAsFixed(0);
-  String _numOnly(String s) {
-    final cleaned = s.replaceAll(RegExp(r'[^0-9.]'), '');
-    final d = double.tryParse(cleaned) ?? 0;
-    return d.toStringAsFixed(0);
-  }
-
   Future<List<Property>> fetchBookingData() async {
     final url = Uri.parse(
       "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/show_pending_flat_for_fieldworkar.php?field_workar_number=${widget.fieldworkerNumber}",
@@ -1123,8 +805,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
 
     final response = await http.get(url);
 
-    debugPrint("🟡 BOOKING LIST STATUS: ${response.statusCode}");
-    debugPrint("🟡 BOOKING LIST RAW RESPONSE: ${response.body}");
+    // debugPrint("🟡 BOOKING LIST STATUS: ${response.statusCode}");
+    // debugPrint("🟡 BOOKING LIST RAW RESPONSE: ${response.body}");
 
     if (response.statusCode != 200) {
       throw Exception("HTTP ${response.statusCode}");
@@ -1274,6 +956,248 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _updateFinancialData({
+    required int propertyId, // P_id
+    required int rowId,       // booking table id
+    required String rent,
+    required String security,
+    required String commission,
+    required String extra,
+    required String ownerCommission,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse(
+          "https://verifyserve.social/Second%20PHP%20FILE/main_realestate/book_flat_2nd_table_update_api.php",
+        ),
+        body: {
+          "P_id": propertyId.toString(),
+          "id": rowId.toString(),
+          "Rent": rent,
+          "Security": security,
+          "Commission": commission,
+          "Extra_Expense": extra,
+          "owner_side_commition": ownerCommission,
+        },
+      );
+
+      final data = jsonDecode(response.body);
+
+      if (data["status"] == true) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text("Updated successfully")));
+        setState(() {});
+      } else {
+        throw data["message"] ?? "Update failed";
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    }
+  }
+  double _calcTotalAmount(Property item) {
+    double p(String v) =>
+        double.tryParse(v.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+
+    return p(item.rent) +
+        p(item.security) +
+        p(item.commission) +
+        p(item.extraExpense);
+  }
+
+  void _openUpdateSheet(BuildContext context, Property item) {
+    final rentCtrl = TextEditingController(text: item.rent);
+    final securityCtrl = TextEditingController(text: item.security);
+    final commissionCtrl = TextEditingController(text: item.commission);
+    final extraCtrl = TextEditingController(text: item.extraExpense);
+    final ownerCommission = TextEditingController(text: item.ownerCommission);
+
+    final ValueNotifier<double> totalNotifier = ValueNotifier(
+      _calculateTotal(
+        rent: rentCtrl.text,
+        security: securityCtrl.text,
+        commission: commissionCtrl.text,
+        extra: extraCtrl.text,
+      ),
+    );
+
+    void recalc() {
+      totalNotifier.value = _calculateTotal(
+        rent: rentCtrl.text,
+        security: securityCtrl.text,
+        commission: commissionCtrl.text,
+        extra: extraCtrl.text,
+      );
+    }
+
+    rentCtrl.addListener(recalc);
+    securityCtrl.addListener(recalc);
+    commissionCtrl.addListener(recalc);
+    extraCtrl.addListener(recalc);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 16,
+                right: 16,
+                top: 12,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+              ),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// HANDLE
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                    ),
+
+                    const Text(
+                      "Update Financial Details",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 16),
+
+                    _editField("Rent", rentCtrl),
+                    _editField("Security", securityCtrl),
+                    _editField("Tenant Commission", commissionCtrl),
+                    _editField("Extra Expense", extraCtrl),
+
+                    const SizedBox(height: 8 ),
+
+                    /// TOTAL AMOUNT (AUTO)
+                    ValueListenableBuilder<double>(
+                      valueListenable: totalNotifier,
+                      builder: (_, value, __) {
+                        return Container(
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.blue.withOpacity(0.08),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Total Amount",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              Text(
+                                _cur(value),
+                                style: const TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 14),
+
+                    _editField("Owner Commission", ownerCommission),
+
+                    const SizedBox(height: 20),
+
+                    /// SAVE BUTTON
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          backgroundColor: Colors.blue.shade700,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: const Text(
+                          "Save Changes",
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        onPressed: () {
+                          Navigator.pop(context);
+                          _updateFinancialData(
+                            propertyId: widget.propertyId,
+                            rowId: item.id,
+                            rent: rentCtrl.text,
+                            security: securityCtrl.text,
+                            commission: commissionCtrl.text,
+                            extra: extraCtrl.text,
+                            ownerCommission: ownerCommission.text,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+  double _calculateTotal({
+    required String rent,
+    required String security,
+    required String commission,
+    required String extra,
+  }) {
+    double p(String v) =>
+        double.tryParse(v.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+
+    return p(rent) + p(security) + p(commission) + p(extra);
+  }
+
+  Widget _editField(String label, TextEditingController controller) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: controller,
+        keyboardType: TextInputType.number,
+        inputFormatters: [
+          FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+        ],
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
       ),
     );
   }
@@ -1528,6 +1452,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                 color: Theme.of(context).colorScheme.onBackground,
                               ),
                             ),
+
+
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -1597,6 +1523,8 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                               itemCount: bookingList.length,
                               itemBuilder: (context, index) {
                                 final item = bookingList[index];
+                                final double calculatedTotal = _calcTotalAmount(item);
+
                                 // 🔹 TOTAL AMOUNT (DOUBLE)
                                 final double newTotalAmount =
                                 item.totalBalance.trim().isNotEmpty &&
@@ -1633,6 +1561,44 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                     padding: const EdgeInsets.all(16),
                                     child: Column(
                                       children: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.end,
+                                          children: [
+                                            InkWell(
+                                              borderRadius: BorderRadius.circular(20),
+                                              onTap: () {
+                                                _openUpdateSheet(context, item);
+                                              },
+                                              child: Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.withOpacity(0.1),
+                                                  borderRadius: BorderRadius.circular(20),
+                                                  border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                                                ),
+                                                child: Row(
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.edit_note_sharp,
+                                                      size: 20,
+                                                      color: Colors.blue,
+                                                    ),
+                                                    SizedBox(width: 6),
+                                                    Text(
+                                                      "Update",
+                                                      style: TextStyle(
+                                                        fontSize: 13,
+                                                        fontWeight: FontWeight.w600,
+                                                        color: Colors.blue,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+
                                         _buildDetailRow(
                                           "Rent",
                                           "₹ ${_formatNumber(item.rent)}",
@@ -1655,7 +1621,7 @@ class _Show_Billing_Fieldworker_Pending_PageState extends State<Show_Billing_Fie
                                         ),
                                         _buildDetailRow(
                                           "Total Amount",
-                                          "₹ ${_formatNumber(item.totalBalance)}",
+                                          "₹ ${_formatNumber(calculatedTotal.toString())}",
                                           context,
                                           isTotal: true,
                                         ),

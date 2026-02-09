@@ -2235,6 +2235,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
     );
   }
 }
+
 void openWhatsApp(String phoneNumber) {
   if (defaultTargetPlatform == TargetPlatform.android) {
     final cleanNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');

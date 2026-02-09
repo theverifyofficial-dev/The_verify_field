@@ -10,6 +10,7 @@ import 'Monthly_Tab/Monthly_LiveBuy.dart';
 import 'Monthly_Tab/Monthly_LiveRent.dart';
 import 'Monthly_Tab/Monthly_agreement_external.dart';
 import 'Target_Widget.dart';
+import 'history_target.dart';
 
 class MonthlyTargetScreen extends StatefulWidget {
   const MonthlyTargetScreen({super.key});
@@ -265,7 +266,28 @@ class _MonthlyTargetScreenState extends State<MonthlyTargetScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Monthly Targets")),
+      appBar: AppBar(title: const Text("Monthly Targets"),
+        actions: [
+        TextButton.icon(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const TargetHistoryScreen(),
+              ),
+            );
+          },
+          icon: const Icon(
+            Icons.history,
+            color: Colors.white,
+            size: 20,
+          ),
+          label: const Text(
+            "History",
+            style: TextStyle(color: Colors.white),
+          ),
+        ),
+      ],),
       body: loading
           ? const Center(child: CircularProgressIndicator())
           : targetGrid([

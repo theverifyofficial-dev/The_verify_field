@@ -14,6 +14,7 @@ import '../../Target_details/Yearly_Tab/Book_Buy.dart';
 import '../../Target_details/Yearly_Tab/Book_Rent.dart';
 import '../../Target_details/Yearly_Tab/Building.dart';
 import '../../Target_details/Yearly_Tab/Police_verification.dart';
+import '../Target_details/history_target.dart';
 import 'Monthly_Tab/Book_Rent.dart';
 import 'Monthly_Tab/Live_Commercial.dart';
 import 'Monthly_Tab/Monthly_LiveBuy.dart';
@@ -592,17 +593,37 @@ class _TargetState extends State<Target> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          child: Text(
-            "$name • $number",
-            style: TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: isDark ? Colors.white : Colors.black,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "$name • $number",
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : Colors.black,
+              ),
             ),
-          ),
+
+            // 🔥 HISTORY BUTTON
+            TextButton.icon(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TargetHistoryScreen(
+                      number: number, // 👈 ADMIN PASSES NUMBER
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.history, size: 18,color: Colors.white,),
+              label: const Text("History",style: TextStyle(color: Colors.white),),
+            ),
+          ],
         ),
+
+        const SizedBox(height: 8),
         GridView.count(
           crossAxisCount: 3,
           shrinkWrap: true,

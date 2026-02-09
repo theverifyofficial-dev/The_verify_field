@@ -72,7 +72,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
   final securityAmount = TextEditingController();
   bool securityInstallment = false;
   final installmentAmount = TextEditingController();
-  String meterInfo = 'As per Govt. Unit';
+  String meterInfo = 'Commercial';
   final customUnitAmount = TextEditingController();
   final propertyID = TextEditingController();
   DateTime? shiftingDate;
@@ -202,7 +202,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
           securityAmount.text = data["securitys"]?.toString() ?? "";
           installmentAmount.text = data["installment_security_amount"]?.toString() ?? "";
 
-          meterInfo = data["meter"] ?? "As per Govt. Unit";
+          meterInfo = data["meter"] ?? "Commercial";
           customUnitAmount.text = data["custom_meter_unit"] ?? "";
           maintenance = data["maintaince"] ?? "Including";
           customMaintanceAmount.text = data["custom_maintenance_charge"]?.toString() ?? "";
@@ -1216,7 +1216,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             floor.text = data['Floor_'] ?? '';
             Address.text = "Flat-${data['Flat_number']}    " + data['Apartment_Address']  ?? '';
             rentAmount.text = data['show_Price'] ?? "";
-            meterInfo = data['meter'] == "Govt" ? "As per Govt. Unit" : "Custom Unit (Enter Amount)";
+            meterInfo = data['meter'] == "Govt" ? "Commercial" : "Custom Unit (Enter Amount)";
             parking = (data['parking'].toString().toLowerCase().contains("bike"))
                 ? "Bike"
                 : (data['parking'].toString().toLowerCase().contains("car"))
@@ -1252,7 +1252,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
       Address.clear();
       rentAmount.clear();
 
-      meterInfo = 'As per Govt. Unit';
+      meterInfo = 'Commercial';
       parking = 'Car';
       maintenance = 'Including';
 
@@ -1931,7 +1931,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             DropdownButtonFormField<String>(
               value: meterInfo,
               items: const [
-                'As per Govt. Unit',
+                'Commercial',
                 'Custom Unit (Enter Amount)',
               ].map(
                     (e) => DropdownMenuItem(
@@ -1942,7 +1942,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
                   ),
                 ),
               ).toList(),
-              onChanged: (v) => setState(() => meterInfo = v ?? 'As per Govt. Unit'),
+              onChanged: (v) => setState(() => meterInfo = v ?? 'Commercial'),
               decoration: _fieldDecoration('Meter Info').copyWith(
                 labelStyle: const TextStyle(color: Colors.black),
               ),
@@ -2009,6 +2009,7 @@ class _CommercialWizardPageState extends State<CommercialWizardPage> with Ticker
             const SizedBox(height: 12),
 
             DropdownButtonFormField<String>(
+
               value: parking,
               items: const ['Car', 'Bike', 'Both', 'No']
                   .map(

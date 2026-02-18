@@ -1715,41 +1715,6 @@ class _Home_ScreenState extends State<Home_Screen> with TickerProviderStateMixin
   }
 }
 
-class _GlassCircle extends StatelessWidget {
-  final Widget child;
-
-  const _GlassCircle({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: [
-            Colors.white.withOpacity(0.15),
-            Colors.white.withOpacity(0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.2),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
 class _TargetProgressCircle extends StatefulWidget {
   // final double progress;
   // final String percentage;
@@ -2046,42 +2011,6 @@ class _TargetProgressCircleState extends State<_TargetProgressCircle>
   }
 }
 
-// Custom painter for gradient progress arc
-class _ProgressPainter extends CustomPainter {
-  final double progress;
-  final double strokeWidth;
-  final Gradient gradient;
-
-  _ProgressPainter({
-    required this.progress,
-    required this.strokeWidth,
-    required this.gradient,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..shader = gradient.createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = (size.width - strokeWidth) / 2;
-
-    canvas.drawArc(
-      Rect.fromCircle(center: center, radius: radius),
-      -pi / 2,
-      2 * pi * progress,
-      false,
-      paint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
-}
-
 class _PremiumFeatureCard extends StatefulWidget {
   final String title;
   final Gradient gradient;
@@ -2336,5 +2265,3 @@ class _GradientBorderPainter extends CustomPainter {
   bool shouldRepaint(covariant _GradientBorderPainter oldDelegate) =>
       oldDelegate.angle != angle;
 }
-
-//hello

@@ -421,9 +421,6 @@ class _AllAgreementState extends State<AllAgreement> {
                     ),
                   ),
 
-
-
-              // 🔢 TOTAL COUNT
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(
@@ -635,18 +632,37 @@ class _AllAgreementState extends State<AllAgreement> {
                 ],
               ),
 
-              if (!isPolice)
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text(
-                    "Floor: ${item.floor}",
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "cost: ₹${item.agreement_price}",
                     style: const TextStyle(
+                      fontStyle: FontStyle.italic,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.white,
+                      color: Colors.white70,
                     ),
                   ),
-                ),
+                  if (!isPolice)
+                    Text(
+                        "Floor: ${item.floor}",
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                  Text(
+                    "Filled On ${_formatDate(item.current_date)}",
+                    style: const TextStyle(
+                      fontStyle: FontStyle.italic,
+                      fontSize: 12,
+                      color: Colors.white70,
+                    ),
+                  ),
+                ],
+              ),
 
               const SizedBox(height: 10),
 

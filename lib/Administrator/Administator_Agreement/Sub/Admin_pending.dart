@@ -90,7 +90,7 @@ class _AdminPendingState extends State<AdminPending> {
     final bool isPolice = agreement.Type == "Police Verification";
 
     final Color glowColor = isRejected
-        ? Colors.redAccent
+        ? Colors.greenAccent
         : isUpdated
         ? (isPolice ? Colors.blueAccent : Colors.greenAccent)
         : (isPolice ? Colors.blue : Colors.green);

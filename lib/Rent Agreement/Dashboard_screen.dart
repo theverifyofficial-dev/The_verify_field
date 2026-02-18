@@ -50,7 +50,16 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
      _loadReward();
    }
 
-   Future<void> _loadReward() async {
+  RewardStatus get safeRewardStatus {
+    return _rewardStatus ??
+        RewardStatus(
+          totalAgreements: 0,
+          isDiscounted: false,
+        );
+  }
+
+
+  Future<void> _loadReward() async {
      final reward = await fetchRewardStatus();
 
      if (!mounted) return;
@@ -137,7 +146,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
 
           Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => RentalWizardPage(rewardStatus: _rewardStatus!,)),
+              MaterialPageRoute(builder: (context) => RentalWizardPage(rewardStatus: safeRewardStatus,)),
             );
           },
             _rewardStatus?.isDiscounted == true,
@@ -146,7 +155,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           _buildSectionItem("Commercial", Icons.apartment_sharp, () async {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CommercialWizardPage(rewardStatus: _rewardStatus!,)),
+              MaterialPageRoute(builder: (context) => CommercialWizardPage(rewardStatus: safeRewardStatus,)),
             );
           },
             _rewardStatus?.isDiscounted == true,
@@ -155,7 +164,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           _buildSectionItem("External Rental", Icons.add_business, () async {
             Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => ExternalWizardPage(rewardStatus: _rewardStatus!,)),
+            MaterialPageRoute(builder: (context) => ExternalWizardPage(rewardStatus: safeRewardStatus,)),
             );
           },
             _rewardStatus?.isDiscounted == true,
@@ -164,7 +173,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           _buildSectionItem("Furnished", Icons.workspace_premium, ()  async {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => FurnishedForm(rewardStatus: _rewardStatus!,)),
+              MaterialPageRoute(builder: (context) => FurnishedForm(rewardStatus: safeRewardStatus,)),
             );
           },
             _rewardStatus?.isDiscounted == true,
@@ -173,7 +182,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           _buildSectionItem("Renewal", Icons.timer, ()  async {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => RenewalForm(rewardStatus: _rewardStatus!,)),
+              MaterialPageRoute(builder: (context) => RenewalForm(rewardStatus: safeRewardStatus,)),
             );
           },
             _rewardStatus?.isDiscounted == true,
@@ -182,7 +191,7 @@ class _AgreementDashboardState extends State<AgreementDashboard> {
           _buildSectionItem("Police Verification", Icons.local_police_outlined, ()  async {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => VerificationWizardPage(rewardStatus: _rewardStatus!,)),
+              MaterialPageRoute(builder: (context) => VerificationWizardPage(rewardStatus: safeRewardStatus,)),
             );
           },
             _rewardStatus?.isDiscounted == true,
